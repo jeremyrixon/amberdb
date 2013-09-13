@@ -8,3 +8,22 @@ amberdb
           [Backlog](http://huboard.com/nla/amberdb/backlog))
 
 A graph domain model on top of SQL for representing digital library objects and metadata.
+
+Usage
+-----
+
+In-memory:
+
+```java
+try (AmberDb db = new AmberDb() {
+    Work work = db.addWork();
+}
+```
+
+Local filesystem:
+
+```java
+try (AmberDb db = new AmberDb(Paths.get("/tmp/mygraph")) {
+    Work work = db.addWork();
+}
+```
