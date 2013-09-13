@@ -28,3 +28,7 @@ try (AmberDb db = new AmberDb(Paths.get("/tmp/mygraph")) {
     Work work = db.addWork();
 }
 ```
+
+Remote JDBC:
+
+TODO
