@@ -1,4 +1,4 @@
-jelly-domain
-============
+amberdb
+=======
 
-Digital Library Domain Model
+A graph domain model on top of SQL for representing digital library objects and metadata.
