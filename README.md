@@ -6,6 +6,7 @@ AmberDB
 [![Build Status](https://travis-ci.org/nla/amberdb.png?branch=master)](https://travis-ci.org/nla/amberdb)
 (Huboard: [Tasks](http://huboard.com/nla/amberdb/board),
           [Backlog](http://huboard.com/nla/amberdb/backlog))
+([Javadoc](http://nla.github.io/amberdb/apidocs/))
 
 A graph domain model on top of SQL for representing digital library objects and metadata.
 
