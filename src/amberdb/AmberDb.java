@@ -11,6 +11,7 @@ import amberdb.model.Work;
 import com.tinkerpop.blueprints.impls.tg.TinkerGraph;
 import com.tinkerpop.frames.FramedGraph;
 import com.tinkerpop.frames.FramedGraphFactory;
+import com.tinkerpop.frames.modules.gremlingroovy.GremlinGroovyModule;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerModule;
 
 public class AmberDb implements AutoCloseable {
@@ -41,7 +42,10 @@ public class AmberDb implements AutoCloseable {
 	}
 
 	private static FramedGraph<TinkerGraph> openGraph(TinkerGraph tinker) {
-		return new FramedGraphFactory(new JavaHandlerModule()).create(tinker);
+		return new FramedGraphFactory(
+				new JavaHandlerModule(),
+				new GremlinGroovyModule())
+		.create(tinker);
 	}
 	
 	/**
