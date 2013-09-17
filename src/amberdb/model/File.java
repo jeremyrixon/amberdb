@@ -1,5 +1,8 @@
 package amberdb.model;
 
+import amberdb.relation.IsFileOf;
+
+import com.tinkerpop.frames.Adjacency;
 import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
@@ -31,4 +34,7 @@ public interface File extends Node {
     
     @Property("fileLocation")
     public void setLocation(String fileLocation);
+    
+    @Adjacency(label = IsFileOf.label)
+    public Copy getCopy();
 }

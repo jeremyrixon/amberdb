@@ -6,6 +6,8 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicLong;
 
+import amberdb.model.Copy;
+import amberdb.model.File;
 import amberdb.model.Work;
 
 import com.tinkerpop.blueprints.impls.tg.TinkerGraph;
@@ -63,6 +65,20 @@ public class AmberDb implements AutoCloseable {
 	public Work addWork() {
 		return graph.addVertex(objectIdSeq.next(), Work.class);
 	}
+	
+	/**
+	 * Finds a file by id
+	 */
+	public File findFile(long objectId) {
+	    return graph.getVertex(objectId, File.class);
+	}
+	
+	/**
+	 * Create a new file
+	 */
+	public File addFile() {
+	    return graph.addVertex(objectIdSeq.next(), File.class);
+	}
 
 	@Override
 	public void close() throws IOException {
@@ -70,6 +86,20 @@ public class AmberDb implements AutoCloseable {
 		if (dataPath != null) {
 			objectIdSeq.save(dataPath.resolve("objectIdSeq"));
 		}
+	}
+	
+	/**
+	 * Find a copy by id
+	 */
+	protected Copy findCopy(long objectId) {
+	    return graph.getVertex(objectIdSeq.next(), Copy.class);
+	}
+	
+	/**
+	 * Create a new copy
+	 */
+	protected Copy addCopy() {
+	    return graph.addVertex(objectIdSeq.next(), Copy.class);
 	}
 
 	private static class Sequence {

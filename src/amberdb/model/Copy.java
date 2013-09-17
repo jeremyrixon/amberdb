@@ -4,6 +4,7 @@ import java.util.Date;
 
 import amberdb.relation.IsFileOf;
 
+import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.frames.Adjacency;
 import com.tinkerpop.frames.Property;
@@ -69,10 +70,10 @@ public interface Copy extends Node {
     @Property("expiryDate")
     public void setExpiryDate(Date expiryDate);
       
-    @Adjacency(label = IsFileOf.label)
+    @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     public Iterable<File> getFiles();
     
-    @Adjacency(label = IsFileOf.label)
+    @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     public IsFileOf addFile(final File file);
         
     abstract class Impl implements JavaHandlerContext<Vertex>, Copy {
