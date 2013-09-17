@@ -7,8 +7,9 @@ import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
+import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
 
-public interface AmberGraphDao {
+public interface AmberGraphDao extends Transactional<AmberGraphDao> {
 
     /*
      *  DB creation operations (DDL)
@@ -19,7 +20,6 @@ public interface AmberGraphDao {
     		"pi         VARCHAR(100), " +
     		"txn_start  BIGINT, " +
     		"txn_end    BIGINT, " +
-    		"txn_open   TINYINT(1), " +
     		"properties TEXT)")
     void createVertexTable();
     
@@ -28,12 +28,12 @@ public interface AmberGraphDao {
     		"id         BIGINT PRIMARY KEY AUTO_INCREMENT, " +
     		"txn_start  BIGINT, " +
     		"txn_end    BIGINT, " +
-            "txn_open   TINYINT(1), " +
     		"properties TEXT, " +
     		"v_out      BIGINT, " +
     		"v_in       BIGINT, " +
     		"label      VARCHAR(100), " +
-    		"edge_order BIGINT)")
+    		"edge_order BIGINT, " +
+    		"pi         BIGINT)")
     void createEdgeTable();
     
     @SqlUpdate(
@@ -41,7 +41,10 @@ public interface AmberGraphDao {
     		"id    BIGINT PRIMARY KEY AUTO_INCREMENT, " +
     		"e_id  BIGINT, " +
     		"name  VARCHAR(100), " +
-    		"value BLOB)")
+            "b_value TINYINT(1), " +
+            "s_value TEXT, " +
+            "i_value BIGINT, " +
+            "d_value DOUBLE)")
     void createEdgePropertyTable();
     @SqlUpdate(
             "CREATE UNIQUE INDEX e_uni_prop " +
@@ -53,7 +56,10 @@ public interface AmberGraphDao {
     		"id    BIGINT PRIMARY KEY AUTO_INCREMENT, " +
     		"v_id  BIGINT, " +
     		"name  VARCHAR(100), " +
-    		"value BLOB)")
+    		"b_value TINYINT(1), " +
+    		"s_value TEXT, " +
+    		"i_value BIGINT, " +
+    		"d_value DOUBLE)")
     void createVertexPropertyTable();
     @SqlUpdate(
             "CREATE UNIQUE INDEX v_uni_prop " +
@@ -61,50 +67,65 @@ public interface AmberGraphDao {
     void createVertexPropertyTableIndex();
 
     @SqlUpdate(
+            "CREATE TABLE IF NOT EXISTS pi_generator (" +
+            "pi    BIGINT PRIMARY KEY AUTO_INCREMENT)")
+    void createPiGeneratorTable();
+    
+    @SqlUpdate(
             "CREATE TABLE IF NOT EXISTS transaction (" +
     		"id     BIGINT PRIMARY KEY AUTO_INCREMENT, " +
     		"commit TIMESTAMP, " +
     		"user   VARCHAR(100))")
     void createTransactionTable();
 
-//    @SqlUpdate("CREATE TABLE IF NOT EXISTS obj_id (id BIGINT PRIMARY KEY AUTO_INCREMENT)")
-//    void createObjectIdTable();
-
     @SqlUpdate("DROP TABLE IF EXISTS vertex, edge, edge_property_idx, vertex_property_idx, transaction")
     void dropTables();
     
-
-    
     /*
-     *  Transaction related operations
+     * Pi generation operations
      */
-    
+    @GetGeneratedKeys
+    @SqlUpdate(
+            "INSERT INTO pi_generator () " + 
+            "VALUES ()")
+    long newPi();
+
     @SqlUpdate(
             "DELETE " +
-    		"FROM transaction " +
-    		"WHERE id = :id")
-    void removeTxn(@Bind("id") long id);
-
+    		"FROM pi_generator " +
+    		"WHERE pi < MAX(pi) - 5")
+    void garbageCollectPis();
     
-    @SqlUpdate(
-            "UPDATE transaction " +
-    		"SET commit = :timestamp " +
-    		"WHERE id = :id")
-    void commitTxn(@Bind("id") long id, @Bind("timestamp") Date timestamp);
-
-    
-    @GetGeneratedKeys
-    @SqlUpdate("INSERT INTO transaction (user) VALUES (:user)")
-    long createTxn(@Bind("user") String user);
-
-    
-    @SqlQuery(
-            "SELECT id, user, commit " +
-    		"FROM transaction " +
-    		"WHERE id = :id")
-    @Mapper(AmberTransactionMapper.class)
-    AmberTransaction 
-        findTxnById(@Bind("id") long id);
+//    /*
+//     *  Transaction related operations
+//     */
+//    
+//    @SqlUpdate(
+//            "DELETE " +
+//    		"FROM transaction " +
+//    		"WHERE id = :id")
+//    void removeTxn(@Bind("id") long id);
+//
+//    
+//    @SqlUpdate(
+//            "UPDATE transaction " +
+//    		"SET commit = :timestamp " +
+//    		"WHERE id = :id")
+//    void commitTxn(@Bind("id") long id, @Bind("timestamp") Date timestamp);
+//
+//    
+//    @GetGeneratedKeys
+//    @SqlUpdate("INSERT INTO transaction (user) VALUES (:user)")
+//    long createTxn(@Bind("user") String user);
+//
+//    
+//    @SqlQuery(
+//            "SELECT id, user, commit " +
+//    		"FROM transaction " +
+//    		"WHERE id = :id")
+//    @Mapper(AmberTransactionMapper.class)
+//    AmberTransaction 
+//        findTxnById(@Bind("id") long id);
 
     
     
@@ -131,18 +152,24 @@ public interface AmberGraphDao {
     		"WHERE id = :id")
     void updateEdgeOrder(@Bind("id") long id, @Bind("edgeOrder") Integer edgeOrder);
     
-    
     @GetGeneratedKeys
     @SqlUpdate(
             "INSERT INTO edge (txn_start, txn_open, properties, v_out, v_in, label, edge_order) " +
-    		"VALUES (:txnStart, true, :properties, :outId, :inId, :label, 0)")
+            "VALUES (:txnStart, true, :properties, :outId, :inId, :label, 0)")
     long createEdge(@Bind("txnStart") long txnStart, @Bind("properties") String properties, @Bind("outId") long outId, @Bind("inId") long inId, @Bind("label") String label);
+    
+//    @GetGeneratedKeys
+//    @SqlUpdate(
+//            "INSERT INTO edge (txn_start, txn_open, properties, v_out, v_in, label, edge_order) " +
+//    		"VALUES (:txnStart, true, :properties, :outId, :inId, :label, 0)")
+//    long createEdge(@Bind("txnStart") long txnStart, @Bind("properties") String properties, @Bind("outId") long outId, @Bind("inId") long inId, @Bind("label") String label);
 
     
-    @SqlQuery(
+    @SqlQuery( // txn
             "SELECT id, txn_start, txn_end, txn_open, properties, v_out, v_in, label, edge_order " +
     		"FROM edge " +
-    		"WHERE id = :id")
+    		"WHERE id = :id " +
+    		"AND txn_end IS NULL")
     @Mapper(AmberEdgeMapper.class)
     AmberEdge 
         findEdgeById(@Bind("id") long id);
@@ -189,9 +216,10 @@ public interface AmberGraphDao {
         findInEdgesByVertexIdAndLabel(@Bind("vertexId") long vertexId, @Bind("labels") String labels);
     
     
-    @SqlQuery(
+    @SqlQuery( // txn
             "SELECT id, txn_start, txn_end, txn_open, properties, v_out, v_in, label, edge_order " +
-            "FROM edge")
+            "FROM edge " +
+            "WHERE txn_end IS NULL")
     @Mapper(AmberEdgeMapper.class)
     Iterator<AmberEdge> 
         findAllEdges();
@@ -316,19 +344,29 @@ public interface AmberGraphDao {
     /*
      * Property index related operations
      */
+
+    // Vertex indexes
     
     @GetGeneratedKeys
     @SqlUpdate(
-            "REPLACE INTO vertex_property_idx (v_id, name, value) " +
+            "INSERT INTO vertex_property_idx (v_id, name, b_value) " +
     		"VALUES (:id, :name, :value)")
-    long setVertexPropertyIndexEntry(@Bind("id") long id, @Bind("name") String name, @Bind("value") Object value);
-
-//    @GetGeneratedKeys
-//    @SqlUpdate(
-//            "MERGE INTO vertex_property_idx (v_id, name, value) " +
-//            "KEY (v_id, name) " +
-//            "VALUES (:id, :name, :value)")
-//    long setVertexPropertyIndexEntry(@Bind("id") long id, @Bind("name") String name, @Bind("value") Object value);
+    long setBooleanVertexPropertyIndexEntry(@Bind("id") long id, @Bind("name") String name, @Bind("value") Boolean value);
+    @GetGeneratedKeys
+    @SqlUpdate(
+            "INSERT INTO vertex_property_idx (v_id, name, d_value) " +
+            "VALUES (:id, :name, :value)")
+    long setDoubleVertexPropertyIndexEntry(@Bind("id") long id, @Bind("name") String name, @Bind("value") Double value);
+    @GetGeneratedKeys
+    @SqlUpdate(
+            "INSERT INTO vertex_property_idx (v_id, name, s_value) " +
+            "VALUES (:id, :name, :value)")
+    long setStringVertexPropertyIndexEntry(@Bind("id") long id, @Bind("name") String name, @Bind("value") String value);
+    @GetGeneratedKeys
+    @SqlUpdate(
+            "INSERT INTO vertex_property_idx (v_id, name, i_value) " +
+            "VALUES (:id, :name, :value)")
+    long setIntegerVertexPropertyIndexEntry(@Bind("id") long id, @Bind("name") String name, @Bind("value") Integer value);
     
     @SqlUpdate(
             "DELETE FROM vertex_property_idx " +
@@ -346,24 +384,60 @@ public interface AmberGraphDao {
             "FROM vertex v, vertex_property_idx vpi " +
             "WHERE v.id = vpi.v_id " +
             "AND vpi.name = :name " +
-            "AND vpi.value = :value")
+            "AND vpi.b_value = :value")
     @Mapper(AmberVertexMapper.class)
     Iterator<AmberVertex> 
-        findVerticesByProperty(@Bind("name") String name, @Bind("value") Object value);
+        findVerticesByBooleanProperty(@Bind("name") String name, @Bind("value") Boolean value);
+    @SqlQuery(
+            "SELECT v.id id, txn_start, txn_end, txn_open, properties, pi " +
+            "FROM vertex v, vertex_property_idx vpi " +
+            "WHERE v.id = vpi.v_id " +
+            "AND vpi.name = :name " +
+            "AND vpi.d_value = :value")
+    @Mapper(AmberVertexMapper.class)
+    Iterator<AmberVertex> 
+        findVerticesByDoubleProperty(@Bind("name") String name, @Bind("value") Double value);
+    @SqlQuery(
+            "SELECT v.id id, txn_start, txn_end, txn_open, properties, pi " +
+            "FROM vertex v, vertex_property_idx vpi " +
+            "WHERE v.id = vpi.v_id " +
+            "AND vpi.name = :name " +
+            "AND vpi.s_value = :value")
+    @Mapper(AmberVertexMapper.class)
+    Iterator<AmberVertex> 
+        findVerticesByStringProperty(@Bind("name") String name, @Bind("value") String value);
+    @SqlQuery(
+            "SELECT v.id id, txn_start, txn_end, txn_open, properties, pi " +
+            "FROM vertex v, vertex_property_idx vpi " +
+            "WHERE v.id = vpi.v_id " +
+            "AND vpi.name = :name " +
+            "AND vpi.i_value = :value")
+    @Mapper(AmberVertexMapper.class)
+    Iterator<AmberVertex> 
+        findVerticesByIntegerProperty(@Bind("name") String name, @Bind("value") Integer value);
 
-    
+    // Edge indexes
     
     @GetGeneratedKeys
     @SqlUpdate(
-          "REPLACE INTO edge_property_idx (e_id, name, value) " +
-          "VALUES (:id, :name, :value)")
-    long setEdgePropertyIndexEntry(@Bind("id") long id, @Bind("name") String name, @Bind("value") Object value);
-//    @GetGeneratedKeys
-//    @SqlUpdate(
-//            "MERGE INTO edge_property_idx (e_id, name, value) " +
-//            "KEY (e_id, name) " +
-//            "VALUES (:id, :name, :value)")
-//    long setEdgePropertyIndexEntry(@Bind("id") long id, @Bind("name") String name, @Bind("value") Object value);
+            "INSERT INTO edge_property_idx (e_id, name, b_value) " +
+            "VALUES (:id, :name, :value)")
+    long setBooleanEdgePropertyIndexEntry(@Bind("id") long id, @Bind("name") String name, @Bind("value") Boolean value);
+    @GetGeneratedKeys
+    @SqlUpdate(
+            "INSERT INTO edge_property_idx (e_id, name, d_value) " +
+            "VALUES (:id, :name, :value)")
+    long setDoubleEdgePropertyIndexEntry(@Bind("id") long id, @Bind("name") String name, @Bind("value") Double value);
+    @GetGeneratedKeys
+    @SqlUpdate(
+            "INSERT INTO edge_property_idx (e_id, name, s_value) " +
+            "VALUES (:id, :name, :value)")
+    long setStringEdgePropertyIndexEntry(@Bind("id") long id, @Bind("name") String name, @Bind("value") String value);
+    @GetGeneratedKeys
+    @SqlUpdate(
+            "INSERT INTO edge_property_idx (e_id, name, i_value) " +
+            "VALUES (:id, :name, :value)")
+    long setIntegerEdgePropertyIndexEntry(@Bind("id") long id, @Bind("name") String name, @Bind("value") Integer value);
     
     @SqlUpdate(
             "DELETE FROM edge_property_idx " +
@@ -381,11 +455,41 @@ public interface AmberGraphDao {
             "FROM edge e, edge_property_idx epi " +
             "WHERE e.id = epi.e_id " +
             "AND epi.name = :name " +
-            "AND epi.value = :value " +
+            "AND epi.b_value = :value " +
             "ORDER BY edge_order")
     @Mapper(AmberEdgeMapper.class)
     Iterator<AmberEdge> 
-        findEdgesByProperty(@Bind("name") String name, @Bind("value") Object value);
+        findEdgesByBooleanProperty(@Bind("name") String name, @Bind("value") Boolean value);
+    @SqlQuery(
+            "SELECT e.id id, txn_start, txn_end, txn_open, properties, v_out, v_in, label, edge_order " +
+            "FROM edge e, edge_property_idx epi " +
+            "WHERE e.id = epi.e_id " +
+            "AND epi.name = :name " +
+            "AND epi.d_value = :value " +
+            "ORDER BY edge_order")
+    @Mapper(AmberEdgeMapper.class)
+    Iterator<AmberEdge> 
+        findEdgesByDoubleProperty(@Bind("name") String name, @Bind("value") Double value);
+    @SqlQuery(
+            "SELECT e.id id, txn_start, txn_end, txn_open, properties, v_out, v_in, label, edge_order " +
+            "FROM edge e, edge_property_idx epi " +
+            "WHERE e.id = epi.e_id " +
+            "AND epi.name = :name " +
+            "AND epi.s_value = :value " +
+            "ORDER BY edge_order")
+    @Mapper(AmberEdgeMapper.class)
+    Iterator<AmberEdge> 
+        findEdgesByStringProperty(@Bind("name") String name, @Bind("value") String value);
+    @SqlQuery(
+            "SELECT e.id id, txn_start, txn_end, txn_open, properties, v_out, v_in, label, edge_order " +
+            "FROM edge e, edge_property_idx epi " +
+            "WHERE e.id = epi.e_id " +
+            "AND epi.name = :name " +
+            "AND epi.i_value = :value " +
+            "ORDER BY edge_order")
+    @Mapper(AmberEdgeMapper.class)
+    Iterator<AmberEdge> 
+        findEdgesByIntegerProperty(@Bind("name") String name, @Bind("value") Integer value);
 
     
     /*

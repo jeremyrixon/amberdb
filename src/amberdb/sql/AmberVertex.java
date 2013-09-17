@@ -15,12 +15,11 @@ public class AmberVertex extends AmberElement implements Vertex {
     public String pi;
 
     // This constructor for access
-    public AmberVertex(Long id, Long txnStart, Long txnEnd, boolean txnOpen, String properties, String pi) {
+    public AmberVertex(Long id, Long txnStart, Long txnEnd, String properties, String pi) {
 
         id(id);
         txnStart(txnStart);
         txnEnd(txnEnd);
-        txnOpen(txnOpen);
         properties(properties);
         this.pi = pi;
     }
@@ -31,11 +30,10 @@ public class AmberVertex extends AmberElement implements Vertex {
         graph(graph);
         properties(properties);
         this.pi = pi;
-        txnStart(graph.currentTxnId());
-        txnOpen(true);
         
-        long id = graph.getDao().createVertex(txnStart(), properties, pi);
-        id(id);
+        //long id = graph.getDao().createVertex(txnStart(), properties, pi);
+        //id(id);
+        graph().currentTxn().newVertices.add(this);
     }
 
     
@@ -60,19 +58,19 @@ public class AmberVertex extends AmberElement implements Vertex {
         for (Edge e: edges) {
             e.remove();
         }
-        graph().getDao().removeVertex(id());
+        dao().removeVertex(id());
         
         // update index
-        graph().getDao().removeVertexPropertyIndexEntries(id());
+        dao().removeVertexPropertyIndexEntries(id());
     }
 
     @Override
     public <T> T removeProperty(String propertyName) {
         T prop = super.removeProperty(propertyName);
-        graph().getDao().updateVertexProperties(id(), properties());
+        dao().updateVertexProperties(id(), properties());
         
         // update index
-        graph().getDao().removeVertexPropertyIndexEntry(id(), propertyName);
+        dao().removeVertexPropertyIndexEntry(id(), propertyName);
         
         return prop;
     }
@@ -89,10 +87,10 @@ public class AmberVertex extends AmberElement implements Vertex {
         }
         
         super.setProperty(propertyName, value);
-        graph().getDao().updateVertexProperties(id(), properties());
+        dao().updateVertexProperties(id(), properties());
         
         // update index
-        graph().getDao().setVertexPropertyIndexEntry(id(), propertyName, value);
+        updatePropertyIndex(propertyName, value);
         
         return;
     }
@@ -113,10 +111,10 @@ public class AmberVertex extends AmberElement implements Vertex {
         if (labels.length == 0) {
             // get 'em all
             if (direction == Direction.IN || direction == Direction.BOTH) {
-                edges.addAll(Lists.newArrayList(graph().getDao().findInEdgesByVertexId(id())));
+                edges.addAll(Lists.newArrayList(dao().findInEdgesByVertexId(id())));
             }
             if (direction == Direction.OUT || direction == Direction.BOTH) {
-                edges.addAll(Lists.newArrayList(graph().getDao().findOutEdgesByVertexId(id())));
+                edges.addAll(Lists.newArrayList(dao().findOutEdgesByVertexId(id())));
             }
             for (Edge je : edges) {
                 ((AmberEdge) je).graph(graph());
@@ -133,10 +131,10 @@ public class AmberVertex extends AmberElement implements Vertex {
         List<Edge> edges = new ArrayList<Edge>();
         
         if (direction == Direction.IN || direction == Direction.BOTH) {
-            edges.addAll(Lists.newArrayList(graph().getDao().findInEdgesByVertexIdAndLabel(id(), label)));
+            edges.addAll(Lists.newArrayList(dao().findInEdgesByVertexIdAndLabel(id(), label)));
         }
         if (direction == Direction.OUT || direction == Direction.BOTH) {
-            edges.addAll(Lists.newArrayList(graph().getDao().findOutEdgesByVertexIdAndLabel(id(), label)));
+            edges.addAll(Lists.newArrayList(dao().findOutEdgesByVertexIdAndLabel(id(), label)));
         }
         for (Edge je: edges) {
             ((AmberEdge) je).graph(graph());
@@ -159,10 +157,10 @@ public class AmberVertex extends AmberElement implements Vertex {
         List<Vertex> vertices = new ArrayList<Vertex>();
         if (labels.length == 0) {
             if (direction == Direction.IN || direction == Direction.BOTH) {
-                vertices.addAll(Lists.newArrayList(graph().getDao().findVertexByOutEdgeToVertexId(id())));
+                vertices.addAll(Lists.newArrayList(dao().findVertexByOutEdgeToVertexId(id())));
             }
             if (direction == Direction.OUT || direction == Direction.BOTH) {
-                vertices.addAll(Lists.newArrayList(graph().getDao().findVertexByInEdgeFromVertexId(id())));
+                vertices.addAll(Lists.newArrayList(dao().findVertexByInEdgeFromVertexId(id())));
             }
             for (Vertex jv : vertices) {
                 ((AmberVertex) jv).graph(graph());
@@ -179,10 +177,10 @@ public class AmberVertex extends AmberElement implements Vertex {
         List<Vertex> vertices = new ArrayList<Vertex>();
 
         if (direction == Direction.IN || direction == Direction.BOTH) {
-            vertices.addAll(Lists.newArrayList(graph().getDao().findVertexByOutEdgeLabelToVertexId(id(), label)));
+            vertices.addAll(Lists.newArrayList(dao().findVertexByOutEdgeLabelToVertexId(id(), label)));
         }
         if (direction == Direction.OUT || direction == Direction.BOTH) {
-            vertices.addAll(Lists.newArrayList(graph().getDao().findVertexByInEdgeLabelFromVertexId(id(), label)));
+            vertices.addAll(Lists.newArrayList(dao().findVertexByInEdgeLabelFromVertexId(id(), label)));
         }
         for (Vertex jv: vertices) {
             ((AmberVertex) jv).graph(graph());
@@ -235,4 +233,28 @@ public class AmberVertex extends AmberElement implements Vertex {
         .append(" open:").append(txnOpen());
         return sb.toString();
     }
+    
+    private void updatePropertyIndex(String propertyName, Object value) {
+
+        // argument guard
+        if (!(value instanceof Boolean || value instanceof Double || 
+                value instanceof String || value instanceof Integer)) {
+            throw new IllegalArgumentException("Vertex property type can only be one of Boolean, Double, " +
+                    "String or Integer. Supplied value was "+ value.getClass().getName());  
+        }
+        
+        dao().begin();
+        dao().removeVertexPropertyIndexEntry(id(), propertyName);
+        if (value instanceof Boolean) {
+            dao().setBooleanVertexPropertyIndexEntry(id(), propertyName, (Boolean) value);
+        } else if (value instanceof Double) {
+            dao().setDoubleVertexPropertyIndexEntry(id(), propertyName, (Double) value);
+        } else if (value instanceof String) {
+            dao().setStringVertexPropertyIndexEntry(id(), propertyName, (String) value);
+        } else if (value instanceof Integer) {
+            dao().setIntegerVertexPropertyIndexEntry(id(), propertyName, (Integer) value);
+        } 
+        dao().commit();
+    }
+
 }

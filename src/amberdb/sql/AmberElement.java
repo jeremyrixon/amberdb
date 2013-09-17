@@ -12,14 +12,16 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class AmberElement {
 
-    private AmberGraph graph;
     private long id;
     private String properties;
+    private AmberGraph graph;
     
     // transaction details
     private long txnStart;
     private long txnEnd;
-    private boolean txnOpen;
+
+    protected enum State {NEW, MOD, DEL, UNCHANGED};
+    private State txnState;
     
     private static final ObjectMapper json = new ObjectMapper();
     static {
@@ -35,6 +37,10 @@ public class AmberElement {
         return graph;
     }
 
+    public AmberGraphDao dao() {
+        return graph.getDao();
+    }
+    
     public void id(long id) {
         this.id = id;
     }
@@ -151,12 +157,11 @@ public class AmberElement {
     public long txnEnd() {
         return txnEnd;
     }
-
-    public void txnOpen(boolean txnOpen) {
-        this.txnOpen = txnOpen;
+    
+    public void txnState(State state) {
+        this.txnState = state;
     }
-    public boolean txnOpen() {
-        return txnOpen;
+    public State txnState() {
+        return txnState;
     }
-
 }

@@ -24,16 +24,19 @@ import com.tinkerpop.blueprints.Edge;
 public class AmberGraphDaoTest {
 
     public static DBI dbi = null;
+    public static final String dsUrl = "jdbc:h2:mem:";
     
     public void setup() throws MalformedURLException, IOException {
         System.out.println("Setting up database");
 
-        MysqlDataSource ds = new MysqlDataSource();
-        ds.setUser("dlir");
-        ds.setPassword("dlir");
-        ds.setServerName("localhost");
-        ds.setPort(3306);
-        ds.setDatabaseName("dlir");
+        DataSource ds = JdbcConnectionPool.create(dsUrl,"dlir","dlir");
+        
+//        MysqlDataSource ds = new MysqlDataSource();
+//        ds.setUser("dlir");
+//        ds.setPassword("dlir");
+//        ds.setServerName("localhost");
+//        ds.setPort(3306);
+//        ds.setDatabaseName("dlir");
         
         dbi = new DBI(ds);
         AmberGraphDao dao = dbi.open(AmberGraphDao.class);

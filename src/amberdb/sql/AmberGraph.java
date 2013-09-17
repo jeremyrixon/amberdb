@@ -20,6 +20,7 @@ public class AmberGraph implements Graph {
     
     private DBI dbi;
     private AmberGraphDao dao;
+    
     private AmberTransaction currentTxn; 
 
     /*
@@ -55,18 +56,31 @@ public class AmberGraph implements Graph {
     }
 
     protected AmberTransaction initTransaction(String user) {
+        
         // argument guard
         if (user == null || user.trim().isEmpty()) { 
-            throw new IllegalArgumentException("Must specify a user");
+            throw new IllegalArgumentException("A transaction must have a user");
         }
-        
-        long txnId = dao.createTxn(user);
-        return new AmberTransaction(txnId, user, null);
+        return new AmberTransaction(user);
     }
 
-    public Long currentTxnId() {
-        return currentTxn.id;
+    protected AmberTransaction currentTxn() {
+        return currentTxn;
     }
+    
+    
+    protected Long newPi() {
+        dao.begin();
+        Long newPi = dao.newPi();
+        
+        // occasionally clean up the pi generation table (every 1000 pis or so)
+        if (newPi % 1000 == 0) {
+            dao.garbageCollectPis();
+        }
+        dao.commit();
+        return newPi;
+    }
+    
     
     /*
      * Tinkerpop blueprints graph interface implementation
@@ -100,13 +114,26 @@ public class AmberGraph implements Graph {
         } catch (NumberFormatException e) {
             return null;
         }
-        
         if (edgeId instanceof Long) id = (Long) edgeId;
 
-        AmberEdge je = dao.findEdgeById((long) id);
-        if (je == null) return null;
-        je.graph(this);
-        return je;
+        // check transaction for deleted edges first
+        // if it was deleted in the current transaction return null 
+        AmberEdge edge = currentTxn.delEdges.get(id);
+        if (edge != null) return null;  
+     
+        // check transaction for modified edges next
+        // if it was modified, return the modified version
+        edge = currentTxn.modEdges.get(id);
+        if (edge != null) return edge; 
+        
+        // we don't yet return new edges by id - they don't have 
+        // one until the transaction has been committed (???? should this change ????)
+        
+        // otherwise get it from the db
+        edge = dao.findEdgeById((long) id);
+        if (edge == null) return null;
+        edge.graph(this);
+        return edge;
     }
 
     /**
@@ -114,12 +141,24 @@ public class AmberGraph implements Graph {
      */
     @Override
     public Iterable<Edge> getEdges() {
+        
         List<Edge> edges = new ArrayList<Edge>();
+        
+        // Add new edges from txn
+        edges.addAll(currentTxn.newEdges);
+        
         Iterator<AmberEdge> ie = dao.findAllEdges();
         while (ie.hasNext()) {
-            AmberEdge je = ie.next();
-            je.graph(this);
-            edges.add(je);
+            AmberEdge edge = ie.next();
+            
+            // check if it's been deleted this txn
+            if (currentTxn.delEdges.containsKey(edge.getId())) continue;
+            
+            // check if it's been modified this txn
+            if (currentTxn.modEdges.containsKey(edge.getId())) continue;
+            
+            edge.graph(this);
+            edges.add(edge);
         }
         return edges;
     }
@@ -127,7 +166,7 @@ public class AmberGraph implements Graph {
     @Override
     public Iterable<Edge> getEdges(String key, Object value) {
         List<Edge> edges = new ArrayList<Edge>();
-        Iterator<AmberEdge> ie = dao.findEdgesByProperty(key, value);
+        Iterator<AmberEdge> ie = edgesByProperty(key, value);
         while (ie.hasNext()) {
             edges.add(ie.next());
         }
@@ -197,7 +236,7 @@ public class AmberGraph implements Graph {
     @Override
     public Iterable<Vertex> getVertices(String key, Object value) {
         List<Vertex> vertices = new ArrayList<Vertex>();
-        Iterator<AmberVertex> iv = dao.findVerticesByProperty(key, value);
+        Iterator<AmberVertex> iv = verticesByProperty(key, value);
         while (iv.hasNext()) {
             vertices.add(iv.next());
         }
@@ -230,5 +269,35 @@ public class AmberGraph implements Graph {
     
     public String toString() {
         return ("ambergraph");
+    }
+    
+    private Iterator<AmberVertex> verticesByProperty(String propertyName, Object value) {
+        if (value instanceof Boolean) {
+            return dao.findVerticesByBooleanProperty(propertyName, (Boolean) value);
+        } else if (value instanceof Double) {
+            return dao.findVerticesByDoubleProperty(propertyName, (Double) value);
+        } else if (value instanceof String) {
+            return dao.findVerticesByStringProperty(propertyName, (String) value);
+        } else if (value instanceof Integer) {
+            return dao.findVerticesByIntegerProperty(propertyName, (Integer) value);
+        } else {
+          throw new IllegalArgumentException("Vertex property type can only be one of Boolean, Double, " +
+                "String or Integer. Supplied value was "+ value.getClass().getName());  
+        }
+    }
+    
+    private Iterator<AmberEdge> edgesByProperty(String propertyName, Object value) {
+        if (value instanceof Boolean) {
+            return dao.findEdgesByBooleanProperty(propertyName, (Boolean) value);
+        } else if (value instanceof Double) {
+            return dao.findEdgesByDoubleProperty(propertyName, (Double) value);
+        } else if (value instanceof String) {
+            return dao.findEdgesByStringProperty(propertyName, (String) value);
+        } else if (value instanceof Integer) {
+            return dao.findEdgesByIntegerProperty(propertyName, (Integer) value);
+        } else {
+          throw new IllegalArgumentException("Edge property type can only be one of Boolean, Double, " +
+                "String or Integer. Supplied value was "+ value.getClass().getName());  
+        }
     }
 }

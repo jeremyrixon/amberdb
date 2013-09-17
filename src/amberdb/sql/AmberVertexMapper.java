@@ -13,7 +13,6 @@ public class AmberVertexMapper implements ResultSetMapper<AmberVertex> {
                 rs.getLong("id"),
                 rs.getLong("txn_start"),
                 rs.getLong("txn_end"),
-                rs.getBoolean("txn_open"),
                 rs.getString("properties"),
                 rs.getString("pi"));
     }

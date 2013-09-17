@@ -5,6 +5,7 @@ import java.util.Set;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
+//import static amberdb.sql.AmberElement.State;
 
 public class AmberEdge extends AmberElement implements Edge {
 
@@ -12,26 +13,31 @@ public class AmberEdge extends AmberElement implements Edge {
     long inVertexId;
     long outVertexId;
     int edgeOrder = 0;
+    long pi;
 
+    State txnState; // convert to enum later
+    
     public static final String SORT_ORDER_PROPERTY_NAME = "edge-order";
     
-    // This constructor for access
-    public AmberEdge(long id, Long txnStart, Long txnEnd, Boolean txnOpen, 
-            String properties, long outVertexId, long inVertexId, String label, int edgeOrder) {
+    // This constructor for getting an edge from the db
+    public AmberEdge(long id, Long txnStart, Long txnEnd, String properties, 
+            long outVertexId, long inVertexId, String label, int edgeOrder, long pi) {
         
         id(id);
         properties(properties);
+
         this.label = label;
         this.inVertexId = inVertexId;
         this.outVertexId = outVertexId;
         this.edgeOrder = edgeOrder;
+        this.pi = pi;
         
         txnStart(txnStart);
         txnEnd(txnEnd);
-        txnOpen(txnOpen);
+        txnState(State.UNCHANGED);
     }    
 
-    // This constructor for creation
+    // This constructor for creating a new edge
     public AmberEdge(AmberGraph graph, String properties, long outVertexId, long inVertexId, String label) {
 
         graph(graph);
@@ -39,17 +45,15 @@ public class AmberEdge extends AmberElement implements Edge {
         this.label = label;
         this.inVertexId = inVertexId;
         this.outVertexId = outVertexId;
-        
-        txnStart(graph.currentTxnId());
-        txnOpen(true);
-        
-        long id = graph.getDao().createEdge(txnStart(), properties, outVertexId, inVertexId, label);
-        id(id);
+        this.pi = graph().newPi();          
+
+        // add to transaction
+        graph().currentTxn().newEdges.add(this);
     }    
     
     @Override
     public Object getId() {
-        return id();
+        return pi;
     }
 
     @SuppressWarnings("unchecked")
@@ -60,7 +64,6 @@ public class AmberEdge extends AmberElement implements Edge {
         if (propertyName.equals(SORT_ORDER_PROPERTY_NAME)) {
             return (T) (Integer) edgeOrder;
         }
-        
         return super.getProperty(propertyName);
     }
 
@@ -87,10 +90,9 @@ public class AmberEdge extends AmberElement implements Edge {
         }
         
         T prop = super.removeProperty(propertyName);
-        graph().getDao().updateEdgeProperties(id(), properties());
         
         // update index
-        graph().getDao().removeEdgePropertyIndexEntry(id(), propertyName);
+        dao().removeEdgePropertyIndexEntry(id(), propertyName);
         
         return prop;
     }
@@ -112,23 +114,23 @@ public class AmberEdge extends AmberElement implements Edge {
         // set special sorting property
         if (propertyName.equals(SORT_ORDER_PROPERTY_NAME)) {
             edgeOrder = (Integer) value;
-            graph().getDao().updateEdgeOrder(id(), edgeOrder);
+            dao().updateEdgeOrder(id(), edgeOrder);
             return;
         }
         
         super.setProperty(propertyName, value);
-        graph().getDao().updateEdgeProperties(id(), properties());
+        dao().updateEdgeProperties(id(), properties());
         
         // update index
-        graph().getDao().setEdgePropertyIndexEntry(id(), propertyName, value);
+        updatePropertyIndex(propertyName, value);
         
         return;
     }    
 
     @Override
     public void remove() {
-        graph().getDao().removeEdge(id());
-        graph().getDao().removeEdgePropertyIndexEntries(id());
+        dao().removeEdge(id());
+        dao().removeEdgePropertyIndexEntries(id());
     }
 
     @Override
@@ -145,9 +147,9 @@ public class AmberEdge extends AmberElement implements Edge {
         }
         AmberVertex jv = null;
         if (direction == Direction.IN) {
-            jv = graph().getDao().findVertexByInEdge(id());
+            jv = dao().findVertexByInEdge(id());
         } else if (direction == Direction.OUT) {
-            jv = graph().getDao().findVertexByOutEdge(id());
+            jv = dao().findVertexByOutEdge(id());
         }
         
         if (jv == null) return null;
@@ -202,5 +204,28 @@ public class AmberEdge extends AmberElement implements Edge {
         .append(" open:").append(txnOpen())
         .append(" order:").append(edgeOrder);
         return sb.toString();
-    }    
+    }
+    
+    private void updatePropertyIndex(String propertyName, Object value) {
+        
+        // argument guard
+        if (!(value instanceof Boolean || value instanceof Double || 
+                value instanceof String || value instanceof Integer)) {
+            throw new IllegalArgumentException("Edge property type can only be one of Boolean, Double, " +
+                    "String or Integer. Supplied value was "+ value.getClass().getName());  
+        }
+        
+        dao().begin();
+        dao().removeEdgePropertyIndexEntry(id(), propertyName);
+        if (value instanceof Boolean) {
+            dao().setBooleanEdgePropertyIndexEntry(id(), propertyName, (Boolean) value);
+        } else if (value instanceof Double) {
+            dao().setDoubleEdgePropertyIndexEntry(id(), propertyName, (Double) value);
+        } else if (value instanceof String) {
+            dao().setStringEdgePropertyIndexEntry(id(), propertyName, (String) value);
+        } else if (value instanceof Integer) {
+            dao().setIntegerEdgePropertyIndexEntry(id(), propertyName, (Integer) value);
+        } 
+        dao().commit();
+    }
 }

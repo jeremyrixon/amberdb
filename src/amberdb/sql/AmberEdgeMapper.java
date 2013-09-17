@@ -13,11 +13,11 @@ public class AmberEdgeMapper implements ResultSetMapper<AmberEdge> {
                 rs.getLong("id"),
                 rs.getLong("txn_start"),
                 rs.getLong("txn_end"),
-                rs.getBoolean("txn_open"),
                 rs.getString("properties"),
                 rs.getLong("v_out"), 
                 rs.getLong("v_in"), 
                 rs.getString("label"),
-                rs.getInt("edge_order"));
+                rs.getInt("edge_order"),
+                rs.getLong("pi"));
     }
 }
