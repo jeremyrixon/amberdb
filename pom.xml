@@ -36,6 +36,13 @@
         </excludes>
       </testResource>
     </testResources>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-ssh</artifactId>
+        <version>1.0-beta-6</version>
+      </extension>
+    </extensions>
   </build>
 
 
@@ -128,4 +135,15 @@
       <version>2.4.0</version>
     </dependency>
   </dependencies>
+
+  <distributionManagement>
+    <repository>
+      <id>nla-public-releases</id>
+      <url>scp://spitfire.nla.gov.au/www/prod/maven/htdocs/releases</url>
+    </repository>
+    <snapshotRepository>
+      <id>nla-public-snapshots</id>
+      <url>scp://spitfire.nla.gov.au/www/prod/maven/htdocs/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
 </project>
