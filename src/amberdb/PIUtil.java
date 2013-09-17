@@ -7,6 +7,7 @@ package amberdb;
  * http://en.wikibooks.org/wiki/Algorithm_Implementation/Checksums/Damm_Algorithm
  */
 public class PIUtil {
+    private static final String PI_PREFIX = "nla.obj-";
     static final char[][] taqDhmd111rr = 
            {{'0','3','1','7','5','9','8','6','4','2'},
             {'7','0','9','2','1','5','4','8','6','3'},
@@ -38,10 +39,16 @@ public class PIUtil {
     }
     
     public static String pi(Long objId) {
-        return "nla.obj-" + objId + taq(objId);
+        return PI_PREFIX + objId + taq(objId);
+    }
+    
+    public static long objId(String pi) {
+        if (!isValidPI(pi))
+            throw new IllegalArgumentException("The input pi " + pi + " is invalid.");
+        return new Long(pi.substring(pi.indexOf(PI_PREFIX) + 8, pi.length() - 1));
     }
     
     public static boolean isValidPI(String pi) {
-        return (taq(new Long(pi.substring(pi.indexOf("nla.obj-") + 8))) == 0);
+        return (taq(new Long(pi.substring(pi.indexOf(PI_PREFIX) + 8))) == 0);
     }
 }

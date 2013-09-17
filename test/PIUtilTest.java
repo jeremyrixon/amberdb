@@ -27,4 +27,21 @@ public class PIUtilTest {
         String input = "nla.obj-5723";
         assertFalse("The input PI " + input + " is invalid.", PIUtil.isValidPI(input));
     }
+    
+    @Test
+    public void testReturnValidObjId() {
+        long expected = 572;
+        String input = "nla.obj-5724";
+        assertEquals("The returned objId should be " + expected + ".", expected, PIUtil.objId(input));
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testReturnExceptionForInvalidObjId() {
+        PIUtil.objId("nla.obj-5723");
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testCheckDigitsForNull() {
+        PIUtil.taq(null);
+    }
 }
