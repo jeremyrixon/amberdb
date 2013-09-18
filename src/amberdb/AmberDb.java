@@ -70,6 +70,26 @@ public class AmberDb implements AutoCloseable {
 	}
 	
 	/**
+	 * Creates a new work with specified metadata
+	 */
+	public Work addWork(Map<String, String> metadata) {
+	    Work item = addWork();
+	    updWork(item, metadata);
+	    return item;
+	}
+	
+	/**
+	 * Update an existing work with specified properties
+	 */
+	public void updWork(Work item, Map<String, String> metadata) {
+	    if (metadata == null)
+	        throw new IllegalArgumentException("Cannot update work as input metadata is null.");
+	    for (String field : metadata.keySet()) {
+	        item.asVertex().setProperty(field, metadata.get(field));
+	    }
+	}
+	
+	/**
 	 * Create a new groupItem (work) with the specified metadata, and  map a list of files (e.g. masters 
 	 * or derivatives) in the structmap of the groupItem,  according to the map strategy specified.  
 	 * 
@@ -83,6 +103,7 @@ public class AmberDb implements AutoCloseable {
 	 */
 	public List<Work> map(Map<String, String> metadata, List<String> fileLocations, MapStrategy strategy) {
 	    Work groupItem = addWork();
+	    updWork(groupItem, metadata);
 	    return map(groupItem, fileLocations, strategy);
 	}
 	
