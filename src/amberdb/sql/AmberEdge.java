@@ -5,7 +5,6 @@ import java.util.Set;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
-//import static amberdb.sql.AmberElement.State;
 
 public class AmberEdge extends AmberElement implements Edge {
 
@@ -49,6 +48,7 @@ public class AmberEdge extends AmberElement implements Edge {
 
         // add to transaction
         graph().currentTxn().newEdges.add(this);
+        txnState(State.NEW);
     }    
     
     @Override

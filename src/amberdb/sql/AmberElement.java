@@ -158,10 +158,19 @@ public class AmberElement {
         return txnEnd;
     }
     
-    public void txnState(State state) {
+    public void setState(State newState) {
+        State currState = txnState;
+        switch (currState) {
+        case UNCHANGED : 
+            break;
+        case NEW :    
+        }
+        
         this.txnState = state;
+        
     }
     public State txnState() {
         return txnState;
     }
+    
 }

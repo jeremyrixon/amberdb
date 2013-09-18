@@ -18,6 +18,7 @@ public class AmberGraph implements Graph {
 
     public static final String DEFAULT_USER = "anon";
     
+    private static final txnDataSource
     private DBI dbi;
     private AmberGraphDao dao;
     
