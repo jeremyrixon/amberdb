@@ -1,5 +1,8 @@
 package amberdb.sql;
 
+import amberdb.sql.dao.*;
+import amberdb.sql.map.*;
+
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -39,12 +42,10 @@ public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
         dao.dropTables();
         dao.createVertexTable();
         dao.createEdgeTable();
-        dao.createEdgePropertyTable();
-        dao.createEdgePropertyTableIndex();
-        dao.createVertexPropertyTable();
-        dao.createVertexPropertyTableIndex();
+        dao.createPropertyTable();
+        dao.createPropertyTableIndex();
+        dao.createIdGeneratorTable();
         dao.createTransactionTable();
-        //dao.createObjectIdTable();
 
         dao.close();
     }

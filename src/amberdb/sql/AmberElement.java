@@ -1,34 +1,25 @@
 package amberdb.sql;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import amberdb.sql.dao.*;
 
-import com.fasterxml.jackson.core.JsonParser.Feature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class AmberElement {
 
     private long id;
-    private String properties;
     private AmberGraph graph;
+    public static final String EMPTY_PROPERTIES = "{}"; 
+    
+    private Map<String, Object> properties = new HashMap<String, Object>(); 
     
     // transaction details
     private long txnStart;
     private long txnEnd;
 
-    protected enum State {NEW, MOD, DEL, UNCHANGED};
+    protected enum State {NEW, MODIFIED, DELETED, READ};
     private State txnState;
-    
-    private static final ObjectMapper json = new ObjectMapper();
-    static {
-        json.configure(Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true);
-        json.configure(Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER, true);
-    }    
-    
     
     public void graph(AmberGraph graph) {
         this.graph = graph;
@@ -48,95 +39,47 @@ public class AmberElement {
         return id;
     }
 
-    public void properties(String properties) {
+    public void properties(Map<String, Object> properties) {
         this.properties = properties;
     }
 
-    public String properties() {
+    public Map<String, Object> properties() {
         return properties;
     }
 
     @SuppressWarnings("unchecked")
     public <T> T getProperty(String propertyName) {
-        try {
-            JsonNode root = json.readTree(properties);
-            JsonNode val = root.path(propertyName);
-            
-            if (val.isInt()) {
-                return (T) (Integer) val.asInt();
-            } else if (val.isBoolean()) {
-                return (T) (Boolean) val.asBoolean();
-            } else if (val.isDouble()) {
-                return (T) (Double) val.asDouble();
-            } else {
-                return (T) val.textValue();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+        Object val = properties.get(propertyName);
+
+        if (val instanceof Integer) {
+            return (T) (Integer) val;
+        } else if (val instanceof Boolean) {
+            return (T) (Boolean) val;
+        } else if (val instanceof Double) {
+            return (T) (Double) val;
+        } else {
+            return (T) (String) val;
         }
     }
 
     public Set<String> getPropertyKeys() {
-        Set<String> propertyKeys = new HashSet<String>();
-        try {
-            JsonNode root = json.readTree(properties);
-            Iterator<String> propertyNames = root.fieldNames(); 
-            while (propertyNames.hasNext()) {
-                propertyKeys.add(propertyNames.next());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return propertyKeys;
+        return properties.keySet();
     }
 
     @SuppressWarnings("unchecked")
     public <T> T removeProperty(String propertyName) {
-        Object prop;
-        try {
-            JsonNode root = json.readTree(properties);
-            JsonNode val = root.path(propertyName);
-            
-            if (val.isInt()) {
-                prop = (T) (Integer) val.asInt();
-            } else if (val.isBoolean()) {    
-                prop = (T) (Boolean) val.asBoolean();
-            } else if (val.isDouble()) {    
-                prop = (T) (Double) val.asDouble();
-            } else {
-                prop = (T) val.textValue();
-            }
-            if (prop == null)
-                return null;
-            ((ObjectNode) root).remove(propertyName);
-            properties = json.writeValueAsString(root);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-        return (T) prop;
+        graph.currentTxn().removeProperty(this, propertyName);
+        return (T) properties.remove(propertyName);
     }
 
     public void setProperty(String propertyName, Object value) {
-        try {
-            JsonNode root = json.readTree(properties);
-            ObjectNode on = (ObjectNode) root;
-            
-            if (value instanceof Integer) {
-                on.put(propertyName, (Integer) value);
-            } else if (value instanceof Boolean) {   
-                on.put(propertyName, (Boolean) value);
-            } else if (value instanceof Double) {   
-                on.put(propertyName, (Double) value);
-            } else {
-                on.put(propertyName, (String) value);
-            }
-            properties = json.writeValueAsString(root);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return;
+        graph.currentTxn().setProperty(this, propertyName, value);
+        properties.put(propertyName, value);
+    }
+    
+    public void remove() {
+        graph.currentTxn().removeElement(this);
+        
     }
     
     /*
@@ -144,33 +87,13 @@ public class AmberElement {
      * access to these properties go here.
      */
     
-    public void txnStart(long txnStart) {
-        this.txnStart = txnStart;
-    }
-    public long txnStart() {
-        return txnStart;
-    }
+    public void txnStart(long txnStart) { this.txnStart = txnStart; }
+    public long txnStart() { return txnStart; }
 
-    public void txnEnd(long txnEnd) {
-        this.txnEnd = txnEnd;
-    }
-    public long txnEnd() {
-        return txnEnd;
-    }
+    public void txnEnd(long txnEnd) { this.txnEnd = txnEnd; }
+    public long txnEnd() { return txnEnd; }
     
-    public void setState(State newState) {
-        State currState = txnState;
-        switch (currState) {
-        case UNCHANGED : 
-            break;
-        case NEW :    
-        }
-        
-        this.txnState = state;
-        
-    }
-    public State txnState() {
-        return txnState;
-    }
+    public void txnState(State state) { this.txnState = state; }
+    public State txnState() { return txnState; }
     
 }

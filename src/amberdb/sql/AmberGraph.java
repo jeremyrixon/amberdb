@@ -1,5 +1,8 @@
 package amberdb.sql;
 
+import amberdb.sql.dao.*;
+import amberdb.sql.map.*;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -18,7 +21,7 @@ public class AmberGraph implements Graph {
 
     public static final String DEFAULT_USER = "anon";
     
-    private static final txnDataSource
+    //private static final txnDataSource
     private DBI dbi;
     private AmberGraphDao dao;
     
@@ -70,13 +73,13 @@ public class AmberGraph implements Graph {
     }
     
     
-    protected Long newPi() {
+    protected Long newId() {
         dao.begin();
-        Long newPi = dao.newPi();
+        Long newPi = dao.newId();
         
         // occasionally clean up the pi generation table (every 1000 pis or so)
         if (newPi % 1000 == 0) {
-            dao.garbageCollectPis();
+            dao.garbageCollectIds();
         }
         dao.commit();
         return newPi;
@@ -93,7 +96,7 @@ public class AmberGraph implements Graph {
         // argument guard
         if (label == null) throw new IllegalArgumentException("edge label cannot be null");
 
-        return new AmberEdge(this, "{}", (long) out.getId(), (long) in.getId(), label);
+        return new AmberEdge(this, (long) out.getId(), (long) in.getId(), label);
     }
 
     @Override
