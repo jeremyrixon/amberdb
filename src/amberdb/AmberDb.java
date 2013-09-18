@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import amberdb.model.Copy;
@@ -67,17 +70,35 @@ public class AmberDb implements AutoCloseable {
 	}
 	
 	/**
-	 * Finds a file by id
+	 * Create a new groupItem (work) with the specified metadata, and  map a list of files (e.g. masters 
+	 * or derivatives) in the structmap of the groupItem,  according to the map strategy specified.  
+	 * 
+	 * e.g. WorkFileMapStrategy will create a corresponding work item for each of the file, and 
+	 *      place each of the created work item as the direct child of the groupItem.
+	 *      
+	 * @param metadata: the metadata for the grouping Item
+	 * @param fileLocations: the file paths of the files to be mapped
+	 * @param strategy: the strategy to group and map the list of files into a struct map under the grouped item.
+	 * @return The list of corresponding work item created for each of the files from the input fileLocations list.
 	 */
-	public File findFile(long objectId) {
-	    return graph.getVertex(objectId, File.class);
+	public List<Work> map(Map<String, String> metadata, List<String> fileLocations, MapStrategy strategy) {
+	    Work groupItem = addWork();
+	    return map(groupItem, fileLocations, strategy);
 	}
 	
 	/**
-	 * Create a new file
+	 * Given an existing groupItem, map a list of files (e.g. masters or derivatives) in the structmap of
+	 * the groupItem, according to the map strategy specified.
+	 * 
+	 * @param groupItem: the existing groupItem in the repository to be mapped to.
+	 * @param fileLocations: the file paths of the files to be mapped
+	 * @param strategy: the strategy to group and map the list of files into a struct map under the grouped item.
+	 * @return The corresponding work item created for each of the files from the input fileLocations list.
 	 */
-	public File addFile() {
-	    return graph.addVertex(objectIdSeq.next(), File.class);
+	public List<Work> map(Work groupItem, List<String> fileLocations, MapStrategy strategy) {
+	    List<Copy> copies = map(fileLocations);
+	    strategy.setDAO(this);
+	    return strategy.map(groupItem, copies);
 	}
 
 	@Override
@@ -88,11 +109,22 @@ public class AmberDb implements AutoCloseable {
 		}
 	}
 	
-	/**
-	 * Find a copy by id
-	 */
-	protected Copy findCopy(long objectId) {
-	    return graph.getVertex(objectIdSeq.next(), Copy.class);
+	protected List<Copy> map(List<String> fileLocations) {
+	   if (fileLocations == null)
+	       throw new IllegalArgumentException("Cannot map to work as input fileLocations is null.");
+	       
+	    List<File> files = new ArrayList<File>();
+	    List<Copy> copies = new ArrayList<Copy>();
+	    for (String fileLocation : fileLocations) {
+	       File file = addFile(); 
+	       file.setFileLocation(fileLocation);
+           files.add(file);
+	       
+	       Copy copy = addCopy();
+	       copy.addFile(file);
+	       copies.add(copy);
+	    }
+	    return copies;
 	}
 	
 	/**
@@ -101,6 +133,13 @@ public class AmberDb implements AutoCloseable {
 	protected Copy addCopy() {
 	    return graph.addVertex(objectIdSeq.next(), Copy.class);
 	}
+	
+	/**
+     * Create a new file
+     */
+    protected File addFile() {
+        return graph.addVertex(objectIdSeq.next(), File.class);
+    }
 
 	private static class Sequence {
 		final AtomicLong value = new AtomicLong();
