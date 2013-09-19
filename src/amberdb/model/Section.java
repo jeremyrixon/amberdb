@@ -4,6 +4,9 @@ import amberdb.relation.ExistsOn;
 
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.frames.Adjacency;
+import com.tinkerpop.frames.annotations.gremlin.GremlinGroovy;
+import com.tinkerpop.frames.annotations.gremlin.GremlinParam;
+import com.tinkerpop.frames.modules.javahandler.JavaHandler;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
@@ -15,11 +18,20 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 public interface Section extends Work {
 
 	@Adjacency(label = ExistsOn.label)
-	public Iterable<Work> getPages();
+	public Iterable<Page> getPages();
 
 	@Adjacency(label = ExistsOn.label)
-	public void addPage(final Work page);
+	public void addPage(final Page page);
+	
+	@GremlinGroovy("it.inE('isPartOf').has('relOrder', idx).outV")
+	public Page getPage(@GremlinParam("idx") int idx);
+	
+	@JavaHandler
+	public void swapPages(int page1, int page2);
 
 	abstract class Impl implements JavaHandlerContext<Vertex>, Section {
+	    public void swapPages(int page1, int page2) {
+	        // TODO
+	    }
 	}
 }

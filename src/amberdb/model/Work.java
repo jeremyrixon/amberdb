@@ -25,7 +25,7 @@ public interface Work extends Node {
     public String getCreator();
     
     @Property("creator")
-    public void setCreator();
+    public void setCreator(String creator);
     
     @Property("subUnitType")
     public String getSubUnitType();
@@ -38,6 +38,12 @@ public interface Work extends Node {
     
     @Property("bibLevel")
     public void setBibLevel(String bibLevel);
+    
+    @Property("bibId")
+    public String getBibId();
+    
+    @Property("bibId")
+    public void setBibId(long bibId);
 
     @Property("digitalStatus")
     public String getDigitalStatus();

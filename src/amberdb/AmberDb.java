@@ -46,7 +46,7 @@ public class AmberDb implements AutoCloseable {
 		}
 	}
 
-	private static FramedGraph<TinkerGraph> openGraph(TinkerGraph tinker) {
+	protected static FramedGraph<TinkerGraph> openGraph(TinkerGraph tinker) {
 		return new FramedGraphFactory(
 				new JavaHandlerModule(),
 				new GremlinGroovyModule())
@@ -74,21 +74,10 @@ public class AmberDb implements AutoCloseable {
 	 */
 	public Work addWork(Map<String, String> metadata) {
 	    Work item = addWork();
-	    updWork(item, metadata);
+	    item.setProperties(metadata);
 	    return item;
 	}
-	
-	/**
-	 * Update an existing work with specified properties
-	 */
-	public void updWork(Work item, Map<String, String> metadata) {
-	    if (metadata == null)
-	        throw new IllegalArgumentException("Cannot update work as input metadata is null.");
-	    for (String field : metadata.keySet()) {
-	        item.asVertex().setProperty(field, metadata.get(field));
-	    }
-	}
-	
+
 	/**
 	 * Create a new groupItem (work) with the specified metadata, and  map a list of files (e.g. masters 
 	 * or derivatives) in the structmap of the groupItem,  according to the map strategy specified.  
@@ -102,8 +91,7 @@ public class AmberDb implements AutoCloseable {
 	 * @return The list of corresponding work item created for each of the files from the input fileLocations list.
 	 */
 	public List<Work> map(Map<String, String> metadata, List<String> fileLocations, MapStrategy strategy) {
-	    Work groupItem = addWork();
-	    updWork(groupItem, metadata);
+	    Work groupItem = addWork(metadata);
 	    return map(groupItem, fileLocations, strategy);
 	}
 	
@@ -129,6 +117,10 @@ public class AmberDb implements AutoCloseable {
 			objectIdSeq.save(dataPath.resolve("objectIdSeq"));
 		}
 	}
+	
+	// protected List<Copy> map(List<java.io.File> files) { // TODO
+	//    return null ;
+	// }
 	
 	protected List<Copy> map(List<String> fileLocations) {
 	   if (fileLocations == null)
@@ -156,10 +148,28 @@ public class AmberDb implements AutoCloseable {
 	}
 	
 	/**
+	 * Create a new copy with specified metadata
+	 */
+	protected Copy addCopy(String copyRole) {
+	    Copy copy = addCopy();
+	    copy.setCopyRole(copyRole);
+	    return copy;
+	}
+	
+	/**
      * Create a new file
      */
     protected File addFile() {
         return graph.addVertex(objectIdSeq.next(), File.class);
+    }
+    
+    /**
+     * Creates a new file with specified metadata
+     */
+    public File addFile(java.io.File inFile) {
+        File file = addFile();
+        file.setFileLocation(inFile.getAbsolutePath());
+        return file;
     }
 
 	private static class Sequence {
