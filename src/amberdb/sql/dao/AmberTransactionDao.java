@@ -1,10 +1,9 @@
 package amberdb.sql.dao;
 
+import java.util.Iterator;
+
 import  amberdb.sql.*;
 import  amberdb.sql.map.*;
-
-import java.util.Date;
-import java.util.Iterator;
 
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
@@ -23,7 +22,6 @@ public interface AmberTransactionDao extends Transactional<AmberTransactionDao> 
     		"id         BIGINT, " +
     		"txn_start  BIGINT, " +
     		"txn_end    BIGINT, " +
-    		"properties TEXT, " +
     		"state      TINYINT(1))")
     void createVertexTable();
     
@@ -32,7 +30,6 @@ public interface AmberTransactionDao extends Transactional<AmberTransactionDao> 
     		"id         BIGINT, " +
     		"txn_start  BIGINT, " +
     		"txn_end    BIGINT, " +
-    		"properties TEXT, " +
     		"v_out      BIGINT, " +
     		"v_in       BIGINT, " +
     		"label      VARCHAR(100), " +
@@ -47,8 +44,7 @@ public interface AmberTransactionDao extends Transactional<AmberTransactionDao> 
             "b_value TINYINT(1), " +
             "s_value TEXT, " +
             "i_value BIGINT, " +
-            "d_value DOUBLE, " +
-            "state   TINYINT(1))")
+            "d_value DOUBLE)")
     void createPropertyTable();
     @SqlUpdate(
             "CREATE UNIQUE INDEX e_unique_prop " +
@@ -59,7 +55,7 @@ public interface AmberTransactionDao extends Transactional<AmberTransactionDao> 
     void dropTables();
     
     /*
-     * Element operations
+     * Update Operations
      */
     @SqlUpdate(
             "DELETE FROM property_index " +
@@ -83,25 +79,42 @@ public interface AmberTransactionDao extends Transactional<AmberTransactionDao> 
             "SET i_value = :value " +
             "WHERE id = :id " +
             "AND name = :name")
-    void setIntegerProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") Integer value);
+    void updateIntegerProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") Integer value);
     @SqlUpdate(
             "UPDATE property_index " +
             "SET b_value = :value " +
             "WHERE id = :id " +
             "AND name = :name")
-    void setBooleanProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") Boolean value);
+    void updateBooleanProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") Boolean value);
     @SqlUpdate(
             "UPDATE property_index " +
             "SET d_value = :value " +
             "WHERE id = :id " +
             "AND name = :name")
-    void setDoubleProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") Double value);
+    void updateDoubleProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") Double value);
     @SqlUpdate(
             "UPDATE property_index " +
             "SET s_value = :value " +
             "WHERE id = :id " +
             "AND name = :name")
-    void setStringProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") String value);
+    void updateStringProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") String value);
+
+    @SqlUpdate(
+            "INSERT INTO property_index (e_id, name, i_value) " +
+            "VALUES (:id, :name, :value)")
+    void createIntegerProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") Integer value);
+    @SqlUpdate(
+            "INSERT INTO property_index (e_id, name, b_value) " +
+            "VALUES (:id, :name, :value)")
+    void createBooleanProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") Boolean value);
+    @SqlUpdate(
+            "INSERT INTO property_index (e_id, name, d_value) " +
+            "VALUES (:id, :name, :value)")
+    void createDoubleProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") Double value);
+    @SqlUpdate(
+            "INSERT INTO property_index (e_id, name, s_value) " +
+            "VALUES (:id, :name, :value)")
+    void createStringProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") String value);
     
     @SqlUpdate(
             "UPDATE edge " +
@@ -121,8 +134,83 @@ public interface AmberTransactionDao extends Transactional<AmberTransactionDao> 
             "DELETE FROM property_index " +
             "WHERE e_id = :id")
     void removeElementProperties(@Bind("id") long id);
+    @SqlUpdate(
+            "DELETE FROM property_index " +
+            "WHERE e_id IN " +
+            "  (SELECT id FROM edge " +
+            "   WHERE v_id = :id " +
+            "   OR v_out = :id)")
+    void removeIncidentEdgeProperties(@Bind("id") long id);
+    @SqlUpdate(
+            "DELETE FROM edge " +
+            "WHERE v_id = :id " +
+            "OR v_out = :id")
+    void removeIncidentEdges(@Bind("id") long id);
+    
+    @SqlUpdate(
+            "UPDATE edge " +
+            "SET state = :state " +
+            "WHERE v_in = :vertexId " +
+            "OR v_out = :vertexId")
+    void updateIncidentEdgeStates(@Bind("vertexId") long vertexId, @Bind("state") Integer state);
+
+    /*
+     * Find Operations
+     */
+
+    @SqlQuery(
+            "SELECT id, txn_start, txn_end, state " +
+            "FROM vertex " +
+            "WHERE id = :id")
+    @Mapper(AmberVertexTxnMapper.class)
+    AmberVertex
+            findVertexById(@Bind("id") long id);
+    @SqlQuery(
+            "SELECT id, txn_start, txn_end, v_out, v_in, label, edge_order, state " +
+            "FROM edge " +
+            "WHERE id = :id")
+    @Mapper(AmberEdgeTxnMapper.class)
+    AmberEdge
+            findEdgeById(@Bind("id") long id);
+
+    @SqlQuery(
+            "SELECT name, b_value, d_value, s_value, i_value " +
+            "FROM property_index " +
+            "WHERE e_id = :id")
+    @Mapper(AmberPropertyTxnMapper.class)
+    Iterator<AmberProperty>
+            findPropertiesByElementId(@Bind("id") long id);
     
     
+    /*
+     * Create Operations
+     */
+    @GetGeneratedKeys
+    @SqlUpdate(
+            "INSERT INTO edge (id, txn_start, txn_end, v_out, v_in, label, edge_order, state) " +
+            "VALUES (:id, :txnStart, :txnEnd, :outId, :inId, :label, :edgeOrder, :state)")
+    long 
+            createEdge(@Bind("id") long id, @Bind("txnStart") long txnStart, @Bind("txnEnd") long txnEnd,
+                    @Bind("outId") long outId, @Bind("inId") long inId, @Bind("label") String label, 
+                    @Bind("edgeOrder") int edgeOrder, @Bind("state") int state);
+    
+    @GetGeneratedKeys
+    @SqlUpdate(
+            "INSERT INTO vertex (id, txn_start, txn_end, state) " +
+            "VALUES (:id, :txnStart, :txnEnd, :state)")
+    long 
+            createVertex(@Bind("id") long id, @Bind("txnStart") long txnStart, 
+                    @Bind("txnEnd") long txnEnd, @Bind("state") int state);
+    
+//    @SqlQuery(
+//            "SELECT id, txn_start, txn_end, txn_open, properties, v_out, v_in, label, edge_order " +
+//            "FROM edge " +
+//            "WHERE v_in = :vertexId " +
+//            "ORDER BY edge_order")
+//    @Mapper(AmberEdgeMapper.class)
+//    Iterator<AmberEdge> 
+//            findInEdgesByVertexId(@Bind("vertexId") long vertexId);
+
 //    
 //    /*
 //     *  Edge related operations

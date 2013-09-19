@@ -65,7 +65,7 @@ public class AmberGraph implements Graph {
         if (user == null || user.trim().isEmpty()) { 
             throw new IllegalArgumentException("A transaction must have a user");
         }
-        return new AmberTransaction(user);
+        return new AmberTransaction(user, this);
     }
 
     protected AmberTransaction currentTxn() {

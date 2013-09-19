@@ -232,13 +232,13 @@ public interface AmberGraphDao extends Transactional<AmberGraphDao> {
 //    long createVertex(@Bind("txnStart") Long txnStart, @Bind("properties") String properties, @Bind("pi") String pi);
 //
 //    
-//    @SqlQuery(
-//            "SELECT id, txn_start, txn_end, txn_open, properties, pi " +
-//            "FROM vertex " +
-//            "WHERE id = :id")
-//    @Mapper(AmberVertexMapper.class)
-//    AmberVertex 
-//        findVertexById(@Bind("id") long id);
+    @SqlQuery(
+            "SELECT id, txn_start, txn_end, txn_open " +
+            "FROM vertex " +
+            "WHERE id = :id")
+    @Mapper(AmberVertexMapper.class)
+    AmberVertex 
+            findVertexById(@Bind("id") long id);
 //    
 //
 //    // allow multiple of the same vertex to be returned to conform

@@ -3,6 +3,10 @@ package amberdb.sql;
 import amberdb.sql.AmberElement.State;
 import amberdb.sql.dao.*;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
 import javax.sql.DataSource;
@@ -18,8 +22,11 @@ public class AmberTransaction {
     private AmberTransactionDao dao = null;
     private static final String dataSourceUrl = "jdbc:h2:mem:";
     
-    public AmberTransaction(String user) {
+    private AmberGraph graph;
+    
+    public AmberTransaction(String user, AmberGraph graph) {
         this.setUser(user);
+        this.graph(graph);
         initMemoryDb();
     }
 
@@ -61,26 +68,54 @@ public class AmberTransaction {
     }
     
     public void addEdge(AmberEdge e) {
-//        dao.addEdge(e.id(), e.txnStart(), e.txnEnd(), e.properties(), 
-//                e.outVertexId, e.inVertexId, e.label, e.edgeOrder, e.txnState().ordinal());
-//        dao.add
+        dao.createEdge(e.id(), e.txnStart(), e.txnEnd(),
+                e.outVertexId, e.inVertexId, e.label, 
+                e.edgeOrder, e.txnState().ordinal());
+        // dao.add props ?
     }
-    
+  
+    public void addVertex(AmberVertex e) {
+        dao.createVertex(e.id(), e.txnStart(), e.txnEnd(), e.txnState().ordinal());
+        // dao.add props ?
+    }
+  
     public void removeProperty(AmberElement e, String propertyName) {
         if (e.txnState() == State.READ) updateState(e, State.MODIFIED);
         dao.removeProperty(e.id(), propertyName);
     }
 
     public void setProperty(AmberElement e, String propertyName, Object value) {
+      
+        if (e.properties().containsKey(propertyName)) {
+            updateProperty(e, propertyName, value);
+        } else {
+            createProperty(e, propertyName, value);
+        }
+    }
+    
+    public void updateProperty(AmberElement e, String propertyName, Object value) {
         if (e.txnState() == State.READ) updateState(e, State.MODIFIED);
         if (value instanceof Integer) {
-            dao.setIntegerProperty(e.id(), propertyName, (Integer) value);
+            dao.updateIntegerProperty(e.id(), propertyName, (Integer) value);
         } else if (value instanceof Boolean) {
-            dao.setBooleanProperty(e.id(), propertyName, (Boolean) value);
+            dao.updateBooleanProperty(e.id(), propertyName, (Boolean) value);
         } else if (value instanceof Double) {
-            dao.setDoubleProperty(e.id(), propertyName, (Double) value);
+            dao.updateDoubleProperty(e.id(), propertyName, (Double) value);
         } else {
-            dao.setStringProperty(e.id(), propertyName, (String) value);
+            dao.updateStringProperty(e.id(), propertyName, (String) value);
+        }
+    }
+    
+    public void createProperty(AmberElement e, String propertyName, Object value) {
+        if (e.txnState() == State.READ) updateState(e, State.MODIFIED);
+        if (value instanceof Integer) {
+            dao.createIntegerProperty(e.id(), propertyName, (Integer) value);
+        } else if (value instanceof Boolean) {
+            dao.createBooleanProperty(e.id(), propertyName, (Boolean) value);
+        } else if (value instanceof Double) {
+            dao.createDoubleProperty(e.id(), propertyName, (Double) value);
+        } else {
+            dao.createStringProperty(e.id(), propertyName, (String) value);
         }
     }
     
@@ -88,7 +123,7 @@ public class AmberTransaction {
         e.txnState(newState);
         if (e instanceof AmberEdge) {
             dao.updateEdgeState(e.id(), newState.ordinal());
-        } else {
+        } else { // must be a Vertex
             dao.updateVertexState(e.id(), newState.ordinal());
         }
     }
@@ -100,27 +135,74 @@ public class AmberTransaction {
     
     public void removeElement(AmberElement e) {
     
-        if (e.txnState() == State.DELETED) return;
+        if (e.txnState() == State.DELETED) return; // should be gone already
         
         if (e.txnState() == State.READ || e.txnState() == State.MODIFIED) { 
-            updateState(e, State.DELETED);
-            if (e instanceof AmberVertex) {
-//                for (AmberEdge edge : ((AmberVertex) e).)
-//                removeElement((Vertex))
-            }
+            markElementDeleted(e);
         }
         
         if (e.txnState() == State.NEW) {
-            if (e instanceof AmberEdge) {
-                dao.removeEdge(e.id());
-            } else {
-                dao.removeVertex(e.id());
-//                removeIncidentEdges(e.id());
-            }
+            destroyElement(e);
         }
-        
-        dao.removeElementProperties(e.id());
     }
     
+    private void destroyElement(AmberElement e) {
+        long id = e.id();
+        if (e instanceof AmberEdge) {
+            dao.removeEdge(id);
+        } else {  // must be a Vertex
+            dao.removeIncidentEdgeProperties(id);
+            dao.removeIncidentEdges(id);
+            dao.removeVertex(id);
+        }
+        dao.removeElementProperties(id);
+    }
     
+    private void markElementDeleted(AmberElement e) {
+        long id = e.id();
+        updateState(e, State.DELETED);
+        if (e instanceof AmberVertex) {
+            dao.removeIncidentEdgeProperties(id);
+            dao.updateIncidentEdgeStates(id, State.DELETED.ordinal());
+        }
+        dao.removeElementProperties(id);
+    }
+    
+    // can return vertex in DELETED state 
+    public AmberVertex getVertex(long id) {
+        AmberVertex vertex = dao.findVertexById(id);
+        if (vertex != null) {
+            vertex.graph(graph);
+            loadElementProperties(vertex);
+        }
+        return vertex;
+    }
+    
+    // can return edge in DELETED state
+    public AmberEdge getEdge(long id) {
+        AmberEdge edge = dao.findEdgeById(id);
+        if (edge != null) {
+            edge.graph(graph);
+            loadElementProperties(edge);
+        }
+        return edge;
+    }
+    
+    private void loadElementProperties(AmberElement e) {
+        Iterator<AmberProperty> propertyIter = dao.findPropertiesByElementId(e.id());
+        Map<String, Object> properties = new HashMap<String, Object>();
+        while (propertyIter.hasNext()) {
+            AmberProperty p = propertyIter.next();
+            properties.put(p.name, p.value);
+        }
+        e.loadProperties(properties);
+    }
+    
+    protected void graph(AmberGraph graph) {
+        this.graph = graph;
+    }
+    
+    protected AmberGraph graph() {
+        return graph;
+    }
 }

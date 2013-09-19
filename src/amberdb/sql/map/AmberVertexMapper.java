@@ -14,8 +14,6 @@ public class AmberVertexMapper implements ResultSetMapper<AmberVertex> {
         return new AmberVertex(
                 rs.getLong("id"),
                 rs.getLong("txn_start"),
-                rs.getLong("txn_end"),
-                rs.getString("properties"),
-                rs.getString("pi"));
+                rs.getLong("txn_end"));
     }
 }

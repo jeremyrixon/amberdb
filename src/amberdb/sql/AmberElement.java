@@ -10,7 +10,6 @@ public class AmberElement {
 
     private long id;
     private AmberGraph graph;
-    public static final String EMPTY_PROPERTIES = "{}"; 
     
     private Map<String, Object> properties = new HashMap<String, Object>(); 
     
@@ -18,7 +17,18 @@ public class AmberElement {
     private long txnStart;
     private long txnEnd;
 
-    protected enum State {NEW, MODIFIED, DELETED, READ};
+    protected enum State {
+        
+        NEW, MODIFIED, DELETED, READ, BAD;
+        
+        public static State forOrdinal(int i) {
+            if (i == State.NEW.ordinal()) return State.NEW;
+            if (i == State.MODIFIED.ordinal()) return State.MODIFIED;
+            if (i == State.NEW.ordinal()) return State.DELETED;
+            if (i == State.NEW.ordinal()) return State.READ;
+            return State.BAD;
+        }
+    };
     private State txnState;
     
     public void graph(AmberGraph graph) {
@@ -79,7 +89,10 @@ public class AmberElement {
     
     public void remove() {
         graph.currentTxn().removeElement(this);
-        
+    }
+    
+    protected void loadProperties(Map<String, Object> newProperties) {
+        properties = newProperties;
     }
     
     /*

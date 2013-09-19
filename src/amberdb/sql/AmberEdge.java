@@ -1,6 +1,5 @@
 package amberdb.sql;
 
-import amberdb.sql.dao.*;
 import java.util.Set;
 
 import com.tinkerpop.blueprints.Direction;
@@ -46,6 +45,24 @@ public class AmberEdge extends AmberElement implements Edge {
         this.txnState(State.NEW);
         graph().currentTxn().addEdge(this);
     }    
+    
+    // This constructor for getting an edge from the transaction
+    // need to add properties and graph
+    public AmberEdge(Long id, Long txnStart, Long txnEnd, Long outVertexId, 
+            Long inVertexId, String label, int edgeOrder, int state) {
+        
+        id(id);
+        txnStart(txnStart);
+        txnEnd(txnEnd);
+        this.txnState(State.forOrdinal(state));
+        
+        this.label = label;
+        this.inVertexId = inVertexId;
+        this.outVertexId = outVertexId;
+        this.edgeOrder = edgeOrder;
+        
+    }
+
     
     @Override
     public Object getId() {
@@ -96,14 +113,16 @@ public class AmberEdge extends AmberElement implements Edge {
         if (propertyName == null || propertyName.matches("(?i)id|\\s*|label")) {
             throw new IllegalArgumentException("Illegal property name [" + propertyName + "]");
         }
-        if (!(value instanceof String || value instanceof Integer || value instanceof Boolean || value instanceof Double)) {
+        if (!(value instanceof Integer || value instanceof String || 
+              value instanceof Boolean || value instanceof Double)) {
             throw new IllegalArgumentException("Illegal property type [" + value.getClass() + "].");
         }
         if (!(value instanceof Integer) && propertyName.equals(SORT_ORDER_PROPERTY_NAME)) {
-            throw new IllegalArgumentException(SORT_ORDER_PROPERTY_NAME + " property type must be Integer, was [" + value.getClass() + "].");
+            throw new IllegalArgumentException(SORT_ORDER_PROPERTY_NAME + 
+                    " property type must be Integer, was [" + value.getClass() + "].");
         }
         
-        // set special sorting property
+        // set special sorting property 
         if (propertyName.equals(SORT_ORDER_PROPERTY_NAME)) {
             edgeOrder = (Integer) value;
             graph().currentTxn().updateEdgeOrder(this);
@@ -111,15 +130,11 @@ public class AmberEdge extends AmberElement implements Edge {
         }
         
         super.setProperty(propertyName, value);
-//        return;
     }    
 
-    //public void 
-    
     @Override
     public void remove() {
-        dao().removeEdge(id());
-        dao().removeEdgePropertyIndexEntries(id());
+        super.remove();
     }
 
     @Override
@@ -134,18 +149,32 @@ public class AmberEdge extends AmberElement implements Edge {
         if (Direction.BOTH == direction) {
             throw new IllegalArgumentException("Can only get a vertex from a single direction");
         }
-        AmberVertex jv = null;
-        if (direction == Direction.IN) {
-            jv = dao().findVertexByInEdge(id());
-        } else if (direction == Direction.OUT) {
-            jv = dao().findVertexByOutEdge(id());
-        }
         
-        if (jv == null) return null;
-        jv.graph(graph());
-        return jv;
+        AmberVertex vertex = null;
+        if (direction == Direction.IN) {
+            vertex = findVertex(inVertexId);
+        } else if (direction == Direction.OUT) {
+            vertex = findVertex(outVertexId);
+        }
+        return vertex;
     }
 
+    private AmberVertex findVertex(long id) {
+
+        // check transaction first then permanent data store
+        AmberVertex vertex = graph().currentTxn().getVertex(inVertexId);
+        if (vertex != null) {
+            State state = vertex.txnState();
+            if (state == State.DELETED) return null;
+            if (state == State.NEW || state == State.READ || state == State.MODIFIED) {
+                return vertex;
+            }    
+        }
+        
+        // no, so return whatever is found in the permanent data store
+        return (AmberVertex) graph().getVertex(inVertexId);
+    }
+    
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -193,28 +222,5 @@ public class AmberEdge extends AmberElement implements Edge {
         .append(" order:").append(edgeOrder)
         .append(" txn state:").append(txnState().toString());
         return sb.toString();
-    }
-    
-    private void updatePropertyIndex(String propertyName, Object value) {
-        
-        // argument guard
-        if (!(value instanceof Boolean || value instanceof Double || 
-                value instanceof String || value instanceof Integer)) {
-            throw new IllegalArgumentException("Edge property type can only be one of Boolean, Double, " +
-                    "String or Integer. Supplied value was "+ value.getClass().getName());  
-        }
-        
-        dao().begin();
-        dao().removeEdgePropertyIndexEntry(id(), propertyName);
-        if (value instanceof Boolean) {
-            dao().setBooleanEdgePropertyIndexEntry(id(), propertyName, (Boolean) value);
-        } else if (value instanceof Double) {
-            dao().setDoubleEdgePropertyIndexEntry(id(), propertyName, (Double) value);
-        } else if (value instanceof String) {
-            dao().setStringEdgePropertyIndexEntry(id(), propertyName, (String) value);
-        } else if (value instanceof Integer) {
-            dao().setIntegerEdgePropertyIndexEntry(id(), propertyName, (Integer) value);
-        } 
-        dao().commit();
     }
 }

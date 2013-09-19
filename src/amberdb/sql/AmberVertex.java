@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import amberdb.sql.AmberElement.State;
+
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
@@ -12,28 +14,30 @@ import com.tinkerpop.blueprints.VertexQuery;
 
 public class AmberVertex extends AmberElement implements Vertex {
 
-    public String pi;
-
-    // This constructor for access
-    public AmberVertex(Long id, Long txnStart, Long txnEnd, String properties, String pi) {
-
+    // this constructor for getting a vertex from the db
+    // properties must be fetched separately 
+    public AmberVertex(Long id, Long txnStart, Long txnEnd) {
         id(id);
         txnStart(txnStart);
         txnEnd(txnEnd);
-        properties(properties);
-        this.pi = pi;
     }
 
-    // This constructor for creation
-    public AmberVertex(AmberGraph graph, String properties, String pi) {
+    // This constructor for creating a new vertex
+    public AmberVertex(AmberGraph graph) {
         
         graph(graph);
-        properties(properties);
-        this.pi = pi;
+        id(dao().newId());
         
-        //long id = graph.getDao().createVertex(txnStart(), properties, pi);
-        //id(id);
-        graph().currentTxn().newVertices.add(this);
+        // add to transaction as NEW element
+        this.txnState(State.NEW);
+        graph().currentTxn().addVertex(this);
+    }
+
+    // This constructor for getting a vertex from the transaction
+    public AmberVertex(long id, long txnStart, long txnEnd, int state) {
+        id(id);
+        txnStart(txnStart);
+        txnEnd(txnEnd);
     }
 
     
@@ -54,24 +58,15 @@ public class AmberVertex extends AmberElement implements Vertex {
 
     @Override
     public void remove() {
-        Iterable<Edge> edges = getEdges(Direction.BOTH);
-        for (Edge e: edges) {
-            e.remove();
+        for (Edge e: getEdges(Direction.BOTH)) {
+            ((AmberEdge) e).remove();
         }
-        dao().removeVertex(id());
-        
-        // update index
-        dao().removeVertexPropertyIndexEntries(id());
+        super.remove();
     }
 
     @Override
     public <T> T removeProperty(String propertyName) {
         T prop = super.removeProperty(propertyName);
-        dao().updateVertexProperties(id(), properties());
-        
-        // update index
-        dao().removeVertexPropertyIndexEntry(id(), propertyName);
-        
         return prop;
     }
 
@@ -82,17 +77,12 @@ public class AmberVertex extends AmberElement implements Vertex {
         if (propertyName == null || propertyName.matches("(?i)id|\\s*")) {
             throw new IllegalArgumentException("Illegal property name [" + propertyName + "]");
         }
-        if (!(value instanceof String || value instanceof Integer || value instanceof Boolean || value instanceof Double)) {
+        if (!(value instanceof Integer || value instanceof String || 
+              value instanceof Boolean || value instanceof Double)) {
             throw new IllegalArgumentException("Illegal property type [" + value.getClass() + "].");
         }
         
         super.setProperty(propertyName, value);
-        dao().updateVertexProperties(id(), properties());
-        
-        // update index
-        updatePropertyIndex(propertyName, value);
-        
-        return;
     }
 
     @Override
@@ -101,7 +91,7 @@ public class AmberVertex extends AmberElement implements Vertex {
         // argument guard
         if (label == null) throw new IllegalArgumentException("edge label cannot be null");
         
-        return new AmberEdge(graph(), "{}", id(), (long) inVertex.getId(), label);
+        return new AmberEdge(graph(), id(), (long) inVertex.getId(), label);
     }
 
     @Override
@@ -234,27 +224,27 @@ public class AmberVertex extends AmberElement implements Vertex {
         return sb.toString();
     }
     
-    private void updatePropertyIndex(String propertyName, Object value) {
-
-        // argument guard
-        if (!(value instanceof Boolean || value instanceof Double || 
-                value instanceof String || value instanceof Integer)) {
-            throw new IllegalArgumentException("Vertex property type can only be one of Boolean, Double, " +
-                    "String or Integer. Supplied value was "+ value.getClass().getName());  
-        }
-        
-        dao().begin();
-        dao().removeVertexPropertyIndexEntry(id(), propertyName);
-        if (value instanceof Boolean) {
-            dao().setBooleanVertexPropertyIndexEntry(id(), propertyName, (Boolean) value);
-        } else if (value instanceof Double) {
-            dao().setDoubleVertexPropertyIndexEntry(id(), propertyName, (Double) value);
-        } else if (value instanceof String) {
-            dao().setStringVertexPropertyIndexEntry(id(), propertyName, (String) value);
-        } else if (value instanceof Integer) {
-            dao().setIntegerVertexPropertyIndexEntry(id(), propertyName, (Integer) value);
-        } 
-        dao().commit();
-    }
-
+//    private void updatePropertyIndex(String propertyName, Object value) {
+//
+//        // argument guard
+//        if (!(value instanceof Boolean || value instanceof Double || 
+//                value instanceof String || value instanceof Integer)) {
+//            throw new IllegalArgumentException("Vertex property type can only be one of Boolean, Double, " +
+//                    "String or Integer. Supplied value was "+ value.getClass().getName());  
+//        }
+//        
+//        dao().begin();
+//        dao().removeVertexPropertyIndexEntry(id(), propertyName);
+//        if (value instanceof Boolean) {
+//            dao().setBooleanVertexPropertyIndexEntry(id(), propertyName, (Boolean) value);
+//        } else if (value instanceof Double) {
+//            dao().setDoubleVertexPropertyIndexEntry(id(), propertyName, (Double) value);
+//        } else if (value instanceof String) {
+//            dao().setStringVertexPropertyIndexEntry(id(), propertyName, (String) value);
+//        } else if (value instanceof Integer) {
+//            dao().setIntegerVertexPropertyIndexEntry(id(), propertyName, (Integer) value);
+//        } 
+//        dao().commit();
+//    }
+    
 }
