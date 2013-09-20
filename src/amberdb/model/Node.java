@@ -1,7 +1,6 @@
 package amberdb.model;
 
 import amberdb.PIUtil;
-
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.frames.VertexFrame;
 import com.tinkerpop.frames.modules.javahandler.JavaHandler;
@@ -36,6 +35,5 @@ public interface Node extends VertexFrame {
 		public String getObjId() {
 		    return PIUtil.pi(getId());
 		}
-    	
     }
 }
