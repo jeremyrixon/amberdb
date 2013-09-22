@@ -1,42 +1,25 @@
 package amberdb;
 
-import static org.junit.Assert.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-
+import amberdb.AmberDb;
 import amberdb.model.Page;
 import amberdb.model.Section;
 
-public class IngestTest {
-    private static AmberDb dao;
-    private static JobMockup job;
+public class PlayGround {
+    public static AmberDb dao;
+    public static Job job;
     
-    @BeforeClass
-    public static void setup() throws IOException {
+    public PlayGround() throws IOException {
         job = uploadFiles();
         dao = identifyWorks();
     }
     
-    @AfterClass
-    public static void teardown() {
-        job = null;
-        dao = null;
-    }
-    
-    private static JobMockup uploadFiles() {
-        job = new JobMockup();
+    private Job uploadFiles() {
+        job = new Job();
         
         // Note: banjo upload files step does not interact with amberDb at all.
         List<File> list = new ArrayList<File>();
@@ -54,7 +37,7 @@ public class IngestTest {
         return job;
     }
     
-    private static AmberDb identifyWorks() throws IOException {
+    private AmberDb identifyWorks() throws IOException {
         try (AmberDb amberDb = new AmberDb()) {
 
             // recover existing transaction if any
@@ -110,76 +93,33 @@ public class IngestTest {
             return amberDb;
         }
     }
-    
-    // @Test
-    @Ignore
-    public void testDescribeWorks() {        
-        // recover existing transaction if any
-        if (job.getAmberTxId() != null) {
-            dao.recover(job.getAmberTxId());
-        }
 
-        for (Long workId: job.getWorks()) {
-            describeWork(job, dao.findSection(workId));
-        }
-
-        // save this transaction without committing it
-        // so we can continue manipulating these objects
-        // in another web request
-        job.setAmberTxId(dao.suspend());
-    }
     
-    @Test
-    // @Ignore
-    public void testFixLabel() {
-        Section section = dao.findSectionByVn(12345L);
+    static class Job {
+        int txId;
+        List<File> files;
+        List<Long> workIds;
+
+        public Integer getAmberTxId() {
+            // TODO Auto-generated method stub
+            return txId;
+        }
         
-        try {
-        // TODO: need to check why section.getAddedPage(1) return null?    
-        Page page7 = section.getAddedPage(2);
-        page7.setTitle("III");
-        } catch(Exception e) {
-            e.printStackTrace();
+        public void setAmberTxId(int txId) {
+            this.txId = txId;
         }
-
-        dao.commit();
-    }
-    
-    @Test
-    public void testCompleteJob() {
-        // recover existing transaction if any
-        dao.recover(job.getAmberTxId());
-        dao.commit();
-    }
-    
-    @Test
-    public void testCancelJob() {
-        dao.rollback();
-    }
-    
-    @Test
-    public void testSerializeToJson() throws JsonGenerationException, JsonMappingException, IOException {
-        System.out.println(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(dao.serializeToJson()));
-    }
-   
-    private void describeWork(JobMockup job, Section section) {
-        // fill in default values
-        for (Page p: section.getAddedPages()) {
-            p.setDevice(job.getDefaultDevice());
-            p.setSoftware(job.getDefaultSoftware());
+        
+        public List<Long> getWorks() {
+            return workIds;
         }
-
-        // show the qa form
-        try {
-        if (section.countParts() > 1) {
-            section.swapPages(1, 2);
-        } 
-        } catch (Exception e) {
-            e.printStackTrace();
+        
+        public String getDefaultDevice() {
+            return "device";
         }
-        Page page = section.getAddedPage(1);
-        page.rotate(10);
-        page.crop(100,100,200,200);
-        page.setTitle("IV");
+        
+        public String getDefaultSoftware() {
+            return "apps";
+        }
     }
+ 
 }

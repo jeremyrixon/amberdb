@@ -24,7 +24,7 @@ public interface Page extends Work {
     @JavaHandler
     public void crop(int startX, int startY, int height, int width);
 
-    abstract class Impl implements JavaHandlerContext<Vertex>, Work {
+    abstract class Impl implements JavaHandlerContext<Vertex>, Page {
         public void rotate(int degree) {
             // TODO
         }

@@ -29,11 +29,11 @@ public interface File extends Node {
     @Property("checkSum")
     public void setCheckSum(String checkSum);
     
-    @Property("fileLocation")
-    public String getLocation();
+    @Property("algorithm")
+    public String getAlgorithm();
     
-    @Property("fileLocation")
-    public void setLocation(String fileLocation);
+    @Property("algorithm")
+    public void setAlgorithm(String algorithm);
     
     @Adjacency(label = IsFileOf.label)
     public Copy getCopy();
