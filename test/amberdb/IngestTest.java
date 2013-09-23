@@ -18,10 +18,12 @@ import org.junit.Test;
 
 import amberdb.model.Page;
 import amberdb.model.Section;
+import amberdb.model.Work;
 
 public class IngestTest {
     private static AmberDb dao;
     private static JobMockup job;
+    private static String samplePI;
     
     @BeforeClass
     public static void setup() throws IOException {
@@ -69,6 +71,8 @@ public class IngestTest {
             // try to detect works based on filenames,
 
             Section auto1 = amberDb.addSection();
+            samplePI = auto1.getObjId();
+            
             auto1.setBibId(12345L);
             amberDb.addPageTo(auto1, job.files.get(6));
 
@@ -109,6 +113,15 @@ public class IngestTest {
             
             return amberDb;
         }
+    }
+    
+    @Test
+    public void testFindWorkByPI() {
+        Work sample = dao.findWork(PIUtil.objId(samplePI));
+        assertEquals("Blinky Bill", sample.getTitle());
+        
+        String resultPI = sample.getObjId();
+        assertEquals(samplePI, resultPI);
     }
     
     // @Test
