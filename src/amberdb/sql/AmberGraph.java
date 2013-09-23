@@ -5,6 +5,7 @@ import amberdb.sql.dao.*;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import javax.sql.DataSource;
@@ -116,6 +117,7 @@ public class AmberGraph implements Graph {
             if (direction == Direction.OUT || direction == Direction.BOTH) {
                 edges.addAll(Lists.newArrayList(persistentDao.findOutEdges(vertex.id())));
             }
+            edges.removeAll(Collections.singleton(null));
             for (AmberEdge edge : edges) {
                 edge.addToSession(this, State.READ, true);
             }
@@ -136,6 +138,7 @@ public class AmberGraph implements Graph {
         if (direction == Direction.OUT || direction == Direction.BOTH) {
             edges.addAll(Lists.newArrayList(persistentDao.findOutEdges(vertex.id(), label)));
         }
+        edges.removeAll(Collections.singleton(null));
         for (AmberEdge edge: edges) {
             edge.addToSession(this, State.READ, true);
         }
@@ -145,6 +148,7 @@ public class AmberGraph implements Graph {
     protected List<AmberEdge> loadEdges() {
         List<AmberEdge> edges = new ArrayList<AmberEdge>();
         edges.addAll(Lists.newArrayList(persistentDao.findEdges()));
+        edges.removeAll(Collections.singleton(null));
         for (AmberEdge edge: edges) {
             edge.addToSession(this, State.READ, true);
         }
@@ -163,6 +167,7 @@ public class AmberGraph implements Graph {
         } else if (value instanceof Double) {
             edges.addAll(Lists.newArrayList(persistentDao.findEdgesWithDoubleProperty(key, (Double) value)));
         }    
+        edges.removeAll(Collections.singleton(null));
         for (AmberEdge edge: edges) {
             edge.addToSession(this, State.READ, true);
         }
@@ -180,6 +185,7 @@ public class AmberGraph implements Graph {
             if (direction == Direction.OUT || direction == Direction.BOTH) {
                 vertices.addAll(Lists.newArrayList(persistentDao.findOutVertices(vertex.id())));
             }
+            vertices.removeAll(Collections.singleton(null));
             for (AmberVertex v : vertices) {
                 v.addToSession(this, State.READ, true);
             }
@@ -200,6 +206,7 @@ public class AmberGraph implements Graph {
         if (direction == Direction.OUT || direction == Direction.BOTH) {
             vertices.addAll(Lists.newArrayList(persistentDao.findOutVertices(vertex.id(), label)));
         }
+        vertices.removeAll(Collections.singleton(null));
         for (AmberVertex v: vertices) {
             v.addToSession(this, State.READ, true);
         }
@@ -210,6 +217,7 @@ public class AmberGraph implements Graph {
         List<AmberVertex> vertices = new ArrayList<AmberVertex>();
         
         vertices.addAll(Lists.newArrayList(persistentDao.findVertices()));
+        vertices.removeAll(Collections.singleton(null));
         for (AmberVertex v: vertices) {
             v.addToSession(this, State.READ, true);
         }
@@ -228,6 +236,7 @@ public class AmberGraph implements Graph {
         } else if (value instanceof Double) {
             vertices.addAll(Lists.newArrayList(persistentDao.findVerticesWithDoubleProperty(key, (Double) value)));
         }    
+        vertices.removeAll(Collections.singleton(null));
         for (AmberVertex vertex: vertices) {
             vertex.addToSession(this, State.READ, true);
         }
@@ -298,8 +307,7 @@ public class AmberGraph implements Graph {
         // is the edge in the session ? 
         AmberEdge edge = edgeDao.findEdge(id);
         if (edge != null ) {
-            if (edge.sessionState() == State.DELETED) return null;
-            return edge;
+            return (Edge) nullIfDeleted(edge);
         }
         
         // get from persistent
@@ -320,11 +328,7 @@ public class AmberGraph implements Graph {
         List<Edge> edges = new ArrayList<Edge>();
         Iterator<AmberEdge> iter = edgeDao.findEdges();
         while (iter.hasNext()) {
-            AmberEdge edge = iter.next();
-            edge.graph(this);
-            if (edge.sessionState() != State.DELETED) {
-                edges.add(edge);
-            }
+            addUndeletedElements(iter.next(), edges);
         }
         return edges;
     }
@@ -334,7 +338,7 @@ public class AmberGraph implements Graph {
 
         loadEdgesWithProperty(key, value);
         
-        List<Edge> edges = new ArrayList<Edge>();
+        List<AmberEdge> edges = new ArrayList<AmberEdge>();
         
         if (value instanceof String) {
             edges.addAll(Lists.newArrayList(edgeDao.findEdgesWithStringProperty(key, (String) value)));
@@ -344,8 +348,13 @@ public class AmberGraph implements Graph {
             edges.addAll(Lists.newArrayList(edgeDao.findEdgesWithIntProperty(key, (Integer) value)));
         } else if (value instanceof Double) {
             edges.addAll(Lists.newArrayList(edgeDao.findEdgesWithDoubleProperty(key, (Double) value)));
-        }    
-        return edges;
+        }
+        
+        List<Edge> filteredEdges = new ArrayList<Edge>();
+        for (AmberEdge e: edges) {
+            addUndeletedElements(e, filteredEdges);
+        }
+        return filteredEdges;
     }
 
     @Override
@@ -369,6 +378,10 @@ public class AmberGraph implements Graph {
         features.supportsVertexIteration = true;
         features.supportsEdgeProperties = true;
         features.supportsEdgeIteration = true;
+        features.supportsEdgeRetrieval = true;
+        
+        
+        //features.supportsMixedListProperty= true;
         features.checkCompliance();
         return features;
     }
@@ -392,9 +405,7 @@ public class AmberGraph implements Graph {
         // is the vertex in the session ? 
         AmberVertex vertex = vertexDao.findVertex(id);
         if (vertex != null ) {
-            vertex.graph(this);
-            if (vertex.sessionState() == State.DELETED) return null;
-            return vertex;
+            return (Vertex) nullIfDeleted(vertex);
         }
         
         // get from persistent
@@ -413,11 +424,7 @@ public class AmberGraph implements Graph {
         List<Vertex> vertices = new ArrayList<Vertex>();
         Iterator<AmberVertex> iter = vertexDao.findVertices();
         while (iter.hasNext()) {
-            AmberVertex vertex = iter.next();
-            vertex.graph(this);
-            if (vertex.sessionState() != State.DELETED) {
-                vertices.add(vertex);
-            }
+            addUndeletedElements(iter.next(), vertices);
         }
         return vertices;
     }
@@ -427,7 +434,7 @@ public class AmberGraph implements Graph {
     public Iterable<Vertex> getVertices(String key, Object value) {
         loadVerticesWithProperty(key, value);
         
-        List<Vertex> vertices = new ArrayList<Vertex>();
+        List<AmberVertex> vertices = new ArrayList<AmberVertex>();
         
         if (value instanceof String) {
             vertices.addAll(Lists.newArrayList(vertexDao.findVerticesWithStringProperty(key, (String) value)));
@@ -437,8 +444,14 @@ public class AmberGraph implements Graph {
             vertices.addAll(Lists.newArrayList(vertexDao.findVerticesWithIntProperty(key, (Integer) value)));
         } else if (value instanceof Double) {
             vertices.addAll(Lists.newArrayList(vertexDao.findVerticesWithDoubleProperty(key, (Double) value)));
-        }    
-        return vertices;
+        } 
+        
+        List<Vertex> filteredVertices = new ArrayList<Vertex>();
+        for (AmberVertex v: vertices) {
+            addUndeletedElements(v, filteredVertices);
+        }
+        
+        return filteredVertices;
     }
     
     /**
@@ -474,6 +487,25 @@ public class AmberGraph implements Graph {
     public String toString() {
         return ("ambergraph");
     }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private void addUndeletedElements(AmberElement element, List elementList) {
+        if (element != null) {
+            element.graph(this);
+            if (element.sessionState() != State.DELETED) {
+                elementList.add(element);
+            }
+        }
+    }
+
+    private AmberElement nullIfDeleted(AmberElement element) {
+        element.graph(this);
+        if (element.sessionState() == State.DELETED) {
+            return null;
+        }
+        return element;
+    }
+
     
     // Convenience for debugging
     private void s(String s) {

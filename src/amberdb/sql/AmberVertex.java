@@ -1,6 +1,7 @@
 package amberdb.sql;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -117,36 +118,36 @@ public class AmberVertex extends AmberElement implements Vertex {
         // load edges from persistent into session (shouldn't overwrite present edges)
         graph().loadPersistentEdges(this, direction, labels);
 
-        // now just get from session (contains DELETED edges)
+        // now just get from session - DELETED edges have been removed
         List<AmberEdge> sessionEdges = getSessionEdges(direction, labels);
         
         List<Edge> edges = new ArrayList<Edge>();
-
-        // filter out deleted edges
-        for (AmberEdge edge: sessionEdges) {
-            if (edge.sessionState() != State.DELETED) {
-                edges.add(edge);
-            }
-        }
+        edges.addAll(sessionEdges);
         
         return edges;
     }
 
 
     protected List<AmberEdge> getSessionEdges(Direction direction, String... labels) {
-        
+
         List<AmberEdge> edges = new ArrayList<AmberEdge>();
+        List<AmberEdge> unfilteredEdges = new ArrayList<AmberEdge>();
+
         if (labels.length == 0) {
 
             if (direction == Direction.IN || direction == Direction.BOTH) {
-                edges.addAll(Lists.newArrayList(dao().findInEdges(id())));
+                unfilteredEdges.addAll(Lists.newArrayList(dao().findInEdges(id())));
             }
             if (direction == Direction.OUT || direction == Direction.BOTH) {
-                edges.addAll(Lists.newArrayList(dao().findOutEdges(id())));
+                unfilteredEdges.addAll(Lists.newArrayList(dao().findOutEdges(id())));
             }
-            for (AmberEdge edge : edges) {
+            for (AmberEdge edge : unfilteredEdges) {
                 edge.graph(graph());
+                if (edge.sessionState() != State.DELETED) {
+                    edges.add(edge);
+                }
             }
+
         } else {
             for (String label : labels) {
                 edges.addAll(getSessionEdges(direction, label));
@@ -156,16 +157,22 @@ public class AmberVertex extends AmberElement implements Vertex {
     }
 
     public List<AmberEdge> getSessionEdges(Direction direction, String label) {
+
         List<AmberEdge> edges = new ArrayList<AmberEdge>();
+        List<AmberEdge> unfilteredEdges = new ArrayList<AmberEdge>();
+        
         
         if (direction == Direction.IN || direction == Direction.BOTH) {
-            edges.addAll(Lists.newArrayList(dao().findInEdges(id(), label)));
+            unfilteredEdges.addAll(Lists.newArrayList(dao().findInEdges(id(), label)));
         }
         if (direction == Direction.OUT || direction == Direction.BOTH) {
-            edges.addAll(Lists.newArrayList(dao().findOutEdges(id(), label)));
+            unfilteredEdges.addAll(Lists.newArrayList(dao().findOutEdges(id(), label)));
         }
-        for (AmberEdge edge: edges) {
+        for (AmberEdge edge: unfilteredEdges) {
             edge.graph(graph());
+            if (edge.sessionState() != State.DELETED) {
+                edges.add(edge);
+            }
         }
         return edges;
     }
@@ -199,18 +206,24 @@ public class AmberVertex extends AmberElement implements Vertex {
     protected List<AmberVertex> getSessionVertices(Direction direction, String... labels) {
         
         List<AmberVertex> vertices = new ArrayList<AmberVertex>();
+        List<AmberVertex> unfilteredVertices = new ArrayList<AmberVertex>();
+        
         if (labels.length == 0) {
 
             if (direction == Direction.IN || direction == Direction.BOTH) {
-                vertices.addAll(Lists.newArrayList(dao().findInVertices(id())));
+                unfilteredVertices.addAll(Lists.newArrayList(dao().findInVertices(id())));
             }
             if (direction == Direction.OUT || direction == Direction.BOTH) {
-                vertices.addAll(Lists.newArrayList(dao().findOutVertices(id())));
+                unfilteredVertices.addAll(Lists.newArrayList(dao().findOutVertices(id())));
             }
-            for (AmberVertex vertex : vertices) {
+            
+            for (AmberVertex vertex : unfilteredVertices) {
                 vertex.graph(graph());
-                vertex.sessionState(State.READ);
+                if (vertex.sessionState() != State.DELETED) {
+                    vertices.add(vertex);
+                }
             }
+            
         } else {
             for (String label : labels) {
                 vertices.addAll(getSessionVertices(direction, label));
@@ -220,16 +233,22 @@ public class AmberVertex extends AmberElement implements Vertex {
     }
 
     public List<AmberVertex> getSessionVertices(Direction direction, String label) {
+        
         List<AmberVertex> vertices = new ArrayList<AmberVertex>();
+        List<AmberVertex> unfilteredVertices = new ArrayList<AmberVertex>();
 
         if (direction == Direction.IN || direction == Direction.BOTH) {
-            vertices.addAll(Lists.newArrayList(dao().findInVertices(id(), label)));
+            unfilteredVertices.addAll(Lists.newArrayList(dao().findInVertices(id(), label)));
         }
         if (direction == Direction.OUT || direction == Direction.BOTH) {
-            vertices.addAll(Lists.newArrayList(dao().findOutVertices(id(), label)));
+            unfilteredVertices.addAll(Lists.newArrayList(dao().findOutVertices(id(), label)));
         }
-        for (AmberVertex vertex: vertices) {
+        unfilteredVertices.removeAll(Collections.singleton(null));
+        for (AmberVertex vertex: unfilteredVertices) {
             vertex.graph(graph());
+            if (vertex.sessionState() != State.DELETED) {
+                vertices.add(vertex);
+            }
         }
         return vertices;    
     }

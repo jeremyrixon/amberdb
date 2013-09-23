@@ -87,13 +87,13 @@ public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
     // printTestPerformance("KeyIndexableGraphTestSuite", this.stopWatch());
     // }
     //
-//    public void testIndexableGraphTestSuite() throws Exception {
-//        this.stopWatch();
-//        doTestSuite(new IndexableGraphTestSuite(this));
-//        printTestPerformance("IndexableGraphTestSuite", this.stopWatch());
-//    }
-//
-//    
+    // public void testIndexableGraphTestSuite() throws Exception {
+    //     this.stopWatch();
+    //     doTestSuite(new IndexableGraphTestSuite(this));
+    //     printTestPerformance("IndexableGraphTestSuite", this.stopWatch());
+    // }
+    //
+    //
     // public void testIndexTestSuite() throws Exception {
     // this.stopWatch();
     // doTestSuite(new IndexTestSuite(this));

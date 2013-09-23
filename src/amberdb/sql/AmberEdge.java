@@ -88,7 +88,7 @@ public class AmberEdge extends AmberElement implements Edge {
         
         // get special sorting property 
         if (propertyName.equals(SORT_ORDER_PROPERTY_NAME)) {
-            return (T) (Integer) edgeOrder;
+            return (T) (Integer) dao().getEdgeOrder(id());
         }
         return super.getProperty(propertyName);
     }
@@ -112,7 +112,7 @@ public class AmberEdge extends AmberElement implements Edge {
         // you cannot remove the special sorting
         // property this method just returns it
         if (propertyName.equals(SORT_ORDER_PROPERTY_NAME)) {
-            return (T) (Integer) edgeOrder;
+            return (T) (Integer) dao().getEdgeOrder(id());
         }
         
         T prop = super.removeProperty(propertyName);
@@ -138,6 +138,7 @@ public class AmberEdge extends AmberElement implements Edge {
         // set special sorting property 
         if (propertyName.equals(SORT_ORDER_PROPERTY_NAME)) {
             edgeOrder = (Integer) value;
+            dao().updateEdgeOrder(id(), edgeOrder);
             if (sessionState() == State.READ) {
                 sessionState(State.MODIFIED);
             }

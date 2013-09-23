@@ -503,21 +503,21 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "VALUES (" + edgeFieldSymbols + ")")
     long createEdge(
             @Bind("id") long id, 
-            @Bind("txnStart") long txnStart, 
-            @Bind("txnEnd") long txnEnd,
-            @Bind("outId") long outId, 
-            @Bind("inId") long inId, 
+            @Bind("txn_start") long txnStart, 
+            @Bind("txn_end") long txnEnd,
+            @Bind("v_out") long outId, 
+            @Bind("v_in") long inId, 
             @Bind("label") String label, 
-            @Bind("edgeOrder") int edgeOrder);
+            @Bind("edge_order") int edgeOrder);
     
     @GetGeneratedKeys
     @SqlUpdate(
             "INSERT INTO vertex (" + vertexFields + ") " +
-            "VALUES (" + edgeFieldSymbols + ")")
+            "VALUES (" + vertexFieldSymbols + ")")
     long createVertex(
             @Bind("id") long id, 
-            @Bind("txnStart") long txnStart, 
-            @Bind("txnEnd") long txnEnd);
+            @Bind("txn_start") long txnStart, 
+            @Bind("txn_end") long txnEnd);
 
     
     void close();

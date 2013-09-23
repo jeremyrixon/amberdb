@@ -129,6 +129,24 @@ public interface EdgeDao extends Transactional<EdgeDao> {
     List<String> getPropertyKeys(
             @Bind("elementId") long elementId);
     
+    
+    @SqlUpdate(
+            "UPDATE edge " +
+            "SET edge_order = :edgeOrder " +
+            "WHERE id = :id ")
+    void updateEdgeOrder(
+            @Bind("id") long id,
+            @Bind("edgeOrder") int edgeOrder);
+    
+    @SqlQuery(
+            "SELECT edge_order " +
+            "FROM edge " +
+            "WHERE id = :id ")
+    int getEdgeOrder(
+            @Bind("id") long id);
+    
+    
+    
     void close();
 }
 

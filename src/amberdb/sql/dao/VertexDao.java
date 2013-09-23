@@ -21,16 +21,7 @@ public interface VertexDao extends Transactional<VertexDao> {
     static final String edgeFields = " id, txn_start, txn_end, v_out, v_in, label, edge_order, state ";
     static final String edgeFieldSymbols = " :id, :txn_start, :txn_end, :v_out, :v_in, :label, :edge_order, :state ";
     
-    /*
-     *  DB creation operations (DDL)
-     */
-    @SqlUpdate(
-    		"CREATE TABLE IF NOT EXISTS vertex (" +
-    		"id         BIGINT, " +
-    		"txn_start  BIGINT, " +
-    		"txn_end    BIGINT, " +
-    		"state      TINYINT(1))")
-    void createVertexTable();
+ 
     
     @SqlQuery(
             "SELECT " + edgeFields +
@@ -74,7 +65,7 @@ public interface VertexDao extends Transactional<VertexDao> {
 
 
     @SqlQuery(
-            "SELECT " + vertexFieldsV +
+            "SELECT " + vertexFieldsV + 
             "FROM vertex v, edge e " +
             "WHERE v.id = e.v_out " +
             "AND v_in = :id " +
@@ -84,7 +75,7 @@ public interface VertexDao extends Transactional<VertexDao> {
             @Bind("id") long id);
 
     @SqlQuery(
-            "SELECT " + vertexFieldsV +
+            "SELECT " + vertexFieldsV + 
             "FROM vertex v, edge e " +
             "WHERE v.id = e.v_out " +
             "AND v_in = :id " +
@@ -96,7 +87,7 @@ public interface VertexDao extends Transactional<VertexDao> {
             @Bind("label") String label);
     
     @SqlQuery(
-            "SELECT " + vertexFieldsV +
+            "SELECT " + vertexFieldsV + 
             "FROM vertex v, edge e " +
             "WHERE v.id = e.v_in " +
             "AND v_out = :id " +
@@ -106,7 +97,7 @@ public interface VertexDao extends Transactional<VertexDao> {
             @Bind("id") long id);
 
     @SqlQuery(
-            "SELECT " + vertexFieldsV +
+            "SELECT " + vertexFieldsV + 
             "FROM vertex v, edge e " +
             "WHERE v.id = e.v_in " +
             "AND v_out = :id " +
@@ -181,7 +172,7 @@ public interface VertexDao extends Transactional<VertexDao> {
             @Bind("name") String name,
             @Bind("value") Double value);
     
-    
+  
     @GetGeneratedKeys
     @SqlUpdate(
             "INSERT INTO vertex (" + vertexFields + ") " +
