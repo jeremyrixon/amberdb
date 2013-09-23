@@ -8,14 +8,16 @@ import java.sql.SQLException;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
-public class AmberPropertyTxnMapper implements ResultSetMapper<AmberProperty> {
+public class SessionPropertyMapper implements ResultSetMapper<AmberProperty> {
     public AmberProperty map(int index, ResultSet rs, StatementContext ctx) 
             throws SQLException {
         return new AmberProperty(
-                rs.getString("name"),
+                rs.getLong   ("id"),
+                rs.getString ("name"),
+                rs.getString ("type"),
                 rs.getBoolean("b_value"),
-                rs.getDouble("d_value"),
-                rs.getString("s_value"),
-                rs.getInt("i_value"));
+                rs.getString ("s_value"),
+                rs.getInt    ("i_value"),
+                rs.getDouble ("d_value"));
     }
 }

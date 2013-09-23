@@ -1,112 +1,88 @@
 package amberdb.sql;
 
-import amberdb.sql.dao.*;
+import amberdb.sql.dao.ElementDao;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class AmberElement {
+public class AmberElement extends Stateful {
 
-    private long id;
-    private AmberGraph graph;
+
+    private ElementDao dao() { return graph().elementDao(); }   
+ 
     
-    private Map<String, Object> properties = new HashMap<String, Object>(); 
-    
-    // transaction details
-    private long txnStart;
-    private long txnEnd;
-
-    protected enum State {
-        
-        NEW, MODIFIED, DELETED, READ, BAD;
-        
-        public static State forOrdinal(int i) {
-            if (i == State.NEW.ordinal()) return State.NEW;
-            if (i == State.MODIFIED.ordinal()) return State.MODIFIED;
-            if (i == State.NEW.ordinal()) return State.DELETED;
-            if (i == State.NEW.ordinal()) return State.READ;
-            return State.BAD;
-        }
-    };
-    private State txnState;
-    
-    public void graph(AmberGraph graph) {
-        this.graph = graph;
-    }
-    public AmberGraph graph() {
-        return graph;
-    }
-
-    public AmberGraphDao dao() {
-        return graph.getDao();
-    }
-    
-    public void id(long id) {
-        this.id = id;
-    }
-    public long id() {
-        return id;
-    }
-
-    public void properties(Map<String, Object> properties) {
-        this.properties = properties;
-    }
-
-    public Map<String, Object> properties() {
-        return properties;
-    }
-
     @SuppressWarnings("unchecked")
     public <T> T getProperty(String propertyName) {
-        Object val = properties.get(propertyName);
-
-        if (val instanceof Integer) {
-            return (T) (Integer) val;
-        } else if (val instanceof Boolean) {
-            return (T) (Boolean) val;
-        } else if (val instanceof Double) {
-            return (T) (Double) val;
-        } else {
-            return (T) (String) val;
-        }
+        AmberProperty property = dao().findProperty(id(), propertyName);
+        if (property == null) return null;
+        return (T) property.getValue();
     }
 
     public Set<String> getPropertyKeys() {
-        return properties.keySet();
+        
+        Set<String> keys = new HashSet<String>();
+        keys.addAll(dao().getPropertyKeys(id()));
+        return keys;
     }
 
-    @SuppressWarnings("unchecked")
     public <T> T removeProperty(String propertyName) {
-        graph.currentTxn().removeProperty(this, propertyName);
-        return (T) properties.remove(propertyName);
+        
+        dao().begin();
+        AmberProperty property = dao().findProperty(id(), propertyName);
+        if (property == null) return null;
+        dao().deleteProperty(id(), propertyName);
+        dao().commit();
+
+        if (sessionState() == State.READ) {
+            sessionState(State.MODIFIED);
+        }
+        return property.getValue();
     }
 
     public void setProperty(String propertyName, Object value) {
-        graph.currentTxn().setProperty(this, propertyName, value);
-        properties.put(propertyName, value);
+        
+        dao().begin();
+        AmberProperty property = dao().findProperty(id(), propertyName);
+        if (property != null) {
+            dao().deleteProperty(id(), propertyName);
+        }
+        if (value instanceof String) {
+            dao().addStringProperty(id(), propertyName, (String) value);
+        } else if (value instanceof Integer) {
+            dao().addIntProperty(id(), propertyName, (Integer) value);
+        } else if (value instanceof Boolean) {
+            dao().addBooleanProperty(id(), propertyName, (Boolean) value);
+        } else if (value instanceof Double) {
+            dao().addDoubleProperty(id(), propertyName, (Double) value);
+        }
+        dao().commit();
+
+        if (sessionState() == State.READ) {
+            sessionState(State.MODIFIED);
+        }
     }
     
     public void remove() {
-        graph.currentTxn().removeElement(this);
+        dao().deleteProperties(id());
+        sessionState(State.DELETED);
     }
     
-    protected void loadProperties(Map<String, Object> newProperties) {
-        properties = newProperties;
+    public Map<String, Object> getProperties() {
+        Map<String, Object> properties = new HashMap<String, Object>();
+        for (String key: getPropertyKeys()) {
+            properties.put(key, getProperty(key));
+        }
+        return properties;
     }
     
-    /*
-     * The transaction stuff might actually happen behind the scenes, but for now
-     * access to these properties go here.
-     */
-    
-    public void txnStart(long txnStart) { this.txnStart = txnStart; }
-    public long txnStart() { return txnStart; }
-
-    public void txnEnd(long txnEnd) { this.txnEnd = txnEnd; }
-    public long txnEnd() { return txnEnd; }
-    
-    public void txnState(State state) { this.txnState = state; }
-    public State txnState() { return txnState; }
-    
+    public String toString() {
+        StringBuilder sb = new StringBuilder("{");
+        for (String key: getPropertyKeys()) {
+            sb.append("[" + key + ":" + getProperty(key).toString() + "]");
+        }
+        sb.append("}");
+        return sb.toString();
+    }
 }

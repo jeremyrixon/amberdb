@@ -2,24 +2,31 @@ package amberdb.sql;
 
 import java.util.Set;
 
+import amberdb.sql.dao.EdgeDao;
+
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 
 public class AmberEdge extends AmberElement implements Edge {
 
-    String label; 
-    long inVertexId;
-    long outVertexId;
-    int edgeOrder = 0;
+    public long inVertexId;
+    public long outVertexId;
+    public String label;
+    public Integer edgeOrder = 0;
 
     public static final String SORT_ORDER_PROPERTY_NAME = "edge-order";
 
+    private EdgeDao dao() { return graph().edgeDao(); }   
     
-    // this constructor for getting an edge from the db
-    // properties must be fetched separately 
+    // this constructor for getting an edge from the persistent db
     public AmberEdge(long id, Long txnStart, Long txnEnd, long outVertexId, 
             long inVertexId, String label, int edgeOrder) {
+        
+        // check if it's already in session
+        if (dao().findEdge(id) != null) {
+            throw new InSessionException("Edge with id already exists: " + id);
+        }
         
         id(id);
         txnStart(txnStart);
@@ -29,41 +36,47 @@ public class AmberEdge extends AmberElement implements Edge {
         this.inVertexId = inVertexId;
         this.outVertexId = outVertexId;
         this.edgeOrder = edgeOrder;
+        
     }    
 
     // This constructor for creating a new edge
-    public AmberEdge(AmberGraph graph, long outVertexId, long inVertexId, String label) {
+    public AmberEdge(long id, long outVertexId, long inVertexId, String label) {
 
-        graph(graph);
-
-        id(dao().newId());
+        id(id);
         this.label = label;
         this.inVertexId = inVertexId;
         this.outVertexId = outVertexId;
-
-        // add to transaction as NEW element
-        this.txnState(State.NEW);
-        graph().currentTxn().addEdge(this);
+        
     }    
     
-    // This constructor for getting an edge from the transaction
-    // need to add properties and graph
+    // This constructor for getting an edge from the session
     public AmberEdge(Long id, Long txnStart, Long txnEnd, Long outVertexId, 
             Long inVertexId, String label, int edgeOrder, int state) {
         
         id(id);
         txnStart(txnStart);
         txnEnd(txnEnd);
-        this.txnState(State.forOrdinal(state));
         
         this.label = label;
         this.inVertexId = inVertexId;
         this.outVertexId = outVertexId;
         this.edgeOrder = edgeOrder;
-        
+
     }
 
-    
+    public void addToSession(AmberGraph graph, State state, boolean getPersistentProperties) {
+ 
+        graph(graph);
+        sessionState(state);
+        dao().insertEdge(id(), txnStart(), txnEnd(), outVertexId,
+                inVertexId, label, edgeOrder, sessionState().ordinal());
+
+        // load properties
+        if (getPersistentProperties) {
+            graph().loadPersistentProperties(id());
+        }
+    }
+
     @Override
     public Object getId() {
         return id();
@@ -125,7 +138,9 @@ public class AmberEdge extends AmberElement implements Edge {
         // set special sorting property 
         if (propertyName.equals(SORT_ORDER_PROPERTY_NAME)) {
             edgeOrder = (Integer) value;
-            graph().currentTxn().updateEdgeOrder(this);
+            if (sessionState() == State.READ) {
+                sessionState(State.MODIFIED);
+            }
             return;
         }
         
@@ -161,18 +176,19 @@ public class AmberEdge extends AmberElement implements Edge {
 
     private AmberVertex findVertex(long id) {
 
-        // check transaction first then permanent data store
-        AmberVertex vertex = graph().currentTxn().getVertex(inVertexId);
+        // check session before permanent data store
+        AmberVertex vertex = dao().findVertex(id);
         if (vertex != null) {
-            State state = vertex.txnState();
+            vertex.graph(graph());
+            State state = vertex.sessionState();
             if (state == State.DELETED) return null;
             if (state == State.NEW || state == State.READ || state == State.MODIFIED) {
                 return vertex;
             }    
         }
         
-        // no, so return whatever is found in the permanent data store
-        return (AmberVertex) graph().getVertex(inVertexId);
+        // not in session yet, so try permanent data store
+        return (AmberVertex) graph().getVertex(id);
     }
     
     @Override
@@ -182,7 +198,6 @@ public class AmberEdge extends AmberElement implements Edge {
         result = prime * result + ((Long) id()).hashCode();
         result = prime * result + (int) (inVertexId ^ (inVertexId >>> 32));
         result = prime * result + ((label == null) ? 0 : label.hashCode());
-        result = prime * result + ((properties() == null) ? 0 : properties().hashCode());
         result = prime * result + (int) (outVertexId ^ (outVertexId >>> 32));
         return result;
     }
@@ -203,10 +218,6 @@ public class AmberEdge extends AmberElement implements Edge {
             if (other.label != null) return false;
         } else if (!label.equals(other.label)) return false;
 
-        if (properties() == null) {
-            if (other.properties() != null) return false;
-        } else if (!properties().equals(other.properties())) return false;
-        
         return true;
     }
     
@@ -216,11 +227,11 @@ public class AmberEdge extends AmberElement implements Edge {
         .append(" label:").append(label)
         .append(" out:").append(outVertexId)
         .append(" in:").append(inVertexId)
-        .append(" properties:").append(properties())
+        .append(" properties:").append(super.toString())
         .append(" start:").append(txnStart())
         .append(" end:").append(txnEnd())
         .append(" order:").append(edgeOrder)
-        .append(" txn state:").append(txnState().toString());
+        .append(" state:").append(sessionState().toString());
         return sb.toString();
     }
 }
