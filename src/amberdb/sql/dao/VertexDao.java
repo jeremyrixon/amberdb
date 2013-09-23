@@ -192,9 +192,6 @@ public interface VertexDao extends Transactional<VertexDao> {
             @Bind("txn_end") Long txnEnd,
             @Bind("state") int state);
     
-    @SqlQuery(
-            "SHOW TABLES")
-    String showTables();
     
     void close();
 }

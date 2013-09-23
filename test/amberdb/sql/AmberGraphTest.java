@@ -22,12 +22,12 @@ import com.tinkerpop.blueprints.VertexTestSuite;
 public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
 
     public static DBI dbi = null;
-    public static final String dsUrl = "jdbc:h2:mem:";
+    public static final String dsUrl = "jdbc:h2:mem:total";
     
     public void setup() throws MalformedURLException, IOException {
         System.out.println("Setting up database");
 
-        DataSource ds = JdbcConnectionPool.create(dsUrl,"dlir","dlir");
+        DataSource ds = JdbcConnectionPool.create(dsUrl,"fish","finger");
         
 //        MysqlDataSource ds = new MysqlDataSource();
 //        ds.setUser("dlir");
@@ -37,13 +37,13 @@ public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
 //        ds.setDatabaseName("dlir");
         
         dbi = new DBI(ds);
-        AmberGraphDao dao = dbi.open(AmberGraphDao.class);
+        PersistentDao dao = dbi.open(PersistentDao.class);
         
         dao.dropTables();
         dao.createVertexTable();
         dao.createEdgeTable();
         dao.createPropertyTable();
-        dao.createPropertyTableIndex();
+        dao.createPropertyIndex();
         dao.createIdGeneratorTable();
         dao.createTransactionTable();
 
@@ -51,7 +51,7 @@ public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
     }
 
     public static void teardown() {
-        AmberGraphDao dao = dbi.open(AmberGraphDao.class);
+        PersistentDao dao = dbi.open(PersistentDao.class);
         dao.dropTables();
         dao.close();
         dbi = null;

@@ -17,21 +17,6 @@ public interface ElementDao extends Transactional<ElementDao> {
     static final String propertyFields = " id, name, type, b_value, s_value, i_value, d_value ";
     static final String propertyFieldSymbols = " :id, :name, :type, :b_value, :s_value, :i_value, :d_value ";
     
-//    @SqlUpdate(
-//            "CREATE TABLE IF NOT EXISTS property (" +
-//    		"id      BIGINT, " +
-//    		"name    VARCHAR(100), " +
-//    		"type    CHAR(1), " +
-//            "b_value BOOLEAN, " +
-//            "s_value TEXT, " +
-//            "i_value BIGINT, " +
-//            "d_value DOUBLE)")
-//    void createPropertyTable();
-//    @SqlUpdate(
-//            "CREATE UNIQUE INDEX unique_prop " +
-//            "ON property(id, name)")
-//    void createPropertyIndex();
-
     @SqlQuery(
             "SELECT " + propertyFields +
             "FROM property " +
@@ -123,10 +108,7 @@ public interface ElementDao extends Transactional<ElementDao> {
     int getEdgeState(
             @Bind("id") long id);
     
-    @SqlQuery(
-            "SHOW TABLES")
-    String showTables();
-    
+   
     void close();
 }
 

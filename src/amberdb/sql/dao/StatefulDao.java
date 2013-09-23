@@ -40,10 +40,6 @@ public interface StatefulDao extends Transactional<StatefulDao> {
     int getEdgeState(
             @Bind("id") long id);
     
-    @SqlQuery(
-            "SHOW TABLES")
-    @Mapper(StringMapper.class)
-    String showTables();
     
     void close();
 }
