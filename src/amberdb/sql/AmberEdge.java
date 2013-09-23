@@ -116,6 +116,7 @@ public class AmberEdge extends AmberElement implements Edge {
         }
         
         T prop = super.removeProperty(propertyName);
+        if (graph().autoCommit) graph().commitToPersistent("edge removeProperty");
         return prop;
     }
 
@@ -146,6 +147,7 @@ public class AmberEdge extends AmberElement implements Edge {
         }
         
         super.setProperty(propertyName, value);
+        if (graph().autoCommit) graph().commitToPersistent("edge setProperty");
     }    
 
     @Override

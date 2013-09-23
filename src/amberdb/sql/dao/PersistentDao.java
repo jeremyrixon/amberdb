@@ -68,10 +68,10 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "i_value   BIGINT, " +
             "d_value   DOUBLE)")
     void createPropertyTable();
-    @SqlUpdate(
-            "CREATE UNIQUE INDEX e_unique_prop " +
-            "ON property(id, txn_start, name)")
-    void createPropertyIndex();
+//    @SqlUpdate(
+//            "CREATE UNIQUE INDEX e_unique_prop " +
+//            "ON property(id, txn_start, name)")
+//    void createPropertyIndex();
     
     @SqlUpdate(
             "CREATE TABLE IF NOT EXISTS id_generator (" +
@@ -80,14 +80,14 @@ public interface PersistentDao extends Transactional<PersistentDao> {
     
     @SqlUpdate(
             "CREATE TABLE IF NOT EXISTS transaction (" +
-            "id       BIGINT, " +
-            "commit   TIMESTAMP, " +
+            "id       BIGINT UNIQUE, " +
+            "commit   BIGINT UNIQUE, " +
             "user     VARCHAR(100), " +
-            "operaton TEXT)")
+            "operation TEXT)")
     void createTransactionTable();
 
-    @SqlUpdate("DROP TABLE IF EXISTS vertex, edge, property, transaction")
-    void dropTables();
+//    @SqlUpdate("DROP TABLE IF EXISTS vertex, edge, property, transaction")
+//    void dropTables();
 
     /*
      * id generation operations
@@ -112,60 +112,87 @@ public interface PersistentDao extends Transactional<PersistentDao> {
     // edges
     // properties
     
-    /*
-     * Update existing properties
-     */
-    @SqlUpdate(
-            "UPDATE property_index " +
-            "SET i_value = :value " +
-            "WHERE id = :id " +
-            "AND name = :name")
-    
-    void updateIntegerProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") Integer value);
-    @SqlUpdate(
-            "UPDATE property_index " +
-            "SET b_value = :value " +
-            "WHERE id = :id " +
-            "AND name = :name")
-    void updateBooleanProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") Boolean value);
-    @SqlUpdate(
-            "UPDATE property_index " +
-            "SET d_value = :value " +
-            "WHERE id = :id " +
-            "AND name = :name")
-    void updateDoubleProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") Double value);
-    @SqlUpdate(
-            "UPDATE property_index " +
-            "SET s_value = :value " +
-            "WHERE id = :id " +
-            "AND name = :name")
-    void updateStringProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") String value);
+//    /*
+//     * Update existing properties
+//     */
+//    @SqlUpdate(
+//            "UPDATE property_index " +
+//            "SET i_value = :value " +
+//            "WHERE id = :id " +
+//            "AND name = :name")
+//    
+//    void updateIntegerProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") Integer value);
+//    @SqlUpdate(
+//            "UPDATE property_index " +
+//            "SET b_value = :value " +
+//            "WHERE id = :id " +
+//            "AND name = :name")
+//    void updateBooleanProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") Boolean value);
+//    @SqlUpdate(
+//            "UPDATE property_index " +
+//            "SET d_value = :value " +
+//            "WHERE id = :id " +
+//            "AND name = :name")
+//    void updateDoubleProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") Double value);
+//    @SqlUpdate(
+//            "UPDATE property_index " +
+//            "SET s_value = :value " +
+//            "WHERE id = :id " +
+//            "AND name = :name")
+//    void updateStringProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") String value);
 
     /*
      * Add new properties
      */
     @SqlUpdate(
-            "INSERT INTO property_index (id, name, i_value) " +
-            "VALUES (:id, :name, :value)")
-    void createIntegerProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") Integer value);
-    @SqlUpdate(
-            "INSERT INTO property_index (id, name, b_value) " +
-            "VALUES (:id, :name, :value)")
-    void createBooleanProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") Boolean value);
-    @SqlUpdate(
-            "INSERT INTO property_index (id, name, d_value) " +
-            "VALUES (:id, :name, :value)")
-    void createDoubleProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") Double value);
-    @SqlUpdate(
-            "INSERT INTO property_index (id, name, s_value) " +
-            "VALUES (:id, :name, :value)")
-    void createStringProperty(@Bind("id") long elementId, @Bind("name") String name, @Bind("value") String value);
+            "INSERT INTO property (id, txn_start, txn_end, name, type, i_value) " +
+            "VALUES (:id, :txn_start, :txn_end, :name, :type, :value)")
+    void createIntegerProperty(
+            @Bind("id")        long elementId, 
+            @Bind("txn_start") long txnStart, 
+            @Bind("txn_end")   long txnEnd, 
+            @Bind("name")      String name,
+            @Bind("type")      String type,
+            @Bind("value")     Integer value);
     
     @SqlUpdate(
-            "UPDATE edge " +
-            "SET edge_order = :edgeOrder " +
-            "WHERE id = :id")
-    void updateEdgeOrder(@Bind("id") long edgeId, @Bind("edgeOrder") Integer edgeOrder);
+            "INSERT INTO property (id, txn_start, txn_end, name, type, b_value) " +
+            "VALUES (:id, :txn_start, :txn_end, :name, :type, :value)")
+    void createBooleanProperty(
+            @Bind("id")        long elementId, 
+            @Bind("txn_start") long txnStart, 
+            @Bind("txn_end")   long txnEnd, 
+            @Bind("name")      String name, 
+            @Bind("type")      String type,
+            @Bind("value")     Boolean value);
+    
+    @SqlUpdate(
+            "INSERT INTO property (id, txn_start, txn_end, name, type, d_value) " +
+            "VALUES (:id, :txn_start, :txn_end, :name, :type, :value)")
+    void createDoubleProperty(
+            @Bind("id")        long elementId, 
+            @Bind("txn_start") long txnStart, 
+            @Bind("txn_end")   long txnEnd, 
+            @Bind("name")      String name, 
+            @Bind("type")      String type,
+            @Bind("value")     Double value);
+    
+    @SqlUpdate(
+            "INSERT INTO property (id, txn_start, txn_end, name, type, s_value) " +
+            "VALUES (:id, :txn_start, :txn_end, :name, :type, :value)")
+    void createStringProperty(
+            @Bind("id")        long elementId, 
+            @Bind("txn_start") long txnStart, 
+            @Bind("txn_end")   long txnEnd, 
+            @Bind("name")      String name, 
+            @Bind("type")      String type,
+            @Bind("value")     String value);
+    
+//    @SqlUpdate(
+//            "UPDATE edge " +
+//            "SET edge_order = :edgeOrder " +
+//            "WHERE id = :id")
+//    void updateEdgeOrder(@Bind("id") long edgeId, @Bind("edgeOrder") Integer edgeOrder);
     
     /*
      * Deleting things 
@@ -209,7 +236,7 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "WHERE id = :id " +
             "AND txn_end IS NULL " +
             "AND txn_start IS NOT NULL")
-    @Mapper(SessionVertexMapper.class)
+    @Mapper(PersistentVertexMapper.class)
     AmberVertex
             findVertex(@Bind("id") long id);
 
@@ -218,7 +245,7 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "FROM vertex " +
             "WHERE txn_end IS NULL " +
             "AND txn_start IS NOT NULL")
-    @Mapper(SessionVertexMapper.class)
+    @Mapper(PersistentVertexMapper.class)
     Iterator<AmberVertex>
             findVertices();
     
@@ -501,7 +528,7 @@ public interface PersistentDao extends Transactional<PersistentDao> {
     @SqlUpdate(
             "INSERT INTO edge (" + edgeFields + ") " +
             "VALUES (" + edgeFieldSymbols + ")")
-    long createEdge(
+    long insertEdge(
             @Bind("id") long id, 
             @Bind("txn_start") long txnStart, 
             @Bind("txn_end") long txnEnd,
@@ -514,7 +541,7 @@ public interface PersistentDao extends Transactional<PersistentDao> {
     @SqlUpdate(
             "INSERT INTO vertex (" + vertexFields + ") " +
             "VALUES (" + vertexFieldSymbols + ")")
-    long createVertex(
+    long insertVertex(
             @Bind("id") long id, 
             @Bind("txn_start") long txnStart, 
             @Bind("txn_end") long txnEnd);

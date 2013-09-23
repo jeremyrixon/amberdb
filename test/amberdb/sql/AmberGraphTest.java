@@ -22,7 +22,7 @@ import com.tinkerpop.blueprints.VertexTestSuite;
 public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
 
     public static DBI dbi = null;
-    public static final String dsUrl = "jdbc:h2:mem:total";
+    public static final String dsUrl = "jdbc:h2:~/h2test";
     
     public void setup() throws MalformedURLException, IOException {
         System.out.println("Setting up database");
@@ -43,7 +43,7 @@ public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
         dao.createVertexTable();
         dao.createEdgeTable();
         dao.createPropertyTable();
-        dao.createPropertyIndex();
+        //dao.createPropertyIndex();
         dao.createIdGeneratorTable();
         dao.createTransactionTable();
 

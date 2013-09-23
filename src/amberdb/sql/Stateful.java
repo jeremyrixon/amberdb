@@ -4,10 +4,6 @@ import amberdb.sql.dao.StatefulDao;
 
 public class Stateful extends Persistent {
     
-    AmberGraph graph;
-    protected void graph(AmberGraph g) { graph = g; }
-    protected AmberGraph graph()       { return graph; }  
-    
     private StatefulDao dao() { return graph().statefulDao(); }
     
     public enum State {

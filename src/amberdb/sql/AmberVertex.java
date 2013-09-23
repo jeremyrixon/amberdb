@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import org.h2.jdbc.JdbcSQLException;
+
 
 import amberdb.sql.dao.VertexDao;
 
@@ -16,16 +18,13 @@ import com.tinkerpop.blueprints.VertexQuery;
 
 public class AmberVertex extends AmberElement implements Vertex {
 
-    private VertexDao dao() { return graph().vertexDao(); }   
+    private VertexDao dao() {
+        return graph().vertexDao();
+    }
     
     // this constructor for getting a vertex from the db
     public AmberVertex(Long id, Long txnStart, Long txnEnd) {
 
-        // check if it's already in session
-        if (dao().findVertex(id) != null) {
-            throw new InSessionException("Edge with id already exists: " + id);
-        }
-        
         id(id);
         txnStart(txnStart);
         txnEnd(txnEnd);
@@ -47,7 +46,11 @@ public class AmberVertex extends AmberElement implements Vertex {
     public void addToSession(AmberGraph graph, State state, boolean getPersistentProperties) {
         graph(graph);
         sessionState(state);
-        dao().insertVertex(id(), txnStart(), txnEnd(), sessionState().ordinal());
+        try {
+            dao().insertVertex(id(), txnStart(), txnEnd(), sessionState().ordinal());
+        } catch (Exception jse) {
+            s("see what happens!"+id());
+        }
 
         // get properties
         if (getPersistentProperties) {
@@ -83,6 +86,8 @@ public class AmberVertex extends AmberElement implements Vertex {
     @Override
     public <T> T removeProperty(String propertyName) {
         T prop = super.removeProperty(propertyName);
+
+        if (graph().autoCommit) graph().commitToPersistent("vertex removeProperty");
         return prop;
     }
 
@@ -99,6 +104,7 @@ public class AmberVertex extends AmberElement implements Vertex {
         }
         
         super.setProperty(propertyName, value);
+        if (graph().autoCommit) graph().commitToPersistent("vertex setProperty");
     }
 
     @Override

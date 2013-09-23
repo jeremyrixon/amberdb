@@ -30,6 +30,7 @@ public class AmberGraph implements Graph {
     private DBI sessionDbi;
     
     private PersistentDao persistentDao;
+    private TransactionDao transactionDao;
     
     private SessionDao sessionDao;
     private StatefulDao statefulDao;
@@ -37,6 +38,8 @@ public class AmberGraph implements Graph {
     private VertexDao vertexDao;
     private EdgeDao edgeDao;
 
+    boolean autoCommit = true;
+    
     /*
      * Constructors
      */
@@ -55,7 +58,8 @@ public class AmberGraph implements Graph {
     private void initGraph(DBI dbi, String user) {
         
         persistentDao = dbi.onDemand(PersistentDao.class);
-
+        transactionDao = dbi.onDemand(TransactionDao.class);
+        
         sessionDbi = new DBI(sessionDs);
         sessionDao = sessionDbi.onDemand(SessionDao.class);
          
@@ -89,6 +93,9 @@ public class AmberGraph implements Graph {
         return newPi;
     }
     
+    protected TransactionDao transactionDao() {
+        return transactionDao;
+    }
     protected SessionDao sessionDao() {
         return sessionDao;
     }
@@ -275,6 +282,7 @@ public class AmberGraph implements Graph {
         AmberEdge edge = new AmberEdge(newId, (long) out.getId(), (long) in.getId(), label);
         edge.addToSession(this, State.NEW, false);
         
+        if (autoCommit) commitToPersistent("addEdge");
         return edge;
     }
 
@@ -284,7 +292,8 @@ public class AmberGraph implements Graph {
         long newId = newId();
         AmberVertex vertex = new AmberVertex(newId);
         vertex.addToSession(this, State.NEW, false);
-        
+
+        if (autoCommit) commitToPersistent("addVertex");
         return vertex;
     }
 
@@ -465,11 +474,13 @@ public class AmberGraph implements Graph {
 
     @Override
     public void removeEdge(Edge e) {
+        if (autoCommit) commitToPersistent("removeEdge");
         e.remove();
     }
 
     @Override
     public void removeVertex(Vertex v) {
+        if (autoCommit) commitToPersistent("removeVertex");
         v.remove();
     }
 
@@ -506,9 +517,110 @@ public class AmberGraph implements Graph {
         return element;
     }
 
+    protected void commitToPersistent(String operation) {
+        
+        s("committing transaction : " + operation);
+        
+        // Get a fresh transaction
+        AmberTransaction txn = new AmberTransaction(this, DEFAULT_USER, operation);
+        
+        // start by preparing the new elements
+        prepareNewElements(txn);
+
+        // next the modified elements
+        prepareModifiedElements(txn);
+        
+        // deleted e & v
+        // --------------
+        // end date w props
+        
+        // new e & v
+        // ---------
+        // write over
+        // with props
+        
+        // modified e & v
+        // --------------
+        // check modified
+        
+    }
+    
+    private void prepareNewElements(AmberTransaction txn) {
+        
+        List<Persistent> newElements = new ArrayList<Persistent>();
+        newElements.addAll(sessionDao().findVerticesByState(State.NEW.ordinal()));  
+        newElements.addAll(sessionDao().findEdgesByState(State.NEW.ordinal()));
+        newElements.addAll(sessionDao().findPropertiesByElementState(State.NEW.ordinal()));
+        
+        // add them all to the new transaction. Set the txn_end also,
+        // so they are ignored until they are committed
+        for (Persistent p : newElements) {
+            p.graph(this);
+            p.txnStart(txn.id());
+            p.txnEnd(txn.id());
+            
+            // prepare by writing them to persistent store
+            if (p instanceof AmberVertex) {
+                s("persisting new vertex :"+((AmberVertex) p).toString());
+                persistentDao.insertVertex(p.id(), p.txnStart(), p.txnEnd());
+            } else if (p instanceof AmberEdge) {
+                AmberEdge e = (AmberEdge) p;
+                s("persisting new edge :"+e.toString());
+                persistentDao.insertEdge(e.id(), e.txnStart(), e.txnEnd(), 
+                        e.outVertexId, e.outVertexId, e.label, e.edgeOrder);
+            } else if (p instanceof AmberProperty) {
+                s("persisting new prop :"+((AmberProperty) p).toString());
+                persistProperty((AmberProperty) p);
+            }
+        }
+    }
+
+    private void prepareModifiedElements(AmberTransaction txn) {
+        
+        List<Persistent> modElements = new ArrayList<Persistent>();
+        modElements.addAll(sessionDao().findVerticesByState(State.MODIFIED.ordinal()));  
+        modElements.addAll(sessionDao().findEdgesByState(State.MODIFIED.ordinal()));
+        modElements.addAll(sessionDao().findPropertiesByElementState(State.MODIFIED.ordinal()));
+
+        // here here here here here
+        
+        // add them all to the new transaction. Set the txn_end also,
+        // so they are ignored until they are committed
+        for (Persistent p : modElements) {
+            p.graph(this);
+            p.txnStart(txn.id());
+            p.txnEnd(txn.id());
+            
+            // prepare by writing them to persistent store
+            if (p instanceof AmberVertex) {
+                persistentDao.insertVertex(p.id(), p.txnStart(), p.txnEnd());
+            } else if (p instanceof AmberEdge) {
+                AmberEdge e = (AmberEdge) p;
+                persistentDao.insertEdge(e.id(), e.txnStart(), e.txnEnd(), 
+                        e.outVertexId, e.outVertexId, e.label, e.edgeOrder);
+            } else if (p instanceof AmberProperty) {
+                persistProperty((AmberProperty) p);
+            }
+        }
+    }
+    
+    
+    private void persistProperty(AmberProperty p) {
+        if (p.getType().equals("s")) {
+            persistentDao.createStringProperty(p.id(), p.txnStart(), p.txnEnd(), p.name, p.getType(), (String) p.getValue());
+        } else if (p.getType().equals("b")) {
+            persistentDao.createBooleanProperty(p.id(), p.txnStart(), p.txnEnd(), p.name, p.getType(), (Boolean) p.getValue());
+        } else if (p.getType().equals("i")) {
+            persistentDao.createIntegerProperty(p.id(), p.txnStart(), p.txnEnd(), p.name, p.getType(), (Integer) p.getValue());
+        } else if (p.getType().equals("d")) {
+            persistentDao.createDoubleProperty(p.id(), p.txnStart(), p.txnEnd(), p.name, p.getType(), (Double) p.getValue());
+        }
+    }
     
     // Convenience for debugging
     private void s(String s) {
         System.out.println(s);
     }
+    
+    
 }

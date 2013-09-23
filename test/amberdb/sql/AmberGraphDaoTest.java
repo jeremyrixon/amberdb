@@ -26,7 +26,7 @@ import com.tinkerpop.blueprints.Edge;
 public class AmberGraphDaoTest {
 
     public static DBI dbi = null;
-    public static final String dsUrl = "jdbc:h2:mem:";
+    public static final String dsUrl = "jdbc:h2:~/h2test2";
     
     @Before
     public void setup() throws MalformedURLException, IOException {
@@ -44,13 +44,13 @@ public class AmberGraphDaoTest {
         dbi = new DBI(ds);
         PersistentDao dao = dbi.open(PersistentDao.class);
         
-        dao.dropTables();
-        dao.createIdGeneratorTable();
-        dao.createVertexTable();
-        dao.createEdgeTable();
-        dao.createPropertyTable();
-        dao.createPropertyIndex();
-        dao.createTransactionTable();
+        //dao.dropTables();
+        //dao.createIdGeneratorTable();
+        //dao.createVertexTable();
+        //dao.createEdgeTable();
+        //dao.createPropertyTable();
+        //dao.createPropertyIndex();
+        //dao.createTransactionTable();
         
         dao.close();
     }
@@ -58,7 +58,7 @@ public class AmberGraphDaoTest {
     @After
     public void teardown() {
         PersistentDao dao = dbi.open(PersistentDao.class);
-        dao.dropTables();
+        //dao.dropTables();
         dao.close();
         dbi = null;
     }
@@ -69,13 +69,13 @@ public class AmberGraphDaoTest {
         
         PersistentDao dao = dbi.onDemand(PersistentDao.class);
 
-        long v1 = dao.createVertex(12, 0, 0);        
-        long v2 = dao.createVertex(3, 1, 0);
+        long v1 = dao.insertVertex(12, 0, 0);        
+        long v2 = dao.insertVertex(3, 1, 0);
         
-        long e1 = dao.createEdge(4, 1, 0, 12, 3, "test", 0);
+        long e1 = dao.insertEdge(4, 1, 0, 12, 3, "test", 0);
 //        dao.updateEdgeProperties(e1, "{\"order\" : 12}");
         
-        long e2 = dao.createEdge(2, 1, 0, 3,  12, "backwards", 1);
+        long e2 = dao.insertEdge(2, 1, 0, 3,  12, "backwards", 1);
         dao.removeEdge(e2);
 
         Iterator<AmberEdge> ije2 = dao.findOutEdges(v1);
@@ -93,7 +93,7 @@ public class AmberGraphDaoTest {
             s("it3:"+ije2.next().toString());
         }
         s("");
-        dao.createVertex(3, 12, 13);
+        dao.insertVertex(3, 12, 13);
         
         dao.close();
         //teardown();
@@ -223,6 +223,10 @@ public class AmberGraphDaoTest {
             s(e.toString());
         }
 
+        Iterable<Vertex> vs = graph.getVertices();
+        for (Vertex v: vs) {
+            s("----  "+ v);
+        }
         
     }
     
