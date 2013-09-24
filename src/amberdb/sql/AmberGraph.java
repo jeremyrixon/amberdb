@@ -38,7 +38,7 @@ public class AmberGraph implements Graph {
     private VertexDao vertexDao;
     private EdgeDao edgeDao;
 
-    boolean autoCommit = true;
+    boolean autoCommit = false;
     
     /*
      * Constructors
@@ -571,6 +571,9 @@ public class AmberGraph implements Graph {
             } else if (p instanceof AmberProperty) {
                 s("persisting new prop :"+((AmberProperty) p).toString());
                 persistProperty((AmberProperty) p);
+            } else {
+                s("it finally happened: encountered class "+ p.getClass().getName());
+                // throw UnknownPersistentClassError ( need to decide what to do )
             }
         }
     }
