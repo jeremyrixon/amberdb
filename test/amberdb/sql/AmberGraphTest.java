@@ -1,5 +1,8 @@
 package amberdb.sql;
 
+import amberdb.sql.dao.*;
+import amberdb.sql.map.*;
+
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -19,35 +22,36 @@ import com.tinkerpop.blueprints.VertexTestSuite;
 public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
 
     public static DBI dbi = null;
+    public static final String dsUrl = "jdbc:h2:~/h2test";
     
     public void setup() throws MalformedURLException, IOException {
         System.out.println("Setting up database");
 
-        MysqlDataSource ds = new MysqlDataSource();
-        ds.setUser("dlir");
-        ds.setPassword("dlir");
-        ds.setServerName("localhost");
-        ds.setPort(3306);
-        ds.setDatabaseName("dlir");
+        DataSource ds = JdbcConnectionPool.create(dsUrl,"fish","finger");
+        
+//        MysqlDataSource ds = new MysqlDataSource();
+//        ds.setUser("dlir");
+//        ds.setPassword("dlir");
+//        ds.setServerName("localhost");
+//        ds.setPort(3306);
+//        ds.setDatabaseName("dlir");
         
         dbi = new DBI(ds);
-        AmberGraphDao dao = dbi.open(AmberGraphDao.class);
+        PersistentDao dao = dbi.open(PersistentDao.class);
         
         dao.dropTables();
         dao.createVertexTable();
         dao.createEdgeTable();
-        dao.createEdgePropertyTable();
-        dao.createEdgePropertyTableIndex();
-        dao.createVertexPropertyTable();
-        dao.createVertexPropertyTableIndex();
+        dao.createPropertyTable();
+        //dao.createPropertyIndex();
+        dao.createIdGeneratorTable();
         dao.createTransactionTable();
-        //dao.createObjectIdTable();
 
         dao.close();
     }
 
     public static void teardown() {
-        AmberGraphDao dao = dbi.open(AmberGraphDao.class);
+        PersistentDao dao = dbi.open(PersistentDao.class);
         dao.dropTables();
         dao.close();
         dbi = null;
@@ -83,13 +87,13 @@ public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
     // printTestPerformance("KeyIndexableGraphTestSuite", this.stopWatch());
     // }
     //
-//    public void testIndexableGraphTestSuite() throws Exception {
-//        this.stopWatch();
-//        doTestSuite(new IndexableGraphTestSuite(this));
-//        printTestPerformance("IndexableGraphTestSuite", this.stopWatch());
-//    }
-//
-//    
+    // public void testIndexableGraphTestSuite() throws Exception {
+    //     this.stopWatch();
+    //     doTestSuite(new IndexableGraphTestSuite(this));
+    //     printTestPerformance("IndexableGraphTestSuite", this.stopWatch());
+    // }
+    //
+    //
     // public void testIndexTestSuite() throws Exception {
     // this.stopWatch();
     // doTestSuite(new IndexTestSuite(this));

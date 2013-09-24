@@ -1,8 +1,14 @@
 package amberdb.sql;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+
+import org.h2.jdbc.JdbcSQLException;
+
+
+import amberdb.sql.dao.VertexDao;
 
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
@@ -12,32 +18,45 @@ import com.tinkerpop.blueprints.VertexQuery;
 
 public class AmberVertex extends AmberElement implements Vertex {
 
-    public String pi;
-
-    // This constructor for access
-    public AmberVertex(Long id, Long txnStart, Long txnEnd, boolean txnOpen, String properties, String pi) {
+    private VertexDao dao() {
+        return graph().vertexDao();
+    }
+    
+    // this constructor for getting a vertex from the db
+    public AmberVertex(Long id, Long txnStart, Long txnEnd) {
 
         id(id);
         txnStart(txnStart);
         txnEnd(txnEnd);
-        txnOpen(txnOpen);
-        properties(properties);
-        this.pi = pi;
+        
     }
 
-    // This constructor for creation
-    public AmberVertex(AmberGraph graph, String properties, String pi) {
-        
-        graph(graph);
-        properties(properties);
-        this.pi = pi;
-        txnStart(graph.currentTxnId());
-        txnOpen(true);
-        
-        long id = graph.getDao().createVertex(txnStart(), properties, pi);
+    // This constructor for creating a new vertex
+    public AmberVertex(long id) {
         id(id);
     }
 
+    // This constructor for getting a vertex from the session
+    public AmberVertex(long id, Long txnStart, Long txnEnd, int state) {
+        id(id);
+        txnStart(txnStart);
+        txnEnd(txnEnd);
+    }
+
+    public void addToSession(AmberGraph graph, State state, boolean getPersistentProperties) {
+        graph(graph);
+        sessionState(state);
+        try {
+            dao().insertVertex(id(), txnStart(), txnEnd(), sessionState().ordinal());
+        } catch (Exception jse) {
+            s("see what happens!"+id());
+        }
+
+        // get properties
+        if (getPersistentProperties) {
+            graph().loadPersistentProperties(id());
+        }
+    }    
     
     @Override
     public Object getId() {
@@ -56,24 +75,19 @@ public class AmberVertex extends AmberElement implements Vertex {
 
     @Override
     public void remove() {
-        Iterable<Edge> edges = getEdges(Direction.BOTH);
-        for (Edge e: edges) {
-            e.remove();
+        for (Edge e: getEdges(Direction.BOTH)) {
+            AmberEdge edge = (AmberEdge) e;
+            edge.graph(graph());
+            edge.remove();
         }
-        graph().getDao().removeVertex(id());
-        
-        // update index
-        graph().getDao().removeVertexPropertyIndexEntries(id());
+        super.remove();
     }
 
     @Override
     public <T> T removeProperty(String propertyName) {
         T prop = super.removeProperty(propertyName);
-        graph().getDao().updateVertexProperties(id(), properties());
-        
-        // update index
-        graph().getDao().removeVertexPropertyIndexEntry(id(), propertyName);
-        
+
+        if (graph().autoCommit) graph().commitToPersistent("vertex removeProperty");
         return prop;
     }
 
@@ -84,17 +98,13 @@ public class AmberVertex extends AmberElement implements Vertex {
         if (propertyName == null || propertyName.matches("(?i)id|\\s*")) {
             throw new IllegalArgumentException("Illegal property name [" + propertyName + "]");
         }
-        if (!(value instanceof String || value instanceof Integer || value instanceof Boolean || value instanceof Double)) {
+        if (!(value instanceof Integer || value instanceof String || 
+              value instanceof Boolean || value instanceof Double)) {
             throw new IllegalArgumentException("Illegal property type [" + value.getClass() + "].");
         }
         
         super.setProperty(propertyName, value);
-        graph().getDao().updateVertexProperties(id(), properties());
-        
-        // update index
-        graph().getDao().setVertexPropertyIndexEntry(id(), propertyName, value);
-        
-        return;
+        if (graph().autoCommit) graph().commitToPersistent("vertex setProperty");
     }
 
     @Override
@@ -103,47 +113,77 @@ public class AmberVertex extends AmberElement implements Vertex {
         // argument guard
         if (label == null) throw new IllegalArgumentException("edge label cannot be null");
         
-        return new AmberEdge(graph(), "{}", id(), (long) inVertex.getId(), label);
+        AmberEdge edge = new AmberEdge(graph().newId(), id(), (long) inVertex.getId(), label);
+        edge.addToSession(graph, State.NEW, false);
+        return edge;
     }
 
     @Override
     public Iterable<Edge> getEdges(Direction direction, String... labels) {
+
+        // load edges from persistent into session (shouldn't overwrite present edges)
+        graph().loadPersistentEdges(this, direction, labels);
+
+        // now just get from session - DELETED edges have been removed
+        List<AmberEdge> sessionEdges = getSessionEdges(direction, labels);
         
         List<Edge> edges = new ArrayList<Edge>();
+        edges.addAll(sessionEdges);
+        
+        return edges;
+    }
+
+
+    protected List<AmberEdge> getSessionEdges(Direction direction, String... labels) {
+
+        List<AmberEdge> edges = new ArrayList<AmberEdge>();
+        List<AmberEdge> unfilteredEdges = new ArrayList<AmberEdge>();
+
         if (labels.length == 0) {
-            // get 'em all
+
             if (direction == Direction.IN || direction == Direction.BOTH) {
-                edges.addAll(Lists.newArrayList(graph().getDao().findInEdgesByVertexId(id())));
+                unfilteredEdges.addAll(Lists.newArrayList(dao().findInEdges(id())));
             }
             if (direction == Direction.OUT || direction == Direction.BOTH) {
-                edges.addAll(Lists.newArrayList(graph().getDao().findOutEdgesByVertexId(id())));
+                unfilteredEdges.addAll(Lists.newArrayList(dao().findOutEdges(id())));
             }
-            for (Edge je : edges) {
-                ((AmberEdge) je).graph(graph());
+            for (AmberEdge edge : unfilteredEdges) {
+                edge.graph(graph());
+                if (edge.sessionState() != State.DELETED) {
+                    edges.add(edge);
+                }
             }
+
         } else {
             for (String label : labels) {
-                edges.addAll(getEdges(direction, label));
+                edges.addAll(getSessionEdges(direction, label));
             }
         }
         return edges;
     }
 
-    public List<Edge> getEdges(Direction direction, String label) {
-        List<Edge> edges = new ArrayList<Edge>();
+    public List<AmberEdge> getSessionEdges(Direction direction, String label) {
+
+        List<AmberEdge> edges = new ArrayList<AmberEdge>();
+        List<AmberEdge> unfilteredEdges = new ArrayList<AmberEdge>();
+        
         
         if (direction == Direction.IN || direction == Direction.BOTH) {
-            edges.addAll(Lists.newArrayList(graph().getDao().findInEdgesByVertexIdAndLabel(id(), label)));
+            unfilteredEdges.addAll(Lists.newArrayList(dao().findInEdges(id(), label)));
         }
         if (direction == Direction.OUT || direction == Direction.BOTH) {
-            edges.addAll(Lists.newArrayList(graph().getDao().findOutEdgesByVertexIdAndLabel(id(), label)));
+            unfilteredEdges.addAll(Lists.newArrayList(dao().findOutEdges(id(), label)));
         }
-        for (Edge je: edges) {
-            ((AmberEdge) je).graph(graph());
+        for (AmberEdge edge: unfilteredEdges) {
+            edge.graph(graph());
+            if (edge.sessionState() != State.DELETED) {
+                edges.add(edge);
+            }
         }
         return edges;
     }
-    
+
+
     /* 
      * To conform to Blueprint test suite this method can now return the same vertex multiple times
      * in the returned iterable.
@@ -156,36 +196,65 @@ public class AmberVertex extends AmberElement implements Vertex {
      */
     @Override
     public Iterable<Vertex> getVertices(Direction direction, String... labels) {
+        
+        // load vertices from persistent into session (shouldn't overwrite present vertices)
+        List<AmberVertex> persistedVertices = graph.loadPersistentVertices(this, direction, labels);
+
+        // now just get from session (contains DELETED edges)
+        List<AmberVertex> sessionVertices = getSessionVertices(direction, labels);
+        
         List<Vertex> vertices = new ArrayList<Vertex>();
+        vertices.addAll(sessionVertices);
+        
+        return vertices;
+    }
+
+    protected List<AmberVertex> getSessionVertices(Direction direction, String... labels) {
+        
+        List<AmberVertex> vertices = new ArrayList<AmberVertex>();
+        List<AmberVertex> unfilteredVertices = new ArrayList<AmberVertex>();
+        
         if (labels.length == 0) {
+
             if (direction == Direction.IN || direction == Direction.BOTH) {
-                vertices.addAll(Lists.newArrayList(graph().getDao().findVertexByOutEdgeToVertexId(id())));
+                unfilteredVertices.addAll(Lists.newArrayList(dao().findInVertices(id())));
             }
             if (direction == Direction.OUT || direction == Direction.BOTH) {
-                vertices.addAll(Lists.newArrayList(graph().getDao().findVertexByInEdgeFromVertexId(id())));
+                unfilteredVertices.addAll(Lists.newArrayList(dao().findOutVertices(id())));
             }
-            for (Vertex jv : vertices) {
-                ((AmberVertex) jv).graph(graph());
+            
+            for (AmberVertex vertex : unfilteredVertices) {
+                vertex.graph(graph());
+                if (vertex.sessionState() != State.DELETED) {
+                    vertices.add(vertex);
+                }
             }
+            
         } else {
             for (String label : labels) {
-                vertices.addAll(getVertices(direction, label));
+                vertices.addAll(getSessionVertices(direction, label));
             }
         }
         return vertices;
     }
 
-    public List<Vertex> getVertices(Direction direction, String label) {
-        List<Vertex> vertices = new ArrayList<Vertex>();
+    public List<AmberVertex> getSessionVertices(Direction direction, String label) {
+        
+        List<AmberVertex> vertices = new ArrayList<AmberVertex>();
+        List<AmberVertex> unfilteredVertices = new ArrayList<AmberVertex>();
 
         if (direction == Direction.IN || direction == Direction.BOTH) {
-            vertices.addAll(Lists.newArrayList(graph().getDao().findVertexByOutEdgeLabelToVertexId(id(), label)));
+            unfilteredVertices.addAll(Lists.newArrayList(dao().findInVertices(id(), label)));
         }
         if (direction == Direction.OUT || direction == Direction.BOTH) {
-            vertices.addAll(Lists.newArrayList(graph().getDao().findVertexByInEdgeLabelFromVertexId(id(), label)));
+            unfilteredVertices.addAll(Lists.newArrayList(dao().findOutVertices(id(), label)));
         }
-        for (Vertex jv: vertices) {
-            ((AmberVertex) jv).graph(graph());
+        unfilteredVertices.removeAll(Collections.singleton(null));
+        for (AmberVertex vertex: unfilteredVertices) {
+            vertex.graph(graph());
+            if (vertex.sessionState() != State.DELETED) {
+                vertices.add(vertex);
+            }
         }
         return vertices;    
     }
@@ -202,7 +271,7 @@ public class AmberVertex extends AmberElement implements Vertex {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((Long) id()).hashCode();
-        result = prime * result + ((properties() == null) ? 0 : properties().hashCode());
+        result = prime * result + ((Long) txnStart()).hashCode();
         return result;
     }
 
@@ -217,22 +286,16 @@ public class AmberVertex extends AmberElement implements Vertex {
         AmberVertex other = (AmberVertex) obj;
         if (id() != other.id())
             return false;
-        if (properties() == null) {
-            if (other.properties() != null)
-                return false;
-        } else if (!properties().equals(other.properties()))
-            return false;
         return true;
     }
     
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("vertex id:").append(id())
-        .append(" pi:").append(pi)
-        .append(" properties:").append(properties())
+        .append(" properties:").append(super.toString())
         .append(" start:").append(txnStart())
         .append(" end:").append(txnEnd())
-        .append(" open:").append(txnOpen());
+        .append(" state:").append(sessionState().toString());
         return sb.toString();
     }
 }

@@ -15,6 +15,8 @@ import org.junit.Test;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 
+import amberdb.sql.dao.PersistentDao;
+
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
@@ -24,79 +26,82 @@ import com.tinkerpop.blueprints.Edge;
 public class AmberGraphDaoTest {
 
     public static DBI dbi = null;
+    public static final String dsUrl = "jdbc:h2:~/h2test2";
     
+    @Before
     public void setup() throws MalformedURLException, IOException {
         System.out.println("Setting up database");
 
-        MysqlDataSource ds = new MysqlDataSource();
-        ds.setUser("dlir");
-        ds.setPassword("dlir");
-        ds.setServerName("localhost");
-        ds.setPort(3306);
-        ds.setDatabaseName("dlir");
+        DataSource ds = JdbcConnectionPool.create(dsUrl,"dlir","dlir");
+        
+//        MysqlDataSource ds = new MysqlDataSource();
+//        ds.setUser("dlir");
+//        ds.setPassword("dlir");
+//        ds.setServerName("localhost");
+//        ds.setPort(3306);
+//        ds.setDatabaseName("dlir");
         
         dbi = new DBI(ds);
-        AmberGraphDao dao = dbi.open(AmberGraphDao.class);
+        PersistentDao dao = dbi.open(PersistentDao.class);
         
-        dao.dropTables();
-        dao.createVertexTable();
-        dao.createEdgeTable();
-        dao.createEdgePropertyTable();
-        dao.createEdgePropertyTableIndex();
-        dao.createVertexPropertyTable();
-        dao.createVertexPropertyTableIndex();
-        dao.createTransactionTable();
+        //dao.dropTables();
+        //dao.createIdGeneratorTable();
+        //dao.createVertexTable();
+        //dao.createEdgeTable();
+        //dao.createPropertyTable();
+        //dao.createPropertyIndex();
+        //dao.createTransactionTable();
         
         dao.close();
     }
 
-    
-    public static void teardown() {
-        AmberGraphDao dao = dbi.open(AmberGraphDao.class);
-        dao.dropTables();
+    @After
+    public void teardown() {
+        PersistentDao dao = dbi.open(PersistentDao.class);
+        //dao.dropTables();
         dao.close();
         dbi = null;
     }
 
     @Test
     public void testDao() throws Exception {
-        setup();
+        //setup();
         
-        AmberGraphDao dao = dbi.onDemand(AmberGraphDao.class);
+        PersistentDao dao = dbi.onDemand(PersistentDao.class);
 
-        long v1 = dao.createVertex(3l, "{}", "nla.obj-12234");        
-        long v2 = dao.createVertex(3l, "{}", "nla.obj-12235");
+        long v1 = dao.insertVertex(12, 0, 0);        
+        long v2 = dao.insertVertex(3, 1, 0);
         
-        long e1 = dao.createEdge(3l, "{}", v1,  v2, "test");
-        dao.updateEdgeProperties(e1, "{\"order\" : 12}");
+        long e1 = dao.insertEdge(4, 1, 0, 12, 3, "test", 0);
+//        dao.updateEdgeProperties(e1, "{\"order\" : 12}");
         
-        long e2 = dao.createEdge(3l, "{}", v1,  v2, "test2");
+        long e2 = dao.insertEdge(2, 1, 0, 3,  12, "backwards", 1);
         dao.removeEdge(e2);
 
-        Iterator<AmberEdge> ije2 = dao.findOutEdgesByVertexId(v1);
+        Iterator<AmberEdge> ije2 = dao.findOutEdges(v1);
         while (ije2.hasNext()) {
             s("it:"+ije2.next().toString());
         }
         
-        ije2 = dao.findInEdgesByVertexId(v2);
+        ije2 = dao.findInEdges(v2);
         while (ije2.hasNext()) {
             s("it2:"+ije2.next().toString());
         }
 
-        ije2 = dao.findAllEdges();
+        ije2 = dao.findEdges();
         while (ije2.hasNext()) {
             s("it3:"+ije2.next().toString());
         }
         s("");
-        dao.createVertex(3l, "{pants : shirt}", "nla.obj-333");
+        dao.insertVertex(3, 12, 13);
         
         dao.close();
-        teardown();
+        //teardown();
     }
 
     @Test
     public void testDaoIndexes() throws Exception {
-        setup();
+        //setup();
         
         AmberGraph graph = new AmberGraph(dbi);
 
@@ -140,12 +145,12 @@ public class AmberGraphDaoTest {
         }
         
         graph.shutdown();
-        teardown();
+        //teardown();
     }
     
     @Test
     public void testGraph() throws Exception {
-        setup();
+        //setup();
         
         AmberGraph graph = new AmberGraph(dbi);
         
@@ -201,18 +206,28 @@ public class AmberGraphDaoTest {
         for (int i=0; i < edges.length; i++) {
             s(edges[i].toString());
             s(vertices[i].toString());
+            s("");
         }
         
         s("");
         
-        List<Vertex> sortedVertices = ((AmberVertex) vp).getVertices(Direction.OUT, "hasPage");
+        List<Vertex> sortedVertices = (List<Vertex>) ((AmberVertex) vp).getVertices(Direction.OUT, "hasPage");
 
         for (Vertex v : sortedVertices) {
             s(v.toString());
         }
 
-        teardown();
+        List<Edge> sortedEdges = (List<Edge>) ((AmberVertex) vp).getEdges(Direction.OUT, "hasPage");
 
+        for (Edge e : sortedEdges) {
+            s(e.toString());
+        }
+
+        Iterable<Vertex> vs = graph.getVertices();
+        for (Vertex v: vs) {
+            s("----  "+ v);
+        }
+        
     }
     
     public void s(String s) {

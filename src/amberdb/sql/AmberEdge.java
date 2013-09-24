@@ -2,51 +2,81 @@ package amberdb.sql;
 
 import java.util.Set;
 
+import amberdb.sql.dao.EdgeDao;
+
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 
 public class AmberEdge extends AmberElement implements Edge {
 
-    String label; 
-    long inVertexId;
-    long outVertexId;
-    int edgeOrder = 0;
+    public long inVertexId;
+    public long outVertexId;
+    public String label;
+    public Integer edgeOrder = 0;
 
     public static final String SORT_ORDER_PROPERTY_NAME = "edge-order";
+
+    private EdgeDao dao() { return graph().edgeDao(); }   
     
-    // This constructor for access
-    public AmberEdge(long id, Long txnStart, Long txnEnd, Boolean txnOpen, 
-            String properties, long outVertexId, long inVertexId, String label, int edgeOrder) {
+    // this constructor for getting an edge from the persistent db
+    public AmberEdge(long id, Long txnStart, Long txnEnd, long outVertexId, 
+            long inVertexId, String label, int edgeOrder) {
+        
+        // check if it's already in session
+        if (dao().findEdge(id) != null) {
+            throw new InSessionException("Edge with id already exists: " + id);
+        }
         
         id(id);
-        properties(properties);
+        txnStart(txnStart);
+        txnEnd(txnEnd);
+        
         this.label = label;
         this.inVertexId = inVertexId;
         this.outVertexId = outVertexId;
         this.edgeOrder = edgeOrder;
         
-        txnStart(txnStart);
-        txnEnd(txnEnd);
-        txnOpen(txnOpen);
     }    
 
-    // This constructor for creation
-    public AmberEdge(AmberGraph graph, String properties, long outVertexId, long inVertexId, String label) {
+    // This constructor for creating a new edge
+    public AmberEdge(long id, long outVertexId, long inVertexId, String label) {
 
-        graph(graph);
-        properties(properties);
+        id(id);
         this.label = label;
         this.inVertexId = inVertexId;
         this.outVertexId = outVertexId;
         
-        txnStart(graph.currentTxnId());
-        txnOpen(true);
-        
-        long id = graph.getDao().createEdge(txnStart(), properties, outVertexId, inVertexId, label);
-        id(id);
     }    
     
+    // This constructor for getting an edge from the session
+    public AmberEdge(Long id, Long txnStart, Long txnEnd, Long outVertexId, 
+            Long inVertexId, String label, int edgeOrder, int state) {
+        
+        id(id);
+        txnStart(txnStart);
+        txnEnd(txnEnd);
+        
+        this.label = label;
+        this.inVertexId = inVertexId;
+        this.outVertexId = outVertexId;
+        this.edgeOrder = edgeOrder;
+
+    }
+
+    public void addToSession(AmberGraph graph, State state, boolean getPersistentProperties) {
+ 
+        graph(graph);
+        sessionState(state);
+        dao().insertEdge(id(), txnStart(), txnEnd(), outVertexId,
+                inVertexId, label, edgeOrder, sessionState().ordinal());
+
+        // load properties
+        if (getPersistentProperties) {
+            graph().loadPersistentProperties(id());
+        }
+    }
+
     @Override
     public Object getId() {
         return id();
@@ -58,9 +88,8 @@ public class AmberEdge extends AmberElement implements Edge {
         
         // get special sorting property 
         if (propertyName.equals(SORT_ORDER_PROPERTY_NAME)) {
-            return (T) (Integer) edgeOrder;
+            return (T) (Integer) dao().getEdgeOrder(id());
         }
-        
         return super.getProperty(propertyName);
     }
 
@@ -83,15 +112,11 @@ public class AmberEdge extends AmberElement implements Edge {
         // you cannot remove the special sorting
         // property this method just returns it
         if (propertyName.equals(SORT_ORDER_PROPERTY_NAME)) {
-            return (T) (Integer) edgeOrder;
+            return (T) (Integer) dao().getEdgeOrder(id());
         }
         
         T prop = super.removeProperty(propertyName);
-        graph().getDao().updateEdgeProperties(id(), properties());
-        
-        // update index
-        graph().getDao().removeEdgePropertyIndexEntry(id(), propertyName);
-        
+        if (graph().autoCommit) graph().commitToPersistent("edge removeProperty");
         return prop;
     }
 
@@ -102,33 +127,32 @@ public class AmberEdge extends AmberElement implements Edge {
         if (propertyName == null || propertyName.matches("(?i)id|\\s*|label")) {
             throw new IllegalArgumentException("Illegal property name [" + propertyName + "]");
         }
-        if (!(value instanceof String || value instanceof Integer || value instanceof Boolean || value instanceof Double)) {
+        if (!(value instanceof Integer || value instanceof String || 
+              value instanceof Boolean || value instanceof Double)) {
             throw new IllegalArgumentException("Illegal property type [" + value.getClass() + "].");
         }
         if (!(value instanceof Integer) && propertyName.equals(SORT_ORDER_PROPERTY_NAME)) {
-            throw new IllegalArgumentException(SORT_ORDER_PROPERTY_NAME + " property type must be Integer, was [" + value.getClass() + "].");
+            throw new IllegalArgumentException(SORT_ORDER_PROPERTY_NAME + 
+                    " property type must be Integer, was [" + value.getClass() + "].");
         }
         
-        // set special sorting property
+        // set special sorting property 
         if (propertyName.equals(SORT_ORDER_PROPERTY_NAME)) {
             edgeOrder = (Integer) value;
-            graph().getDao().updateEdgeOrder(id(), edgeOrder);
+            dao().updateEdgeOrder(id(), edgeOrder);
+            if (sessionState() == State.READ) {
+                sessionState(State.MODIFIED);
+            }
             return;
         }
         
         super.setProperty(propertyName, value);
-        graph().getDao().updateEdgeProperties(id(), properties());
-        
-        // update index
-        graph().getDao().setEdgePropertyIndexEntry(id(), propertyName, value);
-        
-        return;
+        if (graph().autoCommit) graph().commitToPersistent("edge setProperty");
     }    
 
     @Override
     public void remove() {
-        graph().getDao().removeEdge(id());
-        graph().getDao().removeEdgePropertyIndexEntries(id());
+        super.remove();
     }
 
     @Override
@@ -143,18 +167,33 @@ public class AmberEdge extends AmberElement implements Edge {
         if (Direction.BOTH == direction) {
             throw new IllegalArgumentException("Can only get a vertex from a single direction");
         }
-        AmberVertex jv = null;
-        if (direction == Direction.IN) {
-            jv = graph().getDao().findVertexByInEdge(id());
-        } else if (direction == Direction.OUT) {
-            jv = graph().getDao().findVertexByOutEdge(id());
-        }
         
-        if (jv == null) return null;
-        jv.graph(graph());
-        return jv;
+        AmberVertex vertex = null;
+        if (direction == Direction.IN) {
+            vertex = findVertex(inVertexId);
+        } else if (direction == Direction.OUT) {
+            vertex = findVertex(outVertexId);
+        }
+        return vertex;
     }
 
+    private AmberVertex findVertex(long id) {
+
+        // check session before permanent data store
+        AmberVertex vertex = dao().findVertex(id);
+        if (vertex != null) {
+            vertex.graph(graph());
+            State state = vertex.sessionState();
+            if (state == State.DELETED) return null;
+            if (state == State.NEW || state == State.READ || state == State.MODIFIED) {
+                return vertex;
+            }    
+        }
+        
+        // not in session yet, so try permanent data store
+        return (AmberVertex) graph().getVertex(id);
+    }
+    
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -162,7 +201,6 @@ public class AmberEdge extends AmberElement implements Edge {
         result = prime * result + ((Long) id()).hashCode();
         result = prime * result + (int) (inVertexId ^ (inVertexId >>> 32));
         result = prime * result + ((label == null) ? 0 : label.hashCode());
-        result = prime * result + ((properties() == null) ? 0 : properties().hashCode());
         result = prime * result + (int) (outVertexId ^ (outVertexId >>> 32));
         return result;
     }
@@ -183,10 +221,6 @@ public class AmberEdge extends AmberElement implements Edge {
             if (other.label != null) return false;
         } else if (!label.equals(other.label)) return false;
 
-        if (properties() == null) {
-            if (other.properties() != null) return false;
-        } else if (!properties().equals(other.properties())) return false;
-        
         return true;
     }
     
@@ -196,11 +230,11 @@ public class AmberEdge extends AmberElement implements Edge {
         .append(" label:").append(label)
         .append(" out:").append(outVertexId)
         .append(" in:").append(inVertexId)
-        .append(" properties:").append(properties())
+        .append(" properties:").append(super.toString())
         .append(" start:").append(txnStart())
         .append(" end:").append(txnEnd())
-        .append(" open:").append(txnOpen())
-        .append(" order:").append(edgeOrder);
+        .append(" order:").append(edgeOrder)
+        .append(" state:").append(sessionState().toString());
         return sb.toString();
-    }    
+    }
 }
