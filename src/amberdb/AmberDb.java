@@ -5,23 +5,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
-
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
-
-import amberdb.model.Item;
-import amberdb.model.Copy;
-import amberdb.model.File;
-import amberdb.model.Page;
 import amberdb.model.Section;
-import amberdb.model.Sequence;
 import amberdb.model.Work;
-import amberdb.relation.ExistsOn;
-import amberdb.relation.IsPartOf;
-import amberdb.relation.Relation;
+
 
 import com.tinkerpop.blueprints.impls.tg.TinkerGraph;
 import com.tinkerpop.blueprints.util.io.graphson.GraphSONWriter;
@@ -30,7 +19,7 @@ import com.tinkerpop.frames.FramedGraphFactory;
 import com.tinkerpop.frames.modules.gremlingroovy.GremlinGroovyModule;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerModule;
 
-public class AmberDb extends Sequence implements AutoCloseable {
+public class AmberDb implements AutoCloseable {
     final FramedGraph<TinkerGraph> graph;
     final Sequence objectIdSeq = new Sequence();
     final Path dataPath;
@@ -51,7 +40,7 @@ public class AmberDb extends Sequence implements AutoCloseable {
         graph = openGraph(new TinkerGraph(dataPath.resolve("graph").toString(), TinkerGraph.FileType.GML));
         this.dataPath = dataPath;
         try {
-            load(dataPath.resolve("objectIdSeq"));
+            objectIdSeq.load(dataPath.resolve("objectIdSeq"));
         } catch (NoSuchFileException e) {
             // first run
         }
@@ -89,16 +78,9 @@ public class AmberDb extends Sequence implements AutoCloseable {
     }
 
     /**
-     * Finds a section by id.
+     * Finds a work by voyager number.
      */
-    public Section findSection(long objectId) {
-        return graph.getVertex(objectId, Section.class);
-    }
-
-    /**
-     * Finds a section by Bib id.
-     */
-    public Section findSectionByVn(long vnLink) {
+    public Section findWorkByVn(long vnLink) {
         return graph.frame(graph.getVertices("bibId", vnLink).iterator().next(), Section.class);
     }
 
@@ -124,7 +106,7 @@ public class AmberDb extends Sequence implements AutoCloseable {
     public void close() throws IOException {
         graph.shutdown();
         if (dataPath != null) {
-            save(dataPath.resolve("objectIdSeq"));
+            objectIdSeq.save(dataPath.resolve("objectIdSeq"));
         }
     }
 
@@ -155,5 +137,22 @@ public class AmberDb extends Sequence implements AutoCloseable {
      */
     protected FramedGraph<TinkerGraph> getGraph() {
         return graph;
+    }
+    
+    private static class Sequence {
+        final AtomicLong value = new AtomicLong();
+
+        void load(Path file) throws IOException {
+            byte[] b = Files.readAllBytes(file);
+            value.set(Long.valueOf(new String(b)));
+        }
+
+        void save(Path file) throws IOException {
+            Files.write(file, Long.toString(value.get()).getBytes());
+        }
+
+        long next() {
+            return value.incrementAndGet();
+        }
     }
 }

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import amberdb.AmberDb;
+import amberdb.enums.CopyRole;
 import amberdb.model.Page;
 import amberdb.model.Section;
 
@@ -53,14 +54,14 @@ public class PlayGround {
 
             Section auto1 = amberDb.addSection();
             auto1.setBibId(12345L);
-            amberDb.addPageTo(auto1, job.files.get(6));
+            auto1.addPage(job.files.get(6));
 
-            Page page = amberDb.addPageTo(auto1);
+            Page page = auto1.addPage();
 
-            amberDb.addImageTiffCopyTo(page, job.files.get(2));
-            amberDb.addOCRMETSCopyTo(page, job.files.get(4));
+            page.addCopy(job.files.get(2), CopyRole.MASTER_COPY);
+            page.addCopy(job.files.get(4), CopyRole.OCR_METS_COPY);
 
-            amberDb.addPageTo(auto1, job.files.get(3));
+            auto1.addPage(job.files.get(3));
 
             auto1.setTitle("Blinky Bill");
             bookIds.add(auto1.getId());
@@ -68,7 +69,7 @@ public class PlayGround {
 
             Section auto2 = amberDb.addSection();
             auto2.setBibId(55555);
-            amberDb.addPageTo(auto2, job.files.get(5));
+            auto2.addPage(job.files.get(5));
             auto2.setTitle("James and the giant peach");
 
             bookIds.add(auto2.getId());
@@ -77,8 +78,8 @@ public class PlayGround {
             // user manually creates a work out of the first two pages
 
             Section manual = amberDb.addSection();
-            amberDb.addPageTo(manual, job.files.get(0));
-            amberDb.addPageTo(manual, job.files.get(1));
+            manual.addPage(job.files.get(0));
+            manual.addPage(job.files.get(1));
             manual.setTitle("Little red riding hood");
 
             bookIds.add(manual.getId());

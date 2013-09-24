@@ -1,14 +1,15 @@
 package amberdb.model;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import amberdb.enums.CopyRole;
 import amberdb.relation.IsCopyOf;
 import amberdb.relation.IsPartOf;
-import amberdb.relation.Relation;
-
 import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.tg.TinkerGraph;
 import com.tinkerpop.frames.Adjacency;
-import com.tinkerpop.frames.FramedGraph;
 import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.annotations.gremlin.GremlinGroovy;
 import com.tinkerpop.frames.annotations.gremlin.GremlinParam;
@@ -17,7 +18,7 @@ import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
 @TypeValue("Work")
-public interface Work extends Item {    
+public interface Work extends Node {    
     @Property("subType")
     public String getSubType();
     
@@ -79,97 +80,86 @@ public interface Work extends Item {
     public Iterable<Copy> getCopies();  
     
     @GremlinGroovy("it.in('isCopyOf').has('copyRole',role.code)")
-    public Copy getCopy(@GremlinParam("role") Copy.Role role);
+    public Copy getCopy(@GremlinParam("role") CopyRole role);
     
-    @JavaHandler
+    @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public Section addSection();
     
-    @JavaHandler
+    @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public Page addPage();
+    
+    @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
+    public Copy addCopy();
     
     @JavaHandler
     public Page addPage(java.io.File file);
     
     @JavaHandler
-    public void addImageTiffCopy(java.io.File file);
+    public Copy addCopy(java.io.File file, CopyRole copyRole);
     
     @JavaHandler
-    public void addImageJP2Copy(java.io.File file);
+    public Page getPage(int position);
     
     @JavaHandler
-    public void addOCRMETSCopy(java.io.File file);
+    public List<Page> getPages();
     
     @JavaHandler
-    public void addOCRALTOCopy(java.io.File file);
-    
-    @JavaHandler
-    public void addOCRJSONCopy(java.io.File file);
-    
-    @JavaHandler
-    public void setGraph(FramedGraph<TinkerGraph>  graph);
+    public int countParts();
     
     abstract class Impl implements JavaHandlerContext<Vertex>, Work {
-        FramedGraph<TinkerGraph> graph;
-        Order order = new Order();
-        
-        public void setGraph(FramedGraph<TinkerGraph> graph) {
-            this.graph = graph;
-            order.setContext(graph);
-        }
-        
-        public Section addSection() {
-            Section section = graph.addVertex(Sequence.next(), Section.class);
-            section.setSubType("section");
-            this.addChild(section);
-            order.assign(this, section);
-            return section;
-        }
-        
-        public Page addPage() {
-            Page page = graph.addVertex(Sequence.next(), Page.class);
-            page.setSubType("page");
-            this.addChild(page);
-            order.assign(this, page);
-            return page;
-        }
-        
         public Page addPage(java.io.File file) {
             Page page = addPage();
-            page.addImageTiffCopy(file);
+            page.addCopy(file, CopyRole.MASTER_COPY);
             return page;
         }
         
-        public void addImageTiffCopy(java.io.File file) {
-            this.addCopy(file, Copy.Role.MASTER_COPY.code());
-        }
-        
-        public void addImageJP2Copy(java.io.File file) {
-            this.addCopy(file, Copy.Role.ACCESS_COPY.code());
-        }
-        
-        public void addOCRMETSCopy(java.io.File file) {
-            this.addCopy(file, Copy.Role.OCR_METS_COPY.code());
-        }
-        
-        public void addOCRALTOCopy(java.io.File file) {
-            this.addCopy(file, Copy.Role.OCR_ALTO_COPY.code());
-        }
-        
-        public void addOCRJSONCopy(java.io.File file) {
-            this.addCopy(file, Copy.Role.OCR_JSON_COPY.code());
-        }
-        
-        private void addCopy(java.io.File file, String copyRole) {
+        public Copy addCopy(java.io.File file, CopyRole copyRole) {
             if (file == null)
                 throw new IllegalArgumentException("Cannot add copy as input file is null.");
 
-            Copy copy = graph.addVertex(null, Copy.class);
-            copy.setCopyRole(copyRole);
+            Copy copy = addCopy();
+            copy.setCopyRole(copyRole.code());
             this.addCopy(copy);
 
-            File _file = graph.addVertex(null, File.class);
-            copy.addFile(_file);
-            _file.setFileLocation(file.getAbsolutePath());            
+            File _file = copy.addFile();
+            _file.setFileLocation(file.getAbsolutePath());         
+            
+            return copy;
+        }
+        
+        public Page getPage(int position) {
+            return getPages(position).get(position - 1);
+        }
+        
+        public List<Page> getPages() {
+            return getPages(-1);
+        }
+        
+        public int countParts() {
+            return (parts() == null)? 0 : parts().size();
+        }
+        
+        private List<Edge> parts() {
+            return (gremlin().inE(IsPartOf.label) == null)? null: gremlin().inE(IsPartOf.label).toList();
+        } 
+        
+        private List<Page> getPages(int position) {
+            List<Page> pages = new ArrayList<Page>();
+            Iterable<Work> parts = getChildren();
+            int pageCount = 0;
+            if (parts != null) {
+                Iterator<Work> it = parts.iterator();
+                while (it.hasNext()) {
+                    Work part = it.next();
+                    if (part instanceof Page) {
+                        pages.add(frame(part.asVertex(), Page.class));
+                        pageCount++;
+                        if (pageCount == position) 
+                            return pages;
+                    }
+                }
+            }            
+            return pages;
         }
     }
 }
