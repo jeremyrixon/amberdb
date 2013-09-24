@@ -23,11 +23,6 @@ public class AmberEdge extends AmberElement implements Edge {
     public AmberEdge(long id, Long txnStart, Long txnEnd, long outVertexId, 
             long inVertexId, String label, int edgeOrder) {
         
-        // check if it's already in session
-        if (dao().findEdge(id) != null) {
-            throw new InSessionException("Edge with id already exists: " + id);
-        }
-        
         id(id);
         txnStart(txnStart);
         txnEnd(txnEnd);

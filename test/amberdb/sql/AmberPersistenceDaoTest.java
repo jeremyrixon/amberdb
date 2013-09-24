@@ -42,7 +42,7 @@ public class AmberPersistenceDaoTest {
         dao.createEdgeIndex();
 
         dao.createPropertyTable();
-        dao.createPropertyIndex();
+        //dao.createPropertyIndex();
         
         dao.createIdGeneratorTable();
         dao.createTransactionTable();

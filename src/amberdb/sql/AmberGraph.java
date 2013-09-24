@@ -474,14 +474,14 @@ public class AmberGraph implements Graph {
 
     @Override
     public void removeEdge(Edge e) {
-        if (autoCommit) commitToPersistent("removeEdge");
         e.remove();
+        if (autoCommit) commitToPersistent("removeEdge");
     }
 
     @Override
     public void removeVertex(Vertex v) {
-        if (autoCommit) commitToPersistent("removeVertex");
         v.remove();
+        if (autoCommit) commitToPersistent("removeVertex");
     }
 
     @Override
