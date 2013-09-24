@@ -77,6 +77,7 @@ public class IngestTest {
             auto1.setBibId(12345L);
             auto1.addPage(job.files.get(6));
 
+            /*
             Page page = auto1.addPage();
 
             page.addCopy(job.files.get(2), CopyRole.MASTER_COPY);
@@ -104,7 +105,7 @@ public class IngestTest {
             manual.setTitle("Little red riding hood");
 
             bookIds.add(manual.getId());
-
+            */
             job.workIds = bookIds;
 
             // save this transaction without committing it
@@ -116,7 +117,8 @@ public class IngestTest {
         }
     }
     
-    @Test
+    // @Test
+    @Ignore
     public void testFindWorkByPI() {
         Work sample = dao.findWork(PIUtil.objId(samplePI));
         assertEquals("Blinky Bill", sample.getTitle());
@@ -143,8 +145,8 @@ public class IngestTest {
         job.setAmberTxId(dao.suspend());
     }
     
-    @Test
-    // @Ignore
+    // @Test
+    @Ignore
     public void testFixLabel() {
         Work work = dao.findWorkByVn(12345L);
         

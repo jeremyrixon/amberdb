@@ -95,6 +95,9 @@ public interface Work extends Node {
     public Page addPage(java.io.File file);
     
     @JavaHandler
+    public List<Page> addPages(List<java.io.File> files);
+    
+    @JavaHandler
     public Copy addCopy(java.io.File file, CopyRole copyRole);
     
     @JavaHandler
@@ -107,6 +110,16 @@ public interface Work extends Node {
     public int countParts();
     
     abstract class Impl implements JavaHandlerContext<Vertex>, Work {
+        public List<Page> addPages(List<java.io.File> files) {
+            List<Page> pages = new ArrayList<Page>();
+            if (files == null)
+                throw new IllegalArgumentException("Cann not add pages as the input files is null.");
+            for (java.io.File file : files) {
+                pages.add(addPage(file));
+            }
+            return pages;
+        }
+        
         public Page addPage(java.io.File file) {
             Page page = addPage();
             page.addCopy(file, CopyRole.MASTER_COPY);
