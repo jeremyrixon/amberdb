@@ -44,13 +44,13 @@ public class AmberGraphDaoTest {
         dbi = new DBI(ds);
         PersistentDao dao = dbi.open(PersistentDao.class);
         
-        //dao.dropTables();
-        //dao.createIdGeneratorTable();
-        //dao.createVertexTable();
-        //dao.createEdgeTable();
-        //dao.createPropertyTable();
+        dao.dropTables();
+        dao.createIdGeneratorTable();
+        dao.createVertexTable();
+        dao.createEdgeTable();
+        dao.createPropertyTable();
         //dao.createPropertyIndex();
-        //dao.createTransactionTable();
+        dao.createTransactionTable();
         
         dao.close();
     }
