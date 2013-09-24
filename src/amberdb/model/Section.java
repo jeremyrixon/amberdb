@@ -20,7 +20,7 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
  * pages and may span multiple pages.
  */
 @TypeValue("Section")
-public interface Section extends CompositeWork {
+public interface Section extends Work {
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public Iterable<Page> getAddedPages();
 
@@ -54,7 +54,7 @@ public interface Section extends CompositeWork {
 	abstract class Impl implements JavaHandlerContext<Vertex>, Section {
 	    public void swapPages(int page1, int page2) throws IllegalArgumentException {
 	        // address swap added pages e.g. for books
-	        CompositeWork work = frame(this.asVertex(), CompositeWork.class);
+	        Item work = frame(this.asVertex(), Item.class);
 	        work.swapParts(page1, page2);
 	    }
 	    

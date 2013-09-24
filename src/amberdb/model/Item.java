@@ -10,7 +10,7 @@ import com.tinkerpop.frames.annotations.gremlin.GremlinParam;
 import com.tinkerpop.frames.modules.javahandler.JavaHandler;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 
-public interface CompositeWork extends Work {    
+public interface Item extends Node {    
     @GremlinGroovy(value="it.inE('isPartOf')[p-1].id.toList()[0].toLong()", frame=false)
     public long getIsPartOfRef(@GremlinParam("p") int position);
     
@@ -23,7 +23,7 @@ public interface CompositeWork extends Work {
     @JavaHandler
     public int countParts();
 
-    abstract class Impl implements JavaHandlerContext<Vertex>, CompositeWork {
+    abstract class Impl implements JavaHandlerContext<Vertex>, Item {
         public void swapParts(int part1, int part2) throws IllegalArgumentException {
             IsPartOf of1 = getPartOf(part1);
             IsPartOf of2 = getPartOf(part2);

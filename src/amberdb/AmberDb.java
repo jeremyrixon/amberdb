@@ -12,11 +12,12 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import amberdb.model.CompositeWork;
+import amberdb.model.Item;
 import amberdb.model.Copy;
 import amberdb.model.File;
 import amberdb.model.Page;
 import amberdb.model.Section;
+import amberdb.model.Sequence;
 import amberdb.model.Work;
 import amberdb.relation.ExistsOn;
 import amberdb.relation.IsPartOf;
@@ -29,10 +30,9 @@ import com.tinkerpop.frames.FramedGraphFactory;
 import com.tinkerpop.frames.modules.gremlingroovy.GremlinGroovyModule;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerModule;
 
-public class AmberDb implements AutoCloseable {
+public class AmberDb extends Sequence implements AutoCloseable {
     final FramedGraph<TinkerGraph> graph;
     final Sequence objectIdSeq = new Sequence();
-    final Order order = new Order();
     final Path dataPath;
 
     /**
@@ -40,7 +40,6 @@ public class AmberDb implements AutoCloseable {
      */
     public AmberDb() {
         graph = openGraph(new TinkerGraph());
-        order.setContext(graph);
         dataPath = null;
     }
 
@@ -52,7 +51,7 @@ public class AmberDb implements AutoCloseable {
         graph = openGraph(new TinkerGraph(dataPath.resolve("graph").toString(), TinkerGraph.FileType.GML));
         this.dataPath = dataPath;
         try {
-            objectIdSeq.load(dataPath.resolve("objectIdSeq"));
+            load(dataPath.resolve("objectIdSeq"));
         } catch (NoSuchFileException e) {
             // first run
         }
@@ -121,99 +120,11 @@ public class AmberDb implements AutoCloseable {
         return section;
     }
 
-    /**
-     * Create a new section within the input work.
-     * 
-     * @return
-     */
-    public Section addSectionTo(Work work) {
-        Section section = graph.addVertex(objectIdSeq.next(), Section.class);
-        section.setSubType("section");
-        work.addChild(section);
-        order.assign(work, section);
-        return section;
-    }
-
-    /**
-     * Create a new page.
-     * 
-     * @return
-     */
-    public Page addPageTo(Section section) {
-        Page page = graph.addVertex(objectIdSeq.next(), Page.class);
-        page.setSubType("page");
-        section.addPage(page);
-        order.assign(section, page);
-        return page;
-    }
-
-    /**
-     * Create a new page item for the input file.
-     * 
-     * @param file
-     * @return
-     */
-    public Page addPageTo(Section section, java.io.File file) {
-        Page page = addPageTo(section);
-        addImageTiffCopyTo(page, file);
-        return page;
-    }
-
-    /**
-     * Create a new image tiff master copy
-     * 
-     * Note: most often the work is a page, but it doesn't have to be a page, it
-     * can be book, or other groupItem as well.
-     */
-    public void addImageTiffCopyTo(Work work, java.io.File file) {
-        addCopyTo(work, file, Copy.Role.MASTER_COPY.code());
-    }
-
-    /**
-     * Create a new image jp2 access copy
-     * 
-     * Note: most often the work is a page, but it doesn't have to be a page, it
-     * can be book, or other groupItem as well.
-     */
-    public void addImageJP2CopyTo(Work work, java.io.File file) {
-        addCopyTo(work, file, Copy.Role.ACCESS_COPY.code());
-    }
-
-    /**
-     * Create a new image ocr mets master copy
-     * 
-     * Note: most often the work is a page, but it doesn't have to be a page, it
-     * can be book, or other groupItem as well.
-     */
-    public void addOCRMETSCopyTo(Work work, java.io.File file) {
-        addCopyTo(work, file, Copy.Role.OCR_METS_COPY.code());
-    }
-
-    /**
-     * Create a new image ocr alto master copy
-     * 
-     * Note: most often the work is a page, but it doesn't have to be a page, it
-     * can be book, or other groupItem as well.
-     */
-    public void addOCRALTOCopyTo(Work work, java.io.File file) {
-        addCopyTo(work, file, Copy.Role.OCR_ALTO_COPY.code());
-    }
-
-    /**
-     * Create a new image ocr json derivative copy
-     * 
-     * Note: most often the work is a page, but it doesn't have to be a page, it
-     * can be book, or other groupItem as well.
-     */
-    public void addOCRJSONCopyTo(Work work, java.io.File file) {
-        addCopyTo(work, file, Copy.Role.OCR_JSON_COPY.code());
-    }
-
     @Override
     public void close() throws IOException {
         graph.shutdown();
         if (dataPath != null) {
-            objectIdSeq.save(dataPath.resolve("objectIdSeq"));
+            save(dataPath.resolve("objectIdSeq"));
         }
     }
 
@@ -238,100 +149,11 @@ public class AmberDb implements AutoCloseable {
     }
 
     /**
-     * Create a new copy
-     * 
-     * @param work
-     *            - the work to add the copy to.
-     * @param file
-     *            - the file to attach to the copy.
-     * @param copyRole
-     *            - the type of the copy. e.g. master, access copy, etc.
-     */
-    protected void addCopyTo(Work work, java.io.File file, String copyRole) {
-        if (work == null)
-            throw new IllegalArgumentException("Cannot add copy as input work is null.");
-
-        if (file == null)
-            throw new IllegalArgumentException("Cannot add copy as input file is null.");
-
-        Copy copy = graph.addVertex(objectIdSeq.next(), Copy.class);
-        copy.setCopyRole(copyRole);
-        work.addCopy(copy);
-
-        File _file = addFileTo(copy);
-        _file.setFileLocation(file.getAbsolutePath());
-    }
-
-    /**
-     * Create a new file
-     */
-    protected File addFileTo(Copy copy) {
-        File file = graph.addVertex(objectIdSeq.next(), File.class);
-        copy.addFile(file);
-        return file;
-    }
-
-    /**
      * getGraph
      * 
      * @return the framed graph, handly for groovy tests.
      */
     protected FramedGraph<TinkerGraph> getGraph() {
         return graph;
-    }
-
-    private static class Sequence {
-        final AtomicLong value = new AtomicLong();
-
-        void load(Path file) throws IOException {
-            byte[] b = Files.readAllBytes(file);
-            value.set(Long.valueOf(new String(b)));
-        }
-
-        void save(Path file) throws IOException {
-            Files.write(file, Long.toString(value.get()).getBytes());
-        }
-
-        long next() {
-            return value.incrementAndGet();
-        }
-    }
-
-    private static class Order {
-        private FramedGraph<TinkerGraph> graph;
-        private Map<Work, Integer> order = new HashMap<Work, Integer>();
-
-        public void setContext(FramedGraph<TinkerGraph> graph) {
-            this.graph = graph;
-        }
-
-        public void assign(Work parent, Work child) {
-            int position = position(child, parent);
-            CompositeWork _parent = graph.getVertex(parent.getId(), CompositeWork.class);
-            IsPartOf of = graph.getEdge(_parent.getIsPartOfRef(position), IsPartOf.class);
-            assign(position, child, of, parent);
-        }
-
-        public void assignAttached(Section parent, Page child) {
-            int position = position(child, parent);
-            ExistsOn on = graph.getEdge(parent.getExistsOnRef(position), ExistsOn.class);
-            assign(position, child, on, parent);
-        }
-
-        public void assign(int position, Work child, Relation of, Work parent) {
-            if (of == null)
-                throw new IllegalArgumentException("Input work " + child.getObjId() + " is not part of input work "
-                        + parent.getObjId());
-            of.setRelOrder(position);
-        }
-
-        public int position(Work child, Work parent) {
-            int nthChild = 1;
-            if (order.get(parent) != null) {
-                nthChild = order.get(parent) + 1;
-            }
-            order.put(parent, nthChild);
-            return nthChild;
-        }
     }
 }
