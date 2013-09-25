@@ -63,7 +63,8 @@ public class AmberGraphDaoTest {
         dbi = null;
     }
 
-    @Test
+    // @Test
+    @Ignore
     public void testDao() throws Exception {
         //setup();
         
@@ -99,7 +100,8 @@ public class AmberGraphDaoTest {
         //teardown();
     }
 
-    @Test
+    // @Test
+    @Ignore
     public void testDaoIndexes() throws Exception {
         //setup();
         
@@ -148,7 +150,8 @@ public class AmberGraphDaoTest {
         //teardown();
     }
     
-    @Test
+    // @Test
+    @Ignore
     public void testGraph() throws Exception {
         //setup();
         
