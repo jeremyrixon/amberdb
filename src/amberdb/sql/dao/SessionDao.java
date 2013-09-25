@@ -66,7 +66,31 @@ public interface SessionDao extends Transactional<SessionDao> {
             "ON property(id, name)")
     void createPropertyIndex();
     
-    @SqlUpdate("DROP TABLE IF EXISTS vertex, edge, property")
+    @SqlUpdate(
+            "CREATE TABLE IF NOT EXISTS id_generator (" +
+            "id BIGINT PRIMARY KEY AUTO_INCREMENT)")
+    void createIdGeneratorTable();
+    
+    /*
+     * id generation operations
+     */
+    @GetGeneratedKeys
+    @SqlUpdate(
+            "INSERT INTO id_generator () " + 
+            "VALUES ()")
+    long newId();
+
+    @SqlUpdate(
+            "DELETE " +
+            "FROM id_generator " +
+            "WHERE id < :id")
+    void garbageCollectIds(
+            @Bind("id") long id);
+    
+    /*
+     * DDL cleanup
+     */
+    @SqlUpdate("DROP TABLE IF EXISTS vertex, edge, property, id_generator")
     void dropTables();
     
 
@@ -114,13 +138,13 @@ public interface SessionDao extends Transactional<SessionDao> {
     /*
      * Deleting things 
      */
-    @SqlUpdate(
-            "DELETE FROM property_index " +
-            "WHERE e_id = :id " +
-            "AND name = :propertyName")
-    void removeProperty(
-            @Bind("id") long elementId, 
-            @Bind("propertyName") String propertyName);
+//    @SqlUpdate(
+//            "DELETE FROM property " +
+//            "WHERE e_id = :id " +
+//            "AND name = :propertyName")
+//    void removeProperty(
+//            @Bind("id") long elementId, 
+//            @Bind("propertyName") String propertyName);
     @SqlUpdate(
             "DELETE FROM edge " +
             "WHERE id = :id")
@@ -170,13 +194,13 @@ public interface SessionDao extends Transactional<SessionDao> {
             @Bind("id") long id);
 
     
-    @SqlQuery(
-            "SELECT name, b_value, d_value, s_value, i_value " +
-            "FROM property_index " +
-            "WHERE e_id = :id")
-    @Mapper(SessionPropertyMapper.class)
-    Iterator<AmberProperty> findPropertiesByElementId(
-            @Bind("id") long id);
+//    @SqlQuery(
+//            "SELECT name, b_value, d_value, s_value, i_value " +
+//            "FROM property_index " +
+//            "WHERE e_id = :id")
+//    @Mapper(SessionPropertyMapper.class)
+//    Iterator<AmberProperty> findPropertiesByElementId(
+//            @Bind("id") long id);
 
     /*
      * Finding edges incident to a vertex.

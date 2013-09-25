@@ -69,6 +69,7 @@ public class AmberGraph implements Graph {
         sessionDao.createEdgeTable();
         sessionDao.createPropertyTable();
         sessionDao.createPropertyIndex();
+        sessionDao.createIdGeneratorTable();
         sessionDao.commit();
         
         statefulDao = sessionDbi.onDemand(StatefulDao.class);
@@ -81,15 +82,21 @@ public class AmberGraph implements Graph {
      * Jelly specific methods
      */
 
+    /**
+     * Generate a new id unique within this session. It is also guaranteed not to 
+     * clash with the persistent data store's ids by virtue of being a negative number.
+     *  
+     * @return A unique session id
+     */
     protected Long newId() {
-        persistentDao.begin();
-        Long newPi = persistentDao.newId();
+        sessionDao.begin();
+        Long newPi = -(sessionDao.newId());
 
         // occasionally clean up the pi generation table (every 1000 pis or so)
         if (newPi % 1000 == 995) {
-            persistentDao.garbageCollectIds(newPi);
+            sessionDao.garbageCollectIds(newPi);
         }
-        persistentDao.commit();
+        sessionDao.commit();
         return newPi;
     }
     
