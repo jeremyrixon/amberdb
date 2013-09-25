@@ -578,14 +578,14 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             @Bind("txn_new")   long txnId);
     
     @SqlQuery(
-            "SELECT v.id, v.end_txn " +
+            "SELECT v.id, v.txn_end " +
             "FROM vertex v, stage_vertex s " +
             "WHERE s.txn_new = :txnId " +
             "AND s.id = v.id " +
             "AND v.txn_end > 0 " +
             "AND v.txn_end > s.txn_start " +  // this clause may not be needed
             "UNION " +
-            "SELECT e.id, e.end_txn " +
+            "SELECT e.id, e.txn_end " +
             "FROM edge e, stage_edge s " +
             "WHERE s.txn_new = :txnId " +
             "AND s.id = e.id " +
@@ -595,13 +595,13 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             @Bind("txnId") long txnId);
     
     @SqlQuery(
-            "SELECT v.id, v.start_txn " +
+            "SELECT v.id, v.txn_start " +
             "FROM vertex v, stage_vertex s " +
             "WHERE s.txn_new = :txnId " +
             "AND s.id = v.id " +
             "AND v.txn_start > s.txn_start " +
             "UNION " +
-            "SELECT e.id, e.end_txn " +
+            "SELECT e.id, e.txn_end " +
             "FROM edge e, stage_edge s " +
             "WHERE s.txn_new = :txnId " +
             "AND s.id = e.id " +
@@ -609,7 +609,7 @@ public interface PersistentDao extends Transactional<PersistentDao> {
     List<Long[]> findAlterationMutations(
             @Bind("txnId") long txnId);
     
-    @SqlQuery(
+    @SqlUpdate(
             "INSERT INTO vertex (id, txn_start) " +
             "SELECT id, txn_new " +
             "FROM stage_vertex " +
@@ -618,24 +618,32 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             @Bind("txnId")        long txnId,
             @Bind("deletedState") int deletedState);
 
-    @SqlQuery(
+    @SqlUpdate(
             "INSERT INTO edge (id, txn_start, v_out, v_in, label, edge_order) " +
             "SELECT id, txn_new, v_out, v_in, label, edge_order " +
-            "FROM stage_vertex " +
+            "FROM stage_edge " +
             "WHERE state <> :deletedState")
     int insertStagedEdges(
             @Bind("txnId")        long txnId,
             @Bind("deletedState") int deletedState);
     
-    @SqlQuery(
+    @SqlUpdate(
             "INSERT INTO property (id, txn_start, name, type, s_value, b_value, i_value, d_value) " +
             "SELECT id, txn_new, name, type, s_value, b_value, i_value, d_value " +
             "FROM stage_property " +
-            "WHERE state <> :deletedState")
+            "WHERE id IN (" +
+            "  SELECT id " +
+            "  FROM stage_vertex " +
+            "  WHERE state <> :deletedState " +
+            "  UNION " +
+            "  SELECT id " +
+            "  FROM stage_edge " +
+            "  WHERE state <> :deletedState)")
     int insertStagedProperties(
-            @Bind("txnId") long txnId);
-
-    @SqlQuery(
+            @Bind("txnId")        long txnId,
+            @Bind("deletedState") int deletedState);
+    
+    @SqlUpdate(
             "UPDATE vertex " +
             "SET txn_end = :txnId " +
             "WHERE id IN (" +
@@ -647,7 +655,7 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             @Bind("txnId")    long txnId,
             @Bind("newState") int newState);
 
-    @SqlQuery(
+    @SqlUpdate(
             "UPDATE edge " +
             "SET txn_end = :txnId " +
             "WHERE id IN (" +
@@ -659,19 +667,23 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             @Bind("txnId")    long txnId,
             @Bind("newState") int newState);
     
-    @SqlQuery(
+    @SqlUpdate(
             "UPDATE property " +
             "SET txn_end = :txnId " +
             "WHERE id IN (" +
             "  SELECT id " +
-            "  FROM stage_property " +
+            "  FROM stage_edge " +
+            "  WHERE state <> :newState " +
+            "  UNION " +
+            "  SELECT id " +
+            "  FROM stage_vertex " +
             "  WHERE state <> :newState) " +
             "AND txn_end = 0")
     int updateSupercededProperties(
             @Bind("txnId") long txnId,
             @Bind("newState") int newState);
 
-    @SqlQuery(
+    @SqlUpdate(
             "UPDATE transaction " +
             "SET commit = :commitMarker " +
             "WHERE id = :txnId")

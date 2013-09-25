@@ -16,6 +16,7 @@ import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 
 import amberdb.sql.dao.PersistentDao;
+import amberdb.sql.dao.SessionDao;
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import com.tinkerpop.blueprints.Direction;
@@ -49,7 +50,9 @@ public class AmberGraphDaoTest {
         dao.createVertexTable();
         dao.createEdgeTable();
         dao.createPropertyTable();
-        //dao.createPropertyIndex();
+        dao.createStagingVertexTable();
+        dao.createStagingEdgeTable();
+        dao.createStagingPropertyTable();
         dao.createTransactionTable();
         
         dao.close();
@@ -61,42 +64,6 @@ public class AmberGraphDaoTest {
         //dao.dropTables();
         dao.close();
         dbi = null;
-    }
-
-    @Test
-    public void testDao() throws Exception {
-        //setup();
-        
-        PersistentDao dao = dbi.onDemand(PersistentDao.class);
-
-        long v1 = dao.insertVertex(12, 0, 0);        
-        long v2 = dao.insertVertex(3, 1, 0);
-        
-        long e1 = dao.insertEdge(4, 1, 0, 12, 3, "test", 0);
-//        dao.updateEdgeProperties(e1, "{\"order\" : 12}");
-        
-        long e2 = dao.insertEdge(2, 1, 0, 3,  12, "backwards", 1);
-        dao.removeEdge(e2);
-
-        Iterator<AmberEdge> ije2 = dao.findOutEdges(v1);
-        while (ije2.hasNext()) {
-            s("it:"+ije2.next().toString());
-        }
-        
-        ije2 = dao.findInEdges(v2);
-        while (ije2.hasNext()) {
-            s("it2:"+ije2.next().toString());
-        }
-
-        ije2 = dao.findEdges();
-        while (ije2.hasNext()) {
-            s("it3:"+ije2.next().toString());
-        }
-        s("");
-        dao.insertVertex(3, 12, 13);
-        
-        dao.close();
-        //teardown();
     }
 
     @Test
@@ -228,6 +195,10 @@ public class AmberGraphDaoTest {
             s("----  "+ v);
         }
         
+        e7.remove();
+        e8.remove();
+        e9.remove();
+        e10.remove();
     }
     
     public void s(String s) {

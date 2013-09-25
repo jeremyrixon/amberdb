@@ -544,57 +544,66 @@ public class AmberGraph implements Graph {
     }
 
     protected void commitToPersistent(String operation) {
-        
-        // Get a fresh transaction
-        AmberTransaction txn = new AmberTransaction(this, DEFAULT_USER, operation);
-        s("committing transaction " + txn);
-        
-        // these steps may occur before commit transaction commences
-        stageElements(txn);
-        
-        List<Long[]> mutatedElements = checkForMutations(txn);
-        
-        if (mutatedElements.size() > 0) {
-            s("mutations have occurred :");
-            for (Long[] idToTxn : mutatedElements) {
-                s("id:" + idToTxn[0] + " in txn:" + idToTxn[1]);
-            }
-            throw new TransactionException("Aborting transaction: in future we should do more than just this.");
-        }
 
-        // we'll hold a transaction now
-        persistentDao.begin();
-        
-        // make the changes
-        commitStaged(txn, persistentDao);
-        
-        // it is done
-        persistentDao.commit();
-        
-        // clear staging tables
-        //@TODO
-        
-        // IMPORTANT
-        // refresh session - question should this clear session or just mark all read ?
-        // I am going to implement mark as read, but this means externally persisted 
-        // updates to unmodified elements will not be seen, so we'll see what we have 
-        // to do to remedy this in future as it must be fixed somehow, just not right
-        // now.
-        s("refreshing session");
-        
-        // remove deleted elements
-        sessionDao.begin();
-        sessionDao.clearDeletedProperties(State.DELETED.ordinal());
-        sessionDao.clearDeletedVertices(State.DELETED.ordinal());
-        sessionDao.clearDeletedEdges(State.DELETED.ordinal());
-        
-        // Mark modified as read
-        sessionDao.resetModifiedVertices(State.MODIFIED.ordinal(), State.READ.ordinal());
-        sessionDao.resetModifiedEdges(State.MODIFIED.ordinal(), State.READ.ordinal());
-        sessionDao.commit();
-        
-        // IMPORTANT: will also get new session start marker, but not implemented yet
-        
+        try {
+            
+            // Get a fresh transaction
+            AmberTransaction txn = new AmberTransaction(this, DEFAULT_USER, operation);
+            s("committing transaction " + txn);
+
+            // these steps may occur before commit transaction commences
+            stageElements(txn);
+
+            List<Long[]> mutatedElements = checkForMutations(txn);
+
+            if (mutatedElements.size() > 0) {
+                s("mutations have occurred :");
+                for (Long[] idToTxn : mutatedElements) {
+                    s("id:" + idToTxn[0] + " in txn:" + idToTxn[1]);
+                }
+                throw new TransactionException("Aborting transaction: in future we should do more than just this.");
+            }
+
+            // we'll hold a transaction now
+            persistentDao.begin();
+
+            // make the changes
+            commitStaged(txn, persistentDao);
+
+            // it is done
+            persistentDao.commit();
+
+            // clear staging tables
+            // @TODO
+
+            // IMPORTANT
+            // refresh session - question should this clear session or just mark all read ?
+            // I am going to implement mark as read, but this means externally persisted
+            // updates to unmodified elements will not be seen, so we'll see what we have
+            // to do to remedy this in future as it must be fixed somehow, just not right
+            // now.
+            s("refreshing session");
+
+            // remove deleted elements
+            sessionDao.begin();
+            sessionDao.clearDeletedProperties(State.DELETED.ordinal());
+            sessionDao.clearDeletedVertices(State.DELETED.ordinal());
+            sessionDao.clearDeletedEdges(State.DELETED.ordinal());
+
+            // Mark modified as read
+            sessionDao.resetModifiedVertices(State.MODIFIED.ordinal(), State.READ.ordinal());
+            sessionDao.resetModifiedEdges(State.MODIFIED.ordinal(), State.READ.ordinal());
+            sessionDao.commit();
+
+            // IMPORTANT: will also get new session start marker, but not implemented yet
+
+        // Exception will be more specific on refactor    
+        } catch (Exception e) {
+            s("================= commit failed ===============");
+            s("In future we'll do something about it here");
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     
@@ -612,7 +621,7 @@ public class AmberGraph implements Graph {
                                                                           State.DELETED.ordinal());
         
         s("vertices being staged: " + vertices.size());
-        s("egdes being staged: " + edges.size());
+        s("edges being staged: " + edges.size());
         s("properties being staged: " + properties.size());
         
         // Allocate persistent ids to any new elements now. It's simpler to do this here 
@@ -693,7 +702,7 @@ public class AmberGraph implements Graph {
         int numInsertedEdges = dao.insertStagedEdges(txn.id(), State.DELETED.ordinal());
         
         // add their properties
-        int numInsertedProperties = dao.insertStagedProperties(txn.id());
+        int numInsertedProperties = dao.insertStagedProperties(txn.id(), State.DELETED.ordinal());
         
         // just a bit of output - refactor should improve or remove this
         s("ended vertices: "   + numEndedVertices);
