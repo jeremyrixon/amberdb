@@ -54,7 +54,7 @@ public class AmberProperty extends Persistent {
         }
     }
     
-    protected String getType() {
+    public String getType() {
         return type;
     }
     

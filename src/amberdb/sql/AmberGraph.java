@@ -3,11 +3,15 @@ package amberdb.sql;
 import amberdb.sql.Stateful.State;
 import amberdb.sql.dao.*;
 
+import java.beans.PersistenceDelegate;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+
 import javax.sql.DataSource;
 
 import org.h2.jdbcx.JdbcConnectionPool;
@@ -38,7 +42,7 @@ public class AmberGraph implements Graph {
     private VertexDao vertexDao;
     private EdgeDao edgeDao;
 
-    boolean autoCommit = false;
+    boolean autoCommit = true;
     
     /*
      * Constructors
@@ -88,17 +92,34 @@ public class AmberGraph implements Graph {
      *  
      * @return A unique session id
      */
-    protected Long newId() {
+    protected Long newSessionId() {
         sessionDao.begin();
-        Long newPi = -(sessionDao.newId());
+        Long newId = -(sessionDao.newId());
 
         // occasionally clean up the pi generation table (every 1000 pis or so)
-        if (newPi % 1000 == 995) {
-            sessionDao.garbageCollectIds(newPi);
+        if (newId % 1000 == 995) {
+            sessionDao.garbageCollectIds(newId);
         }
         sessionDao.commit();
-        return newPi;
+        return newId;
     }
+    
+    /**
+     * Generate a new id unique within the persistent data store.
+     *  
+     * @return A unique persistent id
+     */
+    protected Long newPersistentId() {
+        persistentDao.begin();
+        Long newId = persistentDao.newId();
+
+        // occasionally clean up the pi generation table (every 1000 pis or so)
+        if (newId % 1000 == 995) {
+            persistentDao.garbageCollectIds(newId);
+        }
+        persistentDao.commit();
+        return newId;
+    }    
     
     protected TransactionDao transactionDao() {
         return transactionDao;
@@ -285,7 +306,7 @@ public class AmberGraph implements Graph {
         // argument guard
         if (label == null) throw new IllegalArgumentException("edge label cannot be null");
 
-        long newId = newId();
+        long newId = newSessionId();
         AmberEdge edge = new AmberEdge(newId, (long) out.getId(), (long) in.getId(), label);
         edge.addToSession(this, State.NEW, false);
         
@@ -296,7 +317,7 @@ public class AmberGraph implements Graph {
     @Override
     public Vertex addVertex(Object id) {
         
-        long newId = newId();
+        long newId = newSessionId();
         AmberVertex vertex = new AmberVertex(newId);
         vertex.addToSession(this, State.NEW, false);
 
@@ -471,7 +492,7 @@ public class AmberGraph implements Graph {
     }
     
     /**
-     * Dunno what to do 
+     * Implement later if necessary 
      */
     @Override
     public GraphQuery query() {
@@ -482,13 +503,11 @@ public class AmberGraph implements Graph {
     @Override
     public void removeEdge(Edge e) {
         e.remove();
-        if (autoCommit) commitToPersistent("removeEdge");
     }
 
     @Override
     public void removeVertex(Vertex v) {
         v.remove();
-        if (autoCommit) commitToPersistent("removeVertex");
     }
 
     @Override
@@ -526,111 +545,172 @@ public class AmberGraph implements Graph {
 
     protected void commitToPersistent(String operation) {
         
-        s("committing transaction : " + operation);
-        
         // Get a fresh transaction
         AmberTransaction txn = new AmberTransaction(this, DEFAULT_USER, operation);
+        s("committing transaction " + txn);
         
-        // start by preparing the new elements
-        prepareNewElements(txn);
+        // these steps may occur before commit transaction commences
+        stageElements(txn);
+        
+        List<Long[]> mutatedElements = checkForMutations(txn);
+        
+        if (mutatedElements.size() > 0) {
+            s("mutations have occurred :");
+            for (Long[] idToTxn : mutatedElements) {
+                s("id:" + idToTxn[0] + " in txn:" + idToTxn[1]);
+            }
+            throw new TransactionException("Aborting transaction: in future we should do more than just this.");
+        }
 
-        // next the modified elements
-        prepareModifiedElements(txn);
+        // we'll hold a transaction now
+        persistentDao.begin();
         
-        // deleted e & v
-        // --------------
-        // end date w props
+        // make the changes
+        commitStaged(txn, persistentDao);
         
-        // new e & v
-        // ---------
-        // write over
-        // with props
+        // it is done
+        persistentDao.commit();
         
-        // modified e & v
-        // --------------
-        // check modified
+        // clear staging tables
+        //@TODO
+        
+        // IMPORTANT
+        // refresh session - question should this clear session or just mark all read ?
+        // I am going to implement mark as read, but this means externally persisted 
+        // updates to unmodified elements will not be seen, so we'll see what we have 
+        // to do to remedy this in future as it must be fixed somehow, just not right
+        // now.
+        s("refreshing session");
+        
+        // remove deleted elements
+        sessionDao.begin();
+        sessionDao.clearDeletedProperties(State.DELETED.ordinal());
+        sessionDao.clearDeletedVertices(State.DELETED.ordinal());
+        sessionDao.clearDeletedEdges(State.DELETED.ordinal());
+        
+        // Mark modified as read
+        sessionDao.resetModifiedVertices(State.MODIFIED.ordinal(), State.READ.ordinal());
+        sessionDao.resetModifiedEdges(State.MODIFIED.ordinal(), State.READ.ordinal());
+        sessionDao.commit();
+        
+        // IMPORTANT: will also get new session start marker, but not implemented yet
         
     }
+
     
-    private void prepareNewElements(AmberTransaction txn) {
+    
+    private void stageElements(AmberTransaction txn) {
+        s("staging elements...");
         
-        List<Persistent> newElements = new ArrayList<Persistent>();
-        newElements.addAll(sessionDao().findVerticesByState(State.NEW.ordinal()));  
-        newElements.addAll(sessionDao().findEdgesByState(State.NEW.ordinal()));
-        newElements.addAll(sessionDao().findPropertiesByElementState(State.NEW.ordinal()));
+        // following 3 methods calls are passed the value for unaltered so they can select 
+        // everything except that. This oddity could definitely be improved in a subsequent 
+        // refactor. I'm just lacking the time to mend this right now.
+
+        List<AmberEdge>     edges      = sessionDao.findAlteredEdges(     State.READ.ordinal());
+        List<AmberVertex>   vertices   = sessionDao.findAlteredVertices(  State.READ.ordinal());
+        List<AmberProperty> properties = sessionDao.findAlteredProperties(State.READ.ordinal(), 
+                                                                          State.DELETED.ordinal());
         
-        // add them all to the new transaction. Set the txn_end also,
-        // so they are ignored until they are committed
-        for (Persistent p : newElements) {
-            p.graph(this);
-            p.txnStart(txn.id());
-            p.txnEnd(txn.id());
+        s("vertices being staged: " + vertices.size());
+        s("egdes being staged: " + edges.size());
+        s("properties being staged: " + properties.size());
+        
+        // Allocate persistent ids to any new elements now. It's simpler to do this here 
+        // than when staged. Note: we need to replace all references too
+        Map<Long, Long> idMap = new HashMap<Long, Long>();
+        for (Long id: sessionDao.findNewIds(State.NEW.ordinal())) {
+            idMap.put(id, newPersistentId());
+        }
+        
+        for (AmberVertex v: vertices) {
+            v.graph(this);
+            // sub in persistent id if necessary
+            if (v.sessionState() == State.NEW) {
+                v.id(idMap.get(v.id()));
+            }
+            persistentDao.insertStageVertex(v, txn.id());
+        }
+        
+        for (AmberEdge e: edges) {
+            e.graph(this);
+            // sub in persistent id if necessary including vertex references
+            if (e.sessionState() == State.NEW) e.id(idMap.get(e.id()));
+            if (e.inVertexId  < 0) e.inVertexId  = idMap.get(e.inVertexId);
+            if (e.outVertexId < 0) e.outVertexId = idMap.get(e.outVertexId);
             
-            // prepare by writing them to persistent store
-            if (p instanceof AmberVertex) {
-                s("persisting new vertex :"+((AmberVertex) p).toString());
-                persistentDao.insertVertex(p.id(), p.txnStart(), p.txnEnd());
-            } else if (p instanceof AmberEdge) {
-                AmberEdge e = (AmberEdge) p;
-                s("persisting new edge :"+e.toString());
-                persistentDao.insertEdge(e.id(), e.txnStart(), e.txnEnd(), 
-                        e.outVertexId, e.outVertexId, e.label, e.edgeOrder);
-            } else if (p instanceof AmberProperty) {
-                s("persisting new prop :"+((AmberProperty) p).toString());
-                persistProperty((AmberProperty) p);
-            } else {
-                s("it finally happened: encountered class "+ p.getClass().getName());
-                // throw UnknownPersistentClassError ( need to decide what to do )
+            persistentDao.insertStageEdge(e, txn.id());
+        }
+        
+        for (AmberProperty p: properties) {
+            p.graph(this);
+            // sub in persistent id if necessary
+            if (p.id() < 0) p.id(idMap.get(p.id()));
+
+            switch (p.getType()) {
+                case "s" : persistentDao.insertStageStringProperty(p, txn.id()); break;
+                case "b" : persistentDao.insertStageBooleanProperty(p, txn.id()); break;
+                case "i" : persistentDao.insertStageIntegerProperty(p, txn.id()); break;
+                case "d" : persistentDao.insertStageDoubleProperty(p, txn.id()); break;
+                default: break;
             }
         }
     }
 
-    private void prepareModifiedElements(AmberTransaction txn) {
+    private List<Long[]> checkForMutations(AmberTransaction txn) {
+        s("checking for mutations");
         
-        List<Persistent> modElements = new ArrayList<Persistent>();
-        modElements.addAll(sessionDao().findVerticesByState(State.MODIFIED.ordinal()));  
-        modElements.addAll(sessionDao().findEdgesByState(State.MODIFIED.ordinal()));
-        modElements.addAll(sessionDao().findPropertiesByElementState(State.MODIFIED.ordinal()));
+        List<Long[]> deletions = persistentDao.findDeletionMutations(txn.id());
+        s("deletions: " + deletions.size());
 
-        // here here here here here
+        List<Long[]> alterations = persistentDao.findAlterationMutations(txn.id());
+        s("alterations: " + alterations.size());
+
+        // IMPORTANT: will need to check for new incident edges too. This will require
+        // a refactor where starting a session acquires a session start id to compare 
+        // with txn_start commit is of incident edges (or some such contrivance)
         
-        // add them all to the new transaction. Set the txn_end also,
-        // so they are ignored until they are committed
-        for (Persistent p : modElements) {
-            p.graph(this);
-            p.txnStart(txn.id());
-            p.txnEnd(txn.id());
-            
-            // prepare by writing them to persistent store
-            if (p instanceof AmberVertex) {
-                persistentDao.insertVertex(p.id(), p.txnStart(), p.txnEnd());
-            } else if (p instanceof AmberEdge) {
-                AmberEdge e = (AmberEdge) p;
-                persistentDao.insertEdge(e.id(), e.txnStart(), e.txnEnd(), 
-                        e.outVertexId, e.outVertexId, e.label, e.edgeOrder);
-            } else if (p instanceof AmberProperty) {
-                persistProperty((AmberProperty) p);
-            }
-        }
+        deletions.addAll(alterations);
+        
+        return deletions;
     }
     
-    
-    private void persistProperty(AmberProperty p) {
-        if (p.getType().equals("s")) {
-            persistentDao.createStringProperty(p.id(), p.txnStart(), p.txnEnd(), p.name, p.getType(), (String) p.getValue());
-        } else if (p.getType().equals("b")) {
-            persistentDao.createBooleanProperty(p.id(), p.txnStart(), p.txnEnd(), p.name, p.getType(), (Boolean) p.getValue());
-        } else if (p.getType().equals("i")) {
-            persistentDao.createIntegerProperty(p.id(), p.txnStart(), p.txnEnd(), p.name, p.getType(), (Integer) p.getValue());
-        } else if (p.getType().equals("d")) {
-            persistentDao.createDoubleProperty(p.id(), p.txnStart(), p.txnEnd(), p.name, p.getType(), (Double) p.getValue());
-        }
+    private void commitStaged(AmberTransaction txn, PersistentDao dao) {
+        s("committing staged changes");
+
+        // add an end transaction to superceded and deleted elements 
+        int numEndedVertices = dao.updateSupercededVertices(txn.id(), State.NEW.ordinal());
+        int numEndedEdges = dao.updateSupercededEdges(txn.id(), State.NEW.ordinal());
+        
+        // add an end transaction to superceded and deleted properties 
+        int numEndedProperties = dao.updateSupercededProperties(txn.id(), State.NEW.ordinal());
+        
+        // IMPORTANT : will need to delete incident edges for deleted vertices too
+        // They may not have been queried into the session, but are non the less
+        // affected. This has not been implemented yet, but needs to be.
+        
+        // add new and modified elements
+        int numInsertedVertices = dao.insertStagedVertices(txn.id(), State.DELETED.ordinal());
+        int numInsertedEdges = dao.insertStagedEdges(txn.id(), State.DELETED.ordinal());
+        
+        // add their properties
+        int numInsertedProperties = dao.insertStagedProperties(txn.id());
+        
+        // just a bit of output - refactor should improve or remove this
+        s("ended vertices: "   + numEndedVertices);
+        s("ended edges: "      + numEndedEdges);
+        s("ended properties: " + numEndedProperties);
+        
+        s("inserted vertices: "   + numInsertedVertices);
+        s("inserted edges: "      + numInsertedEdges);
+        s("inserted properties: " + numInsertedProperties);
+        
+        // finally, set the commit flag on our transaction
+        dao.commitTransaction(txn.id(), newPersistentId());
+        dao.commit();
     }
     
     // Convenience for debugging
     private void s(String s) {
         System.out.println(s);
     }
-    
-    
 }

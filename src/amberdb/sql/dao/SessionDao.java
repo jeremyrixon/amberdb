@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import  amberdb.sql.*;
+import amberdb.sql.Stateful.State;
 import  amberdb.sql.map.*;
 
 import org.skife.jdbi.v2.sqlobject.Bind;
@@ -17,16 +18,12 @@ import org.skife.jdbi.v2.util.StringMapper;
 public interface SessionDao extends Transactional<SessionDao> {
 
     static final String vertexFields = " id, txn_start, txn_end, state ";
-//    static final String vertexFieldsV = " v.id, v.txn_start, v.txn_end, v.state ";
-//    static final String vertexFieldSymbols = " :id, :txn_start, :txn_end, :state ";
     
     static final String edgeFields = " id, txn_start, txn_end, v_out, v_in, label, edge_order, state ";
-//    static final String edgeFieldsE = " e.id, e.txn_start, e.txn_end, e.v_out, e.v_in, e.label, e.edge_order, e.state ";
-//    static final String edgeFieldSymbols = " :id, :txn_start, :txn_end, :v_out, :v_in, :label, :edge_order, :state ";
     
     static final String propertyFields = " id, name, type, b_value, s_value, i_value, d_value ";
     static final String propertyFieldsP = " p.id, p.name, p.type, p.b_value, p.s_value, p.i_value, p.d_value ";
-//    static final String propertyFieldSymbols = " :id, :name, :type, :b_value, :s_value, :i_value, :d_value ";
+    
     
     /*
      *  DB creation operations (DDL)
@@ -138,13 +135,6 @@ public interface SessionDao extends Transactional<SessionDao> {
     /*
      * Deleting things 
      */
-//    @SqlUpdate(
-//            "DELETE FROM property " +
-//            "WHERE e_id = :id " +
-//            "AND name = :propertyName")
-//    void removeProperty(
-//            @Bind("id") long elementId, 
-//            @Bind("propertyName") String propertyName);
     @SqlUpdate(
             "DELETE FROM edge " +
             "WHERE id = :id")
@@ -194,14 +184,6 @@ public interface SessionDao extends Transactional<SessionDao> {
             @Bind("id") long id);
 
     
-//    @SqlQuery(
-//            "SELECT name, b_value, d_value, s_value, i_value " +
-//            "FROM property_index " +
-//            "WHERE e_id = :id")
-//    @Mapper(SessionPropertyMapper.class)
-//    Iterator<AmberProperty> findPropertiesByElementId(
-//            @Bind("id") long id);
-
     /*
      * Finding edges incident to a vertex.
      */
@@ -261,18 +243,93 @@ public interface SessionDao extends Transactional<SessionDao> {
     List<AmberEdge> findEdgesByState(
             @Bind("state") int state);
 
+
+    /*
+     * find elements to be staged
+     */
     @SqlQuery(
-            "SELECT " + propertyFieldsP +
-            "FROM property p, edge e " +
-            "WHERE p.id = e.id " +
-            "AND e.state = :state " +
-            "UNION " +
+            "SELECT " + vertexFields +
+            "FROM vertex " +
+            "WHERE state <> :unalteredState")
+    @Mapper(SessionVertexMapper.class)
+    List<AmberVertex> findAlteredVertices(
+            @Bind("unalteredState") int readState);
+    @SqlQuery(
+            "SELECT " + edgeFields +
+            "FROM edge " +
+            "WHERE state <> :unalteredState")
+    @Mapper(SessionEdgeMapper.class)
+    List<AmberEdge> findAlteredEdges(
+            @Bind("unalteredState") int readState);
+    @SqlQuery(
             "SELECT " + propertyFieldsP +
             "FROM property p, vertex v " +
             "WHERE p.id = v.id " +
-            "AND v.state = :state")
+            "AND v.state <> :unalteredState " +
+            "UNION " +
+            "SELECT " + propertyFieldsP +
+            "FROM property p, edge e " +
+            "WHERE p.id = e.id " +
+            "AND e.state <> :unalteredState " +
+            "AND e.state <> :deletedState")
     @Mapper(SessionPropertyMapper.class)
-    List<AmberProperty> findPropertiesByElementState(
-            @Bind("state") int state);
+    List<AmberProperty> findAlteredProperties(
+            @Bind("unalteredState") int readState,
+            @Bind("deletedState") int deletedState);
+    
+    @SqlQuery(
+            "SELECT id " +
+            "FROM vertex " +
+            "WHERE state = :newState " +
+            "AND id < 0 " +
+            "UNION " +
+            "SELECT id " +
+            "FROM edge " +
+            "WHERE state = :newState " +
+            "AND id < 0 " +
+            "ORDER BY id")
+    List<Long> findNewIds(
+            @Bind("newState") int newState);
+
+    @SqlUpdate(
+            "DELETE FROM vertex " +
+            "WHERE state = :deletedState")
+    void clearDeletedVertices(
+            @Bind("deletedState") int deletedState);
+
+    @SqlUpdate(
+            "DELETE FROM edge " +
+            "WHERE state = :deletedState")
+    void clearDeletedEdges(
+            @Bind("deletedState") int deletedState);
+    
+    @SqlUpdate(
+            "DELETE FROM property " +
+            "WHERE id IN " +
+            "  (SELECT id FROM edge " +
+            "   WHERE state = :deletedState " +
+            "   UNION " +
+            "   SELECT id FROM vertex " +
+            "   WHERE state = :deletedState)")
+    void clearDeletedProperties(
+            @Bind("deletedState") int deletedState);
+    
+    @SqlUpdate(
+            "UPDATE vertex " +
+            "SET state =:readState " +
+            "WHERE state = :modifiedState")
+    void resetModifiedVertices(
+            @Bind("modifiedState") int modifiedState,
+            @Bind("readState") int readState);
+
+    @SqlUpdate(
+            "UPDATE edge " +
+            "SET state =:readState " +
+            "WHERE state = :modifiedState")
+    void resetModifiedEdges(
+            @Bind("modifiedState") int modifiedState,
+            @Bind("readState") int readState);
+    
+
 }
 

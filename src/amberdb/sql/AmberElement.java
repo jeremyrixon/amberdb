@@ -67,6 +67,7 @@ public class AmberElement extends Stateful {
     public void remove() {
         dao().deleteProperties(id());
         sessionState(State.DELETED);
+        if (graph().autoCommit) graph().commitToPersistent("removeElement");
     }
     
     public Map<String, Object> getProperties() {

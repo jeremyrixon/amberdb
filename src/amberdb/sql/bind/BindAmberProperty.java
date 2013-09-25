@@ -26,10 +26,6 @@ public @interface BindAmberProperty {
                     q.bind("id", p.id());
                     q.bind("name", p.name);
                     q.bind("type", p.getType());
-                    q.bind("b_value", (Boolean) null);
-                    q.bind("s_value", (String) null);
-                    q.bind("i_value", (Integer) null);
-                    q.bind("d__value", (Double) null);
 
                     switch (p.getType()) {
                     case "s":

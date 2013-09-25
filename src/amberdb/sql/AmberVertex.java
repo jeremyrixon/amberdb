@@ -113,7 +113,7 @@ public class AmberVertex extends AmberElement implements Vertex {
         // argument guard
         if (label == null) throw new IllegalArgumentException("edge label cannot be null");
         
-        AmberEdge edge = new AmberEdge(graph().newId(), id(), (long) inVertex.getId(), label);
+        AmberEdge edge = new AmberEdge(graph().newSessionId(), id(), (long) inVertex.getId(), label);
         edge.addToSession(graph, State.NEW, false);
         return edge;
     }
