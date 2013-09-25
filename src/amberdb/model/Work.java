@@ -100,14 +100,14 @@ public interface Work extends Node {
     @JavaHandler
     public Copy addCopy(java.io.File file, CopyRole copyRole);
     
-    @JavaHandler
-    public Page getPage(int position);
-    
-    @JavaHandler
-    public List<Page> getPages();
+    @Adjacency(label = IsPartOf.label, direction = Direction.IN)
+    public Iterable<Page> getPages();
     
     @JavaHandler
     public int countParts();
+    
+    @JavaHandler
+    public Page getPage(int position);
     
     abstract class Impl implements JavaHandlerContext<Vertex>, Work {
         public List<Page> addPages(List<java.io.File> files) {
@@ -140,12 +140,37 @@ public interface Work extends Node {
             return copy;
         }
         
-        public Page getPage(int position) {
-            return getPages(position).get(position - 1);
+        public List<Page> getPages() {
+            List<Page> pages = new ArrayList<Page>();
+            Iterable<Work> parts = this.getChildren();
+            if (parts != null) {
+                Iterator<Work> it = parts.iterator();
+                while (it.hasNext()) {
+                    Work part = it.next();
+                    pages.add(frame(part.asVertex(), Page.class));
+                }
+            }            
+            return pages;
         }
         
-        public List<Page> getPages() {
-            return getPages(-1);
+        public Page getPage(int position) {
+            if (position <= 0)
+                throw new IllegalArgumentException("Cannot get this page, invalid input position " + position);
+            
+            Iterable<Page> pages = this.getPages();
+            if (pages == null || countParts() < position)
+                throw new IllegalArgumentException("Cannot get this page, page at position " + position + " does not exist.");
+            
+            Iterator<Page> pagesIt = pages.iterator();
+            int counter = 1;
+            Page page = null;
+            while (pagesIt.hasNext()) {
+                page = pagesIt.next();
+                if (counter == position)
+                    return page;
+                counter++;
+            }
+            return page;
         }
         
         public int countParts() {
@@ -155,24 +180,5 @@ public interface Work extends Node {
         private List<Edge> parts() {
             return (gremlin().inE(IsPartOf.label) == null)? null: gremlin().inE(IsPartOf.label).toList();
         } 
-        
-        private List<Page> getPages(int position) {
-            List<Page> pages = new ArrayList<Page>();
-            Iterable<Work> parts = getChildren();
-            int pageCount = 0;
-            if (parts != null) {
-                Iterator<Work> it = parts.iterator();
-                while (it.hasNext()) {
-                    Work part = it.next();
-                    if (part instanceof Page) {
-                        pages.add(frame(part.asVertex(), Page.class));
-                        pageCount++;
-                        if (pageCount == position) 
-                            return pages;
-                    }
-                }
-            }            
-            return pages;
-        }
     }
 }

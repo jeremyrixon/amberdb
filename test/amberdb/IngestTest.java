@@ -1,13 +1,10 @@
 package amberdb;
 
 import static org.junit.Assert.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -15,10 +12,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-
 import amberdb.enums.CopyRole;
 import amberdb.model.Page;
-import amberdb.model.Section;
 import amberdb.model.Work;
 
 public class IngestTest {
@@ -75,23 +70,22 @@ public class IngestTest {
             samplePI = auto1.getObjId();
             
             auto1.setBibId(12345L);
-            auto1.addPage(job.files.get(6));
-
-            /*
+            auto1.addPage(job.files.get(6)).setOrderInWork(auto1, 1);
+            
             Page page = auto1.addPage();
-
+            page.setOrderInWork(auto1, 2);
             page.addCopy(job.files.get(2), CopyRole.MASTER_COPY);
             page.addCopy(job.files.get(4), CopyRole.OCR_METS_COPY);
 
-            auto1.addPage(job.files.get(3));
-
+            auto1.addPage(job.files.get(3)).setOrderInWork(auto1, 3);
+            
             auto1.setTitle("Blinky Bill");
             bookIds.add(auto1.getId());
 
 
             Work auto2 = amberDb.addWork();
             auto2.setBibId(55555);
-            auto2.addPage(job.files.get(5));
+            auto2.addPage(job.files.get(5)).setOrderInWork(auto2, 1);
             auto2.setTitle("James and the giant peach");
 
             bookIds.add(auto2.getId());
@@ -100,12 +94,11 @@ public class IngestTest {
             // user manually creates a work out of the first two pages
 
             Work manual = amberDb.addWork();
-            manual.addPage(job.files.get(0));
-            manual.addPage(job.files.get(1));
+            manual.addPage(job.files.get(0)).setOrderInWork(manual, 1);
+            manual.addPage(job.files.get(1)).setOrderInWork(manual, 2);
             manual.setTitle("Little red riding hood");
 
             bookIds.add(manual.getId());
-            */
             job.workIds = bookIds;
 
             // save this transaction without committing it
@@ -117,8 +110,7 @@ public class IngestTest {
         }
     }
     
-    // @Test
-    @Ignore
+    @Test
     public void testFindWorkByPI() {
         Work sample = dao.findWork(PIUtil.objId(samplePI));
         assertEquals("Blinky Bill", sample.getTitle());
@@ -127,8 +119,7 @@ public class IngestTest {
         assertEquals(samplePI, resultPI);
     }
     
-    // @Test
-    @Ignore
+    @Test
     public void testDescribeWorks() {        
         // recover existing transaction if any
         if (job.getAmberTxId() != null) {
@@ -145,14 +136,17 @@ public class IngestTest {
         job.setAmberTxId(dao.suspend());
     }
     
-    // @Test
-    @Ignore
+    @Test
     public void testFixLabel() {
         Work work = dao.findWorkByVn(12345L);
         
         try { 
-            Page page7 = work.getPage(1);
-            page7.setTitle("III");
+            int count = work.countParts();
+            if (count > 0) {
+                Page page7 = work.getPage(1);
+                if (page7 != null)
+                    page7.setTitle("III");
+            }
         } catch(Exception e) {
             e.printStackTrace();
         }
@@ -191,12 +185,15 @@ public class IngestTest {
                 work.getPage(1).setOrderInWork(work, 2);
                 work.getPage(2).setOrderInWork(work, 1);
             }
+            
+            if (work.countParts() > 0) {
+                Page page = work.getPage(1);
+                page.rotate(10);
+                page.crop(100, 100, 200, 200);
+                page.setTitle("IV");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        Page page = work.getPage(1);
-        page.rotate(10);
-        page.crop(100, 100, 200, 200);
-        page.setTitle("IV");
     }
 }

@@ -90,16 +90,7 @@ public class AmberDb implements AutoCloseable {
      * @return the work
      */
     public Work addWork() {
-        return graph.addVertex(objectIdSeq.next(), Work.class);
-    }
-
-    /**
-     * Create a new section.
-     */
-    public Section addSection() {
-        Section section = graph.addVertex(objectIdSeq.next(), Section.class);
-        section.setSubType("work");
-        return section;
+        return graph.addVertex(null, Work.class);
     }
 
     @Override

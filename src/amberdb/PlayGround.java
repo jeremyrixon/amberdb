@@ -9,6 +9,7 @@ import amberdb.AmberDb;
 import amberdb.enums.CopyRole;
 import amberdb.model.Page;
 import amberdb.model.Section;
+import amberdb.model.Work;
 
 public class PlayGround {
     public static AmberDb dao;
@@ -52,7 +53,7 @@ public class PlayGround {
             List<Long> bookIds = new ArrayList<Long>();
             // try to detect works based on filenames,
 
-            Section auto1 = amberDb.addSection();
+            Work auto1 = amberDb.addWork();
             auto1.setBibId(12345L);
             auto1.addPage(job.files.get(6));
 
@@ -67,7 +68,7 @@ public class PlayGround {
             bookIds.add(auto1.getId());
 
 
-            Section auto2 = amberDb.addSection();
+            Work auto2 = amberDb.addWork();
             auto2.setBibId(55555);
             auto2.addPage(job.files.get(5));
             auto2.setTitle("James and the giant peach");
@@ -77,7 +78,7 @@ public class PlayGround {
 
             // user manually creates a work out of the first two pages
 
-            Section manual = amberDb.addSection();
+            Work manual = amberDb.addWork();
             manual.addPage(job.files.get(0));
             manual.addPage(job.files.get(1));
             manual.setTitle("Little red riding hood");
