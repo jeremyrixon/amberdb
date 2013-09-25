@@ -23,7 +23,7 @@ public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
 
     public static DBI dbi = null;
     public static final String dsUrl = "jdbc:h2:~/h2test";
-    
+ /*   
     public void setup() throws MalformedURLException, IOException {
         System.out.println("Setting up database");
 
@@ -144,5 +144,21 @@ public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
                 }
             }
         }
+    }
+    */
+    @Override
+    public void doTestSuite(TestSuite arg0) throws Exception {
+        // TODO Auto-generated method stub
+        
+    }
+    @Override
+    public Graph generateGraph() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    @Override
+    public Graph generateGraph(String arg0) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

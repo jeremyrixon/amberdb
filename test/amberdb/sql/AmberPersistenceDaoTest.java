@@ -24,7 +24,7 @@ public class AmberPersistenceDaoTest {
 
     public static DBI dbi = null;
     public static final String dsUrl = "jdbc:h2:mem:";
-    
+/*    
     public void setup() throws MalformedURLException, IOException {
         System.out.println("Setting up database");
 
@@ -68,4 +68,5 @@ public class AmberPersistenceDaoTest {
     public void s(String s) {
         System.out.println(s);
     }
+    */
 }
