@@ -27,7 +27,11 @@ public interface PersistentDao extends Transactional<PersistentDao> {
     static final String propFieldSymbols = " :id, :txn_start, :txn_end, :name, :type, :b_value, :s_value, :i_value, :d_value ";
 
     /*
-     *  DB creation operations (DDL)
+     * DB creation operations (DDL)
+     */
+    
+    /*
+     * Main tables
      */
     @SqlUpdate(
     		"CREATE TABLE IF NOT EXISTS vertex (" +
@@ -35,10 +39,6 @@ public interface PersistentDao extends Transactional<PersistentDao> {
     		"txn_start  BIGINT, " +
     		"txn_end    BIGINT)")
     void createVertexTable();
-    @SqlUpdate(
-            "CREATE UNIQUE INDEX unique_vert " +
-            "ON vertex(id, txn_start)")
-    void createVertexIndex();
     
     @SqlUpdate(
             "CREATE TABLE IF NOT EXISTS edge (" +
@@ -50,11 +50,6 @@ public interface PersistentDao extends Transactional<PersistentDao> {
     		"label      VARCHAR(100), " +
     		"edge_order BIGINT)")
     void createEdgeTable();
-    @SqlUpdate(
-            "CREATE UNIQUE INDEX unique_edge " +
-            "ON edge(id, txn_start)")
-    void createEdgeIndex();
-
     
     @SqlUpdate(
             "CREATE TABLE IF NOT EXISTS property (" +
@@ -68,10 +63,6 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "i_value   BIGINT, " +
             "d_value   DOUBLE)")
     void createPropertyTable();
-//    @SqlUpdate(
-//            "CREATE UNIQUE INDEX e_unique_prop " +
-//            "ON property(id, txn_start, name)")
-//    void createPropertyIndex();
     
     @SqlUpdate(
             "CREATE TABLE IF NOT EXISTS id_generator (" +
@@ -86,9 +77,64 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "operation TEXT)")
     void createTransactionTable();
 
+    /*
+     * Main table indexes - these require review.
+     */
+    @SqlUpdate(
+            "CREATE UNIQUE INDEX unique_vert " +
+            "ON vertex(id, txn_start)")
+    void createVertexIndex();
+    @SqlUpdate(
+            "CREATE UNIQUE INDEX unique_edge " +
+            "ON edge(id, txn_start)")
+    void createEdgeIndex();
+    @SqlUpdate(
+            "CREATE UNIQUE INDEX e_unique_prop " +
+            "ON property(id, txn_start, name)")
+    void createPropertyIndex();
+
+    // Clean up DDL
     @SqlUpdate("DROP TABLE IF EXISTS vertex, edge, property, transaction")
     void dropTables();
 
+    /*
+     * Element staging tables (no indexes defined yet - needs review)
+     */
+    @SqlUpdate(
+            "CREATE TABLE IF NOT EXISTS stage_vertex (" +
+            "id         BIGINT, " +
+            "txn_start  BIGINT, " +
+            "txn_end    BIGINT, " +
+            "state      TINYINT(1)")
+    void createStagingVertexTable();
+    
+    @SqlUpdate(
+            "CREATE TABLE IF NOT EXISTS stage_edge (" +
+            "id         BIGINT, " +
+            "txn_start  BIGINT, " +
+            "txn_end    BIGINT, " +
+            "v_out      BIGINT, " +
+            "v_in       BIGINT, " +
+            "label      VARCHAR(100), " +
+            "edge_order BIGINT, " +
+            "state      TINYINT(1)")
+    void createStagingEdgeTable();
+    
+    @SqlUpdate(
+            "CREATE TABLE IF NOT EXISTS property (" +
+            "id        BIGINT, " +
+            "txn_start BIGINT, " +
+            "txn_end   BIGINT, " +
+            "name      VARCHAR(100), " +
+            "type      CHAR(1), " +
+            "b_value   TINYINT(1), " +
+            "s_value   TEXT, " +
+            "i_value   BIGINT, " +
+            "d_value   DOUBLE, " +
+            "state      TINYINT(1)")
+    void createStagingPropertyTable();
+    
+    
     /*
      * id generation operations
      */
