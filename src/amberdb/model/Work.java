@@ -172,7 +172,9 @@ public interface Work extends Node {
             Copy copy = addCopy();
             copy.setCopyRole(copyRole.code());
 
-            File _file = copy.addFile();
+            // File _file = copy.addFile();
+            File _file = graph.addVertex(null, File.class);
+            copy.addFile(_file);
             _file.setFileLocation(file.getAbsolutePath());         
             
             return copy;

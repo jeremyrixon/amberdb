@@ -61,7 +61,7 @@ public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
         setup();
         this.stopWatch();
         doTestSuite(new VertexTestSuite(this));
-        printTestPerformance("VertexTestSuite", this.stopWatch());
+        // printTestPerformance("VertexTestSuite", this.stopWatch());
         teardown();
     }
 /*

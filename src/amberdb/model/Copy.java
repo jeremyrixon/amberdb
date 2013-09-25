@@ -9,6 +9,9 @@ import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.frames.Adjacency;
 import com.tinkerpop.frames.Incidence;
 import com.tinkerpop.frames.Property;
+import com.tinkerpop.blueprints.impls.tg.TinkerGraph;
+import com.tinkerpop.frames.FramedGraph;
+import com.tinkerpop.frames.modules.javahandler.JavaHandler;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
@@ -54,5 +57,6 @@ public interface Copy extends Node {
     public IsFileOf addFile(final File file);
         
     abstract class Impl implements JavaHandlerContext<Vertex>, Copy {
+        
     }
 }
