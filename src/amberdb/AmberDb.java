@@ -90,7 +90,9 @@ public class AmberDb implements AutoCloseable {
      * @return the work
      */
     public Work addWork() {
-        return graph.addVertex(null, Work.class);
+        Work work = graph.addVertex(null, Work.class);
+        work.setGraph(graph);
+        return work;
     }
 
     @Override
