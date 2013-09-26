@@ -122,7 +122,7 @@ public class AmberVertex extends AmberElement implements Vertex {
     public Iterable<Edge> getEdges(Direction direction, String... labels) {
 
         // load edges from persistent into session (shouldn't overwrite present edges)
-        graph().loadPersistentEdges(this, direction, labels);
+        if (graph.persistence) graph.loadPersistentEdges(this, direction, labels);
 
         // now just get from session - DELETED edges have been removed
         List<AmberEdge> sessionEdges = getSessionEdges(direction, labels);
@@ -198,7 +198,7 @@ public class AmberVertex extends AmberElement implements Vertex {
     public Iterable<Vertex> getVertices(Direction direction, String... labels) {
         
         // load vertices from persistent into session (shouldn't overwrite present vertices)
-        List<AmberVertex> persistedVertices = graph.loadPersistentVertices(this, direction, labels);
+        if (graph.persistence) graph.loadPersistentVertices(this, direction, labels);
 
         // now just get from session (contains DELETED edges)
         List<AmberVertex> sessionVertices = getSessionVertices(direction, labels);
