@@ -16,6 +16,21 @@
 		<maven.compiler.target>1.7</maven.compiler.target>
 		<jackson.version>2.2.2</jackson.version>
 	</properties>
+    
+	<distributionManagement>
+	  <repository>
+	     <id>nla-public-releases</id>
+	     <name>Internal Releases</name>
+	     <url>http://dev.nla.gov.au/nexus/content/repositories/nla</url>
+	  </repository>
+	  <snapshotRepository>
+	     <id>nla-public-snapshots</id>
+	     <name>Internal Releases</name>
+	     <url>http://dev.nla.gov.au/nexus/content/repositories/nla-snapshots</url>
+	  </snapshotRepository>
+	</distributionManagement>
+
+	<!-- 
   <distributionManagement>
     <repository>
       <id>nla-public-releases</id>
@@ -26,7 +41,8 @@
       <url>scp://spitfire.nla.gov.au/www/prod/maven/htdocs/snapshots</url>
     </snapshotRepository>
   </distributionManagement>
-	<build>
+  -->
+   <build>
 		<sourceDirectory>${basedir}/src</sourceDirectory>
 		<testSourceDirectory>${basedir}/test</testSourceDirectory>
 		<resources>
