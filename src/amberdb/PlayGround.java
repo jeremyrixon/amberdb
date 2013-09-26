@@ -8,12 +8,12 @@ import java.util.List;
 import amberdb.AmberDb;
 import amberdb.enums.CopyRole;
 import amberdb.model.Page;
-import amberdb.model.Section;
 import amberdb.model.Work;
 
 public class PlayGround {
     public static AmberDb dao;
     public static Job job;
+    public static String samplePI;
     
     public PlayGround() throws IOException {
         job = uploadFiles();
@@ -54,15 +54,17 @@ public class PlayGround {
             // try to detect works based on filenames,
 
             Work auto1 = amberDb.addWork();
+            samplePI = auto1.getObjId();
+            
             auto1.setBibId(12345L);
             auto1.addPage(job.files.get(6));
 
             Page page = auto1.addPage();
-
+            page.setOrderInWork(auto1, 2);
             page.addCopy(job.files.get(2), CopyRole.MASTER_COPY);
             page.addCopy(job.files.get(4), CopyRole.OCR_METS_COPY);
 
-            auto1.addPage(job.files.get(3));
+            auto1.addPage(job.files.get(3)).setOrderInWork(auto1, 3);
 
             auto1.setTitle("Blinky Bill");
             bookIds.add(auto1.getId());
@@ -70,7 +72,7 @@ public class PlayGround {
 
             Work auto2 = amberDb.addWork();
             auto2.setBibId(55555);
-            auto2.addPage(job.files.get(5));
+            auto2.addPage(job.files.get(5)).setOrderInWork(auto2, 1);
             auto2.setTitle("James and the giant peach");
 
             bookIds.add(auto2.getId());
@@ -79,8 +81,12 @@ public class PlayGround {
             // user manually creates a work out of the first two pages
 
             Work manual = amberDb.addWork();
-            manual.addPage(job.files.get(0));
-            manual.addPage(job.files.get(1));
+            List<java.io.File> files = new ArrayList<java.io.File>();
+            files.add(job.files.get(0));
+            files.add(job.files.get(1));
+            List<Page> pages = manual.addPages(files);
+            pages.get(0).setOrderInWork(manual, 1);
+            pages.get(0).setOrderInWork(manual, 2);
             manual.setTitle("Little red riding hood");
 
             bookIds.add(manual.getId());
