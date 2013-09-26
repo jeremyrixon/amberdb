@@ -86,8 +86,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "operation TEXT)")
     void createTransactionTable();
 
-//    @SqlUpdate("DROP TABLE IF EXISTS vertex, edge, property, transaction")
-//    void dropTables();
+    @SqlUpdate("DROP TABLE IF EXISTS vertex, edge, property, transaction")
+    void dropTables();
 
     /*
      * id generation operations

@@ -38,7 +38,7 @@ public class AmberGraph implements Graph {
     private VertexDao vertexDao;
     private EdgeDao edgeDao;
 
-    boolean autoCommit = true;
+    boolean autoCommit = false;
     
     /*
      * Constructors
