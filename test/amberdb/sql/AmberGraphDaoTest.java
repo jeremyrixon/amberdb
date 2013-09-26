@@ -46,11 +46,11 @@ public class AmberGraphDaoTest {
         
         //dao.dropTables();
         dao.createIdGeneratorTable();
-        //dao.createVertexTable();
-        //dao.createEdgeTable();
-        //dao.createPropertyTable();
+        dao.createVertexTable();
+        dao.createEdgeTable();
+        dao.createPropertyTable();
         //dao.createPropertyIndex();
-        //dao.createTransactionTable();
+        dao.createTransactionTable();
         
         dao.close();
     }
