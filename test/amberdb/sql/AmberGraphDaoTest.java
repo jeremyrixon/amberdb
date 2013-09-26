@@ -45,7 +45,7 @@ public class AmberGraphDaoTest {
         PersistentDao dao = dbi.open(PersistentDao.class);
         
         //dao.dropTables();
-        //dao.createIdGeneratorTable();
+        dao.createIdGeneratorTable();
         //dao.createVertexTable();
         //dao.createEdgeTable();
         //dao.createPropertyTable();
