@@ -225,8 +225,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "SELECT " + vertexFields +
             "FROM vertex " +
             "WHERE id = :id " +
-            "AND txn_end = 0 " +
-            "txn_start > 0")
+            "AND (txn_end = 0 OR txn_end IS NULL) " +
+            "AND (txn_start > 0 OR txn_start IS NOT NULL)")
     @Mapper(PersistentVertexMapper.class)
     AmberVertex
             findVertex(@Bind("id") long id);
@@ -234,8 +234,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
     @SqlQuery(
             "SELECT " + vertexFields +
             "FROM vertex " +
-            "WHERE txn_end = 0 " +
-            "txn_start > 0")
+            "WHERE (txn_end = 0 OR txn_end IS NULL) " +
+            "AND (txn_start > 0 OR txn_start IS NOT NULL)")
     @Mapper(PersistentVertexMapper.class)
     Iterator<AmberVertex>
             findVertices();
@@ -244,8 +244,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "SELECT " + edgeFields +
             "FROM edge " +
             "WHERE id = :id " +
-            "AND txn_end = 0 " +
-            "txn_start > 0")
+            "AND (txn_end = 0 OR txn_end IS NULL) " +
+            "AND (txn_start > 0 OR txn_start IS NOT NULL)")
     @Mapper(PersistentEdgeMapper.class)
     AmberEdge
             findEdge(@Bind("id") long id);
@@ -253,8 +253,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
     @SqlQuery(
             "SELECT " + edgeFields +
             "FROM edge " +
-            "WHERE txn_end = 0 " +
-            "txn_start > 0")
+            "WHERE (txn_end = 0 OR txn_end IS NULL) " +
+            "AND (txn_start > 0 OR txn_start IS NOT NULL)")
     @Mapper(PersistentEdgeMapper.class)
     Iterator<AmberEdge>
             findEdges();
@@ -275,8 +275,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "FROM edge " +
             "WHERE v_out = :vertexId " +
             "AND label = :label " +
-            "txn_start > 0 " +
-            "AND txn_end = 0 " +
+            "AND (txn_start > 0 OR txn_start IS NOT NULL) " +
+            "AND (txn_end = 0 OR txn_end IS NULL) " +
             "ORDER BY edge_order")
     @Mapper(PersistentEdgeMapper.class)
     Iterator<AmberEdge>
@@ -285,8 +285,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "SELECT " + edgeFields +
             "FROM edge " +
             "WHERE v_out = :vertexId " +
-            "txn_start > 0 " +
-            "AND txn_end = 0 " +
+            "AND (txn_start > 0 OR txn_start IS NOT NULL) " +
+            "AND (txn_end = 0 OR txn_end IS NULL) " +
             "ORDER BY edge_order")
     @Mapper(PersistentEdgeMapper.class)
     Iterator<AmberEdge>
@@ -296,8 +296,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "FROM edge " +
             "WHERE v_in = :vertexId " +
             "AND label = :label " +
-            "txn_start > 0 " +
-            "AND txn_end = 0 " +
+            "AND (txn_start > 0 OR txn_start IS NOT NULL) " +
+            "AND (txn_end = 0 OR txn_end IS NULL) " +
             "ORDER BY edge_order")
     @Mapper(PersistentEdgeMapper.class)
     Iterator<AmberEdge>
@@ -306,8 +306,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "SELECT " + edgeFields +
             "FROM edge " +
             "WHERE v_in = :vertexId " +
-            "txn_start > 0 " +
-            "AND txn_end = 0 " +
+            "AND (txn_start > 0 OR txn_start IS NOT NULL) " +
+            "AND (txn_end = 0 OR txn_end IS NULL) " +
             "ORDER BY edge_order")
     @Mapper(PersistentEdgeMapper.class)
     Iterator<AmberEdge>
@@ -322,8 +322,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "WHERE v.id = v_in " +
             "AND v_out = :vertexId " +
             "AND label = :label " +
-            "AND v.txn_start > 0 " +
-            "AND v.txn_end = 0 " +
+            "AND (v.txn_start > 0 OR v.txn_start IS NOT NULL) " +
+            "AND v.(txn_end = 0 OR txn_end IS NULL) " +
             "ORDER BY edge_order")
     @Mapper(PersistentVertexMapper.class)
     Iterator<AmberVertex> findOutVertices(
@@ -335,8 +335,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "FROM vertex v, edge e " +
             "WHERE v.id = e.v_in " +
             "AND v_out = :vertexId " +
-            "AND v.txn_start > 0 " +
-            "AND v.txn_end = 0 " +
+            "AND (v.txn_start > 0 OR v.txn_start IS NOT NULL) " +
+            "AND (v.txn_end = 0 OR v.txn_end IS NULL) " +
             "ORDER BY edge_order")
     @Mapper(PersistentVertexMapper.class)
     Iterator<AmberVertex> findOutVertices(
@@ -348,8 +348,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "WHERE v.id = e.v_out " +
             "AND v_in = :vertexId " +
             "AND label = :label " +
-            "AND v.txn_start > 0 " +
-            "AND v.txn_end = 0 " +
+            "AND (v.txn_start > 0 OR v.txn_start IS NOT NULL) " +
+            "AND (v.txn_end = 0 OR v.txn_end IS NULL) " +
             "ORDER BY edge_order")
     @Mapper(PersistentVertexMapper.class)
     Iterator<AmberVertex> findInVertices(
@@ -361,8 +361,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "FROM vertex v, edge e " +
             "WHERE v.id = e.v_out " +
             "AND v_in = :vertexId " +
-            "AND v.txn_start > 0 " +
-            "AND v.txn_end = 0 " +
+            "AND (v.txn_start > 0 OR v.txn_start IS NOT NULL) " +
+            "AND (v.txn_end = 0 OR v.txn_end IS NULL) " +
             "ORDER BY edge_order")
     @Mapper(PersistentVertexMapper.class)
     Iterator<AmberVertex> findInVertices(
@@ -378,8 +378,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "FROM edge e, property p " +
             "WHERE e.id = p.id " +
             "AND e.txn_start = p.txn_start " +
-            "AND e.txn_end = 0 " +
-            "AND e.txn_start > 0 " +
+            "AND e.(txn_end = 0 OR txn_end IS NULL) " +
+            "AND (e.txn_start > 0 OR e.txn_start IS NOT NULL) " +
             "AND p.name = :name " +
             "AND p.s_value = :value " +
             "ORDER BY e.id")
@@ -393,8 +393,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "FROM edge e, property p " +
             "WHERE e.id = p.id " +
             "AND e.txn_start = p.txn_start " +
-            "AND e.txn_end = 0 " +
-            "AND e.txn_start > 0 " +
+            "AND (e.txn_end = 0 OR e.txn_end IS NULL) " +
+            "AND (e.txn_start > 0 OR e.txn_start IS NOT NULL) " +
             "AND p.name = :name " +
             "AND p.b_value = :value " +
             "ORDER BY e.id")
@@ -408,8 +408,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "FROM edge e, property p " +
             "WHERE e.id = p.id " +
             "AND e.txn_start = p.txn_start " +
-            "AND e.txn_end = 0 " +
-            "AND e.txn_start > 0 " +
+            "AND (e.txn_end = 0 OR e.txn_end IS NULL) " +
+            "AND (e.txn_start > 0 OR e.txn_start IS NOT NULL) " +
             "AND p.name = :name " +
             "AND p.i_value = :value " +
             "ORDER BY e.id")
@@ -423,8 +423,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "FROM edge e, property p " +
             "WHERE e.id = p.id " +
             "AND e.txn_start = p.txn_start " +
-            "AND e.txn_end = 0 " +
-            "AND e.txn_start > 0 " +
+            "AND (e.txn_end = 0 OR e.txn_end IS NULL) " +
+            "AND (e.txn_start > 0 OR e.txn_start IS NOT NULL) " +
             "AND p.name = :name " +
             "AND p.d_value = :value " +
             "ORDER BY e.id")
@@ -442,8 +442,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "FROM vertex v, property p " +
             "WHERE v.id = p.id " +
             "AND v.txn_start = p.txn_start " +
-            "AND v.txn_end = 0 " +
-            "AND v.txn_start > 0 " +
+            "AND (v.txn_end = 0 OR v.txn_end IS NULL) " +
+            "AND (v.txn_start > 0 OR v.txn_start IS NOT NULL) " +
             "AND p.name = :name " +
             "AND p.s_value = :value " +
             "ORDER BY v.id")
@@ -457,8 +457,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "FROM vertex v, property p " +
             "WHERE v.id = p.id " +
             "AND v.txn_start = p.txn_start " +
-            "AND v.txn_end = 0 " +
-            "AND v.txn_start > 0 " +
+            "AND (v.txn_end = 0 OR v.txn_end IS NULL) " +
+            "AND (v.txn_start > 0 OR v.txn_start IS NOT NULL) " +
             "AND p.name = :name " +
             "AND p.b_value = :value " +
             "ORDER BY v.id")
@@ -472,8 +472,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "FROM vertex v, property p " +
             "WHERE v.id = p.id " +
             "AND v.txn_start = p.txn_start " +
-            "AND v.txn_end = 0 " +
-            "AND v.txn_start > 0 " +
+            "AND (v.txn_end = 0 OR v.txn_end IS NULL) " +
+            "AND (v.txn_start > 0 OR v.txn_start IS NOT NULL) " +
             "AND p.name = :name " +
             "AND p.i_value = :value " +
             "ORDER BY v.id")
@@ -487,8 +487,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "FROM vertex v, property p " +
             "WHERE v.id = p.id " +
             "AND v.txn_start = p.txn_start " +
-            "AND v.txn_end = 0 " +
-            "AND v.txn_start > 0 " +
+            "AND (v.txn_end = 0 OR v.txn_end IS NULL) " +
+            "AND (v.txn_start > 0 OR v.txn_start IS NOT NULL) " +
             "AND p.name = :name " +
             "AND p.d_value = :value " +
             "ORDER BY v.id")
@@ -505,8 +505,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "SELECT " + propFields +
             "FROM property " +
             "WHERE id = :id " +
-            "txn_start > 0 " +
-            "AND txn_end = 0")
+            "AND (txn_start > 0 OR txn_start IS NOT NULL) " +
+            "AND (txn_end = 0 OR txn_end IS NULL)")
     @Mapper(PersistentPropertyMapper.class)
     Iterator<AmberProperty> findProperties(@Bind("id") long id);
 
@@ -613,7 +613,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "INSERT INTO vertex (id, txn_start) " +
             "SELECT id, txn_new " +
             "FROM stage_vertex " +
-            "WHERE state <> :deletedState")
+            "WHERE state <> :deletedState " +
+            "AND txn_new = :txnId")
     int insertStagedVertices(
             @Bind("txnId")        long txnId,
             @Bind("deletedState") int deletedState);
@@ -622,7 +623,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "INSERT INTO edge (id, txn_start, v_out, v_in, label, edge_order) " +
             "SELECT id, txn_new, v_out, v_in, label, edge_order " +
             "FROM stage_edge " +
-            "WHERE state <> :deletedState")
+            "WHERE state <> :deletedState " +
+            "AND txn_new = :txnId")
     int insertStagedEdges(
             @Bind("txnId")        long txnId,
             @Bind("deletedState") int deletedState);
@@ -635,10 +637,12 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "  SELECT id " +
             "  FROM stage_vertex " +
             "  WHERE state <> :deletedState " +
+            "  AND txn_new = :txnId " +
             "  UNION " +
             "  SELECT id " +
             "  FROM stage_edge " +
-            "  WHERE state <> :deletedState)")
+            "  WHERE state <> :deletedState " +
+            "  AND txn_new = :txnId)")
     int insertStagedProperties(
             @Bind("txnId")        long txnId,
             @Bind("deletedState") int deletedState);
@@ -649,7 +653,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "WHERE id IN (" +
             "  SELECT id " +
             "  FROM stage_vertex " +
-            "  WHERE state <> :newState) " +
+            "  WHERE state <> :newState " +
+            "  AND txn_new = :txnId) " +
             "AND txn_end = 0")
     int updateSupercededVertices(
             @Bind("txnId")    long txnId,
@@ -661,7 +666,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "WHERE id IN (" +
             "  SELECT id " +
             "  FROM stage_edge " +
-            "  WHERE state <> :newState) " +
+            "  WHERE state <> :newState " +
+            "  AND txn_new = :txnId) " +
             "AND txn_end = 0")
     int updateSupercededEdges(
             @Bind("txnId")    long txnId,
@@ -674,10 +680,12 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "  SELECT id " +
             "  FROM stage_edge " +
             "  WHERE state <> :newState " +
+            "  AND txn_new = :txnId " +
             "  UNION " +
             "  SELECT id " +
             "  FROM stage_vertex " +
-            "  WHERE state <> :newState) " +
+            "  WHERE state <> :newState " +
+            "  AND txn_new = :txnId) " +
             "AND txn_end = 0")
     int updateSupercededProperties(
             @Bind("txnId") long txnId,

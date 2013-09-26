@@ -153,34 +153,36 @@ public class AmberGraph implements Graph {
         dao.createPropertyTable();
         dao.createPropertyIndex();
         dao.createIdGeneratorTable();
+        newSessionId(); // seed generator with id > 0
         
         dao.commit();
     }
 
     /**
-     * This method should only ever be used for testing. It will 
-     * destroy and rebuild the persistent database sans data. This 
-     * will make people very angry when run in production.
+     * WARNING: This method should only ever be used for testing. It will 
+     * destroy and rebuild the persistent database sans data. This will 
+     * likely make people very angry if run against production.
      *
      * REFACTOR NOTE: prevent this method from being inadvertently called
      *  
      * @param dao
      *            the persistent data access object
      */
-    protected void createPersistentDataStore(PersistentDao dao) {
-        dao.begin();
+    protected void createPersistentDataStore() {
+        persistentDao.begin();
  
-        dao.dropTables();
-        dao.createVertexTable();
-        dao.createEdgeTable();
-        dao.createPropertyTable();
-        dao.createIdGeneratorTable();
-        dao.createTransactionTable();
-        dao.createStagingVertexTable();
-        dao.createStagingEdgeTable();
-        dao.createStagingPropertyTable();
+        //persistentDao.dropTables();
+        persistentDao.createVertexTable();
+        persistentDao.createEdgeTable();
+        persistentDao.createPropertyTable();
+        persistentDao.createIdGeneratorTable();
+        persistentDao.createTransactionTable();
+        persistentDao.createStagingVertexTable();
+        persistentDao.createStagingEdgeTable();
+        persistentDao.createStagingPropertyTable();
+        newPersistentId(); // seed generator with id > 0
         
-        dao.commit();
+        persistentDao.commit();
     }
     
     /*
@@ -655,10 +657,12 @@ public class AmberGraph implements Graph {
 
     protected void commitToPersistent(String operation) {
 
+        if (!persistence) throw new PersistenceException("Persistence is unavailable to stand alone sessions");
+
         try {
             
             // Get a fresh transaction
-            AmberTransaction txn = new AmberTransaction(this, DEFAULT_USER, operation);
+            AmberTransaction txn = new AmberTransaction(this, user, operation);
             s("committing transaction " + txn);
 
             // these steps may occur before commit transaction commences
@@ -730,9 +734,9 @@ public class AmberGraph implements Graph {
         List<AmberProperty> properties = sessionDao.findAlteredProperties(State.READ.ordinal(), 
                                                                           State.DELETED.ordinal());
         
-        s("vertices being staged: " + vertices.size());
-        s("edges being staged: " + edges.size());
-        s("properties being staged: " + properties.size());
+        s("\tvertices being staged: " + vertices.size());
+        s("\tedges being staged: " + edges.size());
+        s("\tproperties being staged: " + properties.size());
         
         // Allocate persistent ids to any new elements now. It's simpler to do this here 
         // than when staged. Note: we need to replace all references too
@@ -779,10 +783,10 @@ public class AmberGraph implements Graph {
         s("checking for mutations");
         
         List<Long[]> deletions = persistentDao.findDeletionMutations(txn.id());
-        s("deletions: " + deletions.size());
+        s("\tdeletions: " + deletions.size());
 
         List<Long[]> alterations = persistentDao.findAlterationMutations(txn.id());
-        s("alterations: " + alterations.size());
+        s("\talterations: " + alterations.size());
 
         // IMPORTANT: will need to check for new incident edges too. This will require
         // a refactor where starting a session acquires a session start id to compare 
@@ -815,13 +819,13 @@ public class AmberGraph implements Graph {
         int numInsertedProperties = dao.insertStagedProperties(txn.id(), State.DELETED.ordinal());
         
         // just a bit of output - refactor should improve or remove this
-        s("ended vertices: "   + numEndedVertices);
-        s("ended edges: "      + numEndedEdges);
-        s("ended properties: " + numEndedProperties);
+        s("\tended vertices: "   + numEndedVertices);
+        s("\tended edges: "      + numEndedEdges);
+        s("\tended properties: " + numEndedProperties);
         
-        s("inserted vertices: "   + numInsertedVertices);
-        s("inserted edges: "      + numInsertedEdges);
-        s("inserted properties: " + numInsertedProperties);
+        s("\tinserted vertices: "   + numInsertedVertices);
+        s("\tinserted edges: "      + numInsertedEdges);
+        s("\tinserted properties: " + numInsertedProperties);
         
         // finally, set the commit flag on our transaction
         dao.commitTransaction(txn.id(), newPersistentId());

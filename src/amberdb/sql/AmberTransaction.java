@@ -16,7 +16,7 @@ public class AmberTransaction extends Identifiable {
     
     public AmberTransaction(AmberGraph graph, String user, String operation) {
         graph(graph);
-        id(-graph.newSessionId()); // use a negative number to indicate in-progress txn
+        id(graph.newPersistentId()); // use a negative number to indicate in-progress txn
         commit = id();
         this.user = user;
         this.operation = operation;
