@@ -26,51 +26,24 @@ import com.tinkerpop.blueprints.Edge;
 
 public class AmberGraphDaoTest {
 
-    public static DBI dbi = null;
-    public static final String dsUrl = "jdbc:h2:~/h2test2";
+    public AmberGraph graph;
     
     @Before
     public void setup() throws MalformedURLException, IOException {
-        System.out.println("Setting up database");
+        
+        System.out.println("Setting up graph");
 
-        DataSource ds = JdbcConnectionPool.create(dsUrl,"dlir","dlir");
-        
-//        MysqlDataSource ds = new MysqlDataSource();
-//        ds.setUser("dlir");
-//        ds.setPassword("dlir");
-//        ds.setServerName("localhost");
-//        ds.setPort(3306);
-//        ds.setDatabaseName("dlir");
-        
-        dbi = new DBI(ds);
-        PersistentDao dao = dbi.open(PersistentDao.class);
-        
-        dao.dropTables();
-        dao.createIdGeneratorTable();
-        dao.createVertexTable();
-        dao.createEdgeTable();
-        dao.createPropertyTable();
-        dao.createStagingVertexTable();
-        dao.createStagingEdgeTable();
-        dao.createStagingPropertyTable();
-        dao.createTransactionTable();
-        
-        dao.close();
+        DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:~/h2testSession","sess","sess");
+        DataSource persistentDs = JdbcConnectionPool.create("jdbc:h2:~/h2testPersist","persist","persist");
+      
+        graph = new AmberGraph(sessionDs, null, "tester");
     }
 
     @After
-    public void teardown() {
-        PersistentDao dao = dbi.open(PersistentDao.class);
-        //dao.dropTables();
-        dao.close();
-        dbi = null;
-    }
+    public void teardown() {}
 
     @Test
     public void testDaoIndexes() throws Exception {
-        //setup();
-        
-        AmberGraph graph = new AmberGraph(dbi);
 
         Vertex v1 = graph.addVertex("nla.obj-12231");
         Vertex v2 = graph.addVertex("nla.obj-12232");
@@ -112,14 +85,10 @@ public class AmberGraphDaoTest {
         }
         
         graph.shutdown();
-        //teardown();
     }
     
     @Test
     public void testGraph() throws Exception {
-        //setup();
-        
-        AmberGraph graph = new AmberGraph(dbi);
         
         Vertex vp = graph.addVertex(null);
         
