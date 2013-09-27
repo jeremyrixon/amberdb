@@ -13,3 +13,5 @@
 
 # editor
 *.swp
+
+/data
