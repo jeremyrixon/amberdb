@@ -6,12 +6,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import amberdb.AmberDb;
+import amberdb.enums.CopyRole;
 import amberdb.model.Page;
-import amberdb.model.Section;
+import amberdb.model.Work;
 
 public class PlayGround {
     public static AmberDb dao;
     public static Job job;
+    public static String samplePI;
     
     public PlayGround() throws IOException {
         job = uploadFiles();
@@ -51,24 +53,26 @@ public class PlayGround {
             List<Long> bookIds = new ArrayList<Long>();
             // try to detect works based on filenames,
 
-            Section auto1 = amberDb.addSection();
+            Work auto1 = amberDb.addWork();
+            samplePI = auto1.getObjId();
+            
             auto1.setBibId(12345L);
-            amberDb.addPageTo(auto1, job.files.get(6));
+            auto1.addPage(job.files.get(6));
 
-            Page page = amberDb.addPageTo(auto1);
+            Page page = auto1.addPage();
+            page.setOrderInWork(auto1, 2);
+            page.addCopy(job.files.get(2), CopyRole.MASTER_COPY);
+            page.addCopy(job.files.get(4), CopyRole.OCR_METS_COPY);
 
-            amberDb.addImageTiffCopyTo(page, job.files.get(2));
-            amberDb.addOCRMETSCopyTo(page, job.files.get(4));
-
-            amberDb.addPageTo(auto1, job.files.get(3));
+            auto1.addPage(job.files.get(3)).setOrderInWork(auto1, 3);
 
             auto1.setTitle("Blinky Bill");
             bookIds.add(auto1.getId());
 
 
-            Section auto2 = amberDb.addSection();
+            Work auto2 = amberDb.addWork();
             auto2.setBibId(55555);
-            amberDb.addPageTo(auto2, job.files.get(5));
+            auto2.addPage(job.files.get(5)).setOrderInWork(auto2, 1);
             auto2.setTitle("James and the giant peach");
 
             bookIds.add(auto2.getId());
@@ -76,9 +80,13 @@ public class PlayGround {
 
             // user manually creates a work out of the first two pages
 
-            Section manual = amberDb.addSection();
-            amberDb.addPageTo(manual, job.files.get(0));
-            amberDb.addPageTo(manual, job.files.get(1));
+            Work manual = amberDb.addWork();
+            List<java.io.File> files = new ArrayList<java.io.File>();
+            files.add(job.files.get(0));
+            files.add(job.files.get(1));
+            List<Page> pages = manual.addPages(files);
+            pages.get(0).setOrderInWork(manual, 1);
+            pages.get(0).setOrderInWork(manual, 2);
             manual.setTitle("Little red riding hood");
 
             bookIds.add(manual.getId());

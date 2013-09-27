@@ -7,39 +7,16 @@ import amberdb.relation.IsFileOf;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.frames.Adjacency;
+import com.tinkerpop.frames.Incidence;
 import com.tinkerpop.frames.Property;
+import com.tinkerpop.blueprints.impls.tg.TinkerGraph;
+import com.tinkerpop.frames.FramedGraph;
+import com.tinkerpop.frames.modules.javahandler.JavaHandler;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
 @TypeValue("Copy")
-public interface Copy extends Node {
-    enum Role {
-        ACCESS_COPY("ac"), MASTER_COPY("m"), OCR_JSON_COPY("oc"), OCR_ALTO_COPY("at"), OCR_METS_COPY("mt");
-
-        private String code;
-
-        private Role(String code) {
-            this.code = code;
-        }
-
-        public String code() {
-            return code;
-        }
-
-        public int idx() {
-            return this.ordinal();
-        }
-
-        public static Role isCopyRole(String copyRole) {
-            for (Role _copyRole : Role.values()) {
-                if (_copyRole.name().equalsIgnoreCase(copyRole))
-                    return _copyRole;
-            }
-            return null;
-        }
-    }
-    
-    
+public interface Copy extends Node {        
     @Property("copyRole")
     public String getCopyRole();
     
@@ -74,8 +51,12 @@ public interface Copy extends Node {
     public Iterable<File> getFiles();
     
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
+    public File addFile();
+    
+    @Incidence(label = IsFileOf.label, direction = Direction.IN)
     public IsFileOf addFile(final File file);
         
     abstract class Impl implements JavaHandlerContext<Vertex>, Copy {
+        
     }
 }
