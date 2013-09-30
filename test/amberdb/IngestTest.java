@@ -112,7 +112,7 @@ public class IngestTest {
     
     @Test
     public void testFindWorkByPI() {
-        Work sample = dao.findWork(PIUtil.objId(samplePI));
+        Work sample = dao.findWork(PIUtil.parse(samplePI));
         assertEquals("Blinky Bill", sample.getTitle());
         
         String resultPI = sample.getObjId();
