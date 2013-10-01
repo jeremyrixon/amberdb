@@ -6,7 +6,12 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.sql.DataSource;
+
+import org.h2.jdbcx.JdbcConnectionPool;
+
 import amberdb.model.Work;
+import amberdb.sql.AmberGraph;
 
 import com.tinkerpop.blueprints.impls.tg.TinkerGraph;
 import com.tinkerpop.frames.FramedGraph;
@@ -15,7 +20,8 @@ import com.tinkerpop.frames.modules.gremlingroovy.GremlinGroovyModule;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerModule;
 
 public class AmberDb implements AutoCloseable {
-	final FramedGraph<TinkerGraph> graph;
+	//final FramedGraph<TinkerGraph> graph;
+	final FramedGraph<AmberGraph> graph;
 	final Sequence objectIdSeq = new Sequence();
 	final Path dataPath;
 
@@ -23,7 +29,11 @@ public class AmberDb implements AutoCloseable {
 	 * Constructs an in-memory AmberDb for testing with.
 	 */
 	public AmberDb() {
-		graph = openGraph(new TinkerGraph());
+	    
+	    DataSource ds = JdbcConnectionPool.create("jdbc:h2:mem:ds","fish","finger");
+	    
+	    //graph = openGraph(new TinkerGraph());
+		graph = openGraph(new AmberGraph(ds, "test"));
 		dataPath = null;
 	}
 
@@ -32,7 +42,9 @@ public class AmberDb implements AutoCloseable {
 	 */
 	public AmberDb(Path dataPath) throws IOException {
 		Files.createDirectories(dataPath);
-		graph = openGraph(new TinkerGraph(dataPath.resolve("graph").toString(), TinkerGraph.FileType.GML));
+		DataSource ds = JdbcConnectionPool.create("jdbc:h2:"+dataPath,"fish","finger");
+        //graph = openGraph(new TinkerGraph(dataPath.resolve("graph").toString(), TinkerGraph.FileType.GML));
+        graph = openGraph(new AmberGraph(ds));
 		this.dataPath = dataPath;
 		try {
 			objectIdSeq.load(dataPath.resolve("objectIdSeq"));
@@ -41,7 +53,8 @@ public class AmberDb implements AutoCloseable {
 		}
 	}
 
-	private static FramedGraph<TinkerGraph> openGraph(TinkerGraph tinker) {
+ //   private static FramedGraph<TinkerGraph> openGraph(TinkerGraph tinker) {
+	private static FramedGraph<AmberGraph> openGraph(AmberGraph tinker) {
 		return new FramedGraphFactory(
 				new JavaHandlerModule(),
 				new GremlinGroovyModule())
