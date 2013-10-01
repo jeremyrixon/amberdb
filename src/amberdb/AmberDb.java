@@ -3,12 +3,7 @@ package amberdb;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.Map;
-import java.util.WeakHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -32,18 +27,15 @@ import doss.CorruptBlobStoreException;
 import doss.local.LocalBlobStore;
 
 public class AmberDb implements AutoCloseable {
-    final FramedGraph<Graph> graph;
-    final BlobStore blobStore;
-    final Sequence objectIdSeq = new Sequence();
-    final Path dataPath;
-    final TempDirectory tempDir;
+    private final FramedGraph<Graph> graph;
+    private final BlobStore blobStore;
+    private final TempDirectory tempDir;
 
     /**
      * Constructs an in-memory AmberDb for testing with.
      */
     public AmberDb() {
         graph = openGraph(new TinkerGraph());
-        dataPath = null;
         tempDir = new TempDirectory();
         tempDir.deleteOnExit();
         blobStore = openBlobStore(tempDir.getPath());
@@ -55,14 +47,8 @@ public class AmberDb implements AutoCloseable {
     public AmberDb(Path dataPath) throws IOException {
         Files.createDirectories(dataPath);
         graph = openGraph(new TinkerGraph(dataPath.resolve("graph").toString(), TinkerGraph.FileType.GML));
-        this.dataPath = dataPath;
         tempDir = null;
         blobStore = openBlobStore(dataPath);
-        try {
-            objectIdSeq.load(dataPath.resolve("objectIdSeq"));
-        } catch (NoSuchFileException e) {
-            // first run
-        }
     }
 
     private BlobStore openBlobStore(Path root) {
@@ -148,9 +134,6 @@ public class AmberDb implements AutoCloseable {
     @Override
     public void close() throws IOException {
         graph.shutdown();
-        if (dataPath != null) {
-            objectIdSeq.save(dataPath.resolve("objectIdSeq"));
-        }
         if (tempDir != null) {
             tempDir.delete();
         }
@@ -183,23 +166,6 @@ public class AmberDb implements AutoCloseable {
      */
     protected FramedGraph<Graph> getGraph() {
         return graph;
-    }
-    
-    private static class Sequence {
-        final AtomicLong value = new AtomicLong();
-
-        void load(Path file) throws IOException {
-            byte[] b = Files.readAllBytes(file);
-            value.set(Long.valueOf(new String(b)));
-        }
-
-        void save(Path file) throws IOException {
-            Files.write(file, Long.toString(value.get()).getBytes());
-        }
-
-        long next() {
-            return value.incrementAndGet();
-        }
     }
     
     /**
