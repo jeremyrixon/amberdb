@@ -12,11 +12,8 @@ import amberdb.relation.IsPartOf;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.tg.TinkerGraph;
 import com.tinkerpop.frames.Adjacency;
-import com.tinkerpop.frames.FramedGraph;
 import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.annotations.gremlin.GremlinGroovy;
 import com.tinkerpop.frames.annotations.gremlin.GremlinParam;
@@ -92,20 +89,11 @@ public interface Work extends Node {
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public Section addSection();
     
-    // NOTE: Currently frames-2.4.0 and frames-2.5.0 has a bug with 
-    // adjacency add op which has no arguments, although the source
-    // on github is fixed.  The bug occurs when more than one page
-    // is added to the work, which cause an exception, and fail to
-    // add the page.
-    //
-    // I've deployed a version of frames (v2.5.0) to nla mvn repo
-    // however, travis cannot access it.  So need to fall back to
-    // Java Handler to create these objects for now.
-    //
-    // @Adjacency(label = IsPartOf.label, direction = Direction.IN)
-    // public Page addPage();  
-    // @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
-    // public Copy addCopy();
+    @Adjacency(label = IsPartOf.label, direction = Direction.IN)
+    public Page addPage();  
+    
+    @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
+    public Copy addCopy();
     
     @JavaHandler
     public Page addPage(Path sourceFile) throws IOException;
@@ -117,36 +105,16 @@ public interface Work extends Node {
     public Iterable<Page> getPages();
     
     @JavaHandler
-    public Page addPage();
-    
-    @JavaHandler
-    public Copy addCopy();
-    
-    @JavaHandler
     public int countParts();
     
     @JavaHandler
     public Page getPage(int position);
     
     abstract class Impl implements JavaHandlerContext<Vertex>, Work {
-        @Override
-        public Page addPage() {
-            Page page = g().addVertex(null, Page.class);
-            this.addChild(page);
-            return page;
-        }
-
-        @Override
-        public Copy addCopy() {
-            Copy copy = g().addVertex(null, Copy.class);
-            this.addCopy(copy);
-            return copy;
-        }
 
         @Override
         public Page addPage(Path sourceFile) throws IOException {
-            Page page = g().addVertex(null, Page.class);
-            this.addChild(page);
+            Page page = addPage();
             page.addCopy(sourceFile, CopyRole.MASTER_COPY);
             return page;
         }
