@@ -1,13 +1,18 @@
 package amberdb.model;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
 import amberdb.enums.CopyRole;
 import amberdb.relation.IsCopyOf;
 import amberdb.relation.IsPartOf;
+
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.tg.TinkerGraph;
 import com.tinkerpop.frames.Adjacency;
@@ -103,13 +108,10 @@ public interface Work extends Node {
     // public Copy addCopy();
     
     @JavaHandler
-    public Page addPage(java.io.File file);
+    public Page addPage(Path sourceFile) throws IOException;
     
     @JavaHandler
-    public List<Page> addPages(List<java.io.File> files);
-    
-    @JavaHandler
-    public Copy addCopy(java.io.File file, CopyRole copyRole);
+    public Copy addCopy(Path sourceFile, CopyRole copyRole) throws IOException;
     
     @JavaHandler
     public Iterable<Page> getPages();
@@ -126,60 +128,39 @@ public interface Work extends Node {
     @JavaHandler
     public Page getPage(int position);
     
-    @JavaHandler
-    public void setGraph(FramedGraph<TinkerGraph> graph);
-    
     abstract class Impl implements JavaHandlerContext<Vertex>, Work {
-        private static FramedGraph<TinkerGraph> graph;
-        
-        public void setGraph(FramedGraph<TinkerGraph> graph) {
-            this.graph = graph;
-        }
-        
+        @Override
         public Page addPage() {
-            Page page = graph.addVertex(null, Page.class);
+            Page page = g().addVertex(null, Page.class);
             this.addChild(page);
             return page;
         }
-        
+
+        @Override
         public Copy addCopy() {
-            Copy copy = graph.addVertex(null, Copy.class);
+            Copy copy = g().addVertex(null, Copy.class);
             this.addCopy(copy);
             return copy;
         }
-        
-        public List<Page> addPages(List<java.io.File> files) {
-            List<Page> pages = new ArrayList<Page>();
-            if (files == null)
-                throw new IllegalArgumentException("Cann not add pages as the input files is null.");
-            for (java.io.File file : files) {
-                pages.add(addPage(file));
-            }
-            return pages;
-        }
-        
-        public Page addPage(java.io.File file) {
-            Page page = graph.addVertex(null, Page.class);
+
+        @Override
+        public Page addPage(Path sourceFile) throws IOException {
+            Page page = g().addVertex(null, Page.class);
             this.addChild(page);
-            page.addCopy(file, CopyRole.MASTER_COPY);
+            page.addCopy(sourceFile, CopyRole.MASTER_COPY);
             return page;
         }
-        
-        public Copy addCopy(java.io.File file, CopyRole copyRole) {
-            if (file == null)
-                throw new IllegalArgumentException("Cannot add copy as input file is null.");
 
+        @Override
+        public Copy addCopy(Path sourceFile, CopyRole copyRole) throws IOException {
             Copy copy = addCopy();
             copy.setCopyRole(copyRole.code());
-
-            // File _file = copy.addFile();
-            File _file = graph.addVertex(null, File.class);
-            copy.addFile(_file);
-            _file.setFileLocation(file.getAbsolutePath());         
-            
+            copy.addFile(sourceFile);
             return copy;
         }
-        
+
+
+        @Override
         public List<Page> getPages() {
             List<Page> pages = new ArrayList<Page>();
             Iterable<Work> parts = this.getChildren();
@@ -193,6 +174,7 @@ public interface Work extends Node {
             return pages;
         }
         
+        @Override
         public Page getPage(int position) {
             if (position <= 0)
                 throw new IllegalArgumentException("Cannot get this page, invalid input position " + position);
@@ -213,6 +195,7 @@ public interface Work extends Node {
             return page;
         }
         
+        @Override
         public int countParts() {
             return (parts() == null)? 0 : parts().size();
         }
