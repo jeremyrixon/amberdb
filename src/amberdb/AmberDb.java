@@ -74,9 +74,26 @@ public class AmberDb implements AutoCloseable {
      * Finds a work by id.
      */
     public Work findWork(long objectId) {
-        return graph.getVertex(objectId, Work.class);
+        Work work = graph.getVertex(objectId, Work.class);
+        if (work == null) {
+            throw new NoSuchObjectException(objectId);
+        }
+        return work;
     }
 
+    /**
+     * Finds a work by id or alias.
+     */
+    public Work findWork(String idOrAlias) {
+        // @todo aliases
+        try {
+            return findWork(Long.parseLong(idOrAlias));
+        } catch (NumberFormatException e) {
+            return findWork(PIUtil.parse(idOrAlias));
+        }
+    }
+
+    
     /**
      * Finds a work by voyager number.
      */

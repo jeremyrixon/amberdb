@@ -1,0 +1,24 @@
+#!/bin/sh
+
+set -e -u
+AMBER_HOME="$(dirname $(dirname $(readlink -f "$0")))"
+DATA="$AMBER_HOME/data"
+DCMDB="jdbc:h2:$DATA/dcmdb"
+
+runjava() {
+	[ pom.xml -nt "$AMBER_HOME"/.javaclasspath ] && rm -f "$AMBER_HOME"/.javaclasspath && (cd "$AMBER_HOME" && mvn dependency:build-classpath -q -Dmdep.outputFile=.javaclasspath)
+	java -cp "$AMBER_HOME/target/classes:$(cat "$AMBER_HOME"/.javaclasspath)" "$@"
+}
+
+dcm() {
+    case "${1-web}" in
+        run) runjava org.h2.tools.RunScript -url "$DCMDB" -user sa -script "$2" ;;
+        web) runjava org.h2.tools.Console -url "$DCMDB" -user sa ;;
+    esac
+}
+
+case "$1" in
+   dcm) dcm "${@:2}" ;;
+   *) runjava amberdb.cli.Main "$@" ;;
+esac
+
