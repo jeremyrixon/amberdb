@@ -23,9 +23,9 @@ public @interface BindAmberVertex {
         public Binder build(Annotation annotation) {
             return new Binder<BindAmberVertex, AmberVertex>() {
                 public void bind(SQLStatement q, BindAmberVertex bind, AmberVertex v) {
-                    q.bind("id", v.id());
-                    q.bind("txn_start", v.txnStart());
-                    q.bind("state", v.sessionState().ordinal());
+                    q.bind("id", v.getId());
+                    q.bind("txn_start", v.getTxnStart());
+                    q.bind("state", v.getState().toString());
                 }
             };
         }

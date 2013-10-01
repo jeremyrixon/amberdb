@@ -23,13 +23,13 @@ public @interface BindAmberEdge {
         public Binder build(Annotation annotation) {
             return new Binder<BindAmberEdge, AmberEdge>() {
                 public void bind(SQLStatement q, BindAmberEdge bind, AmberEdge e) {
-                    q.bind("id", e.id());
-                    q.bind("txn_start", e.txnStart());
-                    q.bind("v_in", e.inVertexId);
-                    q.bind("v_out", e.outVertexId);
-                    q.bind("label", e.label);
-                    q.bind("edge_order", e.edgeOrder);
-                    q.bind("state", e.sessionState().ordinal());
+                    q.bind("id", e.getId());
+                    q.bind("txn_start", e.getTxnStart());
+                    q.bind("v_in", e.getInVertexId());
+                    q.bind("v_out", e.getOutVertexId());
+                    q.bind("label", e.getLabel());
+                    q.bind("edge_order", e.getEdgeOrder());
+                    q.bind("state", e.getState().toString());
                 }
             };
         }

@@ -5,9 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import org.h2.jdbc.JdbcSQLException;
-
-
+import amberdb.sql.State;
 import amberdb.sql.dao.VertexDao;
 
 import com.google.common.collect.Lists;
@@ -16,78 +14,119 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.VertexQuery;
 
-public class AmberVertex extends AmberElement implements Vertex {
+public class AmberVertex implements Vertex {
 
+    private long id;
+    /**
+     * Change the id of this vertex
+     * @param newId
+     */
+    protected void changeId(long newId) {
+        dao().changeVertexId(id, newId);
+        dao().changeVertexPropertyIds(id, newId);
+        dao().changeInVertexIds(id, newId);
+        dao().changeOutVertexIds(id, newId);
+        id = newId;
+    }
+    /**
+     * Point this vertex object at a different vertex instance
+     * @param id
+     */
+    public void addressId(long id) {
+        this.id = id;
+    }
+
+    private AmberGraph graph;
+    protected void setGraph(AmberGraph graph) {
+        this.graph = graph;
+    }
     private VertexDao dao() {
-        return graph().vertexDao();
+        return graph.vertexDao();
     }
     
-    // this constructor for getting a vertex from the db
-    public AmberVertex(Long id, Long txnStart, Long txnEnd) {
-
-        id(id);
-        txnStart(txnStart);
-        txnEnd(txnEnd);
+    // this constructor for getting a vertex from amber
+    public AmberVertex(AmberGraph graph, long id) {
         
+        if (graph == null) throw new RuntimeException("graph cannot be null");
+        
+        setGraph(graph);
+        this.id = id;
     }
 
-    // This constructor for creating a new vertex
-    public AmberVertex(long id) {
-        id(id);
+    // this constructor for creating a new vertex in session
+    public AmberVertex(AmberGraph graph) {
+        
+        if (graph == null) throw new RuntimeException("graph cannot be null");
+        
+        setGraph(graph);
+        this.id = graph.newSessionId();
+        dao().insertVertex(id, null, null, State.NEW.toString());
+        graph.addToNewVertices(this);
     }
 
-    // This constructor for getting a vertex from the session
-    public AmberVertex(long id, Long txnStart, Long txnEnd, int state) {
-        id(id);
-        txnStart(txnStart);
-        txnEnd(txnEnd);
+    public Long getTxnStart() {
+        return dao().getVertexTxnStart(id);
     }
-
-    public void addToSession(AmberGraph graph, State state, boolean getPersistentProperties) {
-        graph(graph);
-        sessionState(state);
-        try {
-            dao().insertVertex(id(), txnStart(), txnEnd(), sessionState().ordinal());
-        } catch (Exception jse) {
-            s("see what happens!"+id());
-        }
-
-        // get properties
-        if (getPersistentProperties) {
-            graph().loadPersistentProperties(id());
-        }
-    }    
+    
+    public void setTxnStart(Long txnStart) {
+        dao().setVertexTxnStart(id, txnStart);
+    }
+    
+    public void setState(State state) { 
+        dao().setVertexState(id, state.toString());
+    }
+    
+    public State getState() { 
+        return State.valueOf(dao().getVertexState(id));
+    }
     
     @Override
     public Object getId() {
-        return id();
+        return id;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> T getProperty(String propertyName) {
-        return super.getProperty(propertyName);
+        AmberProperty property = dao().getProperty(id, propertyName);
+        if (property == null) return null;
+        return (T) property.getValue();
     }
 
     @Override
     public Set<String> getPropertyKeys() {
-        return super.getPropertyKeys();
+        return dao().getPropertyKeys(id);
     }
 
     @Override
     public void remove() {
         for (Edge e: getEdges(Direction.BOTH)) {
             AmberEdge edge = (AmberEdge) e;
-            edge.graph(graph());
             edge.remove();
         }
-        super.remove();
+        
+        // remove the actual record if it is new
+        if (dao().getVertexState(id).equals(State.NEW.toString())) {
+            dao().removeVertex(id);
+        } else {
+            // Otherwise, mark as deleted so we can preserve this in amber
+            dao().setVertexState(id, State.DEL.toString());
+        }
+        dao().removeVertexProperties(id);
+        return;
     }
 
     @Override
     public <T> T removeProperty(String propertyName) {
-        T prop = super.removeProperty(propertyName);
+        T prop = getProperty(propertyName);
+        dao().removeProperty(id, propertyName);
 
-        if (graph().autoCommit) graph().commitToPersistent("vertex removeProperty");
+        // set state as modified (MOD) if it was originally unaltered (AMB)
+        if (dao().getVertexState(id).equals(State.AMB.toString())) {
+            dao().setVertexState(id, State.MOD.toString());
+        }
+
+        if (graph.autoCommit) graph.commitToPersistent("vertex removeProperty");
         return prop;
     }
 
@@ -103,8 +142,15 @@ public class AmberVertex extends AmberElement implements Vertex {
             throw new IllegalArgumentException("Illegal property type [" + value.getClass() + "].");
         }
         
-        super.setProperty(propertyName, value);
-        if (graph().autoCommit) graph().commitToPersistent("vertex setProperty");
+        dao().removeProperty(id, propertyName);
+        dao().setProperty(id, propertyName, DataType.forObject(value), AmberProperty.encodeBlob(value));
+
+        // set state as modified (MOD) if it was originally unaltered (AMB)
+        if (dao().getVertexState(id).equals(State.AMB.toString())) {
+            dao().setVertexState(id, State.MOD.toString());
+        }
+
+        if (graph.autoCommit) graph.commitToPersistent("vertex setProperty");
     }
 
     @Override
@@ -113,8 +159,7 @@ public class AmberVertex extends AmberElement implements Vertex {
         // argument guard
         if (label == null) throw new IllegalArgumentException("edge label cannot be null");
         
-        AmberEdge edge = new AmberEdge(graph().newSessionId(), id(), (long) inVertex.getId(), label);
-        edge.addToSession(graph, State.NEW, false);
+        AmberEdge edge = new AmberEdge(graph, this.id, (long) inVertex.getId(), label);
         return edge;
     }
 
@@ -142,14 +187,13 @@ public class AmberVertex extends AmberElement implements Vertex {
         if (labels.length == 0) {
 
             if (direction == Direction.IN || direction == Direction.BOTH) {
-                unfilteredEdges.addAll(Lists.newArrayList(dao().findInEdges(id())));
+                unfilteredEdges.addAll(Lists.newArrayList(dao().findInEdges(id)));
             }
             if (direction == Direction.OUT || direction == Direction.BOTH) {
-                unfilteredEdges.addAll(Lists.newArrayList(dao().findOutEdges(id())));
+                unfilteredEdges.addAll(Lists.newArrayList(dao().findOutEdges(id)));
             }
             for (AmberEdge edge : unfilteredEdges) {
-                edge.graph(graph());
-                if (edge.sessionState() != State.DELETED) {
+                if (edge.getState() != State.DEL) {
                     edges.add(edge);
                 }
             }
@@ -169,14 +213,13 @@ public class AmberVertex extends AmberElement implements Vertex {
         
         
         if (direction == Direction.IN || direction == Direction.BOTH) {
-            unfilteredEdges.addAll(Lists.newArrayList(dao().findInEdges(id(), label)));
+            unfilteredEdges.addAll(Lists.newArrayList(dao().findInEdges(id, label)));
         }
         if (direction == Direction.OUT || direction == Direction.BOTH) {
-            unfilteredEdges.addAll(Lists.newArrayList(dao().findOutEdges(id(), label)));
+            unfilteredEdges.addAll(Lists.newArrayList(dao().findOutEdges(id, label)));
         }
         for (AmberEdge edge: unfilteredEdges) {
-            edge.graph(graph());
-            if (edge.sessionState() != State.DELETED) {
+            if (edge.getState() != State.DEL) {
                 edges.add(edge);
             }
         }
@@ -217,15 +260,14 @@ public class AmberVertex extends AmberElement implements Vertex {
         if (labels.length == 0) {
 
             if (direction == Direction.IN || direction == Direction.BOTH) {
-                unfilteredVertices.addAll(Lists.newArrayList(dao().findInVertices(id())));
+                unfilteredVertices.addAll(Lists.newArrayList(dao().findInVertices(id)));
             }
             if (direction == Direction.OUT || direction == Direction.BOTH) {
-                unfilteredVertices.addAll(Lists.newArrayList(dao().findOutVertices(id())));
+                unfilteredVertices.addAll(Lists.newArrayList(dao().findOutVertices(id)));
             }
             
             for (AmberVertex vertex : unfilteredVertices) {
-                vertex.graph(graph());
-                if (vertex.sessionState() != State.DELETED) {
+                if (vertex.getState() != State.DEL) {
                     vertices.add(vertex);
                 }
             }
@@ -244,15 +286,14 @@ public class AmberVertex extends AmberElement implements Vertex {
         List<AmberVertex> unfilteredVertices = new ArrayList<AmberVertex>();
 
         if (direction == Direction.IN || direction == Direction.BOTH) {
-            unfilteredVertices.addAll(Lists.newArrayList(dao().findInVertices(id(), label)));
+            unfilteredVertices.addAll(Lists.newArrayList(dao().findInVertices(id, label)));
         }
         if (direction == Direction.OUT || direction == Direction.BOTH) {
-            unfilteredVertices.addAll(Lists.newArrayList(dao().findOutVertices(id(), label)));
+            unfilteredVertices.addAll(Lists.newArrayList(dao().findOutVertices(id, label)));
         }
         unfilteredVertices.removeAll(Collections.singleton(null));
         for (AmberVertex vertex: unfilteredVertices) {
-            vertex.graph(graph());
-            if (vertex.sessionState() != State.DELETED) {
+            if (vertex.getState() != State.DEL) {
                 vertices.add(vertex);
             }
         }
@@ -270,8 +311,7 @@ public class AmberVertex extends AmberElement implements Vertex {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((Long) id()).hashCode();
-        result = prime * result + ((Long) txnStart()).hashCode();
+        result = prime * result + ((Long) id).hashCode();
         return result;
     }
 
@@ -284,18 +324,21 @@ public class AmberVertex extends AmberElement implements Vertex {
         if (getClass() != obj.getClass())
             return false;
         AmberVertex other = (AmberVertex) obj;
-        if (id() != other.id())
+        if (id != (Long) other.getId())
             return false;
         return true;
     }
     
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("vertex id:").append(id())
-        .append(" properties:").append(super.toString())
-        .append(" start:").append(txnStart())
-        .append(" end:").append(txnEnd())
-        .append(" state:").append(sessionState().toString());
+        sb.append("vertex id:").append(id)
+        .append(" start:").append(dao().getVertexTxnStart(id))
+        .append(" end:").append(dao().getVertexTxnEnd(id))
+        .append(" state:").append(dao().getVertexState(id).toString());
         return sb.toString();
+    }
+    
+    private void s(String s) {
+        System.out.println(s);
     }
 }

@@ -18,31 +18,6 @@ import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
 
 public interface PersistentDao extends Transactional<PersistentDao> {
 
-    static final String edgeFields = " id, txn_start, txn_end, v_out, v_in, label, edge_order ";
-    static final String edgeFieldsE = " e.id, e.txn_start, e.txn_end, e.v_out, e.v_in, e.label, e.edge_order ";
-    static final String edgeFieldSymbols = " :id, :txn_start, :txn_end, :v_out, :v_in, :label, :edge_order ";
-
-    static final String vertexFields = " id, txn_start, txn_end ";
-    static final String vertexFieldsV = " v.id, v.txn_start, v.txn_end ";
-    static final String vertexFieldSymbols = " :id, :txn_start, :txn_end ";
-    
-    static final String propFields = " id, txn_start, txn_end, name, type, b_value, s_value, i_value, d_value ";
-    static final String propFieldsP = " p.id, p.txn_start, p.txn_end, p.name, p.type, p.b_value, p.s_value, p.i_value, p.d_value ";
-    static final String propFieldSymbols = " :id, :txn_start, :txn_end, :name, :type, :b_value, :s_value, :i_value, :d_value ";
-
-    // Staging table fields
-    static final String stageVertexFields = " id, txn_start, txn_new, state ";
-    static final String stageVertexFieldsV = " v.id, v.txn_start, v.txn_new, v.state ";
-    static final String stageVertexFieldSymbols = " :id, :txn_start, :txn_new, :state ";
-
-    static final String stageEdgeFields = " id, txn_start, txn_new, v_out, v_in, label, edge_order, state ";
-    static final String stageEdgeFieldsE = " e.id, e.txn_start, e.txn_new, e.v_out, e.v_in, e.label, e.edge_order, e.state ";
-    static final String stageEdgeFieldSymbols = " :id, :txn_start, :txn_new, :v_out, :v_in, :label, :edge_order, :state ";
- 
-    static final String stagePropFields = " id, txn_new, name, type, b_value, s_value, i_value, d_value ";
-    static final String stagePropFieldsP = " p.id, p.txn_new, p.name, p.type, p.b_value, p.s_value, p.i_value, p.d_value ";
-    static final String stagePropFieldSymbols = " :id, :txn_new, :name, :type, :b_value, :s_value, :i_value, :d_value ";
-
     /*
      * DB creation operations (DDL)
      */
@@ -74,11 +49,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "txn_start BIGINT, " +
             "txn_end   BIGINT, " +
     		"name      VARCHAR(100), " +
-    		"type      CHAR(1), " +
-            "b_value   TINYINT(1), " +
-            "s_value   TEXT, " +
-            "i_value   BIGINT, " +
-            "d_value   DOUBLE)")
+    		"type      CHAR(3), " +
+            "value     BLOB)")
     void createPropertyTable();
     
     @SqlUpdate(
@@ -122,7 +94,7 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "id         BIGINT, " +
             "txn_start  BIGINT, " +
             "txn_new    BIGINT, " +
-            "state      TINYINT(1))")
+            "state      CHAR(3))")
     void createStagingVertexTable();
     
     @SqlUpdate(
@@ -134,7 +106,7 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "v_in       BIGINT, " +
             "label      VARCHAR(100), " +
             "edge_order BIGINT, " +
-            "state      TINYINT(1))")
+            "state      CHAR(3))")
     void createStagingEdgeTable();
     
     @SqlUpdate(
@@ -142,11 +114,8 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "id        BIGINT, " +
             "txn_new   BIGINT, " +
             "name      VARCHAR(100), " +
-            "type      CHAR(1), " +
-            "b_value   TINYINT(1), " +
-            "s_value   TEXT, " +
-            "i_value   BIGINT, " +
-            "d_value   DOUBLE)")
+            "type      CHAR(3), " +
+            "value     BLOB)")
     void createStagingPropertyTable();
     
     
@@ -166,416 +135,26 @@ public interface PersistentDao extends Transactional<PersistentDao> {
     void garbageCollectIds(
             @Bind("id") long id);
     
-    /*
-     * stage properties
-     */
     @SqlUpdate(
-            "INSERT INTO property (id, txn_start, txn_end, name, type, i_value) " +
-            "VALUES (:id, :txn_start, :txn_end, :name, :type, :value)")
-    void createIntegerProperty(
-            @Bind("id")        long elementId, 
-            @Bind("txn_start") long txnStart, 
-            @Bind("txn_end")   long txnEnd, 
-            @Bind("name")      String name,
-            @Bind("type")      String type,
-            @Bind("value")     Integer value);
-    
-    @SqlUpdate(
-            "INSERT INTO property (id, txn_start, txn_end, name, type, b_value) " +
-            "VALUES (:id, :txn_start, :txn_end, :name, :type, :value)")
-    void createBooleanProperty(
-            @Bind("id")        long elementId, 
-            @Bind("txn_start") long txnStart, 
-            @Bind("txn_end")   long txnEnd, 
-            @Bind("name")      String name, 
-            @Bind("type")      String type,
-            @Bind("value")     Boolean value);
-    
-    @SqlUpdate(
-            "INSERT INTO property (id, txn_start, txn_end, name, type, d_value) " +
-            "VALUES (:id, :txn_start, :txn_end, :name, :type, :value)")
-    void createDoubleProperty(
-            @Bind("id")        long elementId, 
-            @Bind("txn_start") long txnStart, 
-            @Bind("txn_end")   long txnEnd, 
-            @Bind("name")      String name, 
-            @Bind("type")      String type,
-            @Bind("value")     Double value);
-    
-    @SqlUpdate(
-            "INSERT INTO property (id, txn_start, txn_end, name, type, s_value) " +
-            "VALUES (:id, :txn_start, :txn_end, :name, :type, :value)")
-    void createStringProperty(
-            @Bind("id")        long elementId, 
-            @Bind("txn_start") long txnStart, 
-            @Bind("txn_end")   long txnEnd, 
-            @Bind("name")      String name, 
-            @Bind("type")      String type,
-            @Bind("value")     String value);
-    
- 
-    /*
-     * Deleting things - cleaning up staging tables to go here 
-     */
-    
-    /*
-     * Find Operations
-     */
-    @SqlQuery(
-            "SELECT " + vertexFields +
-            "FROM vertex " +
-            "WHERE id = :id " +
-            "AND (txn_end = 0 OR txn_end IS NULL) " +
-            "AND (txn_start > 0 OR txn_start IS NOT NULL)")
-    @Mapper(PersistentVertexMapper.class)
-    AmberVertex
-            findVertex(@Bind("id") long id);
-
-    @SqlQuery(
-            "SELECT " + vertexFields +
-            "FROM vertex " +
-            "WHERE (txn_end = 0 OR txn_end IS NULL) " +
-            "AND (txn_start > 0 OR txn_start IS NOT NULL)")
-    @Mapper(PersistentVertexMapper.class)
-    Iterator<AmberVertex>
-            findVertices();
-    
-    @SqlQuery(
-            "SELECT " + edgeFields +
-            "FROM edge " +
-            "WHERE id = :id " +
-            "AND (txn_end = 0 OR txn_end IS NULL) " +
-            "AND (txn_start > 0 OR txn_start IS NOT NULL)")
-    @Mapper(PersistentEdgeMapper.class)
-    AmberEdge
-            findEdge(@Bind("id") long id);
-
-    @SqlQuery(
-            "SELECT " + edgeFields +
-            "FROM edge " +
-            "WHERE (txn_end = 0 OR txn_end IS NULL) " +
-            "AND (txn_start > 0 OR txn_start IS NOT NULL)")
-    @Mapper(PersistentEdgeMapper.class)
-    Iterator<AmberEdge>
-            findEdges();
-    
-    @SqlQuery(
-            "SELECT " + propFields +
-            "FROM property_index " +
-            "WHERE id = :id")
-    @Mapper(SessionPropertyMapper.class)
-    Iterator<AmberProperty>
-            findPropertiesByElementId(@Bind("id") long id);
-
-    /*
-     * Finding edges incident to a vertex.
-     */
-    @SqlQuery(
-            "SELECT " + edgeFields +
-            "FROM edge " +
-            "WHERE v_out = :vertexId " +
-            "AND label = :label " +
-            "AND (txn_start > 0 OR txn_start IS NOT NULL) " +
-            "AND (txn_end = 0 OR txn_end IS NULL) " +
-            "ORDER BY edge_order")
-    @Mapper(PersistentEdgeMapper.class)
-    Iterator<AmberEdge>
-            findOutEdges(@Bind("vertexId") long vertexId, @Bind("label") String label);
-    @SqlQuery(
-            "SELECT " + edgeFields +
-            "FROM edge " +
-            "WHERE v_out = :vertexId " +
-            "AND (txn_start > 0 OR txn_start IS NOT NULL) " +
-            "AND (txn_end = 0 OR txn_end IS NULL) " +
-            "ORDER BY edge_order")
-    @Mapper(PersistentEdgeMapper.class)
-    Iterator<AmberEdge>
-            findOutEdges(@Bind("vertexId") long vertexId);
-    @SqlQuery(
-            "SELECT " + edgeFields +
-            "FROM edge " +
-            "WHERE v_in = :vertexId " +
-            "AND label = :label " +
-            "AND (txn_start > 0 OR txn_start IS NOT NULL) " +
-            "AND (txn_end = 0 OR txn_end IS NULL) " +
-            "ORDER BY edge_order")
-    @Mapper(PersistentEdgeMapper.class)
-    Iterator<AmberEdge>
-            findInEdges(@Bind("vertexId") long vertexId, @Bind("label") String label);
-    @SqlQuery(
-            "SELECT " + edgeFields +
-            "FROM edge " +
-            "WHERE v_in = :vertexId " +
-            "AND (txn_start > 0 OR txn_start IS NOT NULL) " +
-            "AND (txn_end = 0 OR txn_end IS NULL) " +
-            "ORDER BY edge_order")
-    @Mapper(PersistentEdgeMapper.class)
-    Iterator<AmberEdge>
-            findInEdges(@Bind("vertexId") long vertexId);
-
-    /*
-     * Finding vertices attached to edges incident to a vertex.
-     */
-    @SqlQuery(
-            "SELECT " + vertexFieldsV +
-            "FROM vertex v, edge e " +
-            "WHERE v.id = v_in " +
-            "AND v_out = :vertexId " +
-            "AND label = :label " +
-            "AND (v.txn_start > 0 OR v.txn_start IS NOT NULL) " +
-            "AND v.(txn_end = 0 OR txn_end IS NULL) " +
-            "ORDER BY edge_order")
-    @Mapper(PersistentVertexMapper.class)
-    Iterator<AmberVertex> findOutVertices(
-            @Bind("vertexId") long vertexId, 
-            @Bind("label") String label);
-    
-    @SqlQuery(
-            "SELECT " + vertexFieldsV +
-            "FROM vertex v, edge e " +
-            "WHERE v.id = e.v_in " +
-            "AND v_out = :vertexId " +
-            "AND (v.txn_start > 0 OR v.txn_start IS NOT NULL) " +
-            "AND (v.txn_end = 0 OR v.txn_end IS NULL) " +
-            "ORDER BY edge_order")
-    @Mapper(PersistentVertexMapper.class)
-    Iterator<AmberVertex> findOutVertices(
-            @Bind("vertexId") long vertexId);
-    
-    @SqlQuery(
-            "SELECT " + vertexFieldsV +
-            "FROM vertex v, edge e " +
-            "WHERE v.id = e.v_out " +
-            "AND v_in = :vertexId " +
-            "AND label = :label " +
-            "AND (v.txn_start > 0 OR v.txn_start IS NOT NULL) " +
-            "AND (v.txn_end = 0 OR v.txn_end IS NULL) " +
-            "ORDER BY edge_order")
-    @Mapper(PersistentVertexMapper.class)
-    Iterator<AmberVertex> findInVertices(
-            @Bind("vertexId") long vertexId, 
-            @Bind("label") String label);
-    
-    @SqlQuery(
-            "SELECT " + vertexFieldsV +
-            "FROM vertex v, edge e " +
-            "WHERE v.id = e.v_out " +
-            "AND v_in = :vertexId " +
-            "AND (v.txn_start > 0 OR v.txn_start IS NOT NULL) " +
-            "AND (v.txn_end = 0 OR v.txn_end IS NULL) " +
-            "ORDER BY edge_order")
-    @Mapper(PersistentVertexMapper.class)
-    Iterator<AmberVertex> findInVertices(
-            @Bind("vertexId") long vertexId);
-
-    
-
-    /*
-     * Finding edges by property values
-     */
-    @SqlQuery(
-            "SELECT " + edgeFieldsE +
-            "FROM edge e, property p " +
-            "WHERE e.id = p.id " +
-            "AND e.txn_start = p.txn_start " +
-            "AND e.(txn_end = 0 OR txn_end IS NULL) " +
-            "AND (e.txn_start > 0 OR e.txn_start IS NOT NULL) " +
-            "AND p.name = :name " +
-            "AND p.s_value = :value " +
-            "ORDER BY e.id")
-    @Mapper(PersistentEdgeMapper.class)
-    Iterator<AmberEdge> findEdgesWithStringProperty(
-            @Bind("name") String name,
-            @Bind("value") String value);
-    
-    @SqlQuery(
-            "SELECT " + edgeFieldsE +
-            "FROM edge e, property p " +
-            "WHERE e.id = p.id " +
-            "AND e.txn_start = p.txn_start " +
-            "AND (e.txn_end = 0 OR e.txn_end IS NULL) " +
-            "AND (e.txn_start > 0 OR e.txn_start IS NOT NULL) " +
-            "AND p.name = :name " +
-            "AND p.b_value = :value " +
-            "ORDER BY e.id")
-    @Mapper(PersistentEdgeMapper.class)
-    Iterator<AmberEdge> findEdgesWithBooleanProperty(
-            @Bind("name") String name,
-            @Bind("value") Boolean value);
-    
-    @SqlQuery(
-            "SELECT " + edgeFieldsE +
-            "FROM edge e, property p " +
-            "WHERE e.id = p.id " +
-            "AND e.txn_start = p.txn_start " +
-            "AND (e.txn_end = 0 OR e.txn_end IS NULL) " +
-            "AND (e.txn_start > 0 OR e.txn_start IS NOT NULL) " +
-            "AND p.name = :name " +
-            "AND p.i_value = :value " +
-            "ORDER BY e.id")
-    @Mapper(PersistentEdgeMapper.class)
-    Iterator<AmberEdge> findEdgesWithIntProperty(
-            @Bind("name") String name,
-            @Bind("value") Integer value);
-    
-    @SqlQuery(
-            "SELECT " + edgeFieldsE +
-            "FROM edge e, property p " +
-            "WHERE e.id = p.id " +
-            "AND e.txn_start = p.txn_start " +
-            "AND (e.txn_end = 0 OR e.txn_end IS NULL) " +
-            "AND (e.txn_start > 0 OR e.txn_start IS NOT NULL) " +
-            "AND p.name = :name " +
-            "AND p.d_value = :value " +
-            "ORDER BY e.id")
-    @Mapper(PersistentEdgeMapper.class)
-    Iterator<AmberEdge> findEdgesWithDoubleProperty(
-            @Bind("name") String name,
-            @Bind("value") Double value);
-
-    
-    /*
-     * Finding vertices by property values
-     */
-    @SqlQuery(
-            "SELECT " + vertexFieldsV +
-            "FROM vertex v, property p " +
-            "WHERE v.id = p.id " +
-            "AND v.txn_start = p.txn_start " +
-            "AND (v.txn_end = 0 OR v.txn_end IS NULL) " +
-            "AND (v.txn_start > 0 OR v.txn_start IS NOT NULL) " +
-            "AND p.name = :name " +
-            "AND p.s_value = :value " +
-            "ORDER BY v.id")
-    @Mapper(PersistentVertexMapper.class)
-    Iterator<AmberVertex> findVerticesWithStringProperty(
-            @Bind("name") String name,
-            @Bind("value") String value);
-    
-    @SqlQuery(
-            "SELECT " + vertexFieldsV +
-            "FROM vertex v, property p " +
-            "WHERE v.id = p.id " +
-            "AND v.txn_start = p.txn_start " +
-            "AND (v.txn_end = 0 OR v.txn_end IS NULL) " +
-            "AND (v.txn_start > 0 OR v.txn_start IS NOT NULL) " +
-            "AND p.name = :name " +
-            "AND p.b_value = :value " +
-            "ORDER BY v.id")
-    @Mapper(PersistentVertexMapper.class)
-    Iterator<AmberVertex> findVerticesWithBooleanProperty(
-            @Bind("name") String name,
-            @Bind("value") Boolean value);
-    
-    @SqlQuery(
-            "SELECT " + vertexFieldsV +
-            "FROM vertex v, property p " +
-            "WHERE v.id = p.id " +
-            "AND v.txn_start = p.txn_start " +
-            "AND (v.txn_end = 0 OR v.txn_end IS NULL) " +
-            "AND (v.txn_start > 0 OR v.txn_start IS NOT NULL) " +
-            "AND p.name = :name " +
-            "AND p.i_value = :value " +
-            "ORDER BY v.id")
-    @Mapper(PersistentVertexMapper.class)
-    Iterator<AmberVertex> findVerticesWithIntProperty(
-            @Bind("name") String name,
-            @Bind("value") Integer value);
-    
-    @SqlQuery(
-            "SELECT " + vertexFieldsV +
-            "FROM vertex v, property p " +
-            "WHERE v.id = p.id " +
-            "AND v.txn_start = p.txn_start " +
-            "AND (v.txn_end = 0 OR v.txn_end IS NULL) " +
-            "AND (v.txn_start > 0 OR v.txn_start IS NOT NULL) " +
-            "AND p.name = :name " +
-            "AND p.d_value = :value " +
-            "ORDER BY v.id")
-    @Mapper(PersistentVertexMapper.class)
-    Iterator<AmberVertex> findVerticesWithDoubleProperty(
-            @Bind("name") String name,
-            @Bind("value") Double value);
-
-    
-    /*
-     * Find all properties of an element
-     */
-    @SqlQuery(
-            "SELECT " + propFields +
-            "FROM property " +
-            "WHERE id = :id " +
-            "AND (txn_start > 0 OR txn_start IS NOT NULL) " +
-            "AND (txn_end = 0 OR txn_end IS NULL)")
-    @Mapper(PersistentPropertyMapper.class)
-    Iterator<AmberProperty> findProperties(@Bind("id") long id);
-
-    
-    
-    /*
-     * Create Operations
-     */
-    @GetGeneratedKeys
-    @SqlUpdate(
-            "INSERT INTO edge (" + edgeFields + ") " +
-            "VALUES (" + edgeFieldSymbols + ")")
-    long insertEdge(
-            @Bind("id") long id, 
-            @Bind("txn_start") long txnStart, 
-            @Bind("txn_end") long txnEnd,
-            @Bind("v_out") long outId, 
-            @Bind("v_in") long inId, 
-            @Bind("label") String label, 
-            @Bind("edge_order") int edgeOrder);
-    
-    @GetGeneratedKeys
-    @SqlUpdate(
-            "INSERT INTO vertex (" + vertexFields + ") " +
-            "VALUES (" + vertexFieldSymbols + ")")
-    long insertVertex(
-            @Bind("id") long id, 
-            @Bind("txn_start") long txnStart, 
-            @Bind("txn_end") long txnEnd);
-
-
-    @SqlUpdate(
-            "INSERT INTO stage_vertex (" + stageVertexFields + ") " +
-            "VALUES (" + stageVertexFieldSymbols + ")")
+            "INSERT INTO stage_vertex (id, txn_start, state, txn_new) " +
+            "VALUES (:id, :txn_start, :state, :txn_new)")
     long insertStageVertex(
             @BindAmberVertex AmberVertex vertex, 
             @Bind("txn_new") long txnId);
 
     @SqlUpdate(
-            "INSERT INTO stage_edge (" + stageEdgeFields + ") " +
-            "VALUES (" + stageEdgeFieldSymbols + ")")
+            "INSERT INTO stage_edge (id, txn_start, txn_new, v_out, v_in, label, edge_order, state) " +
+            "VALUES (:id, :txn_start, :txn_new, :v_out, :v_in, :label, :edge_order, :state)")
     long insertStageEdge(
             @BindAmberEdge AmberEdge edge, 
             @Bind("txn_new") long txnId);
     
     @SqlUpdate(
-            "INSERT INTO stage_property ( id, name, type, s_value, txn_new ) " +
-            "VALUES ( :id, :name, :type, :s_value, :txn_new )")
-    long insertStageStringProperty(
+            "INSERT INTO stage_property (id, name, type, value, txn_new) " +
+            "VALUES (:id, :name, :type, :value, :txn_new)")
+    long insertStageProperty(
             @BindAmberProperty AmberProperty property, 
             @Bind("txn_new") long txnId);
-    @SqlUpdate(
-            "INSERT INTO stage_property ( id, name, type, i_value, txn_new ) " +
-            "VALUES ( :id, :name, :type, :i_value, :txn_new )")
-    long insertStageIntegerProperty(
-            @BindAmberProperty AmberProperty property, 
-            @Bind("txn_new") long txnId);
-    @SqlUpdate(
-            "INSERT INTO stage_property ( id, name, type, b_value, txn_new ) " +
-            "VALUES ( :id, :name, :type, :b_value, :txn_new )")
-    long insertStageBooleanProperty(
-            @BindAmberProperty AmberProperty property, 
-            @Bind("txn_new") long txnId);
-    @SqlUpdate(
-            "INSERT INTO stage_property ( id, name, type, d_value, txn_new ) " +
-            "VALUES ( :id, :name, :type, :d_value, :txn_new )")
-    long insertStageDoubleProperty(
-            @BindAmberProperty AmberProperty property, 
-            @Bind("txn_new")   long txnId);
     
     @SqlQuery(
             "SELECT v.id, v.txn_end " +
@@ -591,6 +170,7 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "AND s.id = e.id " +
             "AND e.txn_end > 0 " +
             "AND e.txn_end > s.txn_start ")  // this clause may not be needed
+    @Mapper(LongArrayMapper.class)
     List<Long[]> findDeletionMutations(
             @Bind("txnId") long txnId);
     
@@ -606,6 +186,7 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "WHERE s.txn_new = :txnId " +
             "AND s.id = e.id " +
             "AND e.txn_start > s.txn_start ")
+    @Mapper(LongArrayMapper.class)
     List<Long[]> findAlterationMutations(
             @Bind("txnId") long txnId);
     
@@ -613,39 +194,37 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "INSERT INTO vertex (id, txn_start) " +
             "SELECT id, txn_new " +
             "FROM stage_vertex " +
-            "WHERE state <> :deletedState " +
+            "WHERE state <> 'DEL' " +
             "AND txn_new = :txnId")
     int insertStagedVertices(
-            @Bind("txnId")        long txnId,
-            @Bind("deletedState") int deletedState);
+            @Bind("txnId") long txnId);
 
     @SqlUpdate(
             "INSERT INTO edge (id, txn_start, v_out, v_in, label, edge_order) " +
             "SELECT id, txn_new, v_out, v_in, label, edge_order " +
             "FROM stage_edge " +
-            "WHERE state <> :deletedState " +
+            "WHERE state <> 'DEL' " +
             "AND txn_new = :txnId")
     int insertStagedEdges(
-            @Bind("txnId")        long txnId,
-            @Bind("deletedState") int deletedState);
+            @Bind("txnId") long txnId);
     
     @SqlUpdate(
-            "INSERT INTO property (id, txn_start, name, type, s_value, b_value, i_value, d_value) " +
-            "SELECT id, txn_new, name, type, s_value, b_value, i_value, d_value " +
+            "INSERT INTO property (id, txn_start, name, type, value) " +
+            "SELECT id, txn_new, name, type, value " +
             "FROM stage_property " +
             "WHERE id IN (" +
             "  SELECT id " +
             "  FROM stage_vertex " +
-            "  WHERE state <> :deletedState " +
+            "  WHERE state <> 'DEL' " +
             "  AND txn_new = :txnId " +
             "  UNION " +
             "  SELECT id " +
             "  FROM stage_edge " +
-            "  WHERE state <> :deletedState " +
-            "  AND txn_new = :txnId)")
+            "  WHERE state <> 'DEL' " +
+            "  AND txn_new = :txnId) " +
+            "AND txn_new = :txnId")
     int insertStagedProperties(
-            @Bind("txnId")        long txnId,
-            @Bind("deletedState") int deletedState);
+            @Bind("txnId") long txnId);
     
     @SqlUpdate(
             "UPDATE vertex " +
@@ -653,12 +232,11 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "WHERE id IN (" +
             "  SELECT id " +
             "  FROM stage_vertex " +
-            "  WHERE state <> :newState " +
+            "  WHERE state <> 'NEW' " +
             "  AND txn_new = :txnId) " +
-            "AND txn_end = 0")
+            "AND (txn_end = 0 OR txn_end IS NULL)")
     int updateSupercededVertices(
-            @Bind("txnId")    long txnId,
-            @Bind("newState") int newState);
+            @Bind("txnId") long txnId);
 
     @SqlUpdate(
             "UPDATE edge " +
@@ -666,12 +244,11 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "WHERE id IN (" +
             "  SELECT id " +
             "  FROM stage_edge " +
-            "  WHERE state <> :newState " +
+            "  WHERE state <> 'NEW' " +
             "  AND txn_new = :txnId) " +
-            "AND txn_end = 0")
+            "AND (txn_end = 0 OR txn_end IS NULL)")
     int updateSupercededEdges(
-            @Bind("txnId")    long txnId,
-            @Bind("newState") int newState);
+            @Bind("txnId") long txnId);
     
     @SqlUpdate(
             "UPDATE property " +
@@ -679,17 +256,16 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "WHERE id IN (" +
             "  SELECT id " +
             "  FROM stage_edge " +
-            "  WHERE state <> :newState " +
+            "  WHERE state <> 'NEW' " +
             "  AND txn_new = :txnId " +
             "  UNION " +
             "  SELECT id " +
             "  FROM stage_vertex " +
-            "  WHERE state <> :newState " +
+            "  WHERE state <> 'NEW' " +
             "  AND txn_new = :txnId) " +
-            "AND txn_end = 0")
+            "AND (txn_end = 0 OR txn_end IS NULL)")
     int updateSupercededProperties(
-            @Bind("txnId") long txnId,
-            @Bind("newState") int newState);
+            @Bind("txnId") long txnId);
 
     @SqlUpdate(
             "UPDATE transaction " +
@@ -699,6 +275,186 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             @Bind("txnId") long txnId,
             @Bind("commitMarker") long commitMarker);
     
+    
+    @SqlQuery(
+            "SELECT id, name, type, value " + 
+            "FROM property " +
+            "WHERE id = :id " +
+            "AND (txn_end = 0 OR txn_end IS NULL)")
+    @Mapper(PersistentPropertyMapper.class)
+    List<AmberProperty>
+            getProperties(@Bind("id") long id);
+    
+    @SqlQuery(
+            "SELECT v.id, v.txn_start, v.txn_end " + 
+            "FROM vertex v, edge e " +
+            "WHERE v.id = e.v_in " +
+            "AND v_out = :vertexId " +
+            "AND (v.txn_start > 0 OR v.txn_start IS NOT NULL) " +
+            "AND (v.txn_end = 0 OR v.txn_end IS NULL) " +
+            "ORDER BY edge_order")
+    @Mapper(PersistentVertexMapper.class)
+    Iterator<AmberVertex> findOutVertices(
+            @Bind("vertexId") long vertexId);
+
+    @SqlQuery(
+            "SELECT v.id, v.txn_start, v.txn_end " + 
+            "FROM vertex v, edge e " +
+            "WHERE v.id = e.v_out " +
+            "AND v_in = :vertexId " +
+            "AND (v.txn_start > 0 OR v.txn_start IS NOT NULL) " +
+            "AND (v.txn_end = 0 OR v.txn_end IS NULL) " +
+            "ORDER BY edge_order")
+    @Mapper(PersistentVertexMapper.class)
+    Iterator<AmberVertex> findInVertices(
+            @Bind("vertexId") long vertexId);
+    
+    @SqlQuery(
+            "SELECT v.id, v.txn_start, v.txn_end " +
+            "FROM vertex v, edge e " +
+            "WHERE v.id = e.v_in " +
+            "AND v_out = :vertexId " +
+            "AND label = :label " +
+            "AND (v.txn_start > 0 OR v.txn_start IS NOT NULL) " +
+            "AND (v.txn_end = 0 OR v.txn_end IS NULL) " +
+            "ORDER BY edge_order")
+    @Mapper(PersistentVertexMapper.class)
+    Iterator<AmberVertex> findOutVertices(
+            @Bind("vertexId") long vertexId,
+            @Bind("label") String label);
+
+    @SqlQuery(
+            "SELECT v.id, v.txn_start, v.txn_end " +
+            "FROM vertex v, edge e " +
+            "WHERE v.id = e.v_out " +
+            "AND v_in = :vertexId " +
+            "AND label = :label " +
+            "AND (v.txn_start > 0 OR v.txn_start IS NOT NULL) " +
+            "AND (v.txn_end = 0 OR v.txn_end IS NULL) " +
+            "ORDER BY edge_order")
+    @Mapper(PersistentVertexMapper.class)
+    Iterator<AmberVertex> findInVertices(
+            @Bind("vertexId") long vertexId,
+            @Bind("label") String label);
+
+    @SqlQuery(
+            "SELECT id, txn_start, txn_end, v_out, v_in, label, edge_order " +
+            "FROM edge " +
+            "WHERE v_out = :vertexId " +
+            "AND label = :label " +
+            "AND (txn_start > 0 OR txn_start IS NOT NULL) " +
+            "AND (txn_end = 0 OR txn_end IS NULL) " +
+            "ORDER BY edge_order")
+    @Mapper(PersistentEdgeMapper.class)
+    Iterator<AmberEdge>
+    findOutEdges(
+            @Bind("vertexId") long vertexId, 
+            @Bind("label") String label);
+
+    @SqlQuery(
+            "SELECT id, txn_start, txn_end, v_out, v_in, label, edge_order " +
+            "FROM edge " +
+            "WHERE v_out = :vertexId " +
+            "AND (txn_start > 0 OR txn_start IS NOT NULL) " +
+            "AND (txn_end = 0 OR txn_end IS NULL) " +
+            "ORDER BY edge_order")
+    @Mapper(PersistentEdgeMapper.class)
+    Iterator<AmberEdge>
+    findOutEdges(
+            @Bind("vertexId") long vertexId);
+
+    @SqlQuery(
+            "SELECT id, txn_start, txn_end, v_out, v_in, label, edge_order " +
+            "FROM edge " +
+            "WHERE v_in = :vertexId " +
+            "AND label = :label " +
+            "AND (txn_start > 0 OR txn_start IS NOT NULL) " +
+            "AND (txn_end = 0 OR txn_end IS NULL) " +
+            "ORDER BY edge_order")
+    @Mapper(PersistentEdgeMapper.class)
+    Iterator<AmberEdge>
+    findInEdges(
+            @Bind("vertexId") long vertexId, 
+            @Bind("label") String label);
+
+    @SqlQuery(
+            "SELECT id, txn_start, txn_end, v_out, v_in, label, edge_order " +
+            "FROM edge " +
+            "WHERE v_in = :vertexId " +
+            "AND (txn_start > 0 OR txn_start IS NOT NULL) " +
+            "AND (txn_end = 0 OR txn_end IS NULL) " +
+            "ORDER BY edge_order")
+    @Mapper(PersistentEdgeMapper.class)
+    Iterator<AmberEdge>
+    findInEdges(
+            @Bind("vertexId") long vertexId);
+    
+    @SqlQuery(
+            "SELECT id, txn_start, txn_end, v_out, v_in, label, edge_order " +
+            "FROM edge " +
+            "WHERE (txn_end = 0 OR txn_end IS NULL) " +
+            "AND (txn_start > 0 OR txn_start IS NOT NULL)")
+    @Mapper(PersistentEdgeMapper.class)
+    Iterator<AmberEdge> findEdges();
+    
+    @SqlQuery(
+            "SELECT e.id, e.txn_start, e.txn_end, e.v_out, e.v_in, e.label, e.edge_order " +
+            "FROM edge e, property p " +
+            "WHERE e.id = p.id " +
+            "AND e.txn_start = p.txn_start " +
+            "AND (e.txn_end = 0 OR e.txn_end IS NULL) " +
+            "AND (e.txn_start > 0 OR e.txn_start IS NOT NULL) " +
+            "AND p.name = :name " +
+            "AND p.value = :value " +
+            "ORDER BY e.edge_order")
+    @Mapper(PersistentEdgeMapper.class)
+    Iterator<AmberEdge> findEdgesWithProperty(
+            @Bind("name") String name,
+            @Bind("value") byte[] value);
+    
+    @SqlQuery(
+            "SELECT id, txn_start, txn_end " +
+            "FROM vertex " +
+            "WHERE (txn_end = 0 OR txn_end IS NULL) " +
+            "AND (txn_start > 0 OR txn_start IS NOT NULL)")
+    @Mapper(PersistentVertexMapper.class)
+    Iterator<AmberVertex> findVertices();
+
+    @SqlQuery(
+            "SELECT v.id, v.txn_start, v.txn_end " +
+            "FROM vertex v, property p " +
+            "WHERE v.id = p.id " +
+            "AND v.txn_start = p.txn_start " +
+            "AND (v.txn_end = 0 OR v.txn_end IS NULL) " +
+            "AND (v.txn_start > 0 OR v.txn_start IS NOT NULL) " +
+            "AND p.name = :name " +
+            "AND p.value = :value")
+    @Mapper(PersistentVertexMapper.class)
+    Iterator<AmberVertex> findVerticesWithProperty(
+            @Bind("name") String name,
+            @Bind("value") byte[] value);
+    
+    @SqlQuery(
+            "SELECT id, txn_start, txn_end, v_out, v_in, label, edge_order " +
+            "FROM edge " +
+            "WHERE id = :id " +
+            "AND (txn_end = 0 OR txn_end IS NULL) " +
+            "AND (txn_start > 0 OR txn_start IS NOT NULL)")
+    @Mapper(PersistentEdgeMapper.class)
+    AmberEdge findEdge(
+            @Bind("id") long id);
+
+    @SqlQuery(
+            "SELECT id, txn_start, txn_end " +
+            "FROM vertex " +
+            "WHERE id = :id " +
+            "AND (txn_end = 0 OR txn_end IS NULL) " +
+            "AND (txn_start > 0 OR txn_start IS NOT NULL)")
+    @Mapper(PersistentVertexMapper.class)
+    AmberVertex findVertex(
+            @Bind("id") long id);
+    
     void close();
+
 }
 

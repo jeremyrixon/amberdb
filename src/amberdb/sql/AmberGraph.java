@@ -1,20 +1,30 @@
 package amberdb.sql;
 
-import amberdb.sql.Stateful.State;
+import amberdb.sql.State;
 import amberdb.sql.dao.*;
+import amberdb.sql.map.PersistentEdgeMapper;
+import amberdb.sql.map.PersistentVertexMapper;
+import amberdb.sql.map.SessionEdgeMapper;
+import amberdb.sql.map.SessionVertexMapper;
 
 import java.lang.reflect.Field;
+import java.sql.Blob;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.WeakHashMap;
 
 import javax.sql.DataSource;
 
+import org.h2.jdbc.JdbcSQLException;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
+import org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException;
 
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
@@ -37,8 +47,6 @@ public class AmberGraph implements Graph {
     private TransactionDao transactionDao;
     
     private SessionDao sessionDao;
-    private StatefulDao statefulDao;
-    private ElementDao elementDao;
     private VertexDao vertexDao;
     private EdgeDao edgeDao;
 
@@ -132,10 +140,14 @@ public class AmberGraph implements Graph {
         initSessionDataStore(sessionDao);
         
         // set up required data access objects
-        statefulDao = sessionDbi.onDemand(StatefulDao.class);
-        elementDao = sessionDbi.onDemand(ElementDao.class);
         vertexDao = sessionDbi.onDemand(VertexDao.class);
         edgeDao = sessionDbi.onDemand(EdgeDao.class);
+        
+        // set mapper graph references - this needs some refactoring
+        SessionVertexMapper.graph = this;
+        SessionEdgeMapper.graph = this;
+        PersistentVertexMapper.graph = this;
+        PersistentEdgeMapper.graph = this;
     }
 
     /**
@@ -185,6 +197,16 @@ public class AmberGraph implements Graph {
         persistentDao.commit();
     }
     
+    private WeakHashMap<Long, AmberVertex> newSessionVertices = new WeakHashMap<Long, AmberVertex>();
+    public void addToNewVertices(AmberVertex v) {
+        newSessionVertices.put((Long) v.getId(), v);
+    }
+    private WeakHashMap<Long, AmberEdge> newSessionEdges = new WeakHashMap<Long, AmberEdge>();
+    public void addToNewEdges(AmberEdge e) {
+        newSessionEdges.put((Long) e.getId(), e);
+    }
+    
+    
     /*
      * Amber specific methods
      */
@@ -221,7 +243,7 @@ public class AmberGraph implements Graph {
         persistentDao.begin();
         Long newId = persistentDao.newId();
 
-        // occasionally clean up the pi generation table (every 1000 pis or so)
+        // occasionally clean up the id generation table (every 1000 pis or so)
         if (newId % 1000 == 995) {
             persistentDao.garbageCollectIds(newId);
         }
@@ -229,22 +251,19 @@ public class AmberGraph implements Graph {
         return newId;
     }    
     
-    protected TransactionDao transactionDao() {
+    public PersistentDao persistentDao() {
+        return persistentDao;
+    }
+    public TransactionDao transactionDao() {
         return transactionDao;
     }
-    protected SessionDao sessionDao() {
+    public SessionDao sessionDao() {
         return sessionDao;
     }
-    protected StatefulDao statefulDao() {
-        return statefulDao;
-    }
-    protected ElementDao elementDao() {
-        return elementDao;
-    }
-    protected EdgeDao edgeDao() {
+    public EdgeDao edgeDao() {
         return edgeDao;
     }
-    protected VertexDao vertexDao() {
+    public VertexDao vertexDao() {
         return vertexDao;
     }
 
@@ -254,15 +273,12 @@ public class AmberGraph implements Graph {
         if (labels.length == 0) {
 
             if (direction == Direction.IN || direction == Direction.BOTH) {
-                edges.addAll(Lists.newArrayList(persistentDao.findInEdges(vertex.id())));
+                edges.addAll(Lists.newArrayList(persistentDao.findInEdges((Long) vertex.getId())));
             }
             if (direction == Direction.OUT || direction == Direction.BOTH) {
-                edges.addAll(Lists.newArrayList(persistentDao.findOutEdges(vertex.id())));
+                edges.addAll(Lists.newArrayList(persistentDao.findOutEdges((Long) vertex.getId())));
             }
             edges.removeAll(Collections.singleton(null));
-            for (AmberEdge edge : edges) {
-                edge.addToSession(this, State.READ, true);
-            }
         } else {
             for (String label : labels) {
                 edges.addAll(loadPersistentEdges(vertex, direction, label));
@@ -275,15 +291,12 @@ public class AmberGraph implements Graph {
         List<AmberEdge> edges = new ArrayList<AmberEdge>();
         
         if (direction == Direction.IN || direction == Direction.BOTH) {
-            edges.addAll(Lists.newArrayList(persistentDao.findInEdges(vertex.id(), label)));
+            edges.addAll(Lists.newArrayList(persistentDao.findInEdges((Long) vertex.getId(), label)));
         }
         if (direction == Direction.OUT || direction == Direction.BOTH) {
-            edges.addAll(Lists.newArrayList(persistentDao.findOutEdges(vertex.id(), label)));
+            edges.addAll(Lists.newArrayList(persistentDao.findOutEdges((Long) vertex.getId(), label)));
         }
         edges.removeAll(Collections.singleton(null));
-        for (AmberEdge edge: edges) {
-            edge.addToSession(this, State.READ, true);
-        }
         return edges;
     }
  
@@ -291,28 +304,14 @@ public class AmberGraph implements Graph {
         List<AmberEdge> edges = new ArrayList<AmberEdge>();
         edges.addAll(Lists.newArrayList(persistentDao.findEdges()));
         edges.removeAll(Collections.singleton(null));
-        for (AmberEdge edge: edges) {
-            edge.addToSession(this, State.READ, true);
-        }
         return edges;
     }
     
     protected List<AmberEdge> loadEdgesWithProperty(String key, Object value) {
         List<AmberEdge> edges = new ArrayList<AmberEdge>();
-        
-        if (value instanceof String) {
-            edges.addAll(Lists.newArrayList(persistentDao.findEdgesWithStringProperty(key, (String) value)));
-        } else if (value instanceof Boolean) {
-            edges.addAll(Lists.newArrayList(persistentDao.findEdgesWithBooleanProperty(key, (Boolean) value)));
-        } else if (value instanceof Integer) {
-            edges.addAll(Lists.newArrayList(persistentDao.findEdgesWithIntProperty(key, (Integer) value)));
-        } else if (value instanceof Double) {
-            edges.addAll(Lists.newArrayList(persistentDao.findEdgesWithDoubleProperty(key, (Double) value)));
-        }    
+
+        edges.addAll(Lists.newArrayList(persistentDao.findEdgesWithProperty(key, AmberProperty.encodeBlob(value))));
         edges.removeAll(Collections.singleton(null));
-        for (AmberEdge edge: edges) {
-            edge.addToSession(this, State.READ, true);
-        }
         return edges;
     }
     
@@ -322,15 +321,12 @@ public class AmberGraph implements Graph {
         if (labels.length == 0) {
 
             if (direction == Direction.IN || direction == Direction.BOTH) {
-                vertices.addAll(Lists.newArrayList(persistentDao.findInVertices(vertex.id())));
+                vertices.addAll(Lists.newArrayList(persistentDao.findInVertices((Long) vertex.getId())));
             }
             if (direction == Direction.OUT || direction == Direction.BOTH) {
-                vertices.addAll(Lists.newArrayList(persistentDao.findOutVertices(vertex.id())));
+                vertices.addAll(Lists.newArrayList(persistentDao.findOutVertices((Long) vertex.getId())));
             }
             vertices.removeAll(Collections.singleton(null));
-            for (AmberVertex v : vertices) {
-                v.addToSession(this, State.READ, true);
-            }
         } else {
             for (String label : labels) {
                 vertices.addAll(loadPersistentVertices(vertex, direction, label));
@@ -343,15 +339,12 @@ public class AmberGraph implements Graph {
         List<AmberVertex> vertices = new ArrayList<AmberVertex>();
         
         if (direction == Direction.IN || direction == Direction.BOTH) {
-            vertices.addAll(Lists.newArrayList(persistentDao.findInVertices(vertex.id(), label)));
+            vertices.addAll(Lists.newArrayList(persistentDao.findInVertices((Long) vertex.getId(), label)));
         }
         if (direction == Direction.OUT || direction == Direction.BOTH) {
-            vertices.addAll(Lists.newArrayList(persistentDao.findOutVertices(vertex.id(), label)));
+            vertices.addAll(Lists.newArrayList(persistentDao.findOutVertices((Long) vertex.getId(), label)));
         }
         vertices.removeAll(Collections.singleton(null));
-        for (AmberVertex v: vertices) {
-            v.addToSession(this, State.READ, true);
-        }
         return vertices;
     }
 
@@ -360,48 +353,17 @@ public class AmberGraph implements Graph {
         
         vertices.addAll(Lists.newArrayList(persistentDao.findVertices()));
         vertices.removeAll(Collections.singleton(null));
-        for (AmberVertex v: vertices) {
-            v.addToSession(this, State.READ, true);
-        }
         return vertices;
     }
 
     protected List<AmberVertex> loadVerticesWithProperty(String key, Object value) {
         List<AmberVertex> vertices = new ArrayList<AmberVertex>();
-        
-        if (value instanceof String) {
-            vertices.addAll(Lists.newArrayList(persistentDao.findVerticesWithStringProperty(key, (String) value)));
-        } else if (value instanceof Boolean) {
-            vertices.addAll(Lists.newArrayList(persistentDao.findVerticesWithBooleanProperty(key, (Boolean) value)));
-        } else if (value instanceof Integer) {
-            vertices.addAll(Lists.newArrayList(persistentDao.findVerticesWithIntProperty(key, (Integer) value)));
-        } else if (value instanceof Double) {
-            vertices.addAll(Lists.newArrayList(persistentDao.findVerticesWithDoubleProperty(key, (Double) value)));
-        }    
+
+        vertices.addAll(Lists.newArrayList(persistentDao.findVerticesWithProperty(key, AmberProperty.encodeBlob(value))));
         vertices.removeAll(Collections.singleton(null));
-        for (AmberVertex vertex: vertices) {
-            vertex.addToSession(this, State.READ, true);
-        }
         return vertices;
     }
     
-    protected void loadPersistentProperties(long id) {
-        
-        Iterator<AmberProperty> properties = persistentDao.findProperties(id);
-        while (properties.hasNext()) {
-            AmberProperty property = properties.next();
-            if (property.getType().equals("s")) {
-                elementDao.addStringProperty(property.id(), property.name, (String) property.getValue());
-            } else if (property.getType().equals("b")) {
-                elementDao.addBooleanProperty(property.id(), property.name, (Boolean) property.getValue());
-            } else if (property.getType().equals("i")) {
-                elementDao.addIntProperty(property.id(), property.name, (Integer) property.getValue());
-            } else if (property.getType().equals("d")) {
-                elementDao.addDoubleProperty(property.id(), property.name, (Double) property.getValue());
-            }
-        }
-    }
- 
     
     /*
      * Tinkerpop blueprints graph interface implementation
@@ -413,9 +375,8 @@ public class AmberGraph implements Graph {
         // argument guard
         if (label == null) throw new IllegalArgumentException("edge label cannot be null");
 
-        long newId = newSessionId();
-        AmberEdge edge = new AmberEdge(newId, (long) out.getId(), (long) in.getId(), label);
-        edge.addToSession(this, State.NEW, false);
+        AmberEdge edge = new AmberEdge(this, (long) out.getId(), (long) in.getId(), label);
+        edge.setState(State.NEW);
         
         if (autoCommit) commitToPersistent("addEdge");
         return edge;
@@ -424,10 +385,9 @@ public class AmberGraph implements Graph {
     @Override
     public Vertex addVertex(Object id) {
         
-        long newId = newSessionId();
-        AmberVertex vertex = new AmberVertex(newId);
-        vertex.addToSession(this, State.NEW, false);
-
+        AmberVertex vertex = new AmberVertex(this);
+        vertex.setState(State.NEW);
+        
         if (autoCommit) commitToPersistent("addVertex");
         return vertex;
     }
@@ -449,31 +409,37 @@ public class AmberGraph implements Graph {
         if (edgeId instanceof Long) id = (Long) edgeId;
 
         // is the edge in the session ? 
-        AmberEdge edge = edgeDao.findEdge(id);
+        AmberEdge edge = sessionDao.findEdge(id);
         if (edge != null ) {
-            return (Edge) nullIfDeleted(edge);
+            if (edge.getState() == State.DEL) {
+                return null;
+            }
+            return edge;
         }
         
         // get from persistent
         if (persistence) {
             edge = persistentDao.findEdge(id);
-            if (edge != null) edge.addToSession(this, State.READ, true);
         }
 
         return edge;
     }
 
     /**
-     * This will blow up if the number of edges in the graph is big. 
+     * This will naturally blow up if the number of edges in the graph is big.
+     * Can we refactor to be lazy ?  
      */
     @Override
     public Iterable<Edge> getEdges() {
         if (persistence) loadEdges();
         
         List<Edge> edges = new ArrayList<Edge>();
-        Iterator<AmberEdge> iter = edgeDao.findEdges();
+        Iterator<AmberEdge> iter = sessionDao.getEdges();
         while (iter.hasNext()) {
-            addUndeletedElements(iter.next(), edges);
+            Edge e = iter.next();
+            if (e != null) {
+                edges.add(e);
+            }
         }
         return edges;
     }
@@ -483,20 +449,13 @@ public class AmberGraph implements Graph {
         if (persistence) loadEdgesWithProperty(key, value);
         
         List<AmberEdge> edges = new ArrayList<AmberEdge>();
-        
-        if (value instanceof String) {
-            edges.addAll(Lists.newArrayList(edgeDao.findEdgesWithStringProperty(key, (String) value)));
-        } else if (value instanceof Boolean) {
-            edges.addAll(Lists.newArrayList(edgeDao.findEdgesWithBooleanProperty(key, (Boolean) value)));
-        } else if (value instanceof Integer) {
-            edges.addAll(Lists.newArrayList(edgeDao.findEdgesWithIntProperty(key, (Integer) value)));
-        } else if (value instanceof Double) {
-            edges.addAll(Lists.newArrayList(edgeDao.findEdgesWithDoubleProperty(key, (Double) value)));
-        }
-        
+        edges.addAll(Lists.newArrayList(sessionDao.findEdgesWithProperty(key, AmberProperty.encodeBlob(value))));
+
         List<Edge> filteredEdges = new ArrayList<Edge>();
-        for (AmberEdge e: edges) {
-            addUndeletedElements(e, filteredEdges);
+        for (AmberEdge e : edges) {
+            if (e != null) {
+                filteredEdges.add(e);
+            }
         }
         return filteredEdges;
     }
@@ -531,34 +490,40 @@ public class AmberGraph implements Graph {
 
     @Override
     public Vertex getVertex(Object vertexId) {
-        
+
         // argument guards
-        if (vertexId == null) throw new IllegalArgumentException("vertex id is null");
+        if (vertexId == null)
+            throw new IllegalArgumentException("vertex id is null");
         if (!(vertexId instanceof Long || vertexId instanceof String)) {
             return null;
         }
         long id = 0;
         try {
-            if (vertexId instanceof String) id = Long.parseLong((String) vertexId);
+            if (vertexId instanceof String)
+                id = Long.parseLong((String) vertexId);
         } catch (NumberFormatException e) {
             return null;
-        } 
-        if (vertexId instanceof Long) id = (Long) vertexId;
-
-        // is the vertex in the session ? 
-        AmberVertex vertex = vertexDao.findVertex(id);
-        if (vertex != null ) {
-            return (Vertex) nullIfDeleted(vertex);
         }
+        if (vertexId instanceof Long)
+            id = (Long) vertexId;
+
+        // is the vertex in the session ?
+        AmberVertex vertex = sessionDao.findVertex(id);
         
+        if (vertex != null) {
+            // if we find it deleted in the session then don't return from persistent
+            if (vertex.getState() == State.DEL) {
+                return null;
+            }
+            return vertex;
+        }
+
         // get from persistent
         if (persistence) {
             vertex = persistentDao.findVertex(id);
-            if (vertex != null) vertex.addToSession(this, State.READ, true);
         }
         return vertex;
     }
-
     
     
     @Override
@@ -566,9 +531,9 @@ public class AmberGraph implements Graph {
         if (persistence) loadVertices();
 
         List<Vertex> vertices = new ArrayList<Vertex>();
-        Iterator<AmberVertex> iter = vertexDao.findVertices();
+        Iterator<AmberVertex> iter = sessionDao.findVertices();
         while (iter.hasNext()) {
-            addUndeletedElements(iter.next(), vertices);
+            vertices.add(iter.next());
         }
         return vertices;
     }
@@ -579,22 +544,15 @@ public class AmberGraph implements Graph {
         if (persistence) loadVerticesWithProperty(key, value);
         
         List<AmberVertex> vertices = new ArrayList<AmberVertex>();
-        
-        if (value instanceof String) {
-            vertices.addAll(Lists.newArrayList(vertexDao.findVerticesWithStringProperty(key, (String) value)));
-        } else if (value instanceof Boolean) {
-            vertices.addAll(Lists.newArrayList(vertexDao.findVerticesWithBooleanProperty(key, (Boolean) value)));
-        } else if (value instanceof Integer) {
-            vertices.addAll(Lists.newArrayList(vertexDao.findVerticesWithIntProperty(key, (Integer) value)));
-        } else if (value instanceof Double) {
-            vertices.addAll(Lists.newArrayList(vertexDao.findVerticesWithDoubleProperty(key, (Double) value)));
-        } 
-        
+        vertices.addAll(Lists.newArrayList(sessionDao.findVerticesWithProperty(key, AmberProperty.encodeBlob(value))));
+
         List<Vertex> filteredVertices = new ArrayList<Vertex>();
-        for (AmberVertex v: vertices) {
-            addUndeletedElements(v, filteredVertices);
+        for (AmberVertex v : vertices) {
+            if (v.getState() != State.DEL) {
+                filteredVertices.add(v);
+            }
         }
-        
+
         return filteredVertices;
     }
     
@@ -628,31 +586,12 @@ public class AmberGraph implements Graph {
 
         sessionDao.dropTables();
         sessionDao.close();
-        elementDao.close();
         vertexDao.close();
         edgeDao.close();
     }
     
     public String toString() {
         return ("ambergraph");
-    }
-
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    private void addUndeletedElements(AmberElement element, List elementList) {
-        if (element != null) {
-            element.graph(this);
-            if (element.sessionState() != State.DELETED) {
-                elementList.add(element);
-            }
-        }
-    }
-
-    private AmberElement nullIfDeleted(AmberElement element) {
-        element.graph(this);
-        if (element.sessionState() == State.DELETED) {
-            return null;
-        }
-        return element;
     }
 
     protected void commitToPersistent(String operation) {
@@ -665,7 +604,23 @@ public class AmberGraph implements Graph {
             AmberTransaction txn = new AmberTransaction(this, user, operation);
             s("committing transaction " + txn);
 
-            // these steps may occur before commit transaction commences
+            // Give any new elements persistent ids
+            List<AmberVertex> newVertices = sessionDao.findNewVertices();
+            for (AmberVertex v: newVertices) {
+                Long newId = newPersistentId();
+                AmberVertex newV = newSessionVertices.remove(v.getId());
+                if (newV != null) newV.addressId(newId);
+                v.changeId(newId);
+            }
+            
+            List<AmberEdge> newEdges = sessionDao.findNewEdges();
+            for (AmberEdge e: newEdges) {
+                Long newId = newPersistentId();
+                AmberEdge newE = newSessionEdges.remove(e.getId());
+                if (newE != null) newE.addressId(newId);
+                e.changeId(newId);
+            }
+
             stageElements(txn);
 
             List<Long[]> mutatedElements = checkForMutations(txn);
@@ -675,6 +630,7 @@ public class AmberGraph implements Graph {
                 for (Long[] idToTxn : mutatedElements) {
                     s("id:" + idToTxn[0] + " in txn:" + idToTxn[1]);
                 }
+                // REFACTOR
                 throw new TransactionException("Aborting transaction: in future we should do more than just this.");
             }
 
@@ -700,18 +656,19 @@ public class AmberGraph implements Graph {
 
             // remove deleted elements
             sessionDao.begin();
-            sessionDao.clearDeletedProperties(State.DELETED.ordinal());
-            sessionDao.clearDeletedVertices(State.DELETED.ordinal());
-            sessionDao.clearDeletedEdges(State.DELETED.ordinal());
-
+            sessionDao.clearDeletedProperties();
+            sessionDao.clearDeletedVertices();
+            sessionDao.clearDeletedEdges();
+            
             // Mark modified as read
-            sessionDao.resetModifiedVertices(State.MODIFIED.ordinal(), State.READ.ordinal());
-            sessionDao.resetModifiedEdges(State.MODIFIED.ordinal(), State.READ.ordinal());
+            sessionDao.resetModifiedVertices(txn.getId());
+            sessionDao.resetModifiedEdges(txn.getId());
             sessionDao.commit();
 
+            s("end of commit");
             // IMPORTANT: will also get new session start marker, but not implemented yet
 
-        // Exception will be more specific on refactor    
+        // REFACTOR: Exception handling to be more specific  
         } catch (Exception e) {
             s("================= commit failed ===============");
             s("In future we'll do something about it here");
@@ -719,73 +676,38 @@ public class AmberGraph implements Graph {
             throw e;
         }
     }
-
-    
     
     private void stageElements(AmberTransaction txn) {
         s("staging elements...");
         
-        // following 3 methods calls are passed the value for unaltered so they can select 
-        // everything except that. This oddity could definitely be improved in a subsequent 
-        // refactor. I'm just lacking the time to mend this right now.
-
-        List<AmberEdge>     edges      = sessionDao.findAlteredEdges(     State.READ.ordinal());
-        List<AmberVertex>   vertices   = sessionDao.findAlteredVertices(  State.READ.ordinal());
-        List<AmberProperty> properties = sessionDao.findAlteredProperties(State.READ.ordinal(), 
-                                                                          State.DELETED.ordinal());
+        List<AmberEdge>     edges      = sessionDao.findAlteredEdges();
+        List<AmberVertex>   vertices   = sessionDao.findAlteredVertices();
+        List<AmberProperty> properties = sessionDao.findAlteredProperties();
         
-        s("\tvertices being staged: " + vertices.size());
-        s("\tedges being staged: " + edges.size());
+        s("\tedges being staged: "      + edges.size());
+        s("\tvertices being staged: "   + vertices.size());
         s("\tproperties being staged: " + properties.size());
         
-        // Allocate persistent ids to any new elements now. It's simpler to do this here 
-        // than when staged. Note: we need to replace all references too
-        Map<Long, Long> idMap = new HashMap<Long, Long>();
-        for (Long id: sessionDao.findNewIds(State.NEW.ordinal())) {
-            idMap.put(id, newPersistentId());
-        }
-        
         for (AmberVertex v: vertices) {
-            v.graph(this);
-            // sub in persistent id if necessary
-            if (v.sessionState() == State.NEW) {
-                v.id(idMap.get(v.id()));
-            }
-            persistentDao.insertStageVertex(v, txn.id());
+            persistentDao.insertStageVertex(v, txn.getId());
         }
         
         for (AmberEdge e: edges) {
-            e.graph(this);
-            // sub in persistent id if necessary including vertex references
-            if (e.sessionState() == State.NEW) e.id(idMap.get(e.id()));
-            if (e.inVertexId  < 0) e.inVertexId  = idMap.get(e.inVertexId);
-            if (e.outVertexId < 0) e.outVertexId = idMap.get(e.outVertexId);
-            
-            persistentDao.insertStageEdge(e, txn.id());
+            persistentDao.insertStageEdge(e, txn.getId());
         }
         
         for (AmberProperty p: properties) {
-            p.graph(this);
-            // sub in persistent id if necessary
-            if (p.id() < 0) p.id(idMap.get(p.id()));
-
-            switch (p.getType()) {
-                case "s" : persistentDao.insertStageStringProperty(p, txn.id()); break;
-                case "b" : persistentDao.insertStageBooleanProperty(p, txn.id()); break;
-                case "i" : persistentDao.insertStageIntegerProperty(p, txn.id()); break;
-                case "d" : persistentDao.insertStageDoubleProperty(p, txn.id()); break;
-                default: break;
-            }
+            persistentDao.insertStageProperty(p, txn.getId());
         }
     }
 
     private List<Long[]> checkForMutations(AmberTransaction txn) {
-        s("checking for mutations");
+        s("checking for mutations...");
         
-        List<Long[]> deletions = persistentDao.findDeletionMutations(txn.id());
+        List<Long[]> deletions = persistentDao.findDeletionMutations(txn.getId());
         s("\tdeletions: " + deletions.size());
 
-        List<Long[]> alterations = persistentDao.findAlterationMutations(txn.id());
+        List<Long[]> alterations = persistentDao.findAlterationMutations(txn.getId());
         s("\talterations: " + alterations.size());
 
         // IMPORTANT: will need to check for new incident edges too. This will require
@@ -798,25 +720,25 @@ public class AmberGraph implements Graph {
     }
     
     private void commitStaged(AmberTransaction txn, PersistentDao dao) {
-        s("committing staged changes");
+        s("committing staged changes...");
 
         // add an end transaction to superceded and deleted elements 
-        int numEndedVertices = dao.updateSupercededVertices(txn.id(), State.NEW.ordinal());
-        int numEndedEdges = dao.updateSupercededEdges(txn.id(), State.NEW.ordinal());
+        int numEndedVertices = dao.updateSupercededVertices(txn.getId());
+        int numEndedEdges = dao.updateSupercededEdges(txn.getId());
         
         // add an end transaction to superceded and deleted properties 
-        int numEndedProperties = dao.updateSupercededProperties(txn.id(), State.NEW.ordinal());
+        int numEndedProperties = dao.updateSupercededProperties(txn.getId());
         
         // IMPORTANT : will need to delete incident edges for deleted vertices too
         // They may not have been queried into the session, but are non the less
         // affected. This has not been implemented yet, but needs to be.
         
         // add new and modified elements
-        int numInsertedVertices = dao.insertStagedVertices(txn.id(), State.DELETED.ordinal());
-        int numInsertedEdges = dao.insertStagedEdges(txn.id(), State.DELETED.ordinal());
+        int numInsertedVertices = dao.insertStagedVertices(txn.getId());
+        int numInsertedEdges = dao.insertStagedEdges(txn.getId());
         
         // add their properties
-        int numInsertedProperties = dao.insertStagedProperties(txn.id(), State.DELETED.ordinal());
+        int numInsertedProperties = dao.insertStagedProperties(txn.getId());
         
         // just a bit of output - refactor should improve or remove this
         s("\tended vertices: "   + numEndedVertices);
@@ -828,7 +750,7 @@ public class AmberGraph implements Graph {
         s("\tinserted properties: " + numInsertedProperties);
         
         // finally, set the commit flag on our transaction
-        dao.commitTransaction(txn.id(), newPersistentId());
+        dao.commitTransaction(txn.getId(), newPersistentId());
         dao.commit();
     }
     

@@ -23,26 +23,10 @@ public @interface BindAmberProperty {
         public Binder build(Annotation annotation) {
             return new Binder<BindAmberProperty, AmberProperty>() {
                 public void bind(SQLStatement q, BindAmberProperty bind, AmberProperty p) {
-                    q.bind("id", p.id());
-                    q.bind("name", p.name);
-                    q.bind("type", p.getType());
-
-                    switch (p.getType()) {
-                    case "s":
-                        q.bind("s_value", (String) p.getValue());
-                        break;
-                    case "b":
-                        q.bind("b_value", (Boolean) p.getValue());
-                        break;
-                    case "i":
-                        q.bind("i_value", (Integer) p.getValue());
-                        break;
-                    case "d":
-                        q.bind("d_value", (Double) p.getValue());
-                        break;
-                    default:
-                        break;
-                    }
+                    q.bind("id", p.getId());
+                    q.bind("name", p.getName());
+                    q.bind("type", p.getType().toString());
+                    q.bind("value", AmberProperty.encodeBlob(p.getValue()));
                 }
             };
         }

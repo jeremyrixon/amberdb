@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import  amberdb.sql.*;
-import amberdb.sql.Stateful.State;
 import  amberdb.sql.map.*;
 
 import org.skife.jdbi.v2.sqlobject.Bind;
@@ -13,18 +12,10 @@ import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
-import org.skife.jdbi.v2.util.StringMapper;
 
 public interface SessionDao extends Transactional<SessionDao> {
 
-    static final String vertexFields = " id, txn_start, txn_end, state ";
-    
-    static final String edgeFields = " id, txn_start, txn_end, v_out, v_in, label, edge_order, state ";
-    
-    static final String propertyFields = " id, name, type, b_value, s_value, i_value, d_value ";
-    static final String propertyFieldsP = " p.id, p.name, p.type, p.b_value, p.s_value, p.i_value, p.d_value ";
-    
-    
+  
     /*
      *  DB creation operations (DDL)
      */
@@ -33,7 +24,7 @@ public interface SessionDao extends Transactional<SessionDao> {
     		"id         BIGINT UNIQUE, " +
     		"txn_start  BIGINT, " +
     		"txn_end    BIGINT, " +
-    		"state      TINYINT(1))")
+    		"state      CHAR(3))")
     void createVertexTable();
     
     @SqlUpdate(
@@ -45,18 +36,15 @@ public interface SessionDao extends Transactional<SessionDao> {
     		"v_in       BIGINT, " +
     		"label      VARCHAR(100), " +
     		"edge_order BIGINT, " +
-    		"state      TINYINT(1))")
+    		"state      CHAR(3))")
     void createEdgeTable();
     
     @SqlUpdate(
             "CREATE TABLE IF NOT EXISTS property (" +
     		"id      BIGINT, " +
     		"name    VARCHAR(100), " +
-    		"type    CHAR(1), " +
-            "b_value BOOLEAN, " +
-            "s_value TEXT, " +
-            "i_value BIGINT, " +
-            "d_value DOUBLE)")
+    		"type    CHAR(3), " +
+            "value   BLOB)")
     void createPropertyTable();
     @SqlUpdate(
             "CREATE UNIQUE INDEX unique_prop " +
@@ -91,39 +79,6 @@ public interface SessionDao extends Transactional<SessionDao> {
     void dropTables();
     
 
-
-    /*
-     * Add new properties
-     */
-    @SqlUpdate(
-            "INSERT INTO property (id, name, i_value) " +
-            "VALUES (:id, :name, :value)")
-    void createIntegerProperty(
-            @Bind("id") long elementId, 
-            @Bind("name") String name, 
-            @Bind("value") Integer value);
-    @SqlUpdate(
-            "INSERT INTO property (id, name, b_value) " +
-            "VALUES (:id, :name, :value)")
-    void createBooleanProperty(
-            @Bind("id") long elementId,
-            @Bind("name") String name, 
-            @Bind("value") Boolean value);
-    @SqlUpdate(
-            "INSERT INTO property (id, name, d_value) " +
-            "VALUES (:id, :name, :value)")
-    void createDoubleProperty(
-            @Bind("id") long elementId, 
-            @Bind("name") String name, 
-            @Bind("value") Double value);
-    @SqlUpdate(
-            "INSERT INTO property (id, name, s_value) " +
-            "VALUES (:id, :name, :value)")
-    void createStringProperty(
-            @Bind("id") long elementId, 
-            @Bind("name") String name, 
-            @Bind("value") String value);
-    
     @SqlUpdate(
             "UPDATE edge " +
             "SET edge_order = :edgeOrder " +
@@ -133,203 +88,210 @@ public interface SessionDao extends Transactional<SessionDao> {
             @Bind("edgeOrder") Integer edgeOrder);
     
     /*
-     * Deleting things 
-     */
-    @SqlUpdate(
-            "DELETE FROM edge " +
-            "WHERE id = :id")
-    void removeEdge(
-            @Bind("id") long id);
-    @SqlUpdate(
-            "DELETE FROM vertex " +
-            "WHERE id = :id")
-    void removeVertex(
-            @Bind("id") long id);
-    @SqlUpdate(
-            "DELETE FROM property_index " +
-            "WHERE e_id = :id")
-    void removeElementProperties(
-            @Bind("id") long id);
-    @SqlUpdate(
-            "DELETE FROM property_index " +
-            "WHERE e_id IN " +
-            "  (SELECT id FROM edge " +
-            "   WHERE v_id = :id " +
-            "   OR v_out = :id)")
-    void removeIncidentEdgeProperties(
-            @Bind("id") long id);
-    @SqlUpdate(
-            "DELETE FROM edge " +
-            "WHERE v_id = :id " +
-            "OR v_out = :id")
-    void removeIncidentEdges(
-            @Bind("id") long id);
-    
-    /*
      * Find Operations
      */
     @SqlQuery(
-            "SELECT " + vertexFields +
+            "SELECT id " + 
             "FROM vertex " +
             "WHERE id = :id")
     @Mapper(SessionVertexMapper.class)
-    AmberVertex findVertexById(
+    AmberVertex findVertex(
             @Bind("id") long id);
+    
     @SqlQuery(
-            "SELECT " + edgeFields +
+            "SELECT id " +
             "FROM edge " +
             "WHERE id = :id")
     @Mapper(SessionEdgeMapper.class)
     AmberEdge findEdge(
             @Bind("id") long id);
 
-    
-    /*
-     * Finding edges incident to a vertex.
-     */
-    @SqlQuery(
-            "SELECT " + edgeFields +
-            "FROM edge " +
-            "WHERE v_out = :vertexId " +
-            "AND label = :label " +
-            "ORDER BY edge_order")
-    @Mapper(SessionEdgeMapper.class)
-    Iterator<AmberEdge> findOutEdges(
-            @Bind("vertexId") long vertexId, 
-            @Bind("label") String label);
-    @SqlQuery(
-            "SELECT " + edgeFields +
-            "FROM edge " +
-            "WHERE v_out = :vertexId " +
-            "ORDER BY edge_order")
-    @Mapper(SessionEdgeMapper.class)
-    Iterator<AmberEdge> findOutEdges(
-            @Bind("vertexId") long vertexId);
-    @SqlQuery(
-            "SELECT " + edgeFields +
-            "FROM edge " +
-            "WHERE v_in = :vertexId " +
-            "AND label = :label " +
-            "ORDER BY edge_order")
-    @Mapper(SessionEdgeMapper.class)
-    Iterator<AmberEdge> findInEdges(
-            @Bind("vertexId") long vertexId, 
-            @Bind("label") String label);
-    @SqlQuery(
-            "SELECT " + edgeFields +
-            "FROM edge " +
-            "WHERE v_in = :vertexId " +
-            "ORDER BY edge_order")
-    @Mapper(SessionEdgeMapper.class)
-    Iterator<AmberEdge> findInEdges(
-            @Bind("vertexId") long vertexId);
-  
-    
-    void close();
-
-    @SqlQuery(
-            "SELECT " + vertexFields +
-            "FROM vertex " +
-            "WHERE state = :state")
-    @Mapper(SessionVertexMapper.class)
-    List<AmberVertex> findVerticesByState(
-            @Bind("state") int state);
-    
-    @SqlQuery(
-            "SELECT " + edgeFields +
-            "FROM edge " +
-            "WHERE state = :state")
-    @Mapper(SessionEdgeMapper.class)
-    List<AmberEdge> findEdgesByState(
-            @Bind("state") int state);
-
 
     /*
      * find elements to be staged
      */
     @SqlQuery(
-            "SELECT " + vertexFields +
+            "SELECT id " +
             "FROM vertex " +
-            "WHERE state <> :unalteredState")
+            "WHERE state <> 'AMB'")
     @Mapper(SessionVertexMapper.class)
-    List<AmberVertex> findAlteredVertices(
-            @Bind("unalteredState") int readState);
+    List<AmberVertex> findAlteredVertices();
+    
     @SqlQuery(
-            "SELECT " + edgeFields +
+            "SELECT id " +
             "FROM edge " +
-            "WHERE state <> :unalteredState")
+            "WHERE state <> 'AMB'")
     @Mapper(SessionEdgeMapper.class)
-    List<AmberEdge> findAlteredEdges(
-            @Bind("unalteredState") int readState);
+    List<AmberEdge> findAlteredEdges();
+    
     @SqlQuery(
-            "SELECT " + propertyFieldsP +
+            "SELECT p.id, p.name, p.type, p.value " +
             "FROM property p, vertex v " +
             "WHERE p.id = v.id " +
-            "AND v.state <> :unalteredState " +
+            "AND v.state <> 'AMB' " +
+            "AND v.state <> 'DEL' " +
             "UNION " +
-            "SELECT " + propertyFieldsP +
+            "SELECT p.id, p.name, p.type, p.value " +
             "FROM property p, edge e " +
             "WHERE p.id = e.id " +
-            "AND e.state <> :unalteredState " +
-            "AND e.state <> :deletedState")
+            "AND e.state <> 'AMB' " +
+            "AND e.state <> 'DEL'")
     @Mapper(SessionPropertyMapper.class)
-    List<AmberProperty> findAlteredProperties(
-            @Bind("unalteredState") int readState,
-            @Bind("deletedState") int deletedState);
+    List<AmberProperty> findAlteredProperties();
     
     @SqlQuery(
             "SELECT id " +
             "FROM vertex " +
-            "WHERE state = :newState " +
+            "WHERE state = 'NEW' " +
             "AND id < 0 " +
             "UNION " +
             "SELECT id " +
             "FROM edge " +
-            "WHERE state = :newState " +
+            "WHERE state = 'NEW' " +
             "AND id < 0 " +
             "ORDER BY id")
-    List<Long> findNewIds(
-            @Bind("newState") int newState);
+    List<Long> findNewIds();
 
+    @SqlQuery(
+            "SELECT id " +
+            "FROM vertex " +
+            "WHERE state = 'NEW' " +
+            "AND id < 0 " +
+            "ORDER BY id")
+    @Mapper(SessionVertexMapper.class)
+    List<AmberVertex> findNewVertices();
+    
+    @SqlQuery(
+            "SELECT id " +
+            "FROM edge " +
+            "WHERE state = 'NEW' " +
+            "AND id < 0 " +
+            "ORDER BY id")
+    @Mapper(SessionEdgeMapper.class)
+    List<AmberEdge> findNewEdges();
+    
     @SqlUpdate(
             "DELETE FROM vertex " +
-            "WHERE state = :deletedState")
-    void clearDeletedVertices(
-            @Bind("deletedState") int deletedState);
+            "WHERE state = 'DEL'")
+    void clearDeletedVertices();
 
     @SqlUpdate(
             "DELETE FROM edge " +
-            "WHERE state = :deletedState")
-    void clearDeletedEdges(
-            @Bind("deletedState") int deletedState);
+            "WHERE state = 'DEL'")
+    void clearDeletedEdges();
     
     @SqlUpdate(
             "DELETE FROM property " +
             "WHERE id IN " +
             "  (SELECT id FROM edge " +
-            "   WHERE state = :deletedState " +
+            "   WHERE state = 'DEL' " +
             "   UNION " +
             "   SELECT id FROM vertex " +
-            "   WHERE state = :deletedState)")
-    void clearDeletedProperties(
-            @Bind("deletedState") int deletedState);
+            "   WHERE state = 'DEL')")
+    void clearDeletedProperties();
     
     @SqlUpdate(
             "UPDATE vertex " +
-            "SET state =:readState " +
-            "WHERE state = :modifiedState")
+            "SET state = 'AMB', " +
+            "txn_start = :txnId " +
+            "WHERE (state = 'MOD' OR state = 'NEW')")
     void resetModifiedVertices(
-            @Bind("modifiedState") int modifiedState,
-            @Bind("readState") int readState);
+            @Bind("txnId") long txnId);
 
     @SqlUpdate(
             "UPDATE edge " +
-            "SET state =:readState " +
-            "WHERE state = :modifiedState")
+            "SET state = 'AMB', " +
+            "txn_start = :txnId " +
+            "WHERE (state = 'MOD' OR state = 'NEW')")
     void resetModifiedEdges(
-            @Bind("modifiedState") int modifiedState,
-            @Bind("readState") int readState);
+            @Bind("txnId") long txnId);
+
+    @SqlUpdate(
+            "UPDATE vertex " +
+            "SET id = :newId " +
+            "WHERE id = :oldId")
+    void updateVertexIds(
+            @Bind("oldId") Long oldId, 
+            @Bind("newId") Long newId);
     
+    @SqlUpdate(
+            "UPDATE edge " +
+            "SET id = :newId " +
+            "WHERE id = :oldId")
+    void updateEdgeIds(
+            @Bind("oldId") Long oldId, 
+            @Bind("newId") Long newId);
+    
+    @SqlUpdate(
+            "UPDATE edge " +
+            "SET v_out = :newId " +
+            "WHERE v_out = :oldId")
+    void updateEdgeOutIds(
+            @Bind("oldId") Long oldId, 
+            @Bind("newId") Long newId);
+    
+    @SqlUpdate(
+            "UPDATE edge " +
+            "SET v_in = :newId " +
+            "WHERE v_in = :oldId")
+    void updateEdgeInIds(
+            @Bind("oldId") Long oldId, 
+            @Bind("newId") Long newId);
+    
+    @SqlUpdate(
+            "UPDATE property " +
+            "SET id = :newId " +
+            "WHERE id = :oldId")
+    void updatePropertyIds(
+            @Bind("oldId") Long oldId, 
+            @Bind("newId") Long newId);
+    
+    @SqlQuery(
+            "SELECT id, name, type, value " +
+            "FROM property")
+    @Mapper(SessionPropertyMapper.class)
+    List<AmberProperty> findProperties();
+
+
+    @SqlQuery(
+            "SELECT id " +
+            "FROM edge " +
+            "WHERE state <> 'DEL' " +
+            "ORDER BY edge_order")
+    @Mapper(SessionEdgeMapper.class)
+    Iterator<AmberEdge> getEdges();
+
+    @SqlQuery(
+            "SELECT e.id " +
+            "FROM edge e, property p " +
+            "WHERE e.id = p.id " +
+            "AND p.name = :name " +
+            "AND p.value = :value " +
+            "ORDER BY e.edge_order")
+    @Mapper(SessionEdgeMapper.class)
+    Iterator<AmberEdge> findEdgesWithProperty(
+            @Bind("name") String name,
+            @Bind("value") byte[] value);
+    
+    @SqlQuery(
+            "SELECT id " +
+            "FROM vertex " +
+            "WHERE state <> 'DEL'")
+    @Mapper(SessionVertexMapper.class)
+    Iterator<AmberVertex> findVertices();
+
+    @SqlQuery(
+            "SELECT v.id " +
+            "FROM vertex v, property p " +
+            "WHERE v.id = p.id " +
+            "AND p.name = :name " +
+            "AND p.value = :value")
+    @Mapper(SessionVertexMapper.class)
+    Iterator<AmberVertex> findVerticesWithProperty(
+            @Bind("name") String name,
+            @Bind("value") byte[] value);
+
+    void close();
 
 }
 
