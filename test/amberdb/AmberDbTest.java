@@ -33,6 +33,7 @@ public class AmberDbTest {
 		Work w1, w2;
 		try (AmberDb db = new AmberDb(folder.getRoot().toPath())) {
 			w1 = db.addWork();
+            s("added w1: "+w1);			
 		}
 		try (AmberDb db = new AmberDb(folder.getRoot().toPath())) {
 			assertNotNull(db.findWork(w1.getId()));
@@ -41,4 +42,7 @@ public class AmberDbTest {
 		assertNotEquals(w1.getId(), w2.getId());
 	}
 
+	public void s(String s) {
+	    System.out.println(s);
+	}
 }

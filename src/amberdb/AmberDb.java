@@ -30,10 +30,13 @@ public class AmberDb implements AutoCloseable {
 	 */
 	public AmberDb() {
 	    
-	    DataSource ds = JdbcConnectionPool.create("jdbc:h2:mem:ds","fish","finger");
+	    DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:mem:","fish","fish");
+        DataSource persistDs = JdbcConnectionPool.create("jdbc:h2:~/h2-test-persist","pers","pers");
 	    
 	    //graph = openGraph(new TinkerGraph());
-		graph = openGraph(new AmberGraph(ds, "test"));
+        AmberGraph amber = new AmberGraph(sessionDs, persistDs, "test");
+        amber.createPersistentDataStore();
+		graph = openGraph(amber);
 		dataPath = null;
 	}
 
@@ -42,9 +45,16 @@ public class AmberDb implements AutoCloseable {
 	 */
 	public AmberDb(Path dataPath) throws IOException {
 		Files.createDirectories(dataPath);
-		DataSource ds = JdbcConnectionPool.create("jdbc:h2:"+dataPath,"fish","finger");
+        DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:"+dataPath+"-sess","fish","fish");
+        DataSource persistDs = JdbcConnectionPool.create("jdbc:h2:"+dataPath+"-pers","pers","pers");
+
+        s("sess db at : "+ dataPath+"-sess");
+        s("pers db at : "+ dataPath+"-pers");
+        
         //graph = openGraph(new TinkerGraph(dataPath.resolve("graph").toString(), TinkerGraph.FileType.GML));
-        graph = openGraph(new AmberGraph(ds));
+        AmberGraph amber = new AmberGraph(sessionDs, persistDs, "test");
+        amber.createPersistentDataStore();
+        graph = openGraph(amber);
 		this.dataPath = dataPath;
 		try {
 			objectIdSeq.load(dataPath.resolve("objectIdSeq"));
@@ -53,6 +63,10 @@ public class AmberDb implements AutoCloseable {
 		}
 	}
 
+	public void s(String s) {
+	    System.out.println(s);
+	}
+	
  //   private static FramedGraph<TinkerGraph> openGraph(TinkerGraph tinker) {
 	private static FramedGraph<AmberGraph> openGraph(AmberGraph tinker) {
 		return new FramedGraphFactory(

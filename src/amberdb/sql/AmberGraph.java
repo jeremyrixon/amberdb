@@ -55,6 +55,7 @@ public class AmberGraph implements Graph {
     
     boolean persistence = false;
     boolean autoCommit = false;
+    boolean multiUserSession = true;
     
     /* 
      * Constructors
@@ -159,11 +160,15 @@ public class AmberGraph implements Graph {
     protected void initSessionDataStore(SessionDao dao) {
         dao.begin();
         
-        dao.dropTables();
+        if (!multiUserSession) {
+            dao.dropTables();
+        }
         dao.createVertexTable();
         dao.createEdgeTable();
         dao.createPropertyTable();
-        dao.createPropertyIndex();
+        if (!multiUserSession) {
+            dao.createPropertyIndex();
+        }    
         dao.createIdGeneratorTable();
         newSessionId(); // seed generator with id > 0
         
@@ -180,7 +185,7 @@ public class AmberGraph implements Graph {
      * @param dao
      *            the persistent data access object
      */
-    protected void createPersistentDataStore() {
+    public void createPersistentDataStore() {
         persistentDao.begin();
  
         //persistentDao.dropTables();
@@ -583,8 +588,10 @@ public class AmberGraph implements Graph {
     public void shutdown() {
         
         if (persistence) persistentDao.close();
-
-        sessionDao.dropTables();
+        
+        if (!multiUserSession) {
+            sessionDao.dropTables();
+        }
         sessionDao.close();
         vertexDao.close();
         edgeDao.close();
