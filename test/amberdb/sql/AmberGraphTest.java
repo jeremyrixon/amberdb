@@ -1,8 +1,5 @@
 package amberdb.sql;
 
-import amberdb.sql.dao.*;
-import amberdb.sql.map.*;
-
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -10,8 +7,6 @@ import java.net.MalformedURLException;
 import javax.sql.DataSource;
 
 import org.h2.jdbcx.JdbcConnectionPool;
-import org.skife.jdbi.v2.DBI;
-import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 import com.tinkerpop.blueprints.EdgeTestSuite;
 import com.tinkerpop.blueprints.GraphTestSuite;
@@ -21,13 +16,14 @@ import com.tinkerpop.blueprints.VertexTestSuite;
 
 public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
 
-    public static DBI dbi = null;
-    public static final String dsUrl = "jdbc:h2:~/h2test";
+    public AmberGraph graph;
     
     public void setup() throws MalformedURLException, IOException {
-        System.out.println("Setting up database");
+        
+        System.out.println("Setting up graph");
 
-        DataSource ds = JdbcConnectionPool.create(dsUrl,"fish","finger");
+        DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:~/h2testSession","sess","sess");
+        DataSource persistentDs = JdbcConnectionPool.create("jdbc:h2:~/h2testPersist","persist","persist");
         
 //        MysqlDataSource ds = new MysqlDataSource();
 //        ds.setUser("dlir");
@@ -36,26 +32,10 @@ public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
 //        ds.setPort(3306);
 //        ds.setDatabaseName("dlir");
         
-        dbi = new DBI(ds);
-        PersistentDao dao = dbi.open(PersistentDao.class);
-        
-        dao.dropTables();
-        dao.createVertexTable();
-        dao.createEdgeTable();
-        dao.createPropertyTable();
-        //dao.createPropertyIndex();
-        dao.createIdGeneratorTable();
-        dao.createTransactionTable();
-
-        dao.close();
+        graph = new AmberGraph(sessionDs, null, "tester");
     }
 
-    public static void teardown() {
-        PersistentDao dao = dbi.open(PersistentDao.class);
-        dao.dropTables();
-        dao.close();
-        dbi = null;
-    }
+    public static void teardown() {}
 
     public void testVertexTestSuite() throws Exception {
         setup();
@@ -127,7 +107,7 @@ public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
             e.printStackTrace();
             throw new RuntimeException("Setup failed!");
         }
-        return new AmberGraph(dbi);
+        return graph;
     }
     @Override
     public Graph generateGraph() {
