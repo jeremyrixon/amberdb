@@ -72,6 +72,11 @@
 
 
 	<dependencies>
+        <dependency>
+            <groupId>au.gov.nla</groupId>
+            <artifactId>doss</artifactId>
+            <version>0.22.0</version>
+        </dependency>
 		<dependency>
 			<groupId>org.jdbi</groupId>
 			<artifactId>jdbi</artifactId>
@@ -171,4 +176,10 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+    <repositories>
+        <repository>
+            <id>nla-public-releases</id>
+            <url>http://maven.nla.gov.au/releases</url>
+        </repository>
+    </repositories>
 </project>

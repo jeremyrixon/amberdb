@@ -1,11 +1,12 @@
 package amberdb;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 
 public class JobMockup {
     int txId;
-    List<File> files;
+    List<Path> files;
     List<Long> workIds;
 
     public Integer getAmberTxId() {

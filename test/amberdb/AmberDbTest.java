@@ -3,12 +3,17 @@ package amberdb;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.apache.tools.ant.util.WorkerAnt;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import amberdb.enums.CopyRole;
+import amberdb.model.Copy;
+import amberdb.model.Page;
 import amberdb.model.Work;
 
 public class AmberDbTest {
@@ -47,4 +52,16 @@ public class AmberDbTest {
         assertNotEquals(w1.getId(), w2.getId());
     }
 
+    @Test
+    public void testIngestBook() throws IOException {
+        Path tmpFile = folder.newFile().toPath();
+        Files.write(tmpFile, "Hello world".getBytes());
+        try (AmberDb db = new AmberDb()) {
+            Work book = db.addWork();
+            book.setTitle("Test book");
+            for (int i = 0; i < 10; i++) {
+                book.addPage().addCopy(tmpFile, CopyRole.MASTER_COPY);
+            }
+        }
+    }
 }
