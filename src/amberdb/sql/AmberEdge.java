@@ -8,78 +8,89 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 
-public class AmberEdge extends AmberElement implements Edge {
+public class AmberEdge implements Edge {
 
-    public long inVertexId;
-    public long outVertexId;
-    public String label;
-    public Integer edgeOrder = 0;
+    private long id;
 
     public static final String SORT_ORDER_PROPERTY_NAME = "edge-order";
 
-    private EdgeDao dao() { return graph().edgeDao(); }   
-    
-    // this constructor for getting an edge from the persistent db
-    public AmberEdge(long id, Long txnStart, Long txnEnd, long outVertexId, 
-            long inVertexId, String label, int edgeOrder) {
-        
-        // check if it's already in session
-        if (dao().findEdge(id) != null) {
-            throw new InSessionException("Edge with id already exists: " + id);
-        }
-        
-        id(id);
-        txnStart(txnStart);
-        txnEnd(txnEnd);
-        
-        this.label = label;
-        this.inVertexId = inVertexId;
-        this.outVertexId = outVertexId;
-        this.edgeOrder = edgeOrder;
-        
-    }    
-
-    // This constructor for creating a new edge
-    public AmberEdge(long id, long outVertexId, long inVertexId, String label) {
-
-        id(id);
-        this.label = label;
-        this.inVertexId = inVertexId;
-        this.outVertexId = outVertexId;
-        
-    }    
-    
-    // This constructor for getting an edge from the session
-    public AmberEdge(Long id, Long txnStart, Long txnEnd, Long outVertexId, 
-            Long inVertexId, String label, int edgeOrder, int state) {
-        
-        id(id);
-        txnStart(txnStart);
-        txnEnd(txnEnd);
-        
-        this.label = label;
-        this.inVertexId = inVertexId;
-        this.outVertexId = outVertexId;
-        this.edgeOrder = edgeOrder;
-
+    /**
+     * Change the id of this edge
+     * @param newId
+     */
+    protected void changeId(long newId) {
+        dao().changeEdgeId(id, newId);
+        dao().changeEdgePropertyIds(id, newId);
+        id = newId;
+    }
+    /**
+     * Point this edge object at a different edge instance
+     * @param id
+     */
+    public void addressId(long id) {
+        this.id = id;
     }
 
-    public void addToSession(AmberGraph graph, State state, boolean getPersistentProperties) {
- 
-        graph(graph);
-        sessionState(state);
-        dao().insertEdge(id(), txnStart(), txnEnd(), outVertexId,
-                inVertexId, label, edgeOrder, sessionState().ordinal());
+    private AmberGraph graph;
+    protected void setGraph(AmberGraph graph) {
+        this.graph = graph;
+    }
+    
+    private EdgeDao dao() {
+        return graph.edgeDao();
+    }
+    
+    // this constructor for getting an edge from amber
+    public AmberEdge(AmberGraph graph, long id) {
+        
+        if (graph == null) throw new RuntimeException("graph cannot be null");
 
-        // load properties
-        if (getPersistentProperties) {
-            graph().loadPersistentProperties(id());
-        }
+        setGraph(graph);
+        this.id = id;
+    }
+    
+    // this constructor for creating a new edge in session
+    public AmberEdge(AmberGraph graph, long outVertexId, long inVertexId, String label) {
+        
+        if (graph == null) throw new RuntimeException("graph cannot be null");
+
+        setGraph(graph);
+        this.id = graph.newSessionId();
+        dao().insertEdge(id, null, null, outVertexId, inVertexId, label, 0, State.NEW.toString());
+        graph.addToNewEdges(this);
     }
 
+    public Long getTxnStart() {
+        return dao().getEdgeTxnStart(id);
+    }
+
+    public void setTxnStart(Long txnStart) {
+        dao().setEdgeTxnStart(id, txnStart);
+    }
+    
+    public void setState(State state) { 
+        dao().setEdgeState(id, state.toString());
+    }
+    
+    public State getState() { 
+        return State.valueOf(dao().getEdgeState(id));
+    }
+
+    public Long getInVertexId() {
+        return dao().getInVertexId(id);
+    }
+
+    public Long getOutVertexId() {
+        return dao().getOutVertexId(id);
+    }
+
+    public Integer getEdgeOrder() {
+        return dao().getEdgeOrder(id);
+    }
+    
     @Override
     public Object getId() {
-        return id();
+        return id;
     }
 
     @SuppressWarnings("unchecked")
@@ -88,9 +99,12 @@ public class AmberEdge extends AmberElement implements Edge {
         
         // get special sorting property 
         if (propertyName.equals(SORT_ORDER_PROPERTY_NAME)) {
-            return (T) (Integer) dao().getEdgeOrder(id());
+            return (T) (Integer) dao().getEdgeOrder(id);
         }
-        return super.getProperty(propertyName);
+        
+        AmberProperty property = dao().getProperty(id, propertyName);
+        if (property == null) return null;
+        return (T) property.getValue();
     }
 
     @Override
@@ -99,10 +113,10 @@ public class AmberEdge extends AmberElement implements Edge {
         // The property keys returned do not include the
         // special sorting property name as it breaks 
         // the edge test suite.
-        Set<String> properties = super.getPropertyKeys();
+        
         //properties.add(SORT_ORDER_PROPERTY_NAME);
         
-        return properties;
+        return dao().getPropertyKeys(id);
     }
 
     @SuppressWarnings("unchecked")
@@ -112,11 +126,18 @@ public class AmberEdge extends AmberElement implements Edge {
         // you cannot remove the special sorting
         // property this method just returns it
         if (propertyName.equals(SORT_ORDER_PROPERTY_NAME)) {
-            return (T) (Integer) dao().getEdgeOrder(id());
+            return (T) (Integer) dao().getEdgeOrder(id);
         }
         
-        T prop = super.removeProperty(propertyName);
-        if (graph().autoCommit) graph().commitToPersistent("edge removeProperty");
+        T prop = getProperty(propertyName);
+        dao().removeProperty(id, propertyName);
+
+        // set state as modified (MOD) if it was originally unaltered (AMB)
+        if (dao().getEdgeState(id).equals(State.AMB.toString())) {
+            dao().setEdgeState(id, State.MOD.toString());
+        }
+        
+        if (graph.autoCommit) graph.commitToPersistent("edge removeProperty");
         return prop;
     }
 
@@ -128,7 +149,8 @@ public class AmberEdge extends AmberElement implements Edge {
             throw new IllegalArgumentException("Illegal property name [" + propertyName + "]");
         }
         if (!(value instanceof Integer || value instanceof String || 
-              value instanceof Boolean || value instanceof Double)) {
+              value instanceof Boolean || value instanceof Double ||
+              value instanceof Long)) {
             throw new IllegalArgumentException("Illegal property type [" + value.getClass() + "].");
         }
         if (!(value instanceof Integer) && propertyName.equals(SORT_ORDER_PROPERTY_NAME)) {
@@ -138,26 +160,37 @@ public class AmberEdge extends AmberElement implements Edge {
         
         // set special sorting property 
         if (propertyName.equals(SORT_ORDER_PROPERTY_NAME)) {
-            edgeOrder = (Integer) value;
-            dao().updateEdgeOrder(id(), edgeOrder);
-            if (sessionState() == State.READ) {
-                sessionState(State.MODIFIED);
-            }
-            return;
+            dao().setEdgeOrder(id, (Integer) value);
+        } else {
+            dao().removeProperty(id, propertyName);
+            dao().setProperty(id, propertyName, DataType.forObject(value), AmberProperty.encodeBlob(value));
+        }
+
+        // set state as modified (MOD) if it was originally unaltered (AMB)
+        if (dao().getEdgeState(id).equals(State.AMB.toString())) {
+            dao().setEdgeState(id, State.MOD.toString());
         }
         
-        super.setProperty(propertyName, value);
-        if (graph().autoCommit) graph().commitToPersistent("edge setProperty");
+        if (graph.autoCommit) graph.commitToPersistent("edge setProperty");
     }    
 
     @Override
     public void remove() {
-        super.remove();
+
+        // remove the actual record if it is new
+        if (dao().getEdgeState(id).equals(State.NEW.toString())) {
+            dao().removeEdge(id);
+        } else {
+            // Otherwise, mark as deleted so we can preserve this in amber
+            dao().setEdgeState(id, State.DEL.toString());
+        }
+        dao().removeEdgeProperties(id);
+        return;
     }
 
     @Override
     public String getLabel() {
-        return label.toString();
+        return dao().getEdgeLabel(id);
     }
 
     @Override
@@ -170,38 +203,31 @@ public class AmberEdge extends AmberElement implements Edge {
         
         AmberVertex vertex = null;
         if (direction == Direction.IN) {
-            vertex = findVertex(inVertexId);
+            vertex = findVertex(dao().getInVertexId(id));
         } else if (direction == Direction.OUT) {
-            vertex = findVertex(outVertexId);
+            vertex = findVertex(dao().getOutVertexId(id));
         }
         return vertex;
     }
 
-    private AmberVertex findVertex(long id) {
+    private AmberVertex findVertex(Long id) {
 
-        // check session before permanent data store
-        AmberVertex vertex = dao().findVertex(id);
-        if (vertex != null) {
-            vertex.graph(graph());
-            State state = vertex.sessionState();
-            if (state == State.DELETED) return null;
-            if (state == State.NEW || state == State.READ || state == State.MODIFIED) {
-                return vertex;
-            }    
+        if (id != null) {
+            // check session before permanent data store
+            if (dao().getVertexState(id).equals(State.DEL.toString()))
+                return null;
+            return new AmberVertex(graph, id);
         }
         
         // not in session yet, so try permanent data store
-        return (AmberVertex) graph().getVertex(id);
+        return (AmberVertex) graph.getVertex(id);
     }
     
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((Long) id()).hashCode();
-        result = prime * result + (int) (inVertexId ^ (inVertexId >>> 32));
-        result = prime * result + ((label == null) ? 0 : label.hashCode());
-        result = prime * result + (int) (outVertexId ^ (outVertexId >>> 32));
+        result = prime * result + ((Long) id).hashCode();
         return result;
     }
 
@@ -213,28 +239,25 @@ public class AmberEdge extends AmberElement implements Edge {
         if (getClass() != obj.getClass()) return false;
 
         AmberEdge other = (AmberEdge) obj;
-        if (id() != other.id()) return false;
-        if (inVertexId != other.inVertexId) return false;
-        if (outVertexId != other.outVertexId) return false;
-        
-        if (label == null) {
-            if (other.label != null) return false;
-        } else if (!label.equals(other.label)) return false;
+        if (id != (Long) other.getId()) return false;
 
         return true;
     }
     
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("edge id:").append(id())
-        .append(" label:").append(label)
-        .append(" out:").append(outVertexId)
-        .append(" in:").append(inVertexId)
-        .append(" properties:").append(super.toString())
-        .append(" start:").append(txnStart())
-        .append(" end:").append(txnEnd())
-        .append(" order:").append(edgeOrder)
-        .append(" state:").append(sessionState().toString());
+        sb.append("edge id:").append(id)
+        .append(" label:").append(dao().getEdgeLabel(id))
+        .append(" out:").append(dao().getOutVertexId(id))
+        .append(" in:").append(dao().getInVertexId(id))
+        .append(" start:").append(dao().getEdgeTxnStart(id))
+        .append(" end:").append(dao().getEdgeTxnEnd(id))
+        .append(" order:").append(dao().getEdgeOrder(id))
+        .append(" state:").append(dao().getEdgeState(id));
         return sb.toString();
+    }
+    
+    private void s(String s) {
+        System.out.println(s);
     }
 }

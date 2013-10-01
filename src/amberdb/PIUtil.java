@@ -29,6 +29,8 @@ public class PIUtil {
     public static int taq(Long number) {
         if (number == null)
             throw new IllegalArgumentException("The input objId is null.");
+        if (number < 0)
+            number = -number;
         
         char interim = '0';
         char[] numStr= new Long(number).toString().toCharArray();
@@ -39,7 +41,11 @@ public class PIUtil {
     }
     
     public static String format(Long objId) {
-        return PI_PREFIX + objId + taq(objId);
+        try {
+            return PI_PREFIX + objId + taq(objId);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new RuntimeException("wot " + objId, e);
+        }
     }
     
     public static long parse(String pi) {

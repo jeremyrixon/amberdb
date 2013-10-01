@@ -5,15 +5,18 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import javax.sql.DataSource;
+
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.h2.jdbcx.JdbcConnectionPool;
 
 import amberdb.model.Section;
 import amberdb.model.Work;
+import amberdb.sql.AmberGraph;
 
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.tg.TinkerGraph;
 import com.tinkerpop.blueprints.util.io.graphson.GraphSONWriter;
 import com.tinkerpop.blueprints.util.wrappers.WrapperGraph;
 import com.tinkerpop.blueprints.util.wrappers.wrapped.WrappedGraph;
@@ -35,10 +38,19 @@ public class AmberDb implements AutoCloseable {
      * Constructs an in-memory AmberDb for testing with.
      */
     public AmberDb() {
-        graph = openGraph(new TinkerGraph());
         tempDir = new TempDirectory();
         tempDir.deleteOnExit();
+        
+        // DOSS
         blobStore = openBlobStore(tempDir.getPath());
+        
+        // Graph
+        DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:mem:", "fish", "fish");
+        DataSource persistDs = JdbcConnectionPool.create("jdbc:h2:" + tempDir.getPath().resolve("graph"), "pers", "pers");
+        AmberGraph amber = new AmberGraph(sessionDs, persistDs, "amberdb");
+        amber.createPersistentDataStore();
+        graph = openGraph(amber);
+
     }
 
     /**
@@ -46,11 +58,19 @@ public class AmberDb implements AutoCloseable {
      */
     public AmberDb(Path dataPath) throws IOException {
         Files.createDirectories(dataPath);
-        graph = openGraph(new TinkerGraph(dataPath.resolve("graph").toString(), TinkerGraph.FileType.GML));
         tempDir = null;
+        
+        // DOSS
         blobStore = openBlobStore(dataPath);
-    }
 
+        // Graph
+        DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:" + dataPath.resolve("session"), "fish", "fish");
+        DataSource persistDs = JdbcConnectionPool.create("jdbc:h2:" + dataPath.resolve("graph"), "pers", "pers");
+        AmberGraph amber = new AmberGraph(sessionDs, persistDs, "amberdb");
+        amber.createPersistentDataStore();
+        graph = openGraph(amber);
+    }
+    
     private BlobStore openBlobStore(Path root) {
         try {
             return LocalBlobStore.open(root);
