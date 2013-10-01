@@ -38,17 +38,17 @@ public class PIUtil {
         return interim - '0';
     }
     
-    public static String pi(Long objId) {
+    public static String format(Long objId) {
         return PI_PREFIX + objId + taq(objId);
     }
     
-    public static long objId(String pi) {
-        if (!isValidPI(pi))
+    public static long parse(String pi) {
+        if (!isValid(pi))
             throw new IllegalArgumentException("The input pi " + pi + " is invalid.");
         return new Long(pi.substring(pi.indexOf(PI_PREFIX) + 8, pi.length() - 1));
     }
     
-    public static boolean isValidPI(String pi) {
+    public static boolean isValid(String pi) {
         return (taq(new Long(pi.substring(pi.indexOf(PI_PREFIX) + 8))) == 0);
     }
 }

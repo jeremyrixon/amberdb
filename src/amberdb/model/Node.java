@@ -33,7 +33,7 @@ public interface Node extends VertexFrame {
 		
 		@Override
 		public String getObjId() {
-		    return PIUtil.pi(getId());
+		    return PIUtil.format(getId());
 		}
     }
 }
