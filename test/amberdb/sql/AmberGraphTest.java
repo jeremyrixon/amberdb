@@ -126,4 +126,9 @@ public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
             }
         }
     }
+    
+    public void testVertexQuery() throws Exception {
+        setup();
+        assertNotNull(graph.addVertex(null).query());
+    }
 }

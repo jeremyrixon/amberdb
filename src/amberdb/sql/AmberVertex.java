@@ -13,6 +13,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.VertexQuery;
+import com.tinkerpop.blueprints.util.DefaultVertexQuery;
 
 public class AmberVertex implements Vertex {
 
@@ -304,8 +305,7 @@ public class AmberVertex implements Vertex {
     
     @Override
     public VertexQuery query() {
-        // TODO Auto-generated method stub
-        return null;
+        return new DefaultVertexQuery(this);
     }
     
     @Override
