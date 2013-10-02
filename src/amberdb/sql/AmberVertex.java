@@ -22,11 +22,13 @@ public class AmberVertex implements Vertex {
      * @param newId
      */
     protected void changeId(long newId) {
+        dao().begin();
         dao().changeVertexId(id, newId);
         dao().changeVertexPropertyIds(id, newId);
         dao().changeInVertexIds(id, newId);
         dao().changeOutVertexIds(id, newId);
         id = newId;
+        dao().commit();
     }
     /**
      * Point this vertex object at a different vertex instance

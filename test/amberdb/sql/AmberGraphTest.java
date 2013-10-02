@@ -7,6 +7,8 @@ import java.net.MalformedURLException;
 import javax.sql.DataSource;
 
 import org.h2.jdbcx.JdbcConnectionPool;
+import org.junit.After;
+import org.junit.Before;
 
 import com.tinkerpop.blueprints.EdgeTestSuite;
 import com.tinkerpop.blueprints.GraphTestSuite;
@@ -18,6 +20,7 @@ public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
 
     public AmberGraph graph;
     
+    @Before
     public void setup() throws MalformedURLException, IOException {
         
         System.out.println("Setting up graph");
@@ -36,30 +39,25 @@ public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
         graph = new AmberGraph(sessionDs, null, "tester");
     }
 
-    public static void teardown() {}
+    @After
+    public void teardown() {}
 
     public void testVertexTestSuite() throws Exception {
-        setup();
         this.stopWatch();
         doTestSuite(new VertexTestSuite(this));
         printTestPerformance("VertexTestSuite", this.stopWatch());
-        teardown();
     }
 
     public void testEdgeTestSuite() throws Exception {
-        setup();
         this.stopWatch();
         doTestSuite(new EdgeTestSuite(this));
         printTestPerformance("EdgeTestSuite", this.stopWatch());
-        teardown();
     }
 
     public void testGraphTestSuite() throws Exception {
-        setup();
         this.stopWatch();
         doTestSuite(new GraphTestSuite(this));
         printTestPerformance("GraphTestSuite", this.stopWatch());
-        teardown();
     }
 
     // public void testKeyIndexableGraphTestSuite() throws Exception {

@@ -14,7 +14,11 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 public class PersistentEdgeMapper implements ResultSetMapper<AmberEdge> {
     
-    public static AmberGraph graph;
+    private AmberGraph graph;
+    
+    public PersistentEdgeMapper(AmberGraph graph) {
+        this.graph = graph;
+    }
     
     public AmberEdge map(int index, ResultSet rs, StatementContext ctx)
             throws SQLException {

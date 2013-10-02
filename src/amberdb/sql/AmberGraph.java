@@ -3,9 +3,13 @@ package amberdb.sql;
 import amberdb.sql.State;
 import amberdb.sql.dao.*;
 import amberdb.sql.map.PersistentEdgeMapper;
+import amberdb.sql.map.PersistentEdgeMapperFactory;
 import amberdb.sql.map.PersistentVertexMapper;
+import amberdb.sql.map.PersistentVertexMapperFactory;
 import amberdb.sql.map.SessionEdgeMapper;
+import amberdb.sql.map.SessionEdgeMapperFactory;
 import amberdb.sql.map.SessionVertexMapper;
+import amberdb.sql.map.SessionVertexMapperFactory;
 
 import java.lang.reflect.Field;
 import java.sql.Blob;
@@ -52,6 +56,8 @@ public class AmberGraph implements Graph {
 
     /** Identify this graph instance */
     private String user;
+    
+    //protected AmberGraphHelper helper;
     
     boolean persistence = false;
     boolean autoCommit = false;
@@ -127,6 +133,15 @@ public class AmberGraph implements Graph {
             persistence = true;
             persistentDbi = new DBI(persistentDs);
             
+            // register mapper factories for passing this graph to elements instantiated 
+            PersistentVertexMapperFactory pvFactory = new PersistentVertexMapperFactory();
+            persistentDbi.registerMapper(pvFactory);
+            pvFactory.setGraph(this);
+            
+            PersistentEdgeMapperFactory peFactory = new PersistentEdgeMapperFactory();
+            persistentDbi.registerMapper(peFactory);
+            peFactory.setGraph(this);
+            
             // set up required data access objects
             persistentDao = persistentDbi.onDemand(PersistentDao.class);
             transactionDao = persistentDbi.onDemand(TransactionDao.class);
@@ -134,6 +149,16 @@ public class AmberGraph implements Graph {
 
         if (sessionDs == null) sessionDs = DEFAULT_SESSION_DATASOURCE;
         sessionDbi = new DBI(sessionDs);
+        
+        // register mapper factories for passing this graph to elements instantiated
+        SessionVertexMapperFactory svFactory = new SessionVertexMapperFactory();
+        sessionDbi.registerMapper(svFactory);
+        svFactory.setGraph(this);
+        
+        SessionEdgeMapperFactory seFactory = new SessionEdgeMapperFactory();
+        sessionDbi.registerMapper(seFactory);
+        seFactory.setGraph(this);
+        
         sessionDao = sessionDbi.onDemand(SessionDao.class);
 
         // create the session database
@@ -144,11 +169,13 @@ public class AmberGraph implements Graph {
         vertexDao = sessionDbi.onDemand(VertexDao.class);
         edgeDao = sessionDbi.onDemand(EdgeDao.class);
         
+        //helper = new AmberGraphHelper(this);
+        
         // set mapper graph references - this needs some refactoring
-        SessionVertexMapper.graph = this;
-        SessionEdgeMapper.graph = this;
-        PersistentVertexMapper.graph = this;
-        PersistentEdgeMapper.graph = this;
+//        SessionVertexMapper.graph = this;
+//        SessionEdgeMapper.graph = this;
+//        PersistentVertexMapper.graph = this;
+//        PersistentEdgeMapper.graph = this;
     }
 
     /**
@@ -202,6 +229,7 @@ public class AmberGraph implements Graph {
         persistentDao.commit();
     }
     
+    /* The following Maps are used to update new elements with their persistent ids when committed to amber */
     private WeakHashMap<Long, AmberVertex> newSessionVertices = new WeakHashMap<Long, AmberVertex>();
     public void addToNewVertices(AmberVertex v) {
         newSessionVertices.put((Long) v.getId(), v);
