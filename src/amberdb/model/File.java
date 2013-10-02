@@ -18,6 +18,8 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 import doss.Blob;
 import doss.BlobStore;
 import doss.BlobTx;
+import doss.Writable;
+import doss.core.Writables;
 
 @TypeValue("File")
 public interface File extends Node {
@@ -48,6 +50,9 @@ public interface File extends Node {
 
     @JavaHandler
     void put(Path source) throws IOException;
+
+    @JavaHandler
+    void put(Writable writable) throws IOException;
 
     abstract class Impl implements JavaHandlerContext<Vertex>, File {
 
@@ -80,8 +85,13 @@ public interface File extends Node {
 
         @Override
         public void put(Path source) throws IOException {
+            put(Writables.wrap(source));
+        }
+
+        @Override
+        public void put(Writable writable) throws IOException {
             try (BlobTx tx = getBlobStore().begin()) {
-                Blob blob = tx.put(source);
+                Blob blob = tx.put(writable);
                 setBlobId(blob.id());
                 tx.commit();
             }
