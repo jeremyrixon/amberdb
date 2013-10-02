@@ -609,6 +609,7 @@ public class AmberGraph implements Graph {
         try {
             
             // Get a fresh transaction
+            // also sets commitId
             AmberTransaction txn = new AmberTransaction(this, user, operation);
             s("committing transaction " + txn);
 

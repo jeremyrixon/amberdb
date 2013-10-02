@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Date;
 
-import amberdb.relation.IsDerivativeOf;
+import amberdb.relation.IsSourceCopyOf;
 import amberdb.relation.IsFileOf;
 
 import com.tinkerpop.blueprints.Direction;
@@ -44,10 +44,10 @@ public interface Copy extends Node {
      * The source copy which this copy was derived from. Null if this copy is
      * original or the source copy is unknown.
      */
-    @Adjacency(label = IsDerivativeOf.label)
+    @Adjacency(label = IsSourceCopyOf.label, direction=Direction.OUT)
     public Copy getSourceCopy();
 
-    @Adjacency(label = IsDerivativeOf.label)
+    @Adjacency(label = IsSourceCopyOf.label, direction=Direction.OUT)
     public void setSourceCopy(Copy sourceCopy);
 
     @Property("accessConditions")

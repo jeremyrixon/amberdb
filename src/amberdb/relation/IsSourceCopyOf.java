@@ -1,5 +1,5 @@
 package amberdb.relation;
 
-public interface IsDerivativeOf extends Relation {
+public interface IsSourceCopyOf extends Relation {
     final static String label = "isDerivativeOf";
 }
