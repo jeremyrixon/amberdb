@@ -87,21 +87,21 @@ public class IngestTest {
         samplePI = auto1.getObjId();
 
         auto1.setBibId(12345L);
-        auto1.addPage(job.files.get(6)).setOrder(1);
+        auto1.addPage(job.files.get(6), "image/tiff").setOrder(1);
 
         Page page = auto1.addPage();
         page.setOrder(2);
-        page.addCopy(job.files.get(2), CopyRole.MASTER_COPY);
-        page.addCopy(job.files.get(4), CopyRole.OCR_METS_COPY);
+        page.addCopy(job.files.get(2), CopyRole.MASTER_COPY, "image/tiff");
+        page.addCopy(job.files.get(4), CopyRole.OCR_METS_COPY, "text/xml");
 
-        auto1.addPage(job.files.get(3)).setOrder(3);
+        auto1.addPage(job.files.get(3), "image/tiff").setOrder(3);
 
         auto1.setTitle("Blinky Bill");
         bookIds.add(auto1.getId());
 
         Work auto2 = amberDb.addWork();
         auto2.setBibId(55555);
-        auto2.addPage(job.files.get(5)).setOrder(1);
+        auto2.addPage(job.files.get(5), "image/tiff").setOrder(1);
         auto2.setTitle("James and the giant peach");
 
         bookIds.add(auto2.getId());
@@ -109,8 +109,8 @@ public class IngestTest {
         // user manually creates a work out of the first two pages
 
         Work manual = amberDb.addWork();
-        manual.addPage(job.files.get(0)).setOrder(1);
-        manual.addPage(job.files.get(1)).setOrder(2);
+        manual.addPage(job.files.get(0), "image/tiff").setOrder(1);
+        manual.addPage(job.files.get(1), "image/tiff").setOrder(2);
         manual.setTitle("Little red riding hood");
 
         bookIds.add(manual.getId());

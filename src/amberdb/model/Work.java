@@ -106,10 +106,10 @@ public interface Work extends Node {
     public Copy addCopy();
 
     @JavaHandler
-    public Page addPage(Path sourceFile) throws IOException;
+    public Page addPage(Path sourceFile, String mimeType) throws IOException;
 
     @JavaHandler
-    public Copy addCopy(Path sourceFile, CopyRole copyRole) throws IOException;
+    public Copy addCopy(Path sourceFile, CopyRole copyRole, String mimeType) throws IOException;
 
     @JavaHandler
     public Iterable<Page> getPages();
@@ -123,17 +123,17 @@ public interface Work extends Node {
     abstract class Impl implements JavaHandlerContext<Vertex>, Work {
 
         @Override
-        public Page addPage(Path sourceFile) throws IOException {
+        public Page addPage(Path sourceFile, String mimeType) throws IOException {
             Page page = addPage();
-            page.addCopy(sourceFile, CopyRole.MASTER_COPY);
+            page.addCopy(sourceFile, CopyRole.MASTER_COPY, mimeType);
             return page;
         }
 
         @Override
-        public Copy addCopy(Path sourceFile, CopyRole copyRole) throws IOException {
+        public Copy addCopy(Path sourceFile, CopyRole copyRole, String mimeType) throws IOException {
             Copy copy = addCopy();
             copy.setCopyRole(copyRole.code());
-            copy.addFile(sourceFile);
+            copy.addFile(sourceFile, mimeType);
             return copy;
         }
 

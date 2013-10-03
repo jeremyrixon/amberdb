@@ -30,11 +30,11 @@ public interface File extends Node {
     @Property("blobId")
     public Long getBlobId();
 
-    @Property("contentType")
-    public void setContentType(String contentType);
+    @Property("mimeType")
+    public void setMimeType(String mimeType);
 
-    @Property("blobId")
-    public String getContentType();
+    @Property("mimeType")
+    public String getMimeType();
 
     @Adjacency(label = IsFileOf.label)
     public Copy getCopy();

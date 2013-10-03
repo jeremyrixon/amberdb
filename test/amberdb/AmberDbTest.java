@@ -60,7 +60,7 @@ public class AmberDbTest {
             Work book = db.addWork();
             book.setTitle("Test book");
             for (int i = 0; i < 10; i++) {
-                book.addPage().addCopy(tmpFile, CopyRole.MASTER_COPY);
+                book.addPage().addCopy(tmpFile, CopyRole.MASTER_COPY, "image/tiff");
             }
         }
     }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Date;
 
+import amberdb.relation.IsCopyOf;
 import amberdb.relation.IsSourceCopyOf;
 import amberdb.relation.IsFileOf;
 
@@ -15,6 +16,8 @@ import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.modules.javahandler.JavaHandler;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
+
+import doss.Writable;
 
 /**
  * A physical or digital manifestation of a {@link Work}. The library may hold
@@ -71,19 +74,32 @@ public interface Copy extends Node {
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     public File addFile();
 
-    @Incidence(label = IsFileOf.label, direction = Direction.IN)
-    public IsFileOf addFile(final File file);
+    @JavaHandler
+    File addFile(Path source, String mimeType) throws IOException;
 
     @JavaHandler
-    public File addFile(Path source) throws IOException;
+    File addFile(Writable contents, String mimeType) throws IOException;
+
+    @Adjacency(label = IsCopyOf.label)
+    public Work getWork();
 
     abstract class Impl implements JavaHandlerContext<Vertex>, Copy {
 
         @Override
-        public File addFile(Path source) throws IOException {
+        public File addFile(Path source, String mimeType) throws IOException {
             File file = addFile();
             file.put(source);
+            file.setMimeType(mimeType);
+            return file;
+        }
+
+        @Override
+        public File addFile(Writable contents, String mimeType) throws IOException {
+            File file = addFile();
+            file.put(contents);
+            file.setMimeType(mimeType);
             return file;
         }
     }
+
 }
