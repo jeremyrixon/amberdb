@@ -5,16 +5,16 @@ import java.nio.file.Path;
 import java.util.List;
 
 public class JobMockup {
-    int txId;
+    long txId;
     List<Path> files;
     List<Long> workIds;
 
-    public Integer getAmberTxId() {
+    public long getAmberTxId() {
         // TODO Auto-generated method stub
         return txId;
     }
     
-    public void setAmberTxId(int txId) {
+    public void setAmberTxId(long txId) {
         this.txId = txId;
     }
     

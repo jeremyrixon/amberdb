@@ -24,10 +24,10 @@ public class AmberDbTest {
     @Test
     public void testInMemory() throws IOException {
         Work w1, w2;
-        try (AmberDb db = new AmberDb()) {
+        try (AmberSession db = new AmberSession()) {
             w1 = db.addWork();
         }
-        try (AmberDb db = new AmberDb()) {
+        try (AmberSession db = new AmberSession()) {
             try {
                 db.findWork(w1.getId());
                 assertTrue("works should not persist", false);
@@ -42,10 +42,10 @@ public class AmberDbTest {
     @Test
     public void testPersistence() throws IOException {
         Work w1, w2;
-        try (AmberDb db = new AmberDb(folder.getRoot().toPath())) {
+        try (AmberSession db = new AmberSession(folder.getRoot().toPath())) {
             w1 = db.addWork();
         }
-        try (AmberDb db = new AmberDb(folder.getRoot().toPath())) {
+        try (AmberSession db = new AmberSession(folder.getRoot().toPath())) {
             assertNotNull(db.findWork(w1.getId()));
             w2 = db.addWork();
         }
@@ -56,7 +56,7 @@ public class AmberDbTest {
     public void testIngestBook() throws IOException {
         Path tmpFile = folder.newFile().toPath();
         Files.write(tmpFile, "Hello world".getBytes());
-        try (AmberDb db = new AmberDb()) {
+        try (AmberSession db = new AmberSession()) {
             Work book = db.addWork();
             book.setTitle("Test book");
             for (int i = 0; i < 10; i++) {

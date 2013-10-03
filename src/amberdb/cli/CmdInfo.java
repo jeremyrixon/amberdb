@@ -1,6 +1,6 @@
 package amberdb.cli;
 
-import amberdb.AmberDb;
+import amberdb.AmberSession;
 import amberdb.model.Work;
 
 public class CmdInfo extends Command {
@@ -10,7 +10,7 @@ public class CmdInfo extends Command {
     }
 
     void execute(Arguments args) throws Exception {
-        try (AmberDb db = openAmberDb()) {
+        try (AmberSession db = openAmberDb()) {
             for (String id : args) {
                 Work work = db.findWork(id);
                 info(work);

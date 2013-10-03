@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import amberdb.AmberDb;
+import amberdb.AmberSession;
 import amberdb.model.Work;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,7 +26,7 @@ class CmdEdit extends Command {
 
     void execute(Arguments args) throws Exception {
         String id = args.first();
-        try (AmberDb db = openAmberDb()) {
+        try (AmberSession db = openAmberDb()) {
             Work work = db.findWork(id);
             int changes = save(work, parse(runEditor(id, format(work))));
             System.out.println(work.getObjId() + " properties changed: " + changes);

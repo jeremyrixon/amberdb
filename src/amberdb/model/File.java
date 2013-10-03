@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Path;
 
-import amberdb.AmberDb;
+import amberdb.AmberSession;
 import amberdb.relation.IsFileOf;
 
 import com.tinkerpop.blueprints.Vertex;
@@ -57,7 +57,7 @@ public interface File extends Node {
     abstract class Impl implements JavaHandlerContext<Vertex>, File {
 
         private BlobStore getBlobStore() {
-            return AmberDb.ownerOf(g()).getBlobStore();
+            return AmberSession.ownerOf(g()).getBlobStore();
         }
 
         private Blob getBlob() throws IOException {

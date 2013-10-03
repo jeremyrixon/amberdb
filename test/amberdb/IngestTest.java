@@ -25,7 +25,7 @@ public class IngestTest {
     @ClassRule
     public static TemporaryFolder folder = new TemporaryFolder();
 
-    private static AmberDb db;
+    private static AmberSession db;
     private static JobMockup job;
     private static String samplePI;
 
@@ -69,16 +69,8 @@ public class IngestTest {
         return job;
     }
 
-    private static AmberDb identifyWorks() throws IOException {
-        AmberDb amberDb = new AmberDb();
-
-        // recover existing transaction if any
-        // NOTE: this recover and the corresponding suspend
-        // could be done in a common pre-action and post-action
-        // controller method
-        if (job.getAmberTxId() != null) {
-            amberDb.recover(job.getAmberTxId());
-        }
+    private static AmberSession identifyWorks() throws IOException {
+        AmberSession amberDb = new AmberSession();
 
         List<Long> bookIds = new ArrayList<Long>();
         // try to detect works based on filenames,
@@ -135,10 +127,6 @@ public class IngestTest {
 
     @Test
     public void testDescribeWorks() {
-        // recover existing transaction if any
-        if (job.getAmberTxId() != null) {
-            db.recover(job.getAmberTxId());
-        }
 
         for (Long workId : job.getWorks()) {
             describeWork(job, db.findWork(workId));
@@ -171,7 +159,6 @@ public class IngestTest {
     @Test
     public void testCompleteJob() {
         // recover existing transaction if any
-        db.recover(job.getAmberTxId());
         db.commit();
     }
 

@@ -5,7 +5,7 @@ import static java.lang.System.out;
 import java.util.Arrays;
 import java.util.List;
 
-import amberdb.AmberDb;
+import amberdb.AmberSession;
 import amberdb.model.Work;
 
 abstract class Command {
@@ -26,8 +26,8 @@ abstract class Command {
 
     abstract void execute(Arguments args) throws Exception;
 
-    protected AmberDb openAmberDb() {
-        AmberDb db = new AmberDb();
+    protected AmberSession openAmberDb() {
+        AmberSession db = new AmberSession();
         Work work = db.addWork();
         work.setTitle("The lost work");
         work.setCreator("Anonymous");
