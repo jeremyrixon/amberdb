@@ -53,22 +53,13 @@
     </extensions>
     <plugins>
       <plugin>
-        <groupId>com.github.github</groupId>
-        <artifactId>site-maven-plugin</artifactId>
-        <version>0.7</version>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.4.1</version>
         <configuration>
-                <message>Creating site for ${project.version}</message>
-                <dryRun>true</dryRun>
-                <force>true</force>
+         <tagNameFormat>@{project.version}</tagNameFormat>
+         <goals>deploy</goals>
         </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>site</goal>
-            </goals>
-            <phase>site</phase>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
