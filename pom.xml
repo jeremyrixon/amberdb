@@ -4,7 +4,7 @@
 
   <groupId>au.gov.nla</groupId>
   <artifactId>amberdb</artifactId>
-  <version>0.25.0-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>amberdb</name>
@@ -15,24 +15,16 @@
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
     <jackson.version>2.2.2</jackson.version>
+    <github.global.server>github</github.global.server>
   </properties>
 
+  <scm>
+    <developerConnection>scm:git:ssh://git@github.com/nla/amberdb.git</developerConnection>
+  </scm>
   <distributionManagement>
-    <repository>
-      <id>nla-public-releases</id>
-      <name>Internal Releases</name>
-      <url>http://dev.nla.gov.au/nexus/content/repositories/nla</url>
-    </repository>
-    <snapshotRepository>
-      <id>nla-public-snapshots</id>
-      <name>Internal Releases</name>
-      <url>http://dev.nla.gov.au/nexus/content/repositories/nla-snapshots</url>
-    </snapshotRepository>
+    <repository> <id>nla-public-releases</id> <url>scp://spitfire.nla.gov.au/www/prod/maven/htdocs/releases</url></repository>
+    <snapshotRepository> <id>nla-public-snapshots</id> <url>scp://spitfire.nla.gov.au/www/prod/maven/htdocs/snapshots</url></snapshotRepository>
   </distributionManagement>
-
-  <!-- <distributionManagement> <repository> <id>nla-public-releases</id> <url>scp://spitfire.nla.gov.au/www/prod/maven/htdocs/releases</url> 
-    </repository> <snapshotRepository> <id>nla-public-snapshots</id> <url>scp://spitfire.nla.gov.au/www/prod/maven/htdocs/snapshots</url> 
-    </snapshotRepository> </distributionManagement> -->
   <build>
     <sourceDirectory>${basedir}/src</sourceDirectory>
     <testSourceDirectory>${basedir}/test</testSourceDirectory>
@@ -63,9 +55,11 @@
       <plugin>
         <groupId>com.github.github</groupId>
         <artifactId>site-maven-plugin</artifactId>
-        <version>0.6</version>
+        <version>0.7</version>
         <configuration>
-          <message>Creating site for ${project.version}</message>
+                <message>Creating site for ${project.version}</message>
+                <dryRun>true</dryRun>
+                <force>true</force>
         </configuration>
         <executions>
           <execution>
