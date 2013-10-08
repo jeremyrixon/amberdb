@@ -55,9 +55,8 @@ public class AmberEdge implements Edge {
         if (graph == null) throw new RuntimeException("graph cannot be null");
 
         setGraph(graph);
-        this.id = graph.newSessionId();
+        this.id = graph.newPersistentId();
         dao().insertEdge(id, null, null, outVertexId, inVertexId, label, 0, State.NEW.toString());
-        graph.addToNewEdges(this);
     }
 
     public Long getTxnStart() {
@@ -150,7 +149,7 @@ public class AmberEdge implements Edge {
         }
         if (!(value instanceof Integer || value instanceof String || 
               value instanceof Boolean || value instanceof Double ||
-              value instanceof Long)) {
+              value instanceof Long    || value instanceof Float)) {
             throw new IllegalArgumentException("Illegal property type [" + value.getClass() + "].");
         }
         if (!(value instanceof Integer) && propertyName.equals(SORT_ORDER_PROPERTY_NAME)) {

@@ -2,29 +2,21 @@ package amberdb.sql;
 
 import amberdb.sql.State;
 import amberdb.sql.dao.*;
-import amberdb.sql.map.PersistentEdgeMapper;
-import amberdb.sql.map.PersistentVertexMapper;
-import amberdb.sql.map.SessionEdgeMapper;
-import amberdb.sql.map.SessionVertexMapper;
+import amberdb.sql.map.PersistentEdgeMapperFactory;
+import amberdb.sql.map.PersistentVertexMapperFactory;
+import amberdb.sql.map.SessionEdgeMapperFactory;
+import amberdb.sql.map.SessionVertexMapperFactory;
 
 import java.lang.reflect.Field;
-import java.sql.Blob;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.WeakHashMap;
 
 import javax.sql.DataSource;
 
-import org.h2.jdbc.JdbcSQLException;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
-import org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException;
 
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
@@ -33,13 +25,17 @@ import com.tinkerpop.blueprints.Features;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.GraphQuery;
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.util.DefaultGraphQuery;
 
 public class AmberGraph implements Graph {
 
     public static final String DEFAULT_USER = "anon";
     public static final DataSource DEFAULT_SESSION_DATASOURCE = 
             JdbcConnectionPool.create("jdbc:h2:mem:session","sess","sess");
-    
+
+    public static final DataSource DEFAULT_PERSIST_DATASOURCE = 
+            JdbcConnectionPool.create("jdbc:h2:mem:persist","pers","pers");
+
     private DBI sessionDbi;
     private DBI persistentDbi;
     
@@ -53,7 +49,6 @@ public class AmberGraph implements Graph {
     /** Identify this graph instance */
     private String user;
     
-    boolean persistence = false;
     boolean autoCommit = false;
     boolean multiUserSession = true;
     
@@ -62,16 +57,16 @@ public class AmberGraph implements Graph {
      */
     
     /**
-     * Constructor with default user and session database and no persistence 
-     * database. Basically a stand alone session.
+     * Constructor with default user, and in-memory session and persistence
+     * databases. Essentially a stand alone session.
      */
     public AmberGraph() {
-        initGraph(DEFAULT_SESSION_DATASOURCE, null, DEFAULT_USER);
+        initGraph(DEFAULT_SESSION_DATASOURCE, DEFAULT_PERSIST_DATASOURCE, DEFAULT_USER);
     }
 
     /**
-     * Constructor with given user, the default session database and 
-     * no persistence database. Basically a stand alone session.
+     * Constructor with given user, and in-memory session and persistence
+     * databases. Essentially a stand alone session.
      * 
      * @param the
      *            user identifying this instance of AmberGraph
@@ -82,13 +77,13 @@ public class AmberGraph implements Graph {
 
     /**
      * Constructor with default user, a given session database and 
-     * no persistence database. Basically a stand alone session.
+     * a default in-memory persistence database. Essentially a stand alone session.
      * 
      * @param sessionDs 
      *                  the datasource to use for the session
      */
     public AmberGraph(DataSource sessionDs) {
-        initGraph(sessionDs, null, DEFAULT_USER);
+        initGraph(sessionDs, DEFAULT_PERSIST_DATASOURCE, DEFAULT_USER);
     }
 
     /**
@@ -123,41 +118,65 @@ public class AmberGraph implements Graph {
 
         this.user = user;
         
-        if (persistentDs != null) {
-            persistence = true;
-            persistentDbi = new DBI(persistentDs);
-            
-            // set up required data access objects
-            persistentDao = persistentDbi.onDemand(PersistentDao.class);
-            transactionDao = persistentDbi.onDemand(TransactionDao.class);
-        }
+        initPersistence(persistentDs);
+        initSession(sessionDs);
+    }
 
-        if (sessionDs == null) sessionDs = DEFAULT_SESSION_DATASOURCE;
-        sessionDbi = new DBI(sessionDs);
+    private void initPersistence(DataSource ds) {
+        if (ds == null) ds = DEFAULT_PERSIST_DATASOURCE;
+        persistentDbi = new DBI(ds);
+
+        // register mapper factories for passing this graph to elements
+        // instantiated via the persistent datastore
+        PersistentVertexMapperFactory pvFactory = new PersistentVertexMapperFactory();
+        persistentDbi.registerMapper(pvFactory);
+        pvFactory.setGraph(this);
+
+        PersistentEdgeMapperFactory peFactory = new PersistentEdgeMapperFactory();
+        persistentDbi.registerMapper(peFactory);
+        peFactory.setGraph(this);
+
+        // set up required data access objects
+        persistentDao = persistentDbi.onDemand(PersistentDao.class);
+        transactionDao = persistentDbi.onDemand(TransactionDao.class);
+        
+        if (ds.equals(DEFAULT_PERSIST_DATASOURCE)) {
+            createPersistentSchema();
+        }
+    }
+    
+    private void initSession(DataSource ds) {
+        if (ds == null) ds = DEFAULT_SESSION_DATASOURCE;
+        sessionDbi = new DBI(ds);
+        
+        // register mapper factories for passing this graph to elements 
+        // instantiated via the session datastore
+        SessionVertexMapperFactory svFactory = new SessionVertexMapperFactory();
+        sessionDbi.registerMapper(svFactory);
+        svFactory.setGraph(this);
+        
+        SessionEdgeMapperFactory seFactory = new SessionEdgeMapperFactory();
+        sessionDbi.registerMapper(seFactory);
+        seFactory.setGraph(this);
+        
         sessionDao = sessionDbi.onDemand(SessionDao.class);
 
-        // create the session database
+        // create the session database schema
         // REFACTOR NOTE: in future need to allow re-attachment to suspended sessions
-        initSessionDataStore(sessionDao);
+        initSessionSchema(sessionDao);
         
         // set up required data access objects
         vertexDao = sessionDbi.onDemand(VertexDao.class);
         edgeDao = sessionDbi.onDemand(EdgeDao.class);
-        
-        // set mapper graph references - this needs some refactoring
-        SessionVertexMapper.graph = this;
-        SessionEdgeMapper.graph = this;
-        PersistentVertexMapper.graph = this;
-        PersistentEdgeMapper.graph = this;
     }
-
+    
     /**
      * Set up a fresh database for sessions to run on
      * 
      * @param dao
      *            the session data access object
      */
-    protected void initSessionDataStore(SessionDao dao) {
+    protected void initSessionSchema(SessionDao dao) {
         dao.begin();
         
         if (!multiUserSession) {
@@ -169,9 +188,6 @@ public class AmberGraph implements Graph {
         if (!multiUserSession) {
             dao.createPropertyIndex();
         }    
-        dao.createIdGeneratorTable();
-        newSessionId(); // seed generator with id > 0
-        
         dao.commit();
     }
 
@@ -185,7 +201,7 @@ public class AmberGraph implements Graph {
      * @param dao
      *            the persistent data access object
      */
-    public void createPersistentDataStore() {
+    public void createPersistentSchema() {
         persistentDao.begin();
  
         //persistentDao.dropTables();
@@ -202,48 +218,16 @@ public class AmberGraph implements Graph {
         persistentDao.commit();
     }
     
-    private WeakHashMap<Long, AmberVertex> newSessionVertices = new WeakHashMap<Long, AmberVertex>();
-    public void addToNewVertices(AmberVertex v) {
-        newSessionVertices.put((Long) v.getId(), v);
-    }
-    private WeakHashMap<Long, AmberEdge> newSessionEdges = new WeakHashMap<Long, AmberEdge>();
-    public void addToNewEdges(AmberEdge e) {
-        newSessionEdges.put((Long) e.getId(), e);
-    }
-    
-    
     /*
      * Amber specific methods
      */
 
-    /**
-     * Generate a new id unique within this session. It is guaranteed not to 
-     * clash with the persistent datastore's ids by virtue of returning a negative number.
-     *  
-     * @return A unique session id
-     */
-    protected Long newSessionId() {
-        sessionDao.begin();
-        Long newId = -(sessionDao.newId());
-
-        // occasionally clean up the pi generation table (every 1000 pis or so)
-        if (newId % 1000 == 995) {
-            sessionDao.garbageCollectIds(newId);
-        }
-        sessionDao.commit();
-        return newId;
-    }
-    
     /**
      * Generate a new id unique within the persistent data store. Not available for stand alone sessions
      *  
      * @return A unique persistent id
      */
     protected Long newPersistentId() {
-        
-        if (persistence == false) { 
-            throw new PersistenceException("Persistent ids not available to stand alone sessions");
-        }
         
         persistentDao.begin();
         Long newId = persistentDao.newId();
@@ -423,9 +407,7 @@ public class AmberGraph implements Graph {
         }
         
         // get from persistent
-        if (persistence) {
-            edge = persistentDao.findEdge(id);
-        }
+        edge = persistentDao.findEdge(id);
 
         return edge;
     }
@@ -436,7 +418,7 @@ public class AmberGraph implements Graph {
      */
     @Override
     public Iterable<Edge> getEdges() {
-        if (persistence) loadEdges();
+        loadEdges();
         
         List<Edge> edges = new ArrayList<Edge>();
         Iterator<AmberEdge> iter = sessionDao.getEdges();
@@ -451,7 +433,7 @@ public class AmberGraph implements Graph {
 
     @Override
     public Iterable<Edge> getEdges(String key, Object value) {
-        if (persistence) loadEdgesWithProperty(key, value);
+        loadEdgesWithProperty(key, value);
         
         List<AmberEdge> edges = new ArrayList<AmberEdge>();
         edges.addAll(Lists.newArrayList(sessionDao.findEdgesWithProperty(key, AmberProperty.encodeBlob(value))));
@@ -482,14 +464,13 @@ public class AmberGraph implements Graph {
         features.supportsBooleanProperty = true;
         features.supportsDoubleProperty = true;
         features.supportsLongProperty = true;
+        features.supportsFloatProperty = true;
         features.ignoresSuppliedIds = true;
         features.supportsVertexProperties = true;
         features.supportsVertexIteration = true;
         features.supportsEdgeProperties = true;
         features.supportsEdgeIteration = true;
         features.supportsEdgeRetrieval = true;
-        
-        //features.supportsMixedListProperty= true;
         features.checkCompliance();
         return features;
     }
@@ -525,16 +506,14 @@ public class AmberGraph implements Graph {
         }
 
         // get from persistent
-        if (persistence) {
-            vertex = persistentDao.findVertex(id);
-        }
+        vertex = persistentDao.findVertex(id);
         return vertex;
     }
     
     
     @Override
     public Iterable<Vertex> getVertices() {
-        if (persistence) loadVertices();
+        loadVertices();
 
         List<Vertex> vertices = new ArrayList<Vertex>();
         Iterator<AmberVertex> iter = sessionDao.findVertices();
@@ -547,7 +526,7 @@ public class AmberGraph implements Graph {
 
     @Override
     public Iterable<Vertex> getVertices(String key, Object value) {
-        if (persistence) loadVerticesWithProperty(key, value);
+        loadVerticesWithProperty(key, value);
         
         List<AmberVertex> vertices = new ArrayList<AmberVertex>();
         vertices.addAll(Lists.newArrayList(sessionDao.findVerticesWithProperty(key, AmberProperty.encodeBlob(value))));
@@ -567,8 +546,7 @@ public class AmberGraph implements Graph {
      */
     @Override
     public GraphQuery query() {
-        // TODO Auto-generated method stub
-        return null;
+        return new DefaultGraphQuery(this);
     }
 
     @Override
@@ -588,7 +566,7 @@ public class AmberGraph implements Graph {
     @Override
     public void shutdown() {
         
-        if (persistence) persistentDao.close();
+        persistentDao.close();
         
         if (!multiUserSession) {
             sessionDao.dropTables();
@@ -602,9 +580,7 @@ public class AmberGraph implements Graph {
         return ("ambergraph");
     }
 
-    protected void commitToPersistent(String operation) {
-
-        if (!persistence) throw new PersistenceException("Persistence is unavailable to stand alone sessions");
+    protected synchronized void commitToPersistent(String operation) {
 
         try {
             
@@ -612,23 +588,6 @@ public class AmberGraph implements Graph {
             // also sets commitId
             AmberTransaction txn = new AmberTransaction(this, user, operation);
             s("committing transaction " + txn);
-
-            // Give any new elements persistent ids
-            List<AmberVertex> newVertices = sessionDao.findNewVertices();
-            for (AmberVertex v: newVertices) {
-                Long newId = newPersistentId();
-                AmberVertex newV = newSessionVertices.remove(v.getId());
-                if (newV != null) newV.addressId(newId);
-                v.changeId(newId);
-            }
-            
-            List<AmberEdge> newEdges = sessionDao.findNewEdges();
-            for (AmberEdge e: newEdges) {
-                Long newId = newPersistentId();
-                AmberEdge newE = newSessionEdges.remove(e.getId());
-                if (newE != null) newE.addressId(newId);
-                e.changeId(newId);
-            }
 
             stageElements(txn);
 

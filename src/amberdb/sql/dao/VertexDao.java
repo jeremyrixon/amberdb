@@ -133,7 +133,6 @@ public interface VertexDao extends Transactional<VertexDao> {
             "FROM edge " +
             "WHERE v_in = :vertexId " +
             "ORDER BY edge_order")
-    @Mapper(SessionEdgeMapper.class)
     List<AmberEdge> findInEdges(
             @Bind("vertexId") long id);
     
@@ -142,7 +141,6 @@ public interface VertexDao extends Transactional<VertexDao> {
             "FROM edge " +
             "WHERE v_out = :vertexId " +
             "ORDER BY edge_order")
-    @Mapper(SessionEdgeMapper.class)
     List<AmberEdge> findOutEdges(
             @Bind("vertexId") long id);
 
@@ -152,7 +150,6 @@ public interface VertexDao extends Transactional<VertexDao> {
             "WHERE v_in = :vertexId " +
             "AND label = :label " +
             "ORDER BY edge_order")
-    @Mapper(SessionEdgeMapper.class)
     List<AmberEdge> findInEdges(
             @Bind("vertexId") long id,
             @Bind("label") String label);
@@ -163,7 +160,6 @@ public interface VertexDao extends Transactional<VertexDao> {
             "WHERE v_out = :vertexId " +
             "AND label = :label " +
             "ORDER BY edge_order")
-    @Mapper(SessionEdgeMapper.class)
     List<AmberEdge> findOutEdges(
             @Bind("vertexId") long vertexId,
             @Bind("label") String label);
@@ -173,7 +169,6 @@ public interface VertexDao extends Transactional<VertexDao> {
             "FROM edge " +
             "WHERE v_in = :vertexId " +
             "ORDER BY edge_order")
-    @Mapper(SessionVertexMapper.class)
     List<AmberVertex> findInVertices(
             @Bind("vertexId") long vertexId);
     
@@ -182,7 +177,6 @@ public interface VertexDao extends Transactional<VertexDao> {
             "FROM edge " +
             "WHERE v_out = :vertexId " +
             "ORDER BY edge_order")
-    @Mapper(SessionVertexMapper.class)
     List<AmberVertex> findOutVertices(
             @Bind("vertexId") long vertexId);
 
@@ -192,7 +186,6 @@ public interface VertexDao extends Transactional<VertexDao> {
             "WHERE v_in = :vertexId " +
             "AND label = :label " +
             "ORDER BY edge_order")
-    @Mapper(SessionVertexMapper.class)
     List<AmberVertex> findInVertices(
             @Bind("vertexId") long vertexId,
             @Bind("label") String label);
@@ -203,7 +196,6 @@ public interface VertexDao extends Transactional<VertexDao> {
             "WHERE v_out = :vertexId " +
             "AND label = :label " +
             "ORDER BY edge_order")
-    @Mapper(SessionVertexMapper.class)
     List<AmberVertex> findOutVertices(
             @Bind("vertexId") long id,
             @Bind("label") String label);

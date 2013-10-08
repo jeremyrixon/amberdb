@@ -49,7 +49,7 @@ public class AmberSession implements AutoCloseable {
         DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:mem:", "fish", "fish");
         DataSource persistDs = JdbcConnectionPool.create("jdbc:h2:" + tempDir.getPath().resolve("graph"), "pers", "pers");
         AmberGraph amber = new AmberGraph(sessionDs, persistDs, "amberdb");
-        amber.createPersistentDataStore();
+        amber.createPersistentSchema();
         graph = openGraph(amber);
 
     }
@@ -68,7 +68,7 @@ public class AmberSession implements AutoCloseable {
         DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:" + dataPath.resolve("session"), "fish", "fish");
         DataSource persistDs = JdbcConnectionPool.create("jdbc:h2:" + dataPath.resolve("graph"), "pers", "pers");
         AmberGraph amber = new AmberGraph(sessionDs, persistDs, "amberdb");
-        amber.createPersistentDataStore();
+        amber.createPersistentSchema();
         graph = openGraph(amber);
     }
     
@@ -86,7 +86,7 @@ public class AmberSession implements AutoCloseable {
         // Graph
         DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:" + sessionPath, "fish", "fish");
         AmberGraph amber = new AmberGraph(sessionDs, dataSource, "amberdb");
-        amber.createPersistentDataStore();
+        amber.createPersistentSchema();
         graph = openGraph(amber);
         
         this.sessionId = sessionId;

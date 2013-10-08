@@ -7,7 +7,6 @@ import  amberdb.sql.*;
 import  amberdb.sql.map.*;
 
 import org.skife.jdbi.v2.sqlobject.Bind;
-import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
@@ -51,27 +50,6 @@ public interface SessionDao extends Transactional<SessionDao> {
             "ON property(id, name)")
     void createPropertyIndex();
     
-    @SqlUpdate(
-            "CREATE TABLE IF NOT EXISTS id_generator (" +
-            "id BIGINT PRIMARY KEY AUTO_INCREMENT)")
-    void createIdGeneratorTable();
-    
-    /*
-     * id generation operations
-     */
-    @GetGeneratedKeys
-    @SqlUpdate(
-            "INSERT INTO id_generator () " + 
-            "VALUES ()")
-    long newId();
-
-    @SqlUpdate(
-            "DELETE " +
-            "FROM id_generator " +
-            "WHERE id < :id")
-    void garbageCollectIds(
-            @Bind("id") long id);
-    
     /*
      * DDL cleanup
      */
@@ -94,7 +72,6 @@ public interface SessionDao extends Transactional<SessionDao> {
             "SELECT id " + 
             "FROM vertex " +
             "WHERE id = :id")
-    @Mapper(SessionVertexMapper.class)
     AmberVertex findVertex(
             @Bind("id") long id);
     
@@ -102,7 +79,6 @@ public interface SessionDao extends Transactional<SessionDao> {
             "SELECT id " +
             "FROM edge " +
             "WHERE id = :id")
-    @Mapper(SessionEdgeMapper.class)
     AmberEdge findEdge(
             @Bind("id") long id);
 
@@ -114,14 +90,12 @@ public interface SessionDao extends Transactional<SessionDao> {
             "SELECT id " +
             "FROM vertex " +
             "WHERE state <> 'AMB'")
-    @Mapper(SessionVertexMapper.class)
     List<AmberVertex> findAlteredVertices();
     
     @SqlQuery(
             "SELECT id " +
             "FROM edge " +
             "WHERE state <> 'AMB'")
-    @Mapper(SessionEdgeMapper.class)
     List<AmberEdge> findAlteredEdges();
     
     @SqlQuery(
@@ -158,7 +132,6 @@ public interface SessionDao extends Transactional<SessionDao> {
             "WHERE state = 'NEW' " +
             "AND id < 0 " +
             "ORDER BY id")
-    @Mapper(SessionVertexMapper.class)
     List<AmberVertex> findNewVertices();
     
     @SqlQuery(
@@ -167,7 +140,6 @@ public interface SessionDao extends Transactional<SessionDao> {
             "WHERE state = 'NEW' " +
             "AND id < 0 " +
             "ORDER BY id")
-    @Mapper(SessionEdgeMapper.class)
     List<AmberEdge> findNewEdges();
     
     @SqlUpdate(
@@ -258,7 +230,6 @@ public interface SessionDao extends Transactional<SessionDao> {
             "FROM edge " +
             "WHERE state <> 'DEL' " +
             "ORDER BY edge_order")
-    @Mapper(SessionEdgeMapper.class)
     Iterator<AmberEdge> getEdges();
 
     @SqlQuery(
@@ -268,7 +239,6 @@ public interface SessionDao extends Transactional<SessionDao> {
             "AND p.name = :name " +
             "AND p.value = :value " +
             "ORDER BY e.edge_order")
-    @Mapper(SessionEdgeMapper.class)
     Iterator<AmberEdge> findEdgesWithProperty(
             @Bind("name") String name,
             @Bind("value") byte[] value);
@@ -277,7 +247,6 @@ public interface SessionDao extends Transactional<SessionDao> {
             "SELECT id " +
             "FROM vertex " +
             "WHERE state <> 'DEL'")
-    @Mapper(SessionVertexMapper.class)
     Iterator<AmberVertex> findVertices();
 
     @SqlQuery(
@@ -286,7 +255,6 @@ public interface SessionDao extends Transactional<SessionDao> {
             "WHERE v.id = p.id " +
             "AND p.name = :name " +
             "AND p.value = :value")
-    @Mapper(SessionVertexMapper.class)
     Iterator<AmberVertex> findVerticesWithProperty(
             @Bind("name") String name,
             @Bind("value") byte[] value);

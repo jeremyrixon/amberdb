@@ -23,11 +23,13 @@ public class AmberVertex implements Vertex {
      * @param newId
      */
     protected void changeId(long newId) {
+        dao().begin();
         dao().changeVertexId(id, newId);
         dao().changeVertexPropertyIds(id, newId);
         dao().changeInVertexIds(id, newId);
         dao().changeOutVertexIds(id, newId);
         id = newId;
+        dao().commit();
     }
     /**
      * Point this vertex object at a different vertex instance
@@ -60,9 +62,8 @@ public class AmberVertex implements Vertex {
         if (graph == null) throw new RuntimeException("graph cannot be null");
         
         setGraph(graph);
-        this.id = graph.newSessionId();
+        this.id = graph.newPersistentId();
         dao().insertVertex(id, null, null, State.NEW.toString());
-        graph.addToNewVertices(this);
     }
 
     public Long getTxnStart() {
@@ -140,7 +141,7 @@ public class AmberVertex implements Vertex {
         }
         if (!(value instanceof Integer || value instanceof String || 
               value instanceof Boolean || value instanceof Double ||
-              value instanceof Long)) {
+              value instanceof Long    || value instanceof Float)) {
             throw new IllegalArgumentException("Illegal property type [" + value.getClass() + "].");
         }
         
@@ -169,7 +170,7 @@ public class AmberVertex implements Vertex {
     public Iterable<Edge> getEdges(Direction direction, String... labels) {
 
         // load edges from persistent into session (shouldn't overwrite present edges)
-        if (graph.persistence) graph.loadPersistentEdges(this, direction, labels);
+        graph.loadPersistentEdges(this, direction, labels);
 
         // now just get from session - DELETED edges have been removed
         List<AmberEdge> sessionEdges = getSessionEdges(direction, labels);
@@ -243,7 +244,7 @@ public class AmberVertex implements Vertex {
     public Iterable<Vertex> getVertices(Direction direction, String... labels) {
         
         // load vertices from persistent into session (shouldn't overwrite present vertices)
-        if (graph.persistence) graph.loadPersistentVertices(this, direction, labels);
+        graph.loadPersistentVertices(this, direction, labels);
 
         // now just get from session (contains DELETED edges)
         List<AmberVertex> sessionVertices = getSessionVertices(direction, labels);
