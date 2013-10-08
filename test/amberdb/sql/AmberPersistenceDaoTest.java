@@ -36,10 +36,10 @@ public class AmberPersistenceDaoTest {
         dao.dropTables();
 
         dao.createVertexTable();
-        dao.createVertexIndex();
+//        dao.createVertexIndex();
 
         dao.createEdgeTable();
-        dao.createEdgeIndex();
+//        dao.createEdgeIndex();
 
         dao.createPropertyTable();
         //dao.createPropertyIndex();

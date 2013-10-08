@@ -13,3 +13,6 @@
 
 # editor
 *.swp
+
+/data
+/.javaclasspath

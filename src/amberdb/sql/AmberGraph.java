@@ -488,6 +488,7 @@ public class AmberGraph implements Graph {
         features.supportsIntegerProperty = true;
         features.supportsBooleanProperty = true;
         features.supportsDoubleProperty = true;
+        features.supportsLongProperty = true;
         features.ignoresSuppliedIds = true;
         features.supportsVertexProperties = true;
         features.supportsVertexIteration = true;
@@ -615,6 +616,7 @@ public class AmberGraph implements Graph {
         try {
             
             // Get a fresh transaction
+            // also sets commitId
             AmberTransaction txn = new AmberTransaction(this, user, operation);
             s("committing transaction " + txn);
 

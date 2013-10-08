@@ -13,6 +13,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.VertexQuery;
+import com.tinkerpop.blueprints.util.DefaultVertexQuery;
 
 public class AmberVertex implements Vertex {
 
@@ -140,7 +141,8 @@ public class AmberVertex implements Vertex {
             throw new IllegalArgumentException("Illegal property name [" + propertyName + "]");
         }
         if (!(value instanceof Integer || value instanceof String || 
-              value instanceof Boolean || value instanceof Double)) {
+              value instanceof Boolean || value instanceof Double ||
+              value instanceof Long)) {
             throw new IllegalArgumentException("Illegal property type [" + value.getClass() + "].");
         }
         
@@ -305,8 +307,7 @@ public class AmberVertex implements Vertex {
     
     @Override
     public VertexQuery query() {
-        // TODO Auto-generated method stub
-        return null;
+        return new DefaultVertexQuery(this);
     }
     
     @Override

@@ -8,7 +8,11 @@ AmberDB
           [Backlog](http://huboard.com/nla/amberdb/backlog))
 ([Javadoc](http://nla.github.io/amberdb/apidocs/))
 
-A graph domain model on top of SQL for representing digital library objects and metadata.
+A graph domain model on top of SQL for representing digital library objects and metadata. Supports:
+
+* Suspendable long-running transactions
+* History keeping and history subscription for indexing
+* Ordered edges
 
 Usage
 -----

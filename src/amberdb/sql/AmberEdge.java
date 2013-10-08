@@ -149,7 +149,8 @@ public class AmberEdge implements Edge {
             throw new IllegalArgumentException("Illegal property name [" + propertyName + "]");
         }
         if (!(value instanceof Integer || value instanceof String || 
-              value instanceof Boolean || value instanceof Double)) {
+              value instanceof Boolean || value instanceof Double ||
+              value instanceof Long)) {
             throw new IllegalArgumentException("Illegal property type [" + value.getClass() + "].");
         }
         if (!(value instanceof Integer) && propertyName.equals(SORT_ORDER_PROPERTY_NAME)) {
