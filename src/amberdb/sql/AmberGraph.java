@@ -26,6 +26,7 @@ import com.tinkerpop.blueprints.Features;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.GraphQuery;
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.util.DefaultGraphQuery;
 
 public class AmberGraph implements Graph {
 
@@ -121,6 +122,7 @@ public class AmberGraph implements Graph {
             persistentDbi = new DBI(persistentDs);
             
             // register mapper factories for passing this graph to elements instantiated 
+            // via the persistent datastore
             PersistentVertexMapperFactory pvFactory = new PersistentVertexMapperFactory();
             persistentDbi.registerMapper(pvFactory);
             pvFactory.setGraph(this);
@@ -137,7 +139,8 @@ public class AmberGraph implements Graph {
         if (sessionDs == null) sessionDs = DEFAULT_SESSION_DATASOURCE;
         sessionDbi = new DBI(sessionDs);
         
-        // register mapper factories for passing this graph to elements instantiated
+        // register mapper factories for passing this graph to elements instantiated 
+        // via the session datastore
         SessionVertexMapperFactory svFactory = new SessionVertexMapperFactory();
         sessionDbi.registerMapper(svFactory);
         svFactory.setGraph(this);
@@ -489,14 +492,13 @@ public class AmberGraph implements Graph {
         features.supportsBooleanProperty = true;
         features.supportsDoubleProperty = true;
         features.supportsLongProperty = true;
+        features.supportsFloatProperty = true;
         features.ignoresSuppliedIds = true;
         features.supportsVertexProperties = true;
         features.supportsVertexIteration = true;
         features.supportsEdgeProperties = true;
         features.supportsEdgeIteration = true;
         features.supportsEdgeRetrieval = true;
-        
-        //features.supportsMixedListProperty= true;
         features.checkCompliance();
         return features;
     }
@@ -574,8 +576,7 @@ public class AmberGraph implements Graph {
      */
     @Override
     public GraphQuery query() {
-        // TODO Auto-generated method stub
-        return null;
+        return new DefaultGraphQuery(this);
     }
 
     @Override

@@ -150,7 +150,7 @@ public class AmberEdge implements Edge {
         }
         if (!(value instanceof Integer || value instanceof String || 
               value instanceof Boolean || value instanceof Double ||
-              value instanceof Long)) {
+              value instanceof Long    || value instanceof Float)) {
             throw new IllegalArgumentException("Illegal property type [" + value.getClass() + "].");
         }
         if (!(value instanceof Integer) && propertyName.equals(SORT_ORDER_PROPERTY_NAME)) {
