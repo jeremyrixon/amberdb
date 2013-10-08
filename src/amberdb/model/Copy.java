@@ -53,18 +53,6 @@ public interface Copy extends Node {
     @Adjacency(label = IsSourceCopyOf.label, direction=Direction.OUT)
     public void setSourceCopy(Copy sourceCopy);
 
-    @Property("accessConditions")
-    public String getAccessConditions();
-
-    @Property("accessConditions")
-    public void setAccessConditions(String accessConditions);
-
-    @Property("expiryDate")
-    public Date getExpiryDate();
-
-    @Property("expiryDate")
-    public void setExpiryDate(Date expiryDate);
-
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     public Iterable<File> getFiles();
 
