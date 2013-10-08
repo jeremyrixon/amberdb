@@ -24,7 +24,7 @@ public class PersistentVertexMapper implements ResultSetMapper<AmberVertex> {
         
         long id = rs.getLong("id");
         AmberVertex vertex = new AmberVertex(graph, id);
-        
+     
         try {
             graph.vertexDao().insertVertex(
                     id, 

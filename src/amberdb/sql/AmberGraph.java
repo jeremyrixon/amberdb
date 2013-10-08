@@ -2,33 +2,22 @@ package amberdb.sql;
 
 import amberdb.sql.State;
 import amberdb.sql.dao.*;
-import amberdb.sql.map.PersistentEdgeMapper;
 import amberdb.sql.map.PersistentEdgeMapperFactory;
-import amberdb.sql.map.PersistentVertexMapper;
 import amberdb.sql.map.PersistentVertexMapperFactory;
-import amberdb.sql.map.SessionEdgeMapper;
 import amberdb.sql.map.SessionEdgeMapperFactory;
-import amberdb.sql.map.SessionVertexMapper;
 import amberdb.sql.map.SessionVertexMapperFactory;
 
 import java.lang.reflect.Field;
-import java.sql.Blob;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.WeakHashMap;
 
 import javax.sql.DataSource;
 
-import org.h2.jdbc.JdbcSQLException;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
-import org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException;
 
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
@@ -56,8 +45,6 @@ public class AmberGraph implements Graph {
 
     /** Identify this graph instance */
     private String user;
-    
-    //protected AmberGraphHelper helper;
     
     boolean persistence = false;
     boolean autoCommit = false;
@@ -168,14 +155,6 @@ public class AmberGraph implements Graph {
         // set up required data access objects
         vertexDao = sessionDbi.onDemand(VertexDao.class);
         edgeDao = sessionDbi.onDemand(EdgeDao.class);
-        
-        //helper = new AmberGraphHelper(this);
-        
-        // set mapper graph references - this needs some refactoring
-//        SessionVertexMapper.graph = this;
-//        SessionEdgeMapper.graph = this;
-//        PersistentVertexMapper.graph = this;
-//        PersistentEdgeMapper.graph = this;
     }
 
     /**

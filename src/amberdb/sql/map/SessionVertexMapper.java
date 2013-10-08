@@ -19,7 +19,7 @@ public class SessionVertexMapper implements ResultSetMapper<AmberVertex> {
     
     public AmberVertex map(int index, ResultSet rs, StatementContext ctx) 
             throws SQLException {
-        
+
         return new AmberVertex(graph, rs.getLong("id"));
         
     }
