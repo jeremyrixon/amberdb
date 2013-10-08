@@ -44,7 +44,7 @@ public class AmberGraphPersistenceTest {
         graph1 = new AmberGraph(sessionDs1, persistentDs, "tester");
         //graph2 = new AmberGraph(sessionDs2, persistentDs, "tester");
 
-        graph1.createPersistentDataStore();
+        graph1.createPersistentSchema();
 
     }
 
@@ -73,20 +73,20 @@ public class AmberGraphPersistenceTest {
         v1.remove();
         assertNull(graph1.getVertex(v1.getId()));
         
+        // ============== after here needs fixing ================
         
-        
-//        Vertex v2 = graph.addVertex(null);
+//        Vertex v2 = graph1.addVertex(null);
 //        v2.setProperty("name", "what else");
 //        v2.setProperty("number", 25);
 //        v2.setProperty("real", false);
 //        v2.setProperty("other number", 40.40);
 //        
-//        Edge e1 = graph.addEdge(null, v1, v2, "the connector");
+//        Edge e1 = graph1.addEdge(null, v1, v2, "the connector");
 //        
 //        // persist the sucker
-//        graph.commitToPersistent("persisting v1 and v2");
+//        graph1.commitToPersistent("persisting v1 and v2");
 //
-//        s("v1 b==== " + v1);
+////        s("v1 b==== " + v1); // has been removed already
 //        s("v2 b==== " + v2);
 //
 //        // make some changes
@@ -101,24 +101,24 @@ public class AmberGraphPersistenceTest {
 //        s("v2 a==== " + v2);
 //        
 //        // persist the sucker
-//        graph.commitToPersistent("persisting v1 & v2 a second time");
+//        graph1.commitToPersistent("persisting v1 & v2 a second time");
 //
 //        // just building on previous persisted 
 //        Long v1id = (Long) v1.getId();
 //
-//        Vertex v3 = graph.getVertex(v1id);
+//        Vertex v3 = graph1.getVertex(v1id);
 //        
 //        s("v3 is : "+ v3);
 //        s("v1 is : "+ v1);
 //
-//        graph.shutdown();
+//        graph1.shutdown();
 //        
-//        graph = new AmberGraph(sessionDs, persistentDs, "tester");
+//        graph1 = new AmberGraph(sessionDs1, persistentDs, "tester");
 //        
-//        v3 = graph.getVertex(v1id);
+//        v3 = graph1.getVertex(v1id);
 //        s("v3 is again : "+ v3);
 //    
-//        Iterable<Vertex> v4 = graph.getVertices("name", "lava lamp");
+//        Iterable<Vertex> v4 = graph1.getVertices("name", "lava lamp");
 //        s("her we go");
 //        for (Vertex v : v4) {
 //            s("and we found " + v);

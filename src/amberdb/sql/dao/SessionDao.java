@@ -7,7 +7,6 @@ import  amberdb.sql.*;
 import  amberdb.sql.map.*;
 
 import org.skife.jdbi.v2.sqlobject.Bind;
-import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
@@ -50,27 +49,6 @@ public interface SessionDao extends Transactional<SessionDao> {
             "CREATE UNIQUE INDEX unique_prop " +
             "ON property(id, name)")
     void createPropertyIndex();
-    
-    @SqlUpdate(
-            "CREATE TABLE IF NOT EXISTS id_generator (" +
-            "id BIGINT PRIMARY KEY AUTO_INCREMENT)")
-    void createIdGeneratorTable();
-    
-    /*
-     * id generation operations
-     */
-    @GetGeneratedKeys
-    @SqlUpdate(
-            "INSERT INTO id_generator () " + 
-            "VALUES ()")
-    long newId();
-
-    @SqlUpdate(
-            "DELETE " +
-            "FROM id_generator " +
-            "WHERE id < :id")
-    void garbageCollectIds(
-            @Bind("id") long id);
     
     /*
      * DDL cleanup

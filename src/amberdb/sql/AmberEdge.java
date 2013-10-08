@@ -55,9 +55,8 @@ public class AmberEdge implements Edge {
         if (graph == null) throw new RuntimeException("graph cannot be null");
 
         setGraph(graph);
-        this.id = graph.newSessionId();
+        this.id = graph.newPersistentId();
         dao().insertEdge(id, null, null, outVertexId, inVertexId, label, 0, State.NEW.toString());
-        graph.addToNewEdges(this);
     }
 
     public Long getTxnStart() {

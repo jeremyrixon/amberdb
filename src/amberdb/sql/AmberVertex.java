@@ -62,9 +62,8 @@ public class AmberVertex implements Vertex {
         if (graph == null) throw new RuntimeException("graph cannot be null");
         
         setGraph(graph);
-        this.id = graph.newSessionId();
+        this.id = graph.newPersistentId();
         dao().insertVertex(id, null, null, State.NEW.toString());
-        graph.addToNewVertices(this);
     }
 
     public Long getTxnStart() {
@@ -171,7 +170,7 @@ public class AmberVertex implements Vertex {
     public Iterable<Edge> getEdges(Direction direction, String... labels) {
 
         // load edges from persistent into session (shouldn't overwrite present edges)
-        if (graph.persistence) graph.loadPersistentEdges(this, direction, labels);
+        graph.loadPersistentEdges(this, direction, labels);
 
         // now just get from session - DELETED edges have been removed
         List<AmberEdge> sessionEdges = getSessionEdges(direction, labels);
@@ -245,7 +244,7 @@ public class AmberVertex implements Vertex {
     public Iterable<Vertex> getVertices(Direction direction, String... labels) {
         
         // load vertices from persistent into session (shouldn't overwrite present vertices)
-        if (graph.persistence) graph.loadPersistentVertices(this, direction, labels);
+        graph.loadPersistentVertices(this, direction, labels);
 
         // now just get from session (contains DELETED edges)
         List<AmberVertex> sessionVertices = getSessionVertices(direction, labels);
