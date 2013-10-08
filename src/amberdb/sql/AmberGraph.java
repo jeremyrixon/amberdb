@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.WeakHashMap;
 
 import javax.sql.DataSource;
 
@@ -218,17 +217,6 @@ public class AmberGraph implements Graph {
         
         persistentDao.commit();
     }
-    
-//    /* The following Maps are used to update new elements with their persistent ids when committed to amber */
-//    private WeakHashMap<Long, AmberVertex> newSessionVertices = new WeakHashMap<Long, AmberVertex>();
-//    public void addToNewVertices(AmberVertex v) {
-//        newSessionVertices.put((Long) v.getId(), v);
-//    }
-//    private WeakHashMap<Long, AmberEdge> newSessionEdges = new WeakHashMap<Long, AmberEdge>();
-//    public void addToNewEdges(AmberEdge e) {
-//        newSessionEdges.put((Long) e.getId(), e);
-//    }
-    
     
     /*
      * Amber specific methods
@@ -600,23 +588,6 @@ public class AmberGraph implements Graph {
             // also sets commitId
             AmberTransaction txn = new AmberTransaction(this, user, operation);
             s("committing transaction " + txn);
-
-            // Give any new elements persistent ids
-//            List<AmberVertex> newVertices = sessionDao.findNewVertices();
-//            for (AmberVertex v: newVertices) {
-//                Long newId = newPersistentId();
-//                AmberVertex newV = newSessionVertices.remove(v.getId());
-//                if (newV != null) newV.addressId(newId);
-//                v.changeId(newId);
-//            }
-            
-//            List<AmberEdge> newEdges = sessionDao.findNewEdges();
-//            for (AmberEdge e: newEdges) {
-//                Long newId = newPersistentId();
-//                AmberEdge newE = newSessionEdges.remove(e.getId());
-//                if (newE != null) newE.addressId(newId);
-//                e.changeId(newId);
-//            }
 
             stageElements(txn);
 
