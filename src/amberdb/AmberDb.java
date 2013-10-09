@@ -24,7 +24,7 @@ public class AmberDb {
         }
     }
 
-    AmberSession begin() {        
+    public AmberSession begin() {        
         for (long sessionId = 0;; sessionId++) {
             Path sessionPath = sessionsPath.resolve(Long.toString(sessionId));
             try {
@@ -38,7 +38,7 @@ public class AmberDb {
         }        
     }
     
-    AmberSession resume(long sessionId) {
+    public AmberSession resume(long sessionId) {
         Path sessionPath = sessionsPath.resolve(Long.toString(sessionId));
         return new AmberSession(dataSource, rootPath, sessionPath, sessionId);
     }
