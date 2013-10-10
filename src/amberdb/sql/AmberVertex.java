@@ -2,6 +2,7 @@ package amberdb.sql;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -242,16 +243,16 @@ public class AmberVertex implements Vertex {
      */
     @Override
     public Iterable<Vertex> getVertices(Direction direction, String... labels) {
-        
+
         // load vertices from persistent into session (shouldn't overwrite present vertices)
         graph.loadPersistentVertices(this, direction, labels);
+        graph.loadPersistentEdges(this, direction, labels);
 
         // now just get from session (contains DELETED edges)
         List<AmberVertex> sessionVertices = getSessionVertices(direction, labels);
-        
         List<Vertex> vertices = new ArrayList<Vertex>();
         vertices.addAll(sessionVertices);
-        
+
         return vertices;
     }
 
@@ -263,6 +264,8 @@ public class AmberVertex implements Vertex {
         if (labels.length == 0) {
 
             if (direction == Direction.IN || direction == Direction.BOTH) {
+                
+                List<AmberVertex> vsss = dao().findInVertices(id);
                 unfilteredVertices.addAll(Lists.newArrayList(dao().findInVertices(id)));
             }
             if (direction == Direction.OUT || direction == Direction.BOTH) {
@@ -294,6 +297,7 @@ public class AmberVertex implements Vertex {
         if (direction == Direction.OUT || direction == Direction.BOTH) {
             unfilteredVertices.addAll(Lists.newArrayList(dao().findOutVertices(id, label)));
         }
+        
         unfilteredVertices.removeAll(Collections.singleton(null));
         for (AmberVertex vertex: unfilteredVertices) {
             if (vertex.getState() != State.DEL) {

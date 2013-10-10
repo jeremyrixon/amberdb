@@ -33,10 +33,7 @@ public class PersistentVertexMapper implements ResultSetMapper<AmberVertex> {
                     State.AMB.toString());
 
             // load properties also
-            for (AmberProperty p : graph.persistentDao().getProperties(id)) {
-                graph.vertexDao().setProperty(p.getId(), p.getName(), 
-                        p.getType().toString(), AmberProperty.encodeBlob(p.getValue()));
-            }            
+            graph.addLoadPropertyId(id);
             
         } catch (Exception e) {
             // Need to log as expected exception when a vertex is already present in the session
@@ -44,5 +41,9 @@ public class PersistentVertexMapper implements ResultSetMapper<AmberVertex> {
         }
         
         return vertex;
+    }
+    
+    private void s(String s) {
+        System.out.println(s);
     }
 }

@@ -16,6 +16,7 @@ import org.junit.Assert;
 import static org.junit.Assert.*;
 import org.junit.rules.TemporaryFolder;
 
+import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 
@@ -39,10 +40,18 @@ public class AmberGraphPersistenceTest {
         String tempPath = tempFolder.getRoot().getAbsolutePath();
         sessionDs1 = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"session1","sess","sess");
         sessionDs2 = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"session2","sess","sess");
+        
         persistentDs = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"persist","per","per");
 
-        graph1 = new AmberGraph(sessionDs1, persistentDs, "tester");
-        //graph2 = new AmberGraph(sessionDs2, persistentDs, "tester");
+        MysqlDataSource ds = new MysqlDataSource();
+        ds.setUser("dlir");
+        ds.setPassword("dlir");
+        ds.setServerName("snowy.nla.gov.au");
+        ds.setPort(6446);
+        ds.setDatabaseName("dlir");
+        
+        graph1 = new AmberGraph(sessionDs1, ds, "tester");
+        graph2 = new AmberGraph(sessionDs2, ds, "tester2");
 
         graph1.createPersistentSchema();
 
@@ -72,6 +81,20 @@ public class AmberGraphPersistenceTest {
         // remove the vertex in the session but don't persist
         v1.remove();
         assertNull(graph1.getVertex(v1.getId()));
+        
+        // create 2nd session
+        Vertex v2 = graph2.getVertex(v1.getId());
+        s(""+v2);
+        assertNotNull(v2);
+        assertEquals("enter the dragon", v2.getProperty("name"));
+        
+        v2.setProperty("name", "game of death");
+        Vertex v3 = graph2.addVertex(null);
+        v3.addEdge("connect", v3);
+        v3.setProperty("name", "bruce lee");
+        
+        graph2.commitToPersistent("update v2 and connector");
+        
         
         // ============== after here needs fixing ================
         

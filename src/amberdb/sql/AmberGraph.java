@@ -3,6 +3,7 @@ package amberdb.sql;
 import amberdb.sql.State;
 import amberdb.sql.dao.*;
 import amberdb.sql.map.PersistentEdgeMapperFactory;
+import amberdb.sql.map.PersistentPropertyMapper;
 import amberdb.sql.map.PersistentVertexMapperFactory;
 import amberdb.sql.map.SessionEdgeMapperFactory;
 import amberdb.sql.map.SessionVertexMapperFactory;
@@ -17,6 +18,7 @@ import javax.sql.DataSource;
 
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
+import org.skife.jdbi.v2.Handle;
 
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
@@ -202,9 +204,7 @@ public class AmberGraph implements Graph {
      *            the persistent data access object
      */
     public void createPersistentSchema() {
-        persistentDao.begin();
- 
-        //persistentDao.dropTables();
+
         persistentDao.createVertexTable();
         persistentDao.createEdgeTable();
         persistentDao.createPropertyTable();
@@ -214,8 +214,11 @@ public class AmberGraph implements Graph {
         persistentDao.createStagingEdgeTable();
         persistentDao.createStagingPropertyTable();
         newPersistentId(); // seed generator with id > 0
-        
-        persistentDao.commit();
+    }
+
+    private List<Long> loadPropertyIds = new ArrayList<Long>();
+    public void addLoadPropertyId(Long id) {
+        loadPropertyIds.add(id);
     }
     
     /*
@@ -258,6 +261,10 @@ public class AmberGraph implements Graph {
 
     protected List<AmberEdge> loadPersistentEdges(AmberVertex vertex, Direction direction, String... labels) {
         
+        // we load the properties for all persistent elements as a batch after we've 
+        // loaded the elements themselves. This list keeps track of them
+        loadPropertyIds.clear();
+        
         List<AmberEdge> edges = new ArrayList<AmberEdge>();
         if (labels.length == 0) {
 
@@ -273,6 +280,9 @@ public class AmberGraph implements Graph {
                 edges.addAll(loadPersistentEdges(vertex, direction, label));
             }
         }
+
+        loadProperties(loadPropertyIds);
+        
         return edges;
     }
 
@@ -290,22 +300,40 @@ public class AmberGraph implements Graph {
     }
  
     protected List<AmberEdge> loadEdges() {
+        
+        loadPropertyIds.clear();
+        
         List<AmberEdge> edges = new ArrayList<AmberEdge>();
         edges.addAll(Lists.newArrayList(persistentDao.findEdges()));
         edges.removeAll(Collections.singleton(null));
+        
+        loadProperties(loadPropertyIds);
+        loadPropertyIds.clear();
+        
         return edges;
     }
     
     protected List<AmberEdge> loadEdgesWithProperty(String key, Object value) {
+        
+        loadPropertyIds.clear();
+        
         List<AmberEdge> edges = new ArrayList<AmberEdge>();
 
         edges.addAll(Lists.newArrayList(persistentDao.findEdgesWithProperty(key, AmberProperty.encodeBlob(value))));
         edges.removeAll(Collections.singleton(null));
+        
+        loadProperties(loadPropertyIds);
+        loadPropertyIds.clear();
+        
         return edges;
     }
     
     protected List<AmberVertex> loadPersistentVertices(AmberVertex vertex, Direction direction, String... labels) {
-        
+
+        // we load the properties for all persistent elements as a batch after we've 
+        // loaded the elements themselves. This list keeps track of them
+        loadPropertyIds.clear();
+
         List<AmberVertex> vertices = new ArrayList<AmberVertex>();
         if (labels.length == 0) {
 
@@ -321,6 +349,10 @@ public class AmberGraph implements Graph {
                 vertices.addAll(loadPersistentVertices(vertex, direction, label));
             }
         }
+        
+        loadProperties(loadPropertyIds);
+        loadPropertyIds.clear();
+        
         return vertices;
     }
 
@@ -338,21 +370,72 @@ public class AmberGraph implements Graph {
     }
 
     protected List<AmberVertex> loadVertices() {
+
+        // we load the properties for all persistent elements as a batch after
+        // we've loaded the elements themselves. This list keeps track of them
+        loadPropertyIds.clear();
+
         List<AmberVertex> vertices = new ArrayList<AmberVertex>();
-        
+
         vertices.addAll(Lists.newArrayList(persistentDao.findVertices()));
         vertices.removeAll(Collections.singleton(null));
+
+        loadProperties(loadPropertyIds);
+        loadPropertyIds.clear();
+
         return vertices;
     }
 
     protected List<AmberVertex> loadVerticesWithProperty(String key, Object value) {
+
+        // we load the properties for all persistent elements as a batch after
+        // we've loaded the elements themselves. This list keeps track of them
+        loadPropertyIds.clear();
+
         List<AmberVertex> vertices = new ArrayList<AmberVertex>();
 
         vertices.addAll(Lists.newArrayList(persistentDao.findVerticesWithProperty(key, AmberProperty.encodeBlob(value))));
         vertices.removeAll(Collections.singleton(null));
+
+        loadProperties(loadPropertyIds);
+        loadPropertyIds.clear();
+
         return vertices;
     }
     
+    protected void loadProperties(List<Long> ids) {
+
+        // construct the in clause
+        StringBuilder inClause;
+        if (ids.size() > 0) {
+            inClause = new StringBuilder("AND id IN (");
+            for (Long id : ids) {
+                inClause.append(id).append(",");
+            }
+            inClause.setLength(inClause.length() - 1);
+            inClause.append(")");
+        } else {
+            inClause = new StringBuilder();
+        }
+        
+        // run the query
+        Handle h = persistentDbi.open();
+        Iterator<AmberProperty> properties = h.createQuery(
+                "SELECT id, name, type, value " +
+                "FROM property " +
+                "WHERE (txn_end = 0 OR txn_end IS NULL) " +        
+                inClause.toString())
+                .map(new PersistentPropertyMapper()).iterator();
+        
+        // put the properties found into the session db
+        sessionDao.begin();
+        sessionDao.loadProperties(properties);
+        sessionDao.commit();
+        
+        h.close();
+    }
+    
+
     
     /*
      * Tinkerpop blueprints graph interface implementation
@@ -408,6 +491,9 @@ public class AmberGraph implements Graph {
         
         // get from persistent
         edge = persistentDao.findEdge(id);
+
+        loadProperties(loadPropertyIds);
+        loadPropertyIds.clear();
 
         return edge;
     }
@@ -507,6 +593,10 @@ public class AmberGraph implements Graph {
 
         // get from persistent
         vertex = persistentDao.findVertex(id);
+        
+        loadProperties(loadPropertyIds);
+        loadPropertyIds.clear();
+        
         return vertex;
     }
     
@@ -628,7 +718,7 @@ public class AmberGraph implements Graph {
             sessionDao.clearDeletedVertices();
             sessionDao.clearDeletedEdges();
             
-            // Mark modified as read
+            // Mark modified as amber (ie: fresh, unmodified)
             sessionDao.resetModifiedVertices(txn.getId());
             sessionDao.resetModifiedEdges(txn.getId());
             sessionDao.commit();
@@ -717,9 +807,6 @@ public class AmberGraph implements Graph {
         s("\tinserted edges: "      + numInsertedEdges);
         s("\tinserted properties: " + numInsertedProperties);
         
-        // finally, set the commit flag on our transaction
-        dao.commitTransaction(txn.getId(), newPersistentId());
-        dao.commit();
     }
     
     // Convenience for debugging
