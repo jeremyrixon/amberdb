@@ -29,12 +29,12 @@ public class AmberDb {
             Path sessionPath = sessionsPath.resolve(Long.toString(sessionId));
             try {
                 Files.createDirectory(sessionPath);
+                return new AmberSession(dataSource, rootPath, sessionPath, sessionId);
             } catch (FileAlreadyExistsException e) {
                 // try again
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            return new AmberSession(dataSource, rootPath, sessionPath, sessionId);
         }        
     }
     
