@@ -25,9 +25,8 @@ public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
         
         System.out.println("Setting up graph");
 
-//        DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:~/h2testSession","sess","sess");
         DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:mem:","sess","sess");
-        DataSource persistentDs = JdbcConnectionPool.create("jdbc:h2:mem:persist","persist","persist");
+        DataSource persistentDs = JdbcConnectionPool.create("jdbc:h2:mem:","persist","persist");
         
 //        MysqlDataSource ds = new MysqlDataSource();
 //        ds.setUser("dlir");
@@ -36,7 +35,8 @@ public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
 //        ds.setPort(3306);
 //        ds.setDatabaseName("dlir");
         
-        graph = new AmberGraph(sessionDs, null, "tester");
+        graph = new AmberGraph(sessionDs, persistentDs, "tester");
+        graph.createPersistentSchema();
     }
 
     @After

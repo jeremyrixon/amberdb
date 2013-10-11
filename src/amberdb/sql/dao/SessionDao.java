@@ -266,14 +266,33 @@ public interface SessionDao extends Transactional<SessionDao> {
             "INSERT INTO property (id, name, type, value) " +
             "VALUES (:id, :name, :type, :value)")
     void loadProperties(
-            @BindAmberProperty Iterator<AmberProperty> a);
+            @BindAmberProperty Iterator<AmberProperty> property);
 
+    @SqlUpdate(
+            "INSERT INTO property (id, name, type, value) " +
+            "VALUES (:id, :name, :type, :value)")
+    void loadProperty(
+            @BindAmberProperty AmberProperty property);
+    
     @SqlBatch(
             "INSERT INTO property (id, txn_start, txn_end, v_out, v_in, label, edge_order, state) " +
             "VALUES (:id, :txn_start, :txn_end, :v_out, :v_in, :label, :edge_order, :state)")
     void loadEdges(
             @BindAmberEdge Iterator<AmberEdge> a);
 
+    @SqlUpdate(
+            "DELETE FROM vertex")
+    void clearVertices();
+    
+    @SqlUpdate(
+            "DELETE FROM edges")
+    void clearEdges();
+
+    @SqlUpdate(
+            "DELETE FROM property")
+    void clearProperty();
+
+    
     void close();
 
 }

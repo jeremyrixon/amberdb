@@ -16,6 +16,7 @@ import amberdb.model.Work;
 import amberdb.sql.AmberGraph;
 
 import com.tinkerpop.blueprints.Graph;
+import com.tinkerpop.blueprints.TransactionalGraph;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.io.graphson.GraphSONWriter;
 import com.tinkerpop.blueprints.util.wrappers.WrapperGraph;
@@ -109,14 +110,14 @@ public class AmberSession implements AutoCloseable {
      * commit saves everything in the current transaction.
      */
     public void commit() {
-        // TODO: saves everything in the current transaction.
+        ((TransactionalGraph) graph).commit();
     }
 
     /**
      * rollback rollback everything in the current transaction.
      */
     public void rollback() {
-        // TODO: saves everything in the current transaction.
+        ((TransactionalGraph) graph).rollback();
     }
     
     public JsonNode serializeToJson() throws IOException {

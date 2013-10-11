@@ -16,9 +16,11 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.h2.jdbc.JdbcSQLException;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException;
 
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
@@ -26,10 +28,11 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Features;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.GraphQuery;
+import com.tinkerpop.blueprints.TransactionalGraph;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.DefaultGraphQuery;
 
-public class AmberGraph implements Graph {
+public class AmberGraph implements Graph, TransactionalGraph {
 
     public static final String DEFAULT_USER = "anon";
     public static final DataSource DEFAULT_SESSION_DATASOURCE = 
@@ -52,7 +55,6 @@ public class AmberGraph implements Graph {
     private String user;
     
     boolean autoCommit = false;
-    boolean multiUserSession = true;
     
     /* 
      * Constructors
@@ -180,16 +182,14 @@ public class AmberGraph implements Graph {
      */
     protected void initSessionSchema(SessionDao dao) {
         dao.begin();
-        
-        if (!multiUserSession) {
-            dao.dropTables();
-        }
         dao.createVertexTable();
         dao.createEdgeTable();
         dao.createPropertyTable();
-        if (!multiUserSession) {
+        try { 
             dao.createPropertyIndex();
-        }    
+        } catch (Exception e) {
+            s("property index exists ? exception thrown was: " + e.getMessage());
+        }
         dao.commit();
     }
 
@@ -429,7 +429,14 @@ public class AmberGraph implements Graph {
         
         // put the properties found into the session db
         sessionDao.begin();
-        sessionDao.loadProperties(properties);
+        while (properties.hasNext()) {
+            try {
+                sessionDao.loadProperty(properties.next());
+            } catch (UnableToExecuteStatementException e) {
+                s("property already present in session - not reloaded");
+            }
+        }
+        // sessionDao.loadProperties(properties); Stoopid H2
         sessionDao.commit();
         
         h.close();
@@ -655,12 +662,10 @@ public class AmberGraph implements Graph {
      */
     @Override
     public void shutdown() {
-        
+
+        commit();
         persistentDao.close();
-        
-        if (!multiUserSession) {
-            sessionDao.dropTables();
-        }
+        transactionDao.close();
         sessionDao.close();
         vertexDao.close();
         edgeDao.close();
@@ -783,10 +788,10 @@ public class AmberGraph implements Graph {
         // add an end transaction to superceded and deleted elements 
         int numEndedVertices = dao.updateSupercededVertices(txn.getId());
         int numEndedEdges = dao.updateSupercededEdges(txn.getId());
-        
+
         // add an end transaction to superceded and deleted properties 
         int numEndedProperties = dao.updateSupercededProperties(txn.getId());
-        
+
         // IMPORTANT : will need to delete incident edges for deleted vertices too
         // They may not have been queried into the session, but are non the less
         // affected. This has not been implemented yet, but needs to be.
@@ -794,10 +799,10 @@ public class AmberGraph implements Graph {
         // add new and modified elements
         int numInsertedVertices = dao.insertStagedVertices(txn.getId());
         int numInsertedEdges = dao.insertStagedEdges(txn.getId());
-        
+
         // add their properties
         int numInsertedProperties = dao.insertStagedProperties(txn.getId());
-        
+
         // just a bit of output - refactor should improve or remove this
         s("\tended vertices: "   + numEndedVertices);
         s("\tended edges: "      + numEndedEdges);
@@ -812,5 +817,28 @@ public class AmberGraph implements Graph {
     // Convenience for debugging
     private void s(String s) {
         System.out.println(s);
+    }
+
+    @Override
+    public void stopTransaction(Conclusion conclusion) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void commit() {
+        commitToPersistent(user);
+    }
+
+    @Override
+    public void rollback() {
+        clearSession();
+    }
+    
+    public void clearSession() {
+        // Simply clear all session tables
+        sessionDao.clearVertices();
+        sessionDao.clearEdges();
+        sessionDao.clearProperty();
     }
 }
