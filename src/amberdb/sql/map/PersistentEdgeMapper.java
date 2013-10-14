@@ -36,11 +36,8 @@ public class PersistentEdgeMapper implements ResultSetMapper<AmberEdge> {
                     rs.getInt("edge_order"), 
                     State.AMB.toString());
             
-            // load properties also
-            for (AmberProperty p : graph.persistentDao().getProperties(id)) {
-                graph.edgeDao().setProperty(p.getId(), p.getName(), 
-                        p.getType().toString(), AmberProperty.encodeBlob(p.getValue()));
-            }
+            // load properties from the list of id's later
+            graph.addLoadPropertyId(id);
 
         } catch (Exception e) {
             // Need to log as expected exception when an edge is already present in the session

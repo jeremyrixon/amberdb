@@ -33,8 +33,8 @@ public class AmberGraphDaoTest {
         
         System.out.println("Setting up graph");
 
-        DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:mem:session","sess","sess");
-        DataSource persistentDs = JdbcConnectionPool.create("jdbc:h2:mem:persist","persist","persist");
+        DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:mem:h2testSession","sess","sess");
+        DataSource persistentDs = JdbcConnectionPool.create("jdbc:h2:mem:h2testPersist","persist","persist");
       
         graph = new AmberGraph(sessionDs, null, "tester");
     }

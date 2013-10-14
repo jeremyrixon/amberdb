@@ -4,9 +4,12 @@ import java.util.Iterator;
 import java.util.List;
 
 import  amberdb.sql.*;
+import amberdb.sql.bind.BindAmberEdge;
+import amberdb.sql.bind.BindAmberProperty;
 import  amberdb.sql.map.*;
 
 import org.skife.jdbi.v2.sqlobject.Bind;
+import org.skife.jdbi.v2.sqlobject.SqlBatch;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
@@ -259,6 +262,37 @@ public interface SessionDao extends Transactional<SessionDao> {
             @Bind("name") String name,
             @Bind("value") byte[] value);
 
+    @SqlBatch(
+            "INSERT INTO property (id, name, type, value) " +
+            "VALUES (:id, :name, :type, :value)")
+    void loadProperties(
+            @BindAmberProperty Iterator<AmberProperty> property);
+
+    @SqlUpdate(
+            "INSERT INTO property (id, name, type, value) " +
+            "VALUES (:id, :name, :type, :value)")
+    void loadProperty(
+            @BindAmberProperty AmberProperty property);
+    
+    @SqlBatch(
+            "INSERT INTO property (id, txn_start, txn_end, v_out, v_in, label, edge_order, state) " +
+            "VALUES (:id, :txn_start, :txn_end, :v_out, :v_in, :label, :edge_order, :state)")
+    void loadEdges(
+            @BindAmberEdge Iterator<AmberEdge> a);
+
+    @SqlUpdate(
+            "DELETE FROM vertex")
+    void clearVertices();
+    
+    @SqlUpdate(
+            "DELETE FROM edge")
+    void clearEdges();
+
+    @SqlUpdate(
+            "DELETE FROM property")
+    void clearProperty();
+
+    
     void close();
 
 }

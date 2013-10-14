@@ -118,7 +118,6 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "value     BLOB)")
     void createStagingPropertyTable();
     
-    
     /*
      * id generation operations
      */
@@ -162,6 +161,7 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "WHERE s.txn_new = :txnId " +
             "AND s.id = v.id " +
             "AND v.txn_end > 0 " +
+            "AND v.txn_end IS NOT NULL " +
             "AND v.txn_end > s.txn_start " +  // this clause may not be needed
             "UNION " +
             "SELECT e.id, e.txn_end " +
@@ -169,6 +169,7 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "WHERE s.txn_new = :txnId " +
             "AND s.id = e.id " +
             "AND e.txn_end > 0 " +
+            "AND e.txn_end IS NOT NULL " +
             "AND e.txn_end > s.txn_start ")  // this clause may not be needed
     @Mapper(LongArrayMapper.class)
     List<Long[]> findDeletionMutations(
