@@ -14,8 +14,11 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import com.google.common.collect.Lists;
 
 import amberdb.enums.CopyRole;
 import amberdb.model.Page;
@@ -145,7 +148,8 @@ public class IngestTest {
         try {
             int count = work.countParts();
             if (count > 0) {
-                Page page7 = work.getPage(1);
+                Page page7 = work.getPages().iterator().next();
+                System.out.println("*********** check set title: " + work.getId() + " pages:" + Lists.newArrayList(work.getPages()).size()  );
                 if (page7 != null)
                     page7.setTitle("III");
             }
@@ -156,7 +160,7 @@ public class IngestTest {
         db.commit();
     }
 
-    @Test
+    @Ignore
     public void testCompleteJob() {
         // recover existing transaction if any
         db.commit();
