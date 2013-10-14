@@ -285,7 +285,7 @@ public interface SessionDao extends Transactional<SessionDao> {
     void clearVertices();
     
     @SqlUpdate(
-            "DELETE FROM edges")
+            "DELETE FROM edge")
     void clearEdges();
 
     @SqlUpdate(
