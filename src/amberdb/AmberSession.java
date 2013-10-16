@@ -4,11 +4,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.h2.Driver;
 import org.h2.jdbcx.JdbcConnectionPool;
 
 import amberdb.model.Section;
@@ -52,45 +55,50 @@ public class AmberSession implements AutoCloseable {
         AmberGraph amber = new AmberGraph(sessionDs, persistDs, "amberdb");
         amber.createPersistentSchema();
         graph = openGraph(amber);
-
     }
 
     /**
      * Constructs an AmberDb stored on the local filesystem.
      */
     public AmberSession(Path dataPath) throws IOException {
-        Files.createDirectories(dataPath);
+        DataSource persistDs = JdbcConnectionPool.create("jdbc:h2:" + dataPath.resolve("graph"), "pers", "pers");
+        AmberGraph amber = init(persistDs, "pers", "pers", dataPath, dataPath.resolve("session"), sessionId);
         tempDir = null;
         
         // DOSS
         blobStore = openBlobStore(dataPath);
 
         // Graph
-        DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:" + dataPath.resolve("session"), "fish", "fish");
-        DataSource persistDs = JdbcConnectionPool.create("jdbc:h2:" + dataPath.resolve("graph"), "pers", "pers");
-        AmberGraph amber = new AmberGraph(sessionDs, persistDs, "amberdb");
-        amber.createPersistentSchema();
         graph = openGraph(amber);
     }
     
     public AmberSession(DataSource dataSource, Path dataPath, Path sessionPath, long sessionId) {
-        try {
-            Files.createDirectories(dataPath);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        AmberGraph amber = init(dataSource, "fish", "fish", dataPath, sessionPath, sessionId);
         tempDir = null;
         
         // DOSS
         blobStore = openBlobStore(dataPath);
 
         // Graph
-        DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:" + sessionPath, "fish", "fish");
-        AmberGraph amber = new AmberGraph(sessionDs, dataSource, "amberdb");
-        amber.createPersistentSchema();
-        graph = openGraph(amber);
-        
-        this.sessionId = sessionId;
+        graph = openGraph(amber);     
+    }
+    
+    private AmberGraph init(DataSource dataSource, String user, String password, Path dataPath, Path sessionPath, long sessionId) {
+        try {
+            Files.createDirectories(dataPath);
+
+            DriverManager.registerDriver(new Driver());
+
+            // Graph
+            DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:" + sessionPath, user, password);
+            AmberGraph amber = new AmberGraph(sessionDs, dataSource, "amberdb");
+            amber.createPersistentSchema();
+
+            this.sessionId = sessionId;
+            return amber;
+        } catch (IOException | SQLException e) {
+            throw new RuntimeException(e);
+        }        
     }
 
     private BlobStore openBlobStore(Path root) {
