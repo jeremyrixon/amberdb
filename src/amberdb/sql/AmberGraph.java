@@ -16,13 +16,13 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.h2.jdbc.JdbcSQLException;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException;
 
 import com.google.common.collect.Lists;
+import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Features;
@@ -141,7 +141,11 @@ public class AmberGraph implements Graph, TransactionalGraph {
         peFactory.setGraph(this);
 
         // set up required data access objects
-        persistentDao = persistentDbi.onDemand(PersistentDao.class);
+        if (ds instanceof MysqlDataSource) {
+            persistentDao = persistentDbi.onDemand(PersistentDaoMYSQL.class);
+        } else {
+            persistentDao = persistentDbi.onDemand(PersistentDaoH2.class);
+        }
         transactionDao = persistentDbi.onDemand(TransactionDao.class);
         
         if (ds.equals(DEFAULT_PERSIST_DATASOURCE)) {
@@ -188,7 +192,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
         try { 
             dao.createPropertyIndex();
         } catch (Exception e) {
-            s("property index exists ? exception thrown was: " + e.getMessage());
+            s("Exception expected: Property index already exists ? exception thrown was: " + e.getMessage());
         }
         dao.commit();
     }
@@ -281,7 +285,8 @@ public class AmberGraph implements Graph, TransactionalGraph {
             }
         }
 
-        loadProperties(loadPropertyIds);
+        if (edges.size() > 0) loadProperties(loadPropertyIds);
+        loadPropertyIds.clear();
         
         return edges;
     }
@@ -307,7 +312,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
         edges.addAll(Lists.newArrayList(persistentDao.findEdges()));
         edges.removeAll(Collections.singleton(null));
         
-        loadProperties(loadPropertyIds);
+        if (edges.size() > 0) loadProperties(loadPropertyIds);
         loadPropertyIds.clear();
         
         return edges;
@@ -322,7 +327,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
         edges.addAll(Lists.newArrayList(persistentDao.findEdgesWithProperty(key, AmberProperty.encodeBlob(value))));
         edges.removeAll(Collections.singleton(null));
         
-        loadProperties(loadPropertyIds);
+        if (edges.size() > 0) loadProperties(loadPropertyIds);
         loadPropertyIds.clear();
         
         return edges;
@@ -350,7 +355,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
             }
         }
         
-        loadProperties(loadPropertyIds);
+        if (vertices.size() > 0) loadProperties(loadPropertyIds);
         loadPropertyIds.clear();
         
         return vertices;
@@ -380,7 +385,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
         vertices.addAll(Lists.newArrayList(persistentDao.findVertices()));
         vertices.removeAll(Collections.singleton(null));
 
-        loadProperties(loadPropertyIds);
+        if (vertices.size() > 0) loadProperties(loadPropertyIds);
         loadPropertyIds.clear();
 
         return vertices;
@@ -397,7 +402,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
         vertices.addAll(Lists.newArrayList(persistentDao.findVerticesWithProperty(key, AmberProperty.encodeBlob(value))));
         vertices.removeAll(Collections.singleton(null));
 
-        loadProperties(loadPropertyIds);
+        if (vertices.size() > 0) loadProperties(loadPropertyIds);
         loadPropertyIds.clear();
 
         return vertices;
@@ -426,17 +431,19 @@ public class AmberGraph implements Graph, TransactionalGraph {
                 "WHERE (txn_end = 0 OR txn_end IS NULL) " +        
                 inClause.toString())
                 .map(new PersistentPropertyMapper()).iterator();
-        
+
         // put the properties found into the session db
         sessionDao.begin();
+
+        AmberProperty property = null;
         while (properties.hasNext()) {
             try {
-                sessionDao.loadProperty(properties.next());
+                property = properties.next();
+                sessionDao.loadProperty(property);
             } catch (UnableToExecuteStatementException e) {
-                s("property already present in session - not reloaded");
+                s("Property in session - not reloaded: " + property.toString());
             }
         }
-        // sessionDao.loadProperties(properties); Stoopid H2
         sessionDao.commit();
         
         h.close();
@@ -499,7 +506,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
         // get from persistent
         edge = persistentDao.findEdge(id);
 
-        loadProperties(loadPropertyIds);
+        if (edge != null) loadProperties(loadPropertyIds);
         loadPropertyIds.clear();
 
         return edge;
@@ -601,7 +608,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
         // get from persistent
         vertex = persistentDao.findVertex(id);
         
-        loadProperties(loadPropertyIds);
+        if (vertex != null) loadProperties(loadPropertyIds);
         loadPropertyIds.clear();
         
         return vertex;
@@ -784,14 +791,15 @@ public class AmberGraph implements Graph, TransactionalGraph {
     
     private void commitStaged(AmberTransaction txn, PersistentDao dao) {
         s("committing staged changes...");
-
+        
         // add an end transaction to superceded and deleted elements 
         int numEndedVertices = dao.updateSupercededVertices(txn.getId());
         int numEndedEdges = dao.updateSupercededEdges(txn.getId());
 
-        // add an end transaction to superceded and deleted properties 
-        int numEndedProperties = dao.updateSupercededProperties(txn.getId());
-
+        // add an end transaction to superceded and deleted properties
+        int numEndedEdgeProperties = dao.updateSupercededEdgeProperties(txn.getId());
+        int numEndedVertexProperties = dao.updateSupercededVertexProperties(txn.getId());
+        
         // IMPORTANT : will need to delete incident edges for deleted vertices too
         // They may not have been queried into the session, but are non the less
         // affected. This has not been implemented yet, but needs to be.
@@ -801,16 +809,19 @@ public class AmberGraph implements Graph, TransactionalGraph {
         int numInsertedEdges = dao.insertStagedEdges(txn.getId());
 
         // add their properties
-        int numInsertedProperties = dao.insertStagedProperties(txn.getId());
+        int numInsertedEdgeProperties = dao.insertStagedEdgeProperties(txn.getId());
+        int numInsertedVertexProperties = dao.insertStagedVertexProperties(txn.getId());
 
         // just a bit of output - refactor should improve or remove this
         s("\tended vertices: "   + numEndedVertices);
         s("\tended edges: "      + numEndedEdges);
-        s("\tended properties: " + numEndedProperties);
+        s("\tended properties: " + numEndedEdgeProperties);
+        s("\tended properties: " + numEndedVertexProperties);
         
         s("\tinserted vertices: "   + numInsertedVertices);
         s("\tinserted edges: "      + numInsertedEdges);
-        s("\tinserted properties: " + numInsertedProperties);
+        s("\tinserted edge properties: " + numInsertedEdgeProperties);
+        s("\tinserted vertex properties: " + numInsertedVertexProperties);
         
     }
     
@@ -822,7 +833,6 @@ public class AmberGraph implements Graph, TransactionalGraph {
     @Override
     public void stopTransaction(Conclusion conclusion) {
         // TODO Auto-generated method stub
-        
     }
 
     @Override

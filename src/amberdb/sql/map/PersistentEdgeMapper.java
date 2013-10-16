@@ -24,6 +24,7 @@ public class PersistentEdgeMapper implements ResultSetMapper<AmberEdge> {
             throws SQLException {
         
         long id =  rs.getLong("id");
+        
         AmberEdge edge = new AmberEdge(graph, id);
         try {
             graph.edgeDao().insertEdge(
@@ -41,9 +42,14 @@ public class PersistentEdgeMapper implements ResultSetMapper<AmberEdge> {
 
         } catch (Exception e) {
             // Need to log as expected exception when an edge is already present in the session
+            s("edge already in session:"+id);
             return null;
         }
         
         return edge;
+    }
+    
+    private void s(String s) {
+        System.out.println(s);
     }
 }

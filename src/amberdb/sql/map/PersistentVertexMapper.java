@@ -37,6 +37,7 @@ public class PersistentVertexMapper implements ResultSetMapper<AmberVertex> {
             
         } catch (Exception e) {
             // Need to log as expected exception when a vertex is already present in the session
+            s("vertex already in session:"+id);
             return null;
         }
         

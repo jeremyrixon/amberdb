@@ -103,12 +103,13 @@ public class AmberVertex implements Vertex {
 
     @Override
     public void remove() {
+        
         for (Edge e: getEdges(Direction.BOTH)) {
             AmberEdge edge = (AmberEdge) e;
             edge.remove();
         }
-        
-        // remove the actual record if it is new
+
+        // remove the actual record from session if it is new
         if (dao().getVertexState(id).equals(State.NEW.toString())) {
             dao().removeVertex(id);
         } else {
