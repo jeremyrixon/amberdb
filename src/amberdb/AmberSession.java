@@ -31,7 +31,7 @@ import doss.CorruptBlobStoreException;
 import doss.local.LocalBlobStore;
 
 public class AmberSession implements AutoCloseable {
-    private final FramedGraph<Graph> graph;
+    private final FramedGraph<TransactionalGraph> graph;
     private final BlobStore blobStore;
     private final TempDirectory tempDir;
     private long sessionId;
@@ -126,8 +126,8 @@ public class AmberSession implements AutoCloseable {
         return new ObjectMapper().reader().readTree(bos.toString());     
     }
 
-    protected FramedGraph<Graph> openGraph(Graph graph) {
-        Graph g = new OwnedGraph(graph);
+    protected FramedGraph<TransactionalGraph> openGraph(TransactionalGraph graph) {
+        TransactionalGraph g = new OwnedGraph(graph);
         return new FramedGraphFactory(new JavaHandlerModule(), 
                 new GremlinGroovyModule()).create(g);
     }
@@ -205,7 +205,7 @@ public class AmberSession implements AutoCloseable {
      * 
      * @return the framed graph, handly for groovy tests.
      */
-    protected FramedGraph<Graph> getGraph() {
+    protected FramedGraph<TransactionalGraph> getGraph() {
         return graph;
     }
     
@@ -213,9 +213,9 @@ public class AmberSession implements AutoCloseable {
      * Wrapper around the graph that stores a reference to the AmberDb which
      * owns it. See {@link AmberSession#ownerOf(Graph)}.
      */
-    private class OwnedGraph extends WrappedGraph<Graph> {
+    private class OwnedGraph extends WrappedGraph<TransactionalGraph> implements TransactionalGraph  {
 
-        public OwnedGraph(Graph baseGraph) {
+        public OwnedGraph(TransactionalGraph baseGraph) {
             super(baseGraph);
         }
         
@@ -234,6 +234,20 @@ public class AmberSession implements AutoCloseable {
             }
             return super.addVertex(id);
         }
+
+        @Override
+        public void commit() {
+            baseGraph.commit();   
+        }
+
+        @Override
+        public void rollback() {
+            baseGraph.rollback();           
+        }
+
+        @Override
+        @Deprecated
+        public void stopTransaction(Conclusion arg0) {}
     }
     
     /**
