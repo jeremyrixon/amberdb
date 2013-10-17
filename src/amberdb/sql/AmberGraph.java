@@ -686,7 +686,8 @@ public class AmberGraph implements Graph, TransactionalGraph {
 
         try {
             
-            // Get a fresh transaction 
+            // Get a fresh transaction
+            // also sets commitId
             AmberTransaction txn = new AmberTransaction(this, user, operation);
             s("committing transaction " + txn);
 
@@ -791,30 +792,25 @@ public class AmberGraph implements Graph, TransactionalGraph {
     private void commitStaged(AmberTransaction txn, PersistentDao dao) {
         s("committing staged changes...");
         
-        long tId = txn.getId();
-        
         // add an end transaction to superceded and deleted elements 
-        int numEndedVertices = dao.updateSupercededVertices(tId);
-        int numEndedEdges = dao.updateSupercededEdges(tId);
+        int numEndedVertices = dao.updateSupercededVertices(txn.getId());
+        int numEndedEdges = dao.updateSupercededEdges(txn.getId());
 
-        // 
-        int numEndedIncidentEdges = dao.updateSupercededVertexIncidentEdges(tId);
-        
         // add an end transaction to superceded and deleted properties
-        int numEndedEdgeProperties = dao.updateSupercededEdgeProperties(tId);
-        int numEndedVertexProperties = dao.updateSupercededVertexProperties(tId);
+        int numEndedEdgeProperties = dao.updateSupercededEdgeProperties(txn.getId());
+        int numEndedVertexProperties = dao.updateSupercededVertexProperties(txn.getId());
         
         // IMPORTANT : will need to delete incident edges for deleted vertices too
-        // They may not have been queried into the session, but are none the less
+        // They may not have been queried into the session, but are non the less
         // affected. This has not been implemented yet, but needs to be.
         
         // add new and modified elements
-        int numInsertedVertices = dao.insertStagedVertices(tId);
-        int numInsertedEdges = dao.insertStagedEdges(tId);
+        int numInsertedVertices = dao.insertStagedVertices(txn.getId());
+        int numInsertedEdges = dao.insertStagedEdges(txn.getId());
 
         // add their properties
-        int numInsertedEdgeProperties = dao.insertStagedEdgeProperties(tId);
-        int numInsertedVertexProperties = dao.insertStagedVertexProperties(tId);
+        int numInsertedEdgeProperties = dao.insertStagedEdgeProperties(txn.getId());
+        int numInsertedVertexProperties = dao.insertStagedVertexProperties(txn.getId());
 
         // just a bit of output - refactor should improve or remove this
         s("\tended vertices: "   + numEndedVertices);

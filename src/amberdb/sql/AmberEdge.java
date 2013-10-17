@@ -211,6 +211,13 @@ public class AmberEdge implements Edge {
 
     private AmberVertex findVertex(Long id) {
 
+        if (id != null) {
+            // check session before permanent data store
+            if (dao().getVertexState(id).equals(State.DEL.toString()))
+                return null;
+            return new AmberVertex(graph, id);
+        }
+        
         // not in session yet, so try permanent data store
         return (AmberVertex) graph.getVertex(id);
     }
