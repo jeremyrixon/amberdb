@@ -202,17 +202,13 @@ public class AmberEdge implements Edge {
         
         AmberVertex vertex = null;
         if (direction == Direction.IN) {
-            vertex = findVertex(dao().getInVertexId(id));
+            vertex = (AmberVertex) graph.getVertex(dao().getInVertexId(id));
         } else if (direction == Direction.OUT) {
-            vertex = findVertex(dao().getOutVertexId(id));
+            vertex = (AmberVertex) graph.getVertex(dao().getOutVertexId(id));
         }
         return vertex;
     }
 
-    private AmberVertex findVertex(Long id) {
-        return (AmberVertex) graph.getVertex(id);
-    }
-    
     @Override
     public int hashCode() {
         final int prime = 31;

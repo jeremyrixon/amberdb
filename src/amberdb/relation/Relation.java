@@ -23,10 +23,10 @@ public interface Relation extends EdgeFrame {
     @InVertex
     Node getSource();
     
-    @Property("relOrder")
+    @Property("edge-order")
     public int getRelOrder();
     
-    @Property("relOrder")
+    @Property("edge-order")
     public void setRelOrder(int relOrder);
     
     abstract class Impl implements Relation,JavaHandlerContext<Edge> {
