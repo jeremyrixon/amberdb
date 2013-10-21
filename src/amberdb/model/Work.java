@@ -67,7 +67,7 @@ public interface Work extends Node {
     public Long getBibId();
 
     @Property("bibId")
-    public void setBibId(long bibId);
+    public void setBibId(Long bibId);
 
     @Property("digitalStatus")
     public String getDigitalStatus();
