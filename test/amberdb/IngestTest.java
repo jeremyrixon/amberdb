@@ -95,7 +95,7 @@ public class IngestTest {
         bookIds.add(auto1.getId());
 
         Work auto2 = amberDb.addWork();
-        auto2.setBibId(55555);
+        auto2.setBibId(55555l);
         auto2.addPage(job.files.get(5), "image/tiff").setOrder(1);
         auto2.setTitle("James and the giant peach");
 
