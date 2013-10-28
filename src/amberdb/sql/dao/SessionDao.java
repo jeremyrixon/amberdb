@@ -43,27 +43,67 @@ public interface SessionDao extends Transactional<SessionDao> {
     
     @SqlUpdate(
             "CREATE TABLE IF NOT EXISTS property (" +
-    		"id      BIGINT, " +
-    		"name    VARCHAR(100), " +
-    		"type    CHAR(3), " +
-            "value   BLOB)")
+    		"id         BIGINT, " +
+    		"name       VARCHAR(100), " +
+    		"type       CHAR(3), " +
+            "value      BLOB)")
     void createPropertyTable();
     @SqlUpdate(
             "CREATE UNIQUE INDEX unique_prop " +
-            "ON property(id, name)")
+            "ON property(id, txn_start, name)")
     void createPropertyIndex();
+
+    @SqlUpdate(
+            "CREATE TABLE IF NOT EXISTS synch (" +
+            "mark BIGINT)")
+    void createSynchTable();
     
     /*
      * DDL cleanup
      */
-    @SqlUpdate("DROP TABLE IF EXISTS vertex, edge, property, id_generator")
+    @SqlUpdate("DROP TABLE IF EXISTS vertex, edge, property, synch")
     void dropTables();
     
 
+    /*
+     * Persistent db/ Session db synchronisation 
+     */
+    @SqlUpdate(
+            "INSERT INTO synch (mark) " +
+            "VALUES (0)")
+    void initSynchMark();
+    
+    @SqlUpdate(
+            "UPDATE synch " +
+            "SET mark = :mark")
+    void updateSynchMark(
+            @Bind("mark") long mark);
+
+    @SqlQuery(
+            "SELECT mark " +
+            "FROM synch")
+    Long getSynchMark();
+
+    @SqlQuery(
+            "SELECT id, state " +
+            "FROM vertex")
+    @Mapper(IdStateMapper.class)
+    List<IdState> findVertexIds();
+
+    @SqlQuery(
+            "SELECT id, state " +
+            "FROM edge")
+    @Mapper(IdStateMapper.class)
+    List<IdState> findEdgeIds();
+    
+    /*
+     * update stuff
+     */
     @SqlUpdate(
             "UPDATE edge " +
             "SET edge_order = :edgeOrder " +
-            "WHERE id = :id")
+            "WHERE id = :id " +
+            "AND (txn_end = 0 OR txn_end IS NULL)")
     void updateEdgeOrder(
             @Bind("id") long edgeId, 
             @Bind("edgeOrder") Integer edgeOrder);
@@ -74,14 +114,16 @@ public interface SessionDao extends Transactional<SessionDao> {
     @SqlQuery(
             "SELECT id " + 
             "FROM vertex " +
-            "WHERE id = :id")
+            "WHERE id = :id " +
+            "AND (txn_end = 0 OR txn_end IS NULL)")
     AmberVertex findVertex(
             @Bind("id") long id);
     
     @SqlQuery(
             "SELECT id " +
             "FROM edge " +
-            "WHERE id = :id")
+            "WHERE id = :id " +
+            "AND (txn_end = 0 OR txn_end IS NULL)")
     AmberEdge findEdge(
             @Bind("id") long id);
 
@@ -116,18 +158,18 @@ public interface SessionDao extends Transactional<SessionDao> {
     @Mapper(SessionPropertyMapper.class)
     List<AmberProperty> findAlteredProperties();
     
-    @SqlQuery(
-            "SELECT id " +
-            "FROM vertex " +
-            "WHERE state = 'NEW' " +
-            "AND id < 0 " +
-            "UNION " +
-            "SELECT id " +
-            "FROM edge " +
-            "WHERE state = 'NEW' " +
-            "AND id < 0 " +
-            "ORDER BY id")
-    List<Long> findNewIds();
+//    @SqlQuery(
+//            "SELECT id " +
+//            "FROM vertex " +
+//            "WHERE state = 'NEW' " +
+//            "AND id < 0 " +
+//            "UNION " +
+//            "SELECT id " +
+//            "FROM edge " +
+//            "WHERE state = 'NEW' " +
+//            "AND id < 0 " +
+//            "ORDER BY id")
+//    List<Long> findNewIds();
 
     @SqlQuery(
             "SELECT id " +
@@ -294,6 +336,5 @@ public interface SessionDao extends Transactional<SessionDao> {
 
     
     void close();
-
 }
 

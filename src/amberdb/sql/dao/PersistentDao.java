@@ -382,6 +382,46 @@ public interface PersistentDao extends Transactional<PersistentDao> {
     AmberVertex findVertex(
             @Bind("id") long id);
 
+
+//    @SqlQuery(
+//            "SELECT id " +
+//            "FROM vertex " +
+//            "WHERE txn_start > :synchMark " +
+//            "OR txn_end > :synchMark " +
+//            "UNION " +
+//            "SELECT id " +
+//            "FROM edge " +
+//            "WHERE txn_start > :synchMark " +
+//            "OR txn_end > :synchMark")
+//    List<Long> findMutatedElements(
+//            @Bind("synchMark") Long synchMark);
+//
+//    @SqlQuery(
+//            "SELECT id " +
+//            "FROM vertex " +
+//            "WHERE txn_start > :synchMark " +
+//            "OR txn_end > :synchMark " +
+//            "UNION " +
+//            "SELECT id " +
+//            "FROM edge " +
+//            "WHERE txn_start > :synchMark " +
+//            "OR txn_end > :synchMark")
+//    List<Long> findMutatedElements(
+//            @Bind("synchMark") Long synchMark);
+
+    @SqlQuery(
+            "SELECT id " +
+            "FROM vertex " +
+            "WHERE txn_start > :synchMark " +
+            "OR txn_end > :synchMark " +
+            "UNION " +
+            "SELECT id " +
+            "FROM edge " +
+            "WHERE txn_start > :synchMark " +
+            "OR txn_end > :synchMark")
+    List<Long> findMutatedElements(
+            @Bind("synchMark") Long synchMark);
+    
     /*
      * methods overridden by db specific (MySql or H2) extending interfaces
      */
@@ -408,6 +448,5 @@ public interface PersistentDao extends Transactional<PersistentDao> {
     int updateSupercededVertexProperties(@Bind("txnId") long txnId);
     
     void close();
-
 }
 

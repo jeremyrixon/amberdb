@@ -2,6 +2,8 @@ package amberdb.sql;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -17,6 +19,7 @@ import static org.junit.Assert.*;
 import org.junit.rules.TemporaryFolder;
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 
@@ -28,9 +31,11 @@ public class AmberGraphPersistenceTest {
     
     public AmberGraph graph1;
     public AmberGraph graph2;
-
+    public AmberGraph graph3;
+    
     DataSource sessionDs1;
     DataSource sessionDs2;
+    DataSource sessionDs3;
     DataSource persistentDs;
     
     @Before
@@ -38,8 +43,10 @@ public class AmberGraphPersistenceTest {
         System.out.println("Setting up graph");
         
         String tempPath = tempFolder.getRoot().getAbsolutePath();
+        s("sessions are located here "+tempPath);
         sessionDs1 = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"session1","sess","sess");
         sessionDs2 = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"session2","sess","sess");
+        sessionDs3 = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"session3","sess","sess");
         
         persistentDs = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"persist","per","per");
 
@@ -52,9 +59,9 @@ public class AmberGraphPersistenceTest {
         
         graph1 = new AmberGraph(sessionDs1, persistentDs, "tester");
         graph2 = new AmberGraph(sessionDs2, persistentDs, "tester2");
+        graph3 = new AmberGraph(sessionDs3, persistentDs, "tester3");
 
         graph1.createPersistentSchema();
-
     }
 
     @After
@@ -159,6 +166,131 @@ public class AmberGraphPersistenceTest {
         
     }
     
+
+    @Test
+    public void testSynchMarking() throws Exception {
+        
+        s("Synch marking ---");
+        
+        // save a graph to persist 
+        Long rootId = buildTestGraph(graph1, "red");
+        graph1.commit();
+        
+        // read it back into a new session
+        Long synchTxn = graph2.updateSynchMark();
+        s("--- synching from txn "+synchTxn);
+        Vertex root = graph2.getVertex(rootId);
+        
+        List<Vertex> vs = readTree(root, 5, "branch");
+        assertEquals(9, vs.size());
+        
+        // modify 2 vertices and an edge in the original session and commit
+        Vertex oRoot = graph1.getVertex(rootId);
+        List<Vertex> oVs = readTree(oRoot, 5, "branch");
+        Vertex n1 = oRoot.getVertices(Direction.OUT, "branch").iterator().next();
+        n1.setProperty("new prop", "a new value");
+        Vertex n2 = n1.getVertices(Direction.OUT, "branch").iterator().next();
+        n2.setProperty("name", "new name");
+        Edge e1 = oRoot.getEdges(Direction.OUT, "branch").iterator().next();
+        e1.setProperty("name", "link 1");
+        graph1.commit();
+
+        // this graph is up to date - its own commit was the last performed
+        List<Long> mutes = graph1.getSynchList();
+        assertEquals(0, mutes.size());
+
+        // this graph is 3 elements behind 
+        List<Long> mutes2 = graph2.getSynchList();
+        assertEquals(3, mutes2.size());
+
+        // this graph hasn't pulled anything from persistence - nothing to synch yet 
+        List<Long> mutes3 = graph3.getSynchList();
+        assertEquals(0, mutes3.size());
+        
+
+        
+        // graph 3 to delete a leaf
+        Vertex del = graph3.getVertices("name", "Leaf 5 red").iterator().next();
+        del.remove();
+        graph3.commit();
+
+        // this graph is 2 updates behind now - removal of a vertex and its edge
+        mutes = graph1.getSynchList();
+        assertEquals(2, mutes.size());
+
+        // this graph is now 5 elements behind 
+        mutes2 = graph2.getSynchList();
+        assertEquals(5, mutes2.size());
+
+        // this graph should be up to date 
+        mutes3 = graph3.getSynchList();
+        assertEquals(0, mutes3.size());
+
+    }
+
+    @Test
+    public void testSessionRefresh() throws Exception {
+        
+        s("Synch marking ---");
+        
+        // save a graph to persist 
+        Long rootId = buildTestGraph(graph1, "red");
+        graph1.commit();
+        
+        // read it back into a new session
+        Long synchTxn = graph2.updateSynchMark();
+        s("--- synching from txn "+synchTxn);
+        Vertex root = graph2.getVertex(rootId);
+        
+        List<Vertex> vs = readTree(root, 5, "branch");
+        assertEquals(9, vs.size());
+        
+        // modify 2 vertices and an edge in the original session and commit
+        Vertex oRoot = graph1.getVertex(rootId);
+        List<Vertex> oVs = readTree(oRoot, 5, "branch");
+        Vertex n1 = oRoot.getVertices(Direction.OUT, "branch").iterator().next();
+        n1.setProperty("new prop", "a new value");
+        Vertex n2 = n1.getVertices(Direction.OUT, "branch").iterator().next();
+        n2.setProperty("name", "new name");
+        Edge e1 = oRoot.getEdges(Direction.OUT, "branch").iterator().next();
+        e1.setProperty("name", "link 1");
+        graph1.commit();
+
+        // this graph is up to date - its own commit was the last performed
+        List<Long> mutes = graph1.getSynchList();
+        assertEquals(0, mutes.size());
+
+        // this graph is 3 elements behind 
+        List<Long> mutes2 = graph2.getSynchList();
+        assertEquals(3, mutes2.size());
+
+        // this graph hasn't pulled anything from persistence - nothing to synch yet 
+        List<Long> mutes3 = graph3.getSynchList();
+        assertEquals(0, mutes3.size());
+        
+
+        
+        // graph 3 to delete a leaf
+        Vertex del = graph3.getVertices("name", "Leaf 5 red").iterator().next();
+        del.remove();
+        graph3.commit();
+
+        // this graph is 2 updates behind now - removal of a vertex and its edge
+        mutes = graph1.getSynchList();
+        assertEquals(2, mutes.size());
+
+        // this graph is now 5 elements behind 
+        mutes2 = graph2.getSynchList();
+        assertEquals(5, mutes2.size());
+
+        // this graph should be up to date 
+        mutes3 = graph3.getSynchList();
+        assertEquals(0, mutes3.size());
+
+    }
+
+    
+    
     /*
      * Following 3 methods ripped directly from tinkerpop blueprint testing framework
      */
@@ -188,5 +320,100 @@ public class AmberGraphPersistenceTest {
      */
     public void s(String s) {
         System.out.println(s);
+    }
+
+    /* 
+    
+           Root
+            /\
+           /  \
+          /    \
+         /      \
+        n1      n2
+       / \      / \
+      /   \    /   \
+     l1   l2  n3   l3
+             / \
+            /   \
+          l4    l5
+    
+    */
+    
+    private Long buildTestGraph(AmberGraph graph, String name) {
+        
+        Vertex root = graph.addVertex(null);
+        root.setProperty("name", "Root " + name);
+        root.setProperty("type", "tree");
+        root.setProperty("value", 100);
+        
+        Vertex node1 = graph.addVertex(null);
+        node1.setProperty("name", "Node 1 " + name);
+        node1.setProperty("type", "node");
+        node1.setProperty("value", true);
+
+        Vertex node2 = graph.addVertex(null);
+        node2.setProperty("name", "Node 2 " + name);
+        node2.setProperty("type", "node");
+        node2.setProperty("value", false);
+
+        Vertex node3 = graph.addVertex(null);
+        node3.setProperty("name", "Node 3 " + name);
+        node3.setProperty("type", "node");
+        node3.setProperty("value", false);
+
+        Vertex leaf1 = graph.addVertex(null);
+        leaf1.setProperty("name", "Leaf 1 " + name);
+        leaf1.setProperty("type", "leaf");
+        leaf1.setProperty("value", "leafy");
+        
+        Vertex leaf2 = graph.addVertex(null);
+        leaf2.setProperty("name", "Leaf 2 " + name);
+        leaf2.setProperty("type", "leaf");
+        leaf2.setProperty("value", "leafy leafy");
+
+        Vertex leaf3 = graph.addVertex(null);
+        leaf3.setProperty("name", "Leaf 3 " + name);
+        leaf3.setProperty("type", "leaf");
+        leaf3.setProperty("value", "leafy beefy");
+
+        Vertex leaf4 = graph.addVertex(null);
+        leaf4.setProperty("name", "Leaf 4 " + name);
+        leaf4.setProperty("type", "leaf");
+        leaf4.setProperty("value", "leafy lefty");
+
+        Vertex leaf5 = graph.addVertex(null);
+        leaf5.setProperty("name", "Leaf 5 " + name);
+        leaf5.setProperty("type", "leaf");
+        leaf5.setProperty("value", "leafy laughter");
+
+        root.addEdge("branch", node1);
+        root.addEdge("branch", node2);
+        node2.addEdge("branch", node3);
+        node1.addEdge("branch", leaf1);
+        node1.addEdge("branch", leaf2);
+        node2.addEdge("branch", leaf3);
+        node3.addEdge("branch", leaf4);
+        node3.addEdge("branch", leaf5);
+        
+        return (Long) root.getId();
+    }
+    
+    private List<Vertex> readTree(Vertex root, int maxDepth, String label) {
+        List<Vertex> tree = new ArrayList<Vertex>();
+        readTree(root, tree, 0, maxDepth, label);
+        return tree;
+    }
+    private List<Vertex> readTree(Vertex root, List<Vertex> tree, int depth, int maxDepth, String label) {
+        if (depth >= maxDepth) return tree;
+        
+        s("reading tree at depth "+depth);
+        tree.add(root);
+        List<Vertex> vs = (List<Vertex>) root.getVertices(Direction.OUT, label);
+        if (vs.size() > 0) {
+            for (Vertex v : vs) {
+                readTree(v, tree, depth+1, maxDepth, label);
+            }
+        }
+        return tree;
     }
 }

@@ -2,6 +2,7 @@ package amberdb.sql;
 
 import amberdb.sql.State;
 import amberdb.sql.dao.*;
+import amberdb.sql.map.IdState;
 import amberdb.sql.map.PersistentEdgeMapperFactory;
 import amberdb.sql.map.PersistentPropertyMapper;
 import amberdb.sql.map.PersistentVertexMapperFactory;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -53,8 +55,6 @@ public class AmberGraph implements Graph, TransactionalGraph {
 
     /** Identify this graph instance */
     private String user;
-    
-    boolean autoCommit = false;
     
     /* 
      * Constructors
@@ -148,9 +148,9 @@ public class AmberGraph implements Graph, TransactionalGraph {
         }
         transactionDao = persistentDbi.onDemand(TransactionDao.class);
         
-        if (ds.equals(DEFAULT_PERSIST_DATASOURCE)) {
+//        if (ds.equals(DEFAULT_PERSIST_DATASOURCE)) {
             createPersistentSchema();
-        }
+//        }
     }
     
     private void initSession(DataSource ds) {
@@ -176,6 +176,9 @@ public class AmberGraph implements Graph, TransactionalGraph {
         // set up required data access objects
         vertexDao = sessionDbi.onDemand(VertexDao.class);
         edgeDao = sessionDbi.onDemand(EdgeDao.class);
+        
+        // Synch mark records when this session was last fully compared with persistent ds
+        sessionDao.updateSynchMark(newPersistentId());
     }
     
     /**
@@ -194,6 +197,8 @@ public class AmberGraph implements Graph, TransactionalGraph {
         } catch (Exception e) {
             s("Exception expected: Property index already exists ? exception thrown was: " + e.getMessage());
         }
+        dao.createSynchTable();
+        dao.initSynchMark();
         dao.commit();
     }
 
@@ -263,6 +268,57 @@ public class AmberGraph implements Graph, TransactionalGraph {
         return vertexDao;
     }
 
+    /**
+     * Find all elements in persistent data store that have been modified since this session was last synchronised.
+     */
+    public List<Long> getSynchList() {
+        
+        Long synchMark = sessionDao.getSynchMark();
+        s("synch from txn " + synchMark);
+
+        // get a list of all the vertex ids in this session
+        List<IdState> sessionVertexIds = sessionDao.findVertexIds();
+        
+        // get a list of all the edge ids in this session
+        List<IdState> sessionEdgeIds = sessionDao.findEdgeIds();
+
+        List<Long> sessionIds = new ArrayList<Long>();
+        for (IdState is : sessionVertexIds) {
+            sessionIds.add(is.getId());
+        }
+        for (IdState is : sessionEdgeIds) {
+            sessionIds.add(is.getId());
+        }
+        
+        // get all element ids modified in persistence since the synch marker
+        List<Long> persistIds = persistentDao.findMutatedElements(synchMark);
+        
+        sessionIds.retainAll(persistIds);
+        return sessionIds;
+    }
+    
+    public long updateSynchMark() {
+        Long newMark = newPersistentId();
+        sessionDao.updateSynchMark(newMark);
+        return newMark;
+    }
+    
+    /**
+     * Basic synch. Updates the session in the follow manner.
+     * 
+     * P(mod) S(amb) -> P(mod)
+     * P(mod) S(mod) -> S(mod) [risky - is there a better way ?]
+     * P(mod) S(del) -> P(mod)
+     * 
+     * P(del) S(amb) -> P(del)
+     * P(del) S(mod) -> S(mod) as S(new)
+     * P(del) S(del) -> P(del)
+     * 
+     */
+    public void synch() {
+        
+    }
+    
     protected List<AmberEdge> loadPersistentEdges(AmberVertex vertex, Direction direction, String... labels) {
         
         // we load the properties for all persistent elements as a batch after we've 
@@ -464,7 +520,6 @@ public class AmberGraph implements Graph, TransactionalGraph {
         AmberEdge edge = new AmberEdge(this, (long) out.getId(), (long) in.getId(), label);
         edge.setState(State.NEW);
         
-        if (autoCommit) commitToPersistent("addEdge");
         return edge;
     }
 
@@ -474,7 +529,6 @@ public class AmberGraph implements Graph, TransactionalGraph {
         AmberVertex vertex = new AmberVertex(this);
         vertex.setState(State.NEW);
         
-        if (autoCommit) commitToPersistent("addVertex");
         return vertex;
     }
 
@@ -689,7 +743,8 @@ public class AmberGraph implements Graph, TransactionalGraph {
             // Get a fresh transaction
             // also sets commitId
             AmberTransaction txn = new AmberTransaction(this, user, operation);
-            s("committing transaction " + txn);
+            s("++++ committing transaction " + txn);
+            s("\tuser " + user);
 
             stageElements(txn);
 
@@ -734,10 +789,12 @@ public class AmberGraph implements Graph, TransactionalGraph {
             sessionDao.resetModifiedVertices(txn.getId());
             sessionDao.resetModifiedEdges(txn.getId());
             sessionDao.commit();
-
+            
+            // Update synch marker to now
+            updateSynchMark();
+            
             s("end of commit");
-            // IMPORTANT: will also get new session start marker, but not implemented yet
-
+            
         // REFACTOR: Exception handling to be more specific  
         } catch (Exception e) {
             s("================= commit failed ===============");
@@ -801,7 +858,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
         int numEndedVertexProperties = dao.updateSupercededVertexProperties(txn.getId());
         
         // IMPORTANT : will need to delete incident edges for deleted vertices too
-        // They may not have been queried into the session, but are non the less
+        // They may not have been queried into the session, but are none the less
         // affected. This has not been implemented yet, but needs to be.
         
         // add new and modified elements
@@ -815,8 +872,8 @@ public class AmberGraph implements Graph, TransactionalGraph {
         // just a bit of output - refactor should improve or remove this
         s("\tended vertices: "   + numEndedVertices);
         s("\tended edges: "      + numEndedEdges);
-        s("\tended properties: " + numEndedEdgeProperties);
-        s("\tended properties: " + numEndedVertexProperties);
+        s("\tended edge properties: " + numEndedEdgeProperties);
+        s("\tended vertex properties: " + numEndedVertexProperties);
         
         s("\tinserted vertices: "   + numInsertedVertices);
         s("\tinserted edges: "      + numInsertedEdges);
@@ -831,9 +888,8 @@ public class AmberGraph implements Graph, TransactionalGraph {
     }
 
     @Override
-    public void stopTransaction(Conclusion conclusion) {
-        // TODO Auto-generated method stub
-    }
+    @Deprecated
+    public void stopTransaction(Conclusion conclusion) {}
 
     @Override
     public void commit() {

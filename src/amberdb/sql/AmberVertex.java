@@ -130,7 +130,6 @@ public class AmberVertex implements Vertex {
             dao().setVertexState(id, State.MOD.toString());
         }
 
-        if (graph.autoCommit) graph.commitToPersistent("vertex removeProperty");
         return prop;
     }
 
@@ -154,8 +153,6 @@ public class AmberVertex implements Vertex {
         if (dao().getVertexState(id).equals(State.AMB.toString())) {
             dao().setVertexState(id, State.MOD.toString());
         }
-
-        if (graph.autoCommit) graph.commitToPersistent("vertex setProperty");
     }
 
     @Override
@@ -347,5 +344,9 @@ public class AmberVertex implements Vertex {
     
     private void s(String s) {
         System.out.println(s);
+    }
+    
+    public Long getTxnEnd() {
+        return dao().getVertexTxnEnd(id);
     }
 }
