@@ -3,8 +3,8 @@ package amberdb.sql;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -48,14 +48,14 @@ public class AmberGraphPersistenceTest {
         sessionDs2 = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"session2","sess","sess");
         sessionDs3 = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"session3","sess","sess");
         
-        persistentDs = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"persist","per","per");
+        //persistentDs = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"persist","per","per");
 
-//        MysqlDataSource ds = new MysqlDataSource();
-//        ds.setUser("dlir");
-//        ds.setPassword("dlir");
-//        ds.setServerName("snowy.nla.gov.au");
-//        ds.setPort(6446);
-//        ds.setDatabaseName("dlir");
+        MysqlDataSource persistentDs = new MysqlDataSource();
+        persistentDs.setUser("dlir");
+        persistentDs.setPassword("dlir");
+        persistentDs.setServerName("snowy.nla.gov.au");
+        persistentDs.setPort(6446);
+        persistentDs.setDatabaseName("dlir");
         
         graph1 = new AmberGraph(sessionDs1, persistentDs, "tester");
         graph2 = new AmberGraph(sessionDs2, persistentDs, "tester2");
@@ -104,59 +104,57 @@ public class AmberGraphPersistenceTest {
         
         
         // ============== after here needs fixing ================
+        // no assertions dunno even what's happening
         
-//        Vertex v2 = graph1.addVertex(null);
-//        v2.setProperty("name", "what else");
-//        v2.setProperty("number", 25);
-//        v2.setProperty("real", false);
-//        v2.setProperty("other number", 40.40);
-//        
-//        Edge e1 = graph1.addEdge(null, v1, v2, "the connector");
-//        
-//        // persist the sucker
-//        graph1.commitToPersistent("persisting v1 and v2");
-//
-////        s("v1 b==== " + v1); // has been removed already
-//        s("v2 b==== " + v2);
-//
-//        // make some changes
-//        v1.setProperty("name", "lava lamp");
-//        v1.setProperty("number", 234349);
-//        v1.setProperty("real", false);
-//        v1.setProperty("other number", 77710.10);
-//
-//        v2.remove();
-//        
-//        s("v1 a==== " + v1);
-//        s("v2 a==== " + v2);
-//        
-//        // persist the sucker
-//        graph1.commitToPersistent("persisting v1 & v2 a second time");
-//
-//        // just building on previous persisted 
-//        Long v1id = (Long) v1.getId();
-//
-//        Vertex v3 = graph1.getVertex(v1id);
-//        
-//        s("v3 is : "+ v3);
-//        s("v1 is : "+ v1);
-//
-//        graph1.shutdown();
-//        
-//        graph1 = new AmberGraph(sessionDs1, persistentDs, "tester");
-//        
-//        v3 = graph1.getVertex(v1id);
-//        s("v3 is again : "+ v3);
-//    
-//        Iterable<Vertex> v4 = graph1.getVertices("name", "lava lamp");
-//        s("her we go");
-//        for (Vertex v : v4) {
-//            s("and we found " + v);
-//        }
-        // some assertions
-        //assert
+        v2 = graph1.addVertex(null);
+        v2.setProperty("name", "what else");
+        v2.setProperty("number", 25);
+        v2.setProperty("real", false);
+        v2.setProperty("other number", 40.40);
         
-        //graph.shutdown();
+        try {
+            Edge e1 = graph1.addEdge(null, v1, v2, "the connector");
+        } catch (Exception e) {
+            s("Expected ....." + e.getMessage());
+        }
+        
+        // persist the sucker
+        graph1.commitToPersistent("persisting v1 and v2");
+
+        // make some changes
+        v1.setProperty("name", "lava lamp");
+        v1.setProperty("number", 234349);
+        v1.setProperty("real", false);
+        v1.setProperty("other number", 77710.10);
+
+        v2.remove();
+        
+        s("v1 a==== " + v1);
+        s("v2 a==== " + v2);
+        
+        // persist the sucker
+        graph1.commitToPersistent("persisting v1 & v2 a second time");
+
+        // just building on previous persisted 
+        Long v1id = (Long) v1.getId();
+
+        v3 = graph1.getVertex(v1id);
+        
+        s("v3 is : "+ v3);
+        s("v1 is : "+ v1);
+
+        graph1.shutdown();
+        
+        graph1 = new AmberGraph(sessionDs1, persistentDs, "tester");
+        
+        v3 = graph1.getVertex(v1id);
+        s("v3 is again : "+ v3);
+    
+        Iterable<Vertex> v4 = graph1.getVertices("name", "lava lamp");
+        s("her we go");
+        for (Vertex v : v4) {
+            s("and we found " + v);
+        }
     }
     
     @Test
@@ -177,8 +175,8 @@ public class AmberGraphPersistenceTest {
         graph1.commit();
         
         // read it back into a new session
-        Long synchTxn = graph2.updateSynchMark();
-        s("--- synching from txn "+synchTxn);
+        graph2.updateSynchMark();
+        s("--- synching from txn " + graph2.getSynchMark());
         Vertex root = graph2.getVertex(rootId);
         
         List<Vertex> vs = readTree(root, 5, "branch");
@@ -196,17 +194,19 @@ public class AmberGraphPersistenceTest {
         graph1.commit();
 
         // this graph is up to date - its own commit was the last performed
-        List<Long> mutes = graph1.getSynchList();
-        assertEquals(0, mutes.size());
+        Map<String, List<Long>> mutes = graph1.getSynchLists();
+        assertEquals(0, mutes.get("vertex").size());
+        assertEquals(0, mutes.get("edge").size());
 
         // this graph is 3 elements behind 
-        List<Long> mutes2 = graph2.getSynchList();
-        assertEquals(3, mutes2.size());
+        Map<String, List<Long>> mutes2 = graph2.getSynchLists();
+        assertEquals(2, mutes2.get("vertex").size());
+        assertEquals(1, mutes2.get("edge").size());
 
         // this graph hasn't pulled anything from persistence - nothing to synch yet 
-        List<Long> mutes3 = graph3.getSynchList();
-        assertEquals(0, mutes3.size());
-        
+        Map<String, List<Long>> mutes3 = graph3.getSynchLists();
+        assertEquals(0, mutes3.get("vertex").size());
+        assertEquals(0, mutes3.get("edge").size());
 
         
         // graph 3 to delete a leaf
@@ -215,16 +215,19 @@ public class AmberGraphPersistenceTest {
         graph3.commit();
 
         // this graph is 2 updates behind now - removal of a vertex and its edge
-        mutes = graph1.getSynchList();
-        assertEquals(2, mutes.size());
+        mutes = graph1.getSynchLists();
+        assertEquals(1, mutes.get("vertex").size());
+        assertEquals(1, mutes.get("edge").size());
 
         // this graph is now 5 elements behind 
-        mutes2 = graph2.getSynchList();
-        assertEquals(5, mutes2.size());
+        mutes2 = graph2.getSynchLists();
+        assertEquals(3, mutes2.get("vertex").size());
+        assertEquals(2, mutes2.get("edge").size());
 
         // this graph should be up to date 
-        mutes3 = graph3.getSynchList();
-        assertEquals(0, mutes3.size());
+        mutes3 = graph3.getSynchLists();
+        assertEquals(0, mutes3.get("vertex").size());
+        assertEquals(0, mutes3.get("edge").size());
 
     }
 
@@ -238,8 +241,8 @@ public class AmberGraphPersistenceTest {
         graph1.commit();
         
         // read it back into a new session
-        Long synchTxn = graph2.updateSynchMark();
-        s("--- synching from txn "+synchTxn);
+        graph2.updateSynchMark();
+        s("--- synching from txn "+ graph2.getSynchMark());
         Vertex root = graph2.getVertex(rootId);
         
         List<Vertex> vs = readTree(root, 5, "branch");
@@ -257,16 +260,19 @@ public class AmberGraphPersistenceTest {
         graph1.commit();
 
         // this graph is up to date - its own commit was the last performed
-        List<Long> mutes = graph1.getSynchList();
-        assertEquals(0, mutes.size());
+        Map<String, List<Long>> mutes = graph1.getSynchLists();
+        assertEquals(0, mutes.get("vertex").size());
+        assertEquals(0, mutes.get("edge").size());
 
         // this graph is 3 elements behind 
-        List<Long> mutes2 = graph2.getSynchList();
-        assertEquals(3, mutes2.size());
+        Map<String, List<Long>> mutes2 = graph2.getSynchLists();
+        assertEquals(2, mutes2.get("vertex").size());
+        assertEquals(1, mutes2.get("edge").size());
 
         // this graph hasn't pulled anything from persistence - nothing to synch yet 
-        List<Long> mutes3 = graph3.getSynchList();
-        assertEquals(0, mutes3.size());
+        Map<String, List<Long>> mutes3 = graph3.getSynchLists();
+        assertEquals(0, mutes3.get("vertex").size());
+        assertEquals(0, mutes3.get("edge").size());
         
 
         
@@ -276,17 +282,39 @@ public class AmberGraphPersistenceTest {
         graph3.commit();
 
         // this graph is 2 updates behind now - removal of a vertex and its edge
-        mutes = graph1.getSynchList();
-        assertEquals(2, mutes.size());
+        mutes = graph1.getSynchLists();
+        assertEquals(1, mutes.get("vertex").size());
+        assertEquals(1, mutes.get("edge").size());
 
         // this graph is now 5 elements behind 
-        mutes2 = graph2.getSynchList();
-        assertEquals(5, mutes2.size());
+        mutes2 = graph2.getSynchLists();
+        assertEquals(3, mutes2.get("vertex").size());
+        assertEquals(2, mutes2.get("edge").size());
 
         // this graph should be up to date 
-        mutes3 = graph3.getSynchList();
-        assertEquals(0, mutes3.size());
+        mutes3 = graph3.getSynchLists();
+        assertEquals(0, mutes3.get("vertex").size());
+        assertEquals(0, mutes3.get("edge").size());
+        
+        // what happens when we synch ?
+        graph1.synch();
+        graph2.synch();
+        graph3.synch();
 
+        mutes = graph1.getSynchLists();
+        assertEquals(0, mutes.get("vertex").size());
+        assertEquals(0, mutes.get("edge").size());
+
+        // this graph is now 5 elements behind 
+        mutes2 = graph2.getSynchLists();
+        assertEquals(0, mutes2.get("vertex").size());
+        assertEquals(0, mutes2.get("edge").size());
+
+        // this graph should be up to date 
+        mutes3 = graph3.getSynchLists();
+        assertEquals(0, mutes3.get("vertex").size());
+        assertEquals(0, mutes3.get("edge").size());
+        
     }
 
     

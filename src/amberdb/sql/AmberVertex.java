@@ -2,7 +2,6 @@ package amberdb.sql;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -262,8 +261,6 @@ public class AmberVertex implements Vertex {
         if (labels.length == 0) {
 
             if (direction == Direction.IN || direction == Direction.BOTH) {
-                
-                List<AmberVertex> vsss = dao().findInVertices(id);
                 unfilteredVertices.addAll(Lists.newArrayList(dao().findInVertices(id)));
             }
             if (direction == Direction.OUT || direction == Direction.BOTH) {

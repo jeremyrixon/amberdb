@@ -16,5 +16,13 @@ public interface TransactionDao extends Transactional<TransactionDao> {
             @Bind("operation") String operation);
 
     void close();
+
+    @SqlUpdate(
+            "UPDATE transaction " +
+            "SET operation = :op " +
+            "WHERE id = :id")
+    void setOperation(
+            @Bind("id") long id,
+            @Bind("op") String op);
 }
 

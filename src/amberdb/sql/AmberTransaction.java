@@ -33,5 +33,8 @@ public class AmberTransaction {
     public String toString() {
         return String.format("[%d] %s : %s", id, user, operation);
     }
+    public void setOperation(String operation) {
+        dao().setOperation(id, operation);
+    }
     
 }

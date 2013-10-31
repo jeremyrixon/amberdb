@@ -50,7 +50,7 @@ public interface SessionDao extends Transactional<SessionDao> {
     void createPropertyTable();
     @SqlUpdate(
             "CREATE UNIQUE INDEX unique_prop " +
-            "ON property(id, txn_start, name)")
+            "ON property(id, name)")
     void createPropertyIndex();
 
     @SqlUpdate(
@@ -85,16 +85,16 @@ public interface SessionDao extends Transactional<SessionDao> {
     Long getSynchMark();
 
     @SqlQuery(
-            "SELECT id, state " +
-            "FROM vertex")
-    @Mapper(IdStateMapper.class)
-    List<IdState> findVertexIds();
+            "SELECT id " +
+            "FROM vertex " +
+            "WHERE state <> 'NEW'")
+    List<Long> findNotNewVertexIds();
 
     @SqlQuery(
-            "SELECT id, state " +
-            "FROM edge")
-    @Mapper(IdStateMapper.class)
-    List<IdState> findEdgeIds();
+            "SELECT id " +
+            "FROM edge " +
+            "WHERE state <> 'NEW'")
+    List<Long> findNotNewEdgeIds();
     
     /*
      * update stuff
@@ -158,19 +158,6 @@ public interface SessionDao extends Transactional<SessionDao> {
     @Mapper(SessionPropertyMapper.class)
     List<AmberProperty> findAlteredProperties();
     
-//    @SqlQuery(
-//            "SELECT id " +
-//            "FROM vertex " +
-//            "WHERE state = 'NEW' " +
-//            "AND id < 0 " +
-//            "UNION " +
-//            "SELECT id " +
-//            "FROM edge " +
-//            "WHERE state = 'NEW' " +
-//            "AND id < 0 " +
-//            "ORDER BY id")
-//    List<Long> findNewIds();
-
     @SqlQuery(
             "SELECT id " +
             "FROM vertex " +
@@ -317,7 +304,7 @@ public interface SessionDao extends Transactional<SessionDao> {
             @BindAmberProperty AmberProperty property);
     
     @SqlBatch(
-            "INSERT INTO property (id, txn_start, txn_end, v_out, v_in, label, edge_order, state) " +
+            "INSERT INTO edge (id, txn_start, txn_end, v_out, v_in, label, edge_order, state) " +
             "VALUES (:id, :txn_start, :txn_end, :v_out, :v_in, :label, :edge_order, :state)")
     void loadEdges(
             @BindAmberEdge Iterator<AmberEdge> a);
