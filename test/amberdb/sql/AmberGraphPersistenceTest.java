@@ -48,14 +48,14 @@ public class AmberGraphPersistenceTest {
         sessionDs2 = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"session2","sess","sess");
         sessionDs3 = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"session3","sess","sess");
         
-        //persistentDs = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"persist","per","per");
+        persistentDs = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"persist","per","per");
 
-        MysqlDataSource persistentDs = new MysqlDataSource();
-        persistentDs.setUser("dlir");
-        persistentDs.setPassword("dlir");
-        persistentDs.setServerName("snowy.nla.gov.au");
-        persistentDs.setPort(6446);
-        persistentDs.setDatabaseName("dlir");
+//        MysqlDataSource persistentDs = new MysqlDataSource();
+//        persistentDs.setUser("dlir");
+//        persistentDs.setPassword("dlir");
+//        persistentDs.setServerName("snowy.nla.gov.au");
+//        persistentDs.setPort(6446);
+//        persistentDs.setDatabaseName("dlir");
         
         graph1 = new AmberGraph(sessionDs1, persistentDs, "tester");
         graph2 = new AmberGraph(sessionDs2, persistentDs, "tester2");
