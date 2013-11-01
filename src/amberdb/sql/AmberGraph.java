@@ -313,7 +313,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
     }
     
     /**
-     * Basic synch. Updates the session in the follow manner.
+     * Basic synchronisation between persistent and session graphs. Updates the session in the follow manner.
      * 
      * P(mod) S(amb) -> P(mod)
      * P(mod) S(mod) -> S(mod) [risky - is there a better way ?]
@@ -817,7 +817,11 @@ public class AmberGraph implements Graph, TransactionalGraph {
                 s("committing transaction: " + txn);
                 s("\tuser " + user);
 
-                stageElements(txn);
+                if (stageElements(txn) == 0) {
+                    s("no updates to commit. only synching session.");
+                    synch();
+                    return;
+                }
 
                 List<Long[]> mutatedElements = checkForMutations(txn);
 
@@ -884,12 +888,15 @@ public class AmberGraph implements Graph, TransactionalGraph {
         }
     }
     
-    private void stageElements(AmberTransaction txn) {
+    private int stageElements(AmberTransaction txn) {
         s("staging elements...");
         
         List<AmberEdge>     edges      = sessionDao.findAlteredEdges();
         List<AmberVertex>   vertices   = sessionDao.findAlteredVertices();
         List<AmberProperty> properties = sessionDao.findAlteredProperties();
+        
+        int numStaged = edges.size() + vertices.size() + properties.size();
+        if (numStaged == 0) return 0; // short circuit exit
         
         s("\tedges being staged: "      + edges.size());
         s("\tvertices being staged: "   + vertices.size());
@@ -906,6 +913,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
         for (AmberProperty p: properties) {
             persistentDao.insertStageProperty(p, txn.getId());
         }
+        return numStaged;
     }
 
     private List<Long[]> checkForMutations(AmberTransaction txn) {

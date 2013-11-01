@@ -101,6 +101,10 @@ public class AmberSession implements AutoCloseable {
         }        
     }
 
+    public AmberGraph getAmberGraph() {
+        return ((OwnedGraph) graph.getBaseGraph()).getAmberGraph();
+    }
+    
     private BlobStore openBlobStore(Path root) {
         try {
             return LocalBlobStore.open(root);
@@ -231,6 +235,10 @@ public class AmberSession implements AutoCloseable {
             return AmberSession.this;
         }
 
+        public AmberGraph getAmberGraph() {
+            return (AmberGraph) baseGraph;
+        }
+        
         @Override
         public Vertex addVertex(Object id) {
             /* Workaround a bug in AdjcancyAnnotationHandler in Frames 2.4.0.

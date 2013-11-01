@@ -7,6 +7,8 @@ import java.nio.file.Path;
 
 import javax.sql.DataSource;
 
+import amberdb.sql.AmberGraph;
+
 public class AmberDb {
     final private DataSource dataSource;
     final private Path rootPath;
@@ -40,6 +42,8 @@ public class AmberDb {
     
     public AmberSession resume(long sessionId) {
         Path sessionPath = sessionsPath.resolve(Long.toString(sessionId));
-        return new AmberSession(dataSource, rootPath, sessionPath, sessionId);
+        AmberSession as = new AmberSession(dataSource, rootPath, sessionPath, sessionId);
+        as.getAmberGraph().synch(); // synch with persistent (it might have been some time :)
+        return as;
     }
 }
