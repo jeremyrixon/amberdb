@@ -172,7 +172,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
 
         // create the session database schema
         if (!sessionDao.schemaTablesExist()) {
-            s("session schema doesn't exist - creating ...");
+            s(user + " session schema doesn't exist - creating ...");
             initSessionSchema(sessionDao);
         }
         
