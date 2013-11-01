@@ -10,7 +10,7 @@ public class LongArrayMapper implements ResultSetMapper<Long[]> {
     public Long[] map(int index, ResultSet rs, StatementContext ctx) 
             throws SQLException {
         return new Long[] {
-                rs.getLong("id"),
-                rs.getLong("txn_start")};
+                rs.getLong(1),
+                rs.getLong(2)};
     }
 }

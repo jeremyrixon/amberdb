@@ -2,7 +2,6 @@ package amberdb.sql;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -130,7 +129,6 @@ public class AmberVertex implements Vertex {
             dao().setVertexState(id, State.MOD.toString());
         }
 
-        if (graph.autoCommit) graph.commitToPersistent("vertex removeProperty");
         return prop;
     }
 
@@ -154,8 +152,6 @@ public class AmberVertex implements Vertex {
         if (dao().getVertexState(id).equals(State.AMB.toString())) {
             dao().setVertexState(id, State.MOD.toString());
         }
-
-        if (graph.autoCommit) graph.commitToPersistent("vertex setProperty");
     }
 
     @Override
@@ -265,8 +261,6 @@ public class AmberVertex implements Vertex {
         if (labels.length == 0) {
 
             if (direction == Direction.IN || direction == Direction.BOTH) {
-                
-                List<AmberVertex> vsss = dao().findInVertices(id);
                 unfilteredVertices.addAll(Lists.newArrayList(dao().findInVertices(id)));
             }
             if (direction == Direction.OUT || direction == Direction.BOTH) {
@@ -347,5 +341,9 @@ public class AmberVertex implements Vertex {
     
     private void s(String s) {
         System.out.println(s);
+    }
+    
+    public Long getTxnEnd() {
+        return dao().getVertexTxnEnd(id);
     }
 }

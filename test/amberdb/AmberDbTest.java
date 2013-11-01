@@ -5,16 +5,29 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.TransactionalGraph;
+import com.tinkerpop.blueprints.Vertex;
+
 import amberdb.enums.CopyRole;
+import amberdb.model.Copy;
+import amberdb.model.File;
+import amberdb.model.Page;
 import amberdb.model.Work;
+import amberdb.sql.AmberGraph;
 
 public class AmberDbTest {
 
@@ -54,14 +67,59 @@ public class AmberDbTest {
 
     @Test
     public void testIngestBook() throws IOException {
+        
         Path tmpFile = folder.newFile().toPath();
         Files.write(tmpFile, "Hello world".getBytes());
-        try (AmberSession db = new AmberSession()) {
+
+        
+        AmberDb adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist","per","per"), folder.getRoot().toPath());
+        
+        Long sessId;
+        Long bookId;
+        try (AmberSession db = adb.begin()) {
             Work book = db.addWork();
+            bookId = book.getId();
             book.setTitle("Test book");
             for (int i = 0; i < 10; i++) {
                 book.addPage().addCopy(tmpFile, CopyRole.MASTER_COPY, "image/tiff");
             }
+            sessId = db.suspend();
         }
+        
+        try (AmberSession db = adb.resume(sessId)) {
+            
+            // print out the book graph details
+            TransactionalGraph tg = (TransactionalGraph) db.getGraph();
+            for (Vertex v : tg.getVertices()) {
+                System.out.println(v.toString());
+                for (String p : v.getPropertyKeys()) {
+                    System.out.println("\t"+p + ": " + v.getProperty(p));
+                }
+                for (Edge e : v.getEdges(Direction.OUT)) {
+                    System.out.println("\t"+e.toString());
+                }
+            }
+            
+            // now, can we retrieve the files ?
+            Work book2 = db.findWork(bookId);
+            Page p1 = book2.getPage(1);
+            Copy c1 = p1.getCopy(CopyRole.MASTER_COPY);
+            File f1 = c1.getFile();
+            BufferedReader br = new BufferedReader(new InputStreamReader(f1.openStream()));
+            System.out.println(" ***** File contains: " + br.readLine());
+        }
+        // exiting the try block should close and persist the session
+
+        // next, persist the session (by closing it) open a new one and get the contents
+        adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist","per","per"), folder.getRoot().toPath());
+        try (AmberSession db = adb.begin()) {
+            Work book2 = db.findWork(bookId);
+            Page p1 = book2.getPage(1);
+            Copy c1 = p1.getCopy(CopyRole.MASTER_COPY);
+            File f1 = c1.getFile();
+            BufferedReader br = new BufferedReader(new InputStreamReader(f1.openStream()));
+            System.out.println(" ***** File still contains: " + br.readLine());
+        }
+        
     }
 }

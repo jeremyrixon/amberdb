@@ -381,7 +381,23 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             "AND (txn_start > 0 OR txn_start IS NOT NULL)")
     AmberVertex findVertex(
             @Bind("id") long id);
+    
+    @SqlQuery(
+            "SELECT id " + 
+            "FROM edge e " +
+            "WHERE e.txn_start > :txnId " +
+            "OR e.txn_end > :txnId")
+    List<Long> findMutatedEdgeIdsSinceTxn(
+            @Bind("txnId") Long txnId); 
 
+    @SqlQuery(
+            "SELECT id " + 
+            "FROM vertex v " +
+            "WHERE v.txn_start > :txnId " +
+            "OR v.txn_end > :txnId")
+    List<Long> findMutatedVerticeIdsSinceTxn(
+            @Bind("txnId") Long txnId); 
+    
     /*
      * methods overridden by db specific (MySql or H2) extending interfaces
      */
@@ -408,6 +424,5 @@ public interface PersistentDao extends Transactional<PersistentDao> {
     int updateSupercededVertexProperties(@Bind("txnId") long txnId);
     
     void close();
-
 }
 

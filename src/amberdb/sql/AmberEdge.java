@@ -136,7 +136,6 @@ public class AmberEdge implements Edge {
             dao().setEdgeState(id, State.MOD.toString());
         }
         
-        if (graph.autoCommit) graph.commitToPersistent("edge removeProperty");
         return prop;
     }
 
@@ -169,8 +168,6 @@ public class AmberEdge implements Edge {
         if (dao().getEdgeState(id).equals(State.AMB.toString())) {
             dao().setEdgeState(id, State.MOD.toString());
         }
-        
-        if (graph.autoCommit) graph.commitToPersistent("edge setProperty");
     }    
 
     @Override

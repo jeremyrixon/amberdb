@@ -11,8 +11,10 @@ import amberdb.sql.map.SessionVertexMapperFactory;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -53,8 +55,6 @@ public class AmberGraph implements Graph, TransactionalGraph {
 
     /** Identify this graph instance */
     private String user;
-    
-    boolean autoCommit = false;
     
     /* 
      * Constructors
@@ -148,9 +148,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
         }
         transactionDao = persistentDbi.onDemand(TransactionDao.class);
         
-        if (ds.equals(DEFAULT_PERSIST_DATASOURCE)) {
-            createPersistentSchema();
-        }
+        createPersistentSchema();
     }
     
     private void initSession(DataSource ds) {
@@ -176,6 +174,9 @@ public class AmberGraph implements Graph, TransactionalGraph {
         // set up required data access objects
         vertexDao = sessionDbi.onDemand(VertexDao.class);
         edgeDao = sessionDbi.onDemand(EdgeDao.class);
+        
+        // Synch mark records when this session was last fully compared with persistent ds
+        sessionDao.updateSynchMark(newPersistentId());
     }
     
     /**
@@ -194,6 +195,8 @@ public class AmberGraph implements Graph, TransactionalGraph {
         } catch (Exception e) {
             s("Exception expected: Property index already exists ? exception thrown was: " + e.getMessage());
         }
+        dao.createSynchTable();
+        dao.initSynchMark();
         dao.commit();
     }
 
@@ -263,6 +266,125 @@ public class AmberGraph implements Graph, TransactionalGraph {
         return vertexDao;
     }
 
+    /**
+     * Find all elements in persistent data store that exist in the session and
+     * have been modified since this session was last synchronised.
+     */
+    public Map<String, List<Long>> getSynchLists() {
+        
+        Map<String, List<Long>> synchMap = new HashMap<String, List<Long>>(2); 
+
+        Long synchMark = sessionDao.getSynchMark();
+        s(user + " geting synch lists from txn " + synchMark);
+
+        // get a list of vertex ids that contains all persistent vertices that 
+        // have changes since last synch that are also current in this session
+        // This will not include NEW session vertices of course 
+        List<Long> sessionVertexIds = sessionDao.findNotNewVertexIds();
+        sessionVertexIds.retainAll(persistentDao.findMutatedVerticeIdsSinceTxn(synchMark));
+        
+        // do the same for edges
+        List<Long> sessionEdgeIds = sessionDao.findNotNewEdgeIds();
+        sessionEdgeIds.retainAll(persistentDao.findMutatedEdgeIdsSinceTxn(synchMark));
+
+        // Refactor note: the persistent lists used above could be minimised 
+        // by querying with the session ids as part of the query (ie: IN clause)
+        // this might be a good idea later when lots of changes might have been 
+        // made to the persistent data store.
+        
+        synchMap.put("vertex", sessionVertexIds);
+        synchMap.put("edge", sessionEdgeIds);
+        
+        return synchMap;
+    }
+    
+    /**
+     * Updates the synch marker to now (ie: latest txn)
+     */
+    public void updateSynchMark() {
+        sessionDao.updateSynchMark(newPersistentId());
+    }
+    
+    /**
+     * Get the synch marker
+     */
+    public long getSynchMark() {
+        return sessionDao.getSynchMark();
+    }
+    
+    /**
+     * Basic synchronisation between persistent and session graphs. Updates the session in the follow manner.
+     * 
+     * P(mod) S(amb) -> P(mod)
+     * P(mod) S(mod) -> S(mod) [risky - is there a better way ?]
+     * P(mod) S(del) -> P(mod)
+     * 
+     * P(del) S(amb) -> P(del)
+     * P(del) S(mod) -> S(mod) as S(new)
+     * P(del) S(del) -> P(del)
+     * 
+     * This method is currently pretty inefficient: it sure runs slowly against
+     * MySql. Might have to remedy this sometime soon.
+     */
+    public void synch() {
+        
+        Map<String, List<Long>> synch = getSynchLists();
+        
+        // just update synch marker if nothing needs doing
+        if (synch.get("vertex").size() == 0 && synch.get("edge").size() == 0) {
+            s(user + " no mutations to session graph from amber since txn " + sessionDao.getSynchMark());
+            updateSynchMark();
+            s(user + " session synch marker updated to " + sessionDao.getSynchMark());
+            return;
+        }
+        
+        // so basically, we update the session from amber unless the element has been modified locally
+        // in that case we will currently just use the local version. In future we might implement some 
+        // kind of merge routine for modified elements.
+        for (Long id : synch.get("vertex")) {
+            String state = vertexDao.getVertexState(id);
+            s(user + " -- state of vertex is: " + state);
+            if (state.equals(State.MOD.toString())) {
+                s(user + " synch retaining vertex as modified in session: " + id);
+            } else {
+                vertexDao.removeVertex(id);
+                vertexDao.removeVertexProperties(id);
+                Vertex v = getVertex(id);
+                if (v == null) {
+                    s("vertex deleted in amber: " + id);
+                }
+            }
+        }
+
+        for (Long id : synch.get("edge")) {
+            String state = edgeDao.getEdgeState(id);
+            s(user + " -- state of edge is: " + state);
+            if (state.equals(State.MOD.toString())) {
+                s(user + " synch retaining edge as modified in session: " + id);
+            } else {
+                edgeDao.removeEdge(id);
+                edgeDao.removeEdgeProperties(id);
+                Edge e = getEdge(id);
+                if (e == null) {
+                    s("edge deleted in amber " + id);
+                }
+            }
+        }
+        
+        updateSynchMark();
+        s(user + " session synch marker updated to " + sessionDao.getSynchMark());
+        
+        // Just a monologue : might have been better (cleaner and more generic) to create 
+        // unique session index on id and txn_start and use that through out sessions, or
+        // some such thing. It would make synchronisation simpler which would be a good 
+        // thing. Oh well, can do for next refactor maybe (yeah right :-) Ie: use txns
+        // ids in session to indicate new, modified, deleted and updated. Hmmmm it sounds 
+        // so good now - wish i'd done it before time started running out and patching a
+        // less than ideal system seemed like the better option. I'm so sorry.
+    }
+    
+    
+    
     protected List<AmberEdge> loadPersistentEdges(AmberVertex vertex, Direction direction, String... labels) {
         
         // we load the properties for all persistent elements as a batch after we've 
@@ -460,11 +582,12 @@ public class AmberGraph implements Graph, TransactionalGraph {
 
         // argument guard
         if (label == null) throw new IllegalArgumentException("edge label cannot be null");
+        if (((AmberVertex)out).getState().equals(State.DEL)) throw new IllegalArgumentException("out vertex was deleted in session");
+        if (((AmberVertex)in).getState().equals(State.DEL)) throw new IllegalArgumentException("in vertex was deleted in session");
 
         AmberEdge edge = new AmberEdge(this, (long) out.getId(), (long) in.getId(), label);
         edge.setState(State.NEW);
         
-        if (autoCommit) commitToPersistent("addEdge");
         return edge;
     }
 
@@ -474,7 +597,6 @@ public class AmberGraph implements Graph, TransactionalGraph {
         AmberVertex vertex = new AmberVertex(this);
         vertex.setState(State.NEW);
         
-        if (autoCommit) commitToPersistent("addVertex");
         return vertex;
     }
 
@@ -684,24 +806,41 @@ public class AmberGraph implements Graph, TransactionalGraph {
 
     protected synchronized void commitToPersistent(String operation) {
 
+        int retry = 0;
+        final int MAX_RETRIES = 1;
+
         try {
             
-            // Get a fresh transaction
-            // also sets commitId
-            AmberTransaction txn = new AmberTransaction(this, user, operation);
-            s("committing transaction " + txn);
+            AmberTransaction txn = null;
+            while (true) {
+                txn = new AmberTransaction(this, user, operation);
+                s("committing transaction: " + txn);
+                s("\tuser " + user);
 
-            stageElements(txn);
-
-            List<Long[]> mutatedElements = checkForMutations(txn);
-
-            if (mutatedElements.size() > 0) {
-                s("mutations have occurred :");
-                for (Long[] idToTxn : mutatedElements) {
-                    s("id:" + idToTxn[0] + " in txn:" + idToTxn[1]);
+                if (stageElements(txn) == 0) {
+                    s("no updates to commit. only synching session.");
+                    synch();
+                    return;
                 }
-                // REFACTOR
-                throw new TransactionException("Aborting transaction: in future we should do more than just this.");
+
+                List<Long[]> mutatedElements = checkForMutations(txn);
+
+                if (mutatedElements.size() > 0) {
+                    s("mutations have occurred :");
+                    for (Long[] idToTxn : mutatedElements) {
+                        s("id:" + idToTxn[0] + " in txn:" + idToTxn[1]);
+                    }
+                    if (retry >= MAX_RETRIES) {
+                        throw new TransactionException("aborting transaction: maximum retries performed.");
+                    }
+                    // REFACTOR
+                    s("sychronising session then retrying commit");
+                    txn.setOperation("aborted: mutations. retrying. ");
+                    retry++;
+                    synch();
+                    continue;
+                }
+                break;
             }
 
             // we'll hold a transaction now
@@ -714,7 +853,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
             persistentDao.commit();
 
             // clear staging tables
-            // @TODO
+            // TO DO, and maybe in some other manner. Not sure.
 
             // IMPORTANT
             // refresh session - question should this clear session or just mark all read ?
@@ -734,10 +873,12 @@ public class AmberGraph implements Graph, TransactionalGraph {
             sessionDao.resetModifiedVertices(txn.getId());
             sessionDao.resetModifiedEdges(txn.getId());
             sessionDao.commit();
-
+            
+            // Update synch marker to now
+            updateSynchMark();
+            
             s("end of commit");
-            // IMPORTANT: will also get new session start marker, but not implemented yet
-
+            
         // REFACTOR: Exception handling to be more specific  
         } catch (Exception e) {
             s("================= commit failed ===============");
@@ -747,12 +888,15 @@ public class AmberGraph implements Graph, TransactionalGraph {
         }
     }
     
-    private void stageElements(AmberTransaction txn) {
+    private int stageElements(AmberTransaction txn) {
         s("staging elements...");
         
         List<AmberEdge>     edges      = sessionDao.findAlteredEdges();
         List<AmberVertex>   vertices   = sessionDao.findAlteredVertices();
         List<AmberProperty> properties = sessionDao.findAlteredProperties();
+        
+        int numStaged = edges.size() + vertices.size() + properties.size();
+        if (numStaged == 0) return 0; // short circuit exit
         
         s("\tedges being staged: "      + edges.size());
         s("\tvertices being staged: "   + vertices.size());
@@ -769,6 +913,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
         for (AmberProperty p: properties) {
             persistentDao.insertStageProperty(p, txn.getId());
         }
+        return numStaged;
     }
 
     private List<Long[]> checkForMutations(AmberTransaction txn) {
@@ -801,7 +946,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
         int numEndedVertexProperties = dao.updateSupercededVertexProperties(txn.getId());
         
         // IMPORTANT : will need to delete incident edges for deleted vertices too
-        // They may not have been queried into the session, but are non the less
+        // They may not have been queried into the session, but are none the less
         // affected. This has not been implemented yet, but needs to be.
         
         // add new and modified elements
@@ -815,8 +960,8 @@ public class AmberGraph implements Graph, TransactionalGraph {
         // just a bit of output - refactor should improve or remove this
         s("\tended vertices: "   + numEndedVertices);
         s("\tended edges: "      + numEndedEdges);
-        s("\tended properties: " + numEndedEdgeProperties);
-        s("\tended properties: " + numEndedVertexProperties);
+        s("\tended edge properties: " + numEndedEdgeProperties);
+        s("\tended vertex properties: " + numEndedVertexProperties);
         
         s("\tinserted vertices: "   + numInsertedVertices);
         s("\tinserted edges: "      + numInsertedEdges);
@@ -831,9 +976,8 @@ public class AmberGraph implements Graph, TransactionalGraph {
     }
 
     @Override
-    public void stopTransaction(Conclusion conclusion) {
-        // TODO Auto-generated method stub
-    }
+    @Deprecated
+    public void stopTransaction(Conclusion conclusion) {}
 
     @Override
     public void commit() {
