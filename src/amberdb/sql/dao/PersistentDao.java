@@ -422,7 +422,10 @@ public interface PersistentDao extends Transactional<PersistentDao> {
     
     @SqlUpdate("")
     int updateSupercededVertexProperties(@Bind("txnId") long txnId);
-    
+
+    @SqlQuery("")
+    boolean schemaTablesExist();
+
     void close();
 }
 

@@ -64,7 +64,15 @@ public interface SessionDao extends Transactional<SessionDao> {
     @SqlUpdate("DROP TABLE IF EXISTS vertex, edge, property, synch")
     void dropTables();
     
-
+    /*
+     * check if schema already exists
+     */
+    @SqlQuery(
+            "SELECT (COUNT(table_name) = 4) " +
+            "FROM information_schema.tables " + 
+            "WHERE table_name in ('VERTEX', 'EDGE', 'PROPERTY', 'SYNCH')")
+    Boolean schemaTablesExist();
+    
     /*
      * Persistent db/ Session db synchronisation 
      */

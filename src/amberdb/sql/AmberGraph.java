@@ -148,7 +148,10 @@ public class AmberGraph implements Graph, TransactionalGraph {
         }
         transactionDao = persistentDbi.onDemand(TransactionDao.class);
         
-        createPersistentSchema();
+        if (!persistentDao.schemaTablesExist()) {
+            s("persistent schema doesn't exist - creating ...");
+            createPersistentSchema();
+        }
     }
     
     private void initSession(DataSource ds) {
@@ -168,8 +171,10 @@ public class AmberGraph implements Graph, TransactionalGraph {
         sessionDao = sessionDbi.onDemand(SessionDao.class);
 
         // create the session database schema
-        // REFACTOR NOTE: in future need to allow re-attachment to suspended sessions
-        initSessionSchema(sessionDao);
+        if (!sessionDao.schemaTablesExist()) {
+            s("session schema doesn't exist - creating ...");
+            initSessionSchema(sessionDao);
+        }
         
         // set up required data access objects
         vertexDao = sessionDbi.onDemand(VertexDao.class);
