@@ -173,7 +173,7 @@ public class AmberGraphPersistenceTest {
         assertEquals(v.getProperty("Double"),  v2.getProperty("Double"));
     }
     
-
+    @Ignore
     @Test
     public void testSynchMarking() throws Exception {
         
