@@ -1,6 +1,7 @@
 package amberdb.sql.dao;
 
 import org.skife.jdbi.v2.sqlobject.Bind;
+import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 
 public interface PersistentDaoMYSQL extends PersistentDao {
@@ -64,6 +65,15 @@ public interface PersistentDaoMYSQL extends PersistentDao {
             "AND v.txn_new = :txnId " +
             "AND (p.txn_end = 0 OR p.txn_end IS NULL)")
     int updateSupercededVertexProperties(@Bind("txnId") long txnId);
+    
+    @SqlQuery(            
+            "SELECT (COUNT(table_name) = 8) " +
+            "FROM information_schema.tables " + 
+            "WHERE table_name IN (" +
+            "  'VERTEX', 'EDGE', 'PROPERTY', " +
+            "  'STAGE_EDGE', 'STAGE_VERTEX', 'STAGE_PROPERTY', " +
+            "  'ID_GENERATOR', 'TRANSACTION')")
+    boolean schemaTablesExist();
 
 }
 
