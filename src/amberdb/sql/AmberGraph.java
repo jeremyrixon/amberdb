@@ -22,6 +22,7 @@ import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException;
+import org.skife.jdbi.v2.util.LongMapper;
 
 import com.google.common.collect.Lists;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
@@ -286,21 +287,72 @@ public class AmberGraph implements Graph, TransactionalGraph {
         // have changes since last synch that are also current in this session
         // This will not include NEW session vertices of course 
         List<Long> sessionVertexIds = sessionDao.findNotNewVertexIds();
-        sessionVertexIds.retainAll(persistentDao.findMutatedVerticeIdsSinceTxn(synchMark));
+        sessionVertexIds.retainAll(findMutatedVertexIdsInListSinceTxn(synchMark, sessionVertexIds));
         
         // do the same for edges
         List<Long> sessionEdgeIds = sessionDao.findNotNewEdgeIds();
-        sessionEdgeIds.retainAll(persistentDao.findMutatedEdgeIdsSinceTxn(synchMark));
-
-        // Refactor note: the persistent lists used above could be minimised 
-        // by querying with the session ids as part of the query (ie: IN clause)
-        // this might be a good idea later when lots of changes might have been 
-        // made to the persistent data store.
+        sessionEdgeIds.retainAll(findMutatedEdgeIdsInListSinceTxn(synchMark, sessionEdgeIds));
         
         synchMap.put("vertex", sessionVertexIds);
         synchMap.put("edge", sessionEdgeIds);
         
         return synchMap;
+    }
+
+    /**
+     * Convenience function to create an sql in clause from a list of numbers
+     * 
+     * @param inList a list of numbers a1, a2, a3 ...
+     *
+     * @return a string of the form "IN (a1, a2, a3 ...)"
+     */
+    private String constructInClause(List<Long> inList) {
+        StringBuilder inClause;
+        if (inList.size() > 0) {
+            inClause = new StringBuilder(" IN (");
+            for (Long num : inList) {
+                inClause.append(num).append(",");
+            }
+            inClause.setLength(inClause.length() - 1);
+            inClause.append(")");
+        } else {
+            inClause = new StringBuilder();
+        }
+        return inClause.toString();
+    }
+    
+    private List<Long> findMutatedVertexIdsInListSinceTxn(long synchMark, List<Long> vertexIdList) {
+        
+        String inClause = constructInClause(vertexIdList);
+
+        Handle h = persistentDbi.open();
+        List<Long> ids = h.createQuery(
+                "SELECT id " + 
+                "FROM vertex v " +
+                "WHERE (v.txn_start > :txnId " +
+                "OR v.txn_end > :txnId) " +
+                "AND id " + inClause)
+                .bind("txnId", synchMark)
+                .map(new LongMapper()).list();
+        h.close();
+        return ids;
+    }
+
+    private List<Long> findMutatedEdgeIdsInListSinceTxn(long synchMark, List<Long> edgeIdList) {
+
+        String inClause = constructInClause(edgeIdList);
+
+        Handle h = persistentDbi.open();
+        List<Long> ids = h.createQuery(
+                "SELECT id " + 
+                "FROM edge e " +
+                "WHERE (e.txn_start > :txnId " +
+                "OR e.txn_end > :txnId) " +
+                "AND id " + inClause)
+                .bind("txnId", synchMark)
+                .map(new LongMapper()).list();
+        h.close();
+        return ids;
     }
     
     /**
@@ -537,18 +589,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
     
     protected void loadProperties(List<Long> ids) {
 
-        // construct the in clause
-        StringBuilder inClause;
-        if (ids.size() > 0) {
-            inClause = new StringBuilder("AND id IN (");
-            for (Long id : ids) {
-                inClause.append(id).append(",");
-            }
-            inClause.setLength(inClause.length() - 1);
-            inClause.append(")");
-        } else {
-            inClause = new StringBuilder();
-        }
+        String inClause = constructInClause(ids);
         
         // run the query
         Handle h = persistentDbi.open();
@@ -556,7 +597,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
                 "SELECT id, name, type, value " +
                 "FROM property " +
                 "WHERE (txn_end = 0 OR txn_end IS NULL) " +        
-                inClause.toString())
+                "AND id " + inClause)
                 .map(new PersistentPropertyMapper()).iterator();
 
         // put the properties found into the session db
@@ -907,17 +948,12 @@ public class AmberGraph implements Graph, TransactionalGraph {
         s("\tvertices being staged: "   + vertices.size());
         s("\tproperties being staged: " + properties.size());
         
-        for (AmberVertex v: vertices) {
-            persistentDao.insertStageVertex(v, txn.getId());
-        }
+        persistentDao.begin();
+        for (AmberVertex v: vertices)     { persistentDao.insertStageVertex(v, txn.getId());   }
+        for (AmberEdge e: edges)          { persistentDao.insertStageEdge(e, txn.getId());     }
+        for (AmberProperty p: properties) { persistentDao.insertStageProperty(p, txn.getId()); }
+        persistentDao.commit();
         
-        for (AmberEdge e: edges) {
-            persistentDao.insertStageEdge(e, txn.getId());
-        }
-        
-        for (AmberProperty p: properties) {
-            persistentDao.insertStageProperty(p, txn.getId());
-        }
         return numStaged;
     }
 
@@ -942,25 +978,27 @@ public class AmberGraph implements Graph, TransactionalGraph {
     private void commitStaged(AmberTransaction txn, PersistentDao dao) {
         s("committing staged changes...");
         
+        Long txnId = txn.getId();
+        
         // add an end transaction to superceded and deleted elements 
-        int numEndedVertices = dao.updateSupercededVertices(txn.getId());
-        int numEndedEdges = dao.updateSupercededEdges(txn.getId());
+        int numEndedVertices = dao.updateSupercededVertices(txnId);
+        int numEndedEdges = dao.updateSupercededEdges(txnId);
 
         // add an end transaction to superceded and deleted properties
-        int numEndedEdgeProperties = dao.updateSupercededEdgeProperties(txn.getId());
-        int numEndedVertexProperties = dao.updateSupercededVertexProperties(txn.getId());
+        int numEndedEdgeProperties = dao.updateSupercededEdgeProperties(txnId);
+        int numEndedVertexProperties = dao.updateSupercededVertexProperties(txnId);
         
         // IMPORTANT : will need to delete incident edges for deleted vertices too
         // They may not have been queried into the session, but are none the less
         // affected. This has not been implemented yet, but needs to be.
         
         // add new and modified elements
-        int numInsertedVertices = dao.insertStagedVertices(txn.getId());
-        int numInsertedEdges = dao.insertStagedEdges(txn.getId());
+        int numInsertedVertices = dao.insertStagedVertices(txnId);
+        int numInsertedEdges = dao.insertStagedEdges(txnId);
 
         // add their properties
-        int numInsertedEdgeProperties = dao.insertStagedEdgeProperties(txn.getId());
-        int numInsertedVertexProperties = dao.insertStagedVertexProperties(txn.getId());
+        int numInsertedEdgeProperties = dao.insertStagedEdgeProperties(txnId);
+        int numInsertedVertexProperties = dao.insertStagedVertexProperties(txnId);
 
         // just a bit of output - refactor should improve or remove this
         s("\tended vertices: "   + numEndedVertices);
