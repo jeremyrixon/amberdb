@@ -14,6 +14,10 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.h2.Driver;
 import org.h2.jdbcx.JdbcConnectionPool;
 
+import amberdb.model.Copy;
+import amberdb.model.File;
+import amberdb.model.ImageFile;
+import amberdb.model.Page;
 import amberdb.model.Section;
 import amberdb.model.Work;
 import amberdb.sql.AmberGraph;
@@ -28,6 +32,7 @@ import com.tinkerpop.frames.FramedGraph;
 import com.tinkerpop.frames.FramedGraphFactory;
 import com.tinkerpop.frames.modules.gremlingroovy.GremlinGroovyModule;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerModule;
+import com.tinkerpop.frames.modules.typedgraph.TypedGraphModuleBuilder;
 
 import doss.BlobStore;
 import doss.CorruptBlobStoreException;
@@ -131,17 +136,19 @@ public class AmberSession implements AutoCloseable {
     public void rollback() {
         ((TransactionalGraph) graph).rollback();
     }
-    
+
     public JsonNode serializeToJson() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         GraphSONWriter.outputGraph(graph.getBaseGraph(), bos);
-        return new ObjectMapper().reader().readTree(bos.toString());     
+        return new ObjectMapper().reader().readTree(bos.toString());
     }
 
     protected FramedGraph<TransactionalGraph> openGraph(TransactionalGraph graph) {
         TransactionalGraph g = new OwnedGraph(graph);
-        return new FramedGraphFactory(new JavaHandlerModule(), 
-                new GremlinGroovyModule()).create(g);
+        return new FramedGraphFactory(new JavaHandlerModule(), new GremlinGroovyModule(),
+                new TypedGraphModuleBuilder().withClass(Copy.class).withClass(File.class)
+                        .withClass(ImageFile.class).withClass(Page.class).withClass(Section.class)
+                        .withClass(Work.class).build()).create(g);
     }
 
     /**

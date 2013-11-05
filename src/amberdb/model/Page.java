@@ -11,7 +11,9 @@ import com.tinkerpop.frames.Incidence;
 import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.modules.javahandler.JavaHandler;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
+import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
+@TypeValue("Page")
 public interface Page extends Work {
     @Property("device")
     public String getDevice();
