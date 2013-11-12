@@ -79,6 +79,12 @@ public interface Work extends Node {
     @Property("subUnitNo")
     public void setSubUnitNo(String subUnitNo);
     
+    @Property("subType")
+    public String getSubType();
+
+    @Property("subType")
+    public void setSubType(String subType);
+    
     @Property("collection")
     public String getCollection();
 
@@ -133,13 +139,18 @@ public interface Work extends Node {
     @Property("recordSource")
     public void setRecordSource(String recordSource);
     
-    //TODO Not sure if we need subType?
-    @Property("subType")
-    public String getSubType();
+    @Property("copyrightPolicy")
+    public String getCopyrightPolicy();
 
-    @Property("subType")
-    public void setSubType(String subType);
-   
+    @Property("copyrightPolicy")
+    public void setCopyrightPolicy(String copyrightPolicy);
+    
+    @Property("firstPart")
+    public String getFirstPart();
+
+    @Property("firstPart")
+    public void setFirstPart(String firstPart);
+    
     /**
      * Also known as localsystmno
      */
