@@ -3,7 +3,6 @@ package amberdb;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,11 +17,11 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.google.common.collect.Lists;
-
 import amberdb.enums.CopyRole;
 import amberdb.model.Page;
 import amberdb.model.Work;
+
+import com.google.common.collect.Lists;
 
 public class IngestTest {
     @ClassRule
@@ -46,27 +45,21 @@ public class IngestTest {
         }
         db = null;
     }
-    
-    private static Path newDummyFile(String name) throws IOException {
-        Path path = folder.newFile(name).toPath();
-        Files.write(path, "Hello world\n".getBytes());
-        return path;
-    }
 
     private static JobMockup uploadFiles() throws IOException {
         job = new JobMockup();
 
         // Note: banjo upload files step does not interact with amberDb at all.
         List<Path> list = new ArrayList<Path>();
-        list.add(newDummyFile("a.tiff"));
-        list.add(newDummyFile("b.tiff"));
+        list.add(TestUtils.newDummyFile(folder, "a.tiff"));
+        list.add(TestUtils.newDummyFile(folder, "b.tiff"));
 
-        list.add(newDummyFile("nla.aus-vn12345-1.tiff"));
-        list.add(newDummyFile("nla.aus-vn12345-2.tiff"));
-        list.add(newDummyFile("nla.aus-vn12345.xml"));
+        list.add(TestUtils.newDummyFile(folder, "nla.aus-vn12345-1.tiff"));
+        list.add(TestUtils.newDummyFile(folder, "nla.aus-vn12345-2.tiff"));
+        list.add(TestUtils.newDummyFile(folder, "nla.aus-vn12345.xml"));
 
-        list.add(newDummyFile("nla.aus-vn643643-1.tiff"));
-        list.add(newDummyFile("nla.aus-vn643643-2.tiff"));
+        list.add(TestUtils.newDummyFile(folder, "nla.aus-vn643643-1.tiff"));
+        list.add(TestUtils.newDummyFile(folder, "nla.aus-vn643643-2.tiff"));
 
         job.files = list;
         return job;
@@ -181,8 +174,7 @@ public class IngestTest {
     private void describeWork(JobMockup job, Work work) {
         // fill in default values
         for (Page p : work.getPages()) {
-            p.setDevice(job.getDefaultDevice());
-            p.setSoftware(job.getDefaultSoftware());
+          
         }
 
         // show the qa form
