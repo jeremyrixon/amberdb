@@ -35,6 +35,63 @@ public interface File extends Node {
 
     @Property("mimeType")
     public String getMimeType();
+    
+    /**
+     * Name of the original file upload
+     */
+    @Property("fileName")
+    public void setFileName(String fileName);
+
+    @Property("fileName")
+    public String getFileName();
+    
+    @Property("fileFormat")
+    public void setFileFormat(String fileFormat);
+
+    @Property("fileFormat")
+    public String getFileFormat();
+    
+    @Property("fileFormatVersion")
+    public void setFileFormatVersion(String fileFormatVersion);
+
+    @Property("fileFormatVersion")
+    public String getFileFormatVersion();
+    
+    @Property("fileSize")
+    public void setFileSize(long fileSize);
+
+    @Property("fileSize")
+    public long getFileSize();
+    
+    @Property("compression")
+    public void setCompression(String compression);
+
+    @Property("compression")
+    public String getCompression();
+    
+    @Property("checksum")
+    public void setChecksum(String checksum);
+
+    @Property("checksum")
+    public String getChecksum();
+    
+    @Property("checksumType")
+    public void setChecksumType(String checksumType);
+
+    @Property("checksumType")
+    public String getChecksumType();
+    
+    @Property("device")
+    public String getDevice();
+    
+    @Property("device")
+    public void setDevice(String device);
+    
+    @Property("software")
+    public String getSoftware();
+    
+    @Property("software")
+    public void setSoftware(String software);
 
     @Adjacency(label = IsFileOf.label)
     public Copy getCopy();

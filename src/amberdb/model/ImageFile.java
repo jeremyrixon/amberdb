@@ -11,15 +11,38 @@ public interface ImageFile extends File {
     @Property("resolution")
     public void setResolution(String resolution);
     
+    @Property("colourSpace")
+    public String getColourSpace();
+    
+    @Property("colourSpace")
+    public void setColourSpace(String colourSpace);
+    
+    @Property("orientation")
+    public String getOrientation();
+    
+    @Property("orientation")
+    public void setOrientation(String orientation);
+    
+    /**
+     * In pixels
+     */
     @Property("imageWidth")
     public int getImageWidth();
     
+    /**
+     * In pixels
+     */
     @Property("imageWidth")
-    public void setImageWidth(String imageWidth);
-    
+    public void setImageWidth(int imageWidth);
+            
+    /**
+     * In pixels
+     */
     @Property("imageHeight")
     public int getImageHeight();
     
-    @Property("imageHeight")
+    /**
+     * In pixels
+     */
     public void setImageHeight(int imageHeight);
 }

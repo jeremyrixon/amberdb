@@ -44,6 +44,18 @@ public interface Node extends VertexFrame {
     @Property("expiryDate")
     public void setExpiryDate(Date expiryDate);
     
+    @Property("restrictionType")
+    public String getRestrictionType();
+
+    @Property("restrictionType")
+    public void setRestrictionType(String restrictionType);
+    
+    @Property("notes")
+    public String getNotes();
+
+    @Property("notes")
+    public void setNotes(String notes);
+    
 	@JavaHandler
 	abstract public long getId();
 	
