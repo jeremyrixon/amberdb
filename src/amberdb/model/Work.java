@@ -3,6 +3,7 @@ package amberdb.model;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -33,47 +34,134 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
  */
 @TypeValue("Work")
 public interface Work extends Node {
-    @Property("subType")
-    public String getSubType();
+    
+    /* DCM Legacy Data */
+    @Property("dcmWorkPid")
+    public String getDcmWorkPid();
 
-    @Property("subType")
-    public void setSubType(String subType);
+    @Property("dcmWorkPid")
+    public void setDcmWorkPid(String dcmWorkPid);
+    
+    @Property("dcmDateTimeCreated")
+    public Date getDcmDateTimeCreated();
 
-    @Property("title")
-    public String getTitle();
+    @Property("dcmDateTimeCreated")
+    public void setDcmDateTimeCreated(Date dcmDateTimeCreated);
+    
+    @Property("dcmDateTimeUpdated")
+    public Date getDcmDateTimeUpdated();
 
-    @Property("title")
-    public void setTitle(String title);
+    @Property("dcmDateTimeUpdated")
+    public void setDcmDateTimeUpdated(Date dcmDateTimeUpdated);
+    
+    @Property("dcmRecordCreator")
+    public String getDcmRecordCreator();
 
-    @Property("creator")
-    public String getCreator();
+    @Property("dcmRecordCreator")
+    public void setDcmRecordCreator(String dcmRecordCreator);
+    
+    @Property("dcmRecordUpdater")
+    public String getDcmRecordUpdater();
 
-    @Property("creator")
-    public void setCreator(String creator);
-
+    @Property("dcmRecordUpdater")
+    public void setDcmRecordUpdater(String dcmRecordUpdater);
+    /* END DCM Legacy Data */
+    
     @Property("subUnitType")
     public String getSubUnitType();
 
     @Property("subUnitType")
     public void setSubUnitType(String subUnitType);
+    
+    @Property("subUnitNo")
+    public String getSubUnitNo();
 
+    @Property("subUnitNo")
+    public void setSubUnitNo(String subUnitNo);
+    
+    @Property("subType")
+    public String getSubType();
+
+    @Property("subType")
+    public void setSubType(String subType);
+    
+    @Property("collection")
+    public String getCollection();
+
+    @Property("collection")
+    public void setCollection(String collection);
+    
+    @Property("form")
+    public String getForm();
+
+    @Property("form")
+    public void setForm(String form);
+    
     @Property("bibLevel")
     public String getBibLevel();
 
     @Property("bibLevel")
     public void setBibLevel(String bibLevel);
-
-    @Property("bibId")
-    public Long getBibId();
-
-    @Property("bibId")
-    public void setBibId(Long bibId);
-
+    
     @Property("digitalStatus")
     public String getDigitalStatus();
 
     @Property("digitalStatus")
     public void setDigitalStatus(String digitalStatus);
+    
+    @Property("digitalStatusDate")
+    public String getDigitalStatusDate();
+
+    @Property("digitalStatusDate")
+    public void setDigitalStatusDate(String digitalStatusDate);
+    
+    @Property("title")
+    public String getTitle();
+
+    @Property("title")
+    public void setTitle(String title);
+    
+    @Property("creator")
+    public String getCreator();
+
+    @Property("creator")
+    public void setCreator(String creator);
+    
+    @Property("publisher")
+    public String getPublisher();
+
+    @Property("publisher")
+    public void setPublisher(String publisher);
+    
+    @Property("recordSource")
+    public String getRecordSource();
+
+    @Property("recordSource")
+    public void setRecordSource(String recordSource);
+    
+    @Property("copyrightPolicy")
+    public String getCopyrightPolicy();
+
+    @Property("copyrightPolicy")
+    public void setCopyrightPolicy(String copyrightPolicy);
+    
+    @Property("firstPart")
+    public String getFirstPart();
+
+    @Property("firstPart")
+    public void setFirstPart(String firstPart);
+    
+    /**
+     * Also known as localsystmno
+     */
+    @Property("bibId")
+    public Long getBibId();
+    
+    /**
+     * Also known as localsystmno
+     */
+    @Property("bibId")
+    public void setBibId(Long bibId);
 
     @Adjacency(label = IsPartOf.label)
     public void setParent(final Work parent);

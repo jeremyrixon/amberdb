@@ -5,19 +5,19 @@ import java.nio.file.Path;
 import java.util.Date;
 
 import amberdb.relation.IsCopyOf;
-import amberdb.relation.IsSourceCopyOf;
 import amberdb.relation.IsFileOf;
+import amberdb.relation.IsSourceCopyOf;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.frames.Adjacency;
-import com.tinkerpop.frames.Incidence;
 import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.modules.javahandler.JavaHandler;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
 import doss.Writable;
+import doss.core.Writables;
 
 /**
  * A physical or digital manifestation of a {@link Work}. The library may hold
@@ -31,6 +31,75 @@ import doss.Writable;
  */
 @TypeValue("Copy")
 public interface Copy extends Node {
+    
+    /* DCM Legacy Data */
+    @Property("dcmCopyPid")
+    public String getDcmCopyPid();
+
+    @Property("dcmCopyPid")
+    public void setDcmCopyPid(String dcmCopyPid);
+    
+    @Property("dcmDateTimeCreated")
+    public Date getDcmDateTimeCreated();
+
+    @Property("dcmDateTimeCreated")
+    public void setDcmDateTimeCreated(Date dcmDateTimeCreated);
+    
+    @Property("dcmDateTimeUpdated")
+    public Date getDcmDateTimeUpdated();
+
+    @Property("dcmDateTimeUpdated")
+    public void setDcmDateTimeUpdated(Date dcmDateTimeUpdated);
+    
+    @Property("dcmRecordCreator")
+    public String getDcmRecordCreator();
+
+    @Property("dcmRecordCreator")
+    public void setDcmRecordCreator(String dcmRecordCreator);
+    
+    @Property("dcmRecordUpdater")
+    public String getDcmRecordUpdater();
+
+    @Property("dcmRecordUpdater")
+    public void setDcmRecordUpdater(String dcmRecordUpdater);
+    /* END DCM Legacy Data */
+    
+    @Property("currentVersion")
+    public String getCurrentVersion();
+
+    @Property("currentVersion")
+    public void setCurrentVersion(String currentVersion);
+    
+    @Property("versionNumber")
+    public String getVersionNumber();
+
+    @Property("versionNumber")
+    public void setVersionNumber(String versionNumber);
+    
+    /**
+     * Also known as CALLNO     
+     */
+    @Property("holdingNumber")
+    public String getHoldingNumber();
+    
+    /**
+     * Also known as CALLNO     
+     */
+    @Property("holdingNumber")
+    public void setHoldingNumber(String holdingNumber);
+        
+    @Property("otherNumber")
+    public String getOtherNumber();
+        
+    @Property("otherNumber")
+    public void setOtherNumber(String otherNumber);
+
+    @Property("copyType")
+    public String getCopyType();
+
+    @Property("copyType")
+    public void setCopyType(String copyType);
+    
     @Property("copyRole")
     public String getCopyRole();
 
@@ -42,6 +111,30 @@ public interface Copy extends Node {
 
     @Property("carrier")
     public void setCarrier(String carrier);
+    
+    @Property("bestCopy")
+    public String getBestCopy();
+
+    @Property("bestCopy")
+    public void setBestCopy(String bestCopy);
+    
+    @Property("recordSource")
+    public String getRecordSource();
+
+    @Property("recordSource")
+    public void setRecordSource(String recordSource);
+    
+    @Property("localSystemNumber")
+    public String getLocalSystemNumber();
+
+    @Property("localSystemNumber")
+    public void setLocalSystemNumber(String localSystemNumber);
+    
+    @Property("materialType")
+    public String getMaterialType();
+
+    @Property("materialType")
+    public void setMaterialType(String materialType);
 
     /**
      * The source copy which this copy was derived from. Null if this copy is
@@ -58,9 +151,15 @@ public interface Copy extends Node {
 
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     public File getFile();
+    
+    @Adjacency(label = IsFileOf.label, direction = Direction.IN)
+    public ImageFile getImageFile();
 
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     public File addFile();
+    
+    @Adjacency(label = IsFileOf.label, direction = Direction.IN)
+    public ImageFile addImageFile();
 
     @JavaHandler
     File addFile(Path source, String mimeType) throws IOException;
@@ -75,19 +174,21 @@ public interface Copy extends Node {
 
         @Override
         public File addFile(Path source, String mimeType) throws IOException {
-            File file = addFile();
-            file.put(source);
-            file.setMimeType(mimeType);
-            return file;
+           return addFile(Writables.wrap(source), mimeType);             
         }
 
         @Override
         public File addFile(Writable contents, String mimeType) throws IOException {
-            File file = addFile();
-            file.put(contents);
-            file.setMimeType(mimeType);
+            File file = (mimeType.startsWith("image"))? addImageFile() : addFile();
+            storeFile(file, contents, mimeType);
             return file;
         }
+        
+        private void storeFile(File file, Writable contents, String mimeType) throws IOException {
+            file.put(contents);
+            file.setMimeType(mimeType);
+        }
+                
     }
 
 }
