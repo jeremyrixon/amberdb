@@ -17,6 +17,7 @@ import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
 import doss.Writable;
+import doss.core.Writables;
 
 /**
  * A physical or digital manifestation of a {@link Work}. The library may hold
@@ -150,6 +151,9 @@ public interface Copy extends Node {
 
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     public File getFile();
+    
+    @Adjacency(label = IsFileOf.label, direction = Direction.IN)
+    public ImageFile getImageFile();
 
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     public File addFile();
@@ -170,34 +174,19 @@ public interface Copy extends Node {
 
         @Override
         public File addFile(Path source, String mimeType) throws IOException {
-                        
-            if (mimeType.startsWith("image")) {
-                ImageFile file = addImageFile();
-                file.put(source);
-                file.setMimeType(mimeType);
-                return file;
-            } else {
-                File file = addFile();
-                file.put(source);
-                file.setMimeType(mimeType);
-                return file;
-            }
-                        
+           return addFile(Writables.wrap(source), mimeType);             
         }
 
         @Override
         public File addFile(Writable contents, String mimeType) throws IOException {
-            if (mimeType.startsWith("image")) {
-                ImageFile file = addImageFile();
-                file.put(contents);
-                file.setMimeType(mimeType);
-                return file;
-            } else {
-                File file = addFile();            
-                file.put(contents);
-                file.setMimeType(mimeType);
-                return file;
-            }
+            File file = (mimeType.startsWith("image"))? addImageFile() : addFile();
+            storeFile(file, contents, mimeType);
+            return file;
+        }
+        
+        private void storeFile(File file, Writable contents, String mimeType) throws IOException {
+            file.put(contents);
+            file.setMimeType(mimeType);
         }
                 
     }
