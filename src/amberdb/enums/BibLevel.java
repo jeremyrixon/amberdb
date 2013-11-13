@@ -5,7 +5,7 @@ public enum BibLevel {
     COMPONENT("Component"), 
     SET("Set"), 
     ITEM("Item"), 
-    Part("Part");
+    PART("Part");
 
     private String code;
 
