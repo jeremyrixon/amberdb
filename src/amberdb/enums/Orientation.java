@@ -3,7 +3,7 @@ package amberdb.enums;
 public enum Orientation {
     
     LANDSCAPE("Landscape"), 
-    Portrait("Portrait");
+    PORTRAIT("Portrait");
 
     private String code;
 
