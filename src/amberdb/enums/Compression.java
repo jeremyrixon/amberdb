@@ -1,5 +1,8 @@
 package amberdb.enums;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public enum Compression {
     
     JPEG("JPEG"), 
@@ -25,5 +28,13 @@ public enum Compression {
 
     public String code() {
         return code;
+    }
+    
+    public static List<String> list() {
+        List<String> list = new ArrayList<String>();
+        for (Compression lu : Compression.values()) {
+            list.add(lu.code());
+        }
+        return list;
     }
 }
