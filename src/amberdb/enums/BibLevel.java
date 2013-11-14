@@ -1,5 +1,8 @@
 package amberdb.enums;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public enum BibLevel {
     
     COMPONENT("Component"), 
@@ -26,5 +29,13 @@ public enum BibLevel {
 
     public String code() {
         return code;
+    }
+    
+    public static List<String> list() {
+        List<String> list = new ArrayList<String>();
+        for (BibLevel lu : BibLevel.values()) {
+            list.add(lu.code());
+        }
+        return list;
     }
 }

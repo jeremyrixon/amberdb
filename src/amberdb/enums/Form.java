@@ -3,20 +3,20 @@ package amberdb.enums;
 import java.util.ArrayList;
 import java.util.List;
 
-public enum Orientation {
+public enum Form {
     
-    LANDSCAPE("Landscape"), 
-    PORTRAIT("Portrait");
+    BOOK("Book"), 
+    JOURNAL("Journal");
 
     private String code;
 
-    private Orientation(String code) {
+    private Form(String code) {
         this.code = code;
     }
 
-    public static Orientation fromString(String code) {
+    public static Form fromString(String code) {
         if (code != null) {
-            for (Orientation e : Orientation.values()) {
+            for (Form e : Form.values()) {
                 if (code.equalsIgnoreCase(e.code)) {
                     return e;
                 }
@@ -24,16 +24,16 @@ public enum Orientation {
         }
         return null;
     }
-
-    public String code() {
-        return code;
-    }
     
     public static List<String> list() {
         List<String> list = new ArrayList<String>();
-        for (Orientation lu : Orientation.values()) {
+        for (Form lu : Form.values()) {
             list.add(lu.code());
         }
         return list;
+    }
+
+    public String code() {
+        return code;
     }
 }
