@@ -38,11 +38,12 @@ public interface ImageFile extends File {
     /**
      * In pixels
      */
-    @Property("imageHeight")
-    public int getImageHeight();
+    @Property("imageLength")
+    public int getImageLength();
     
     /**
      * In pixels
      */
-    public void setImageHeight(int imageHeight);
+    @Property("imageLength")
+    public void setImageLength(int imageLength);
 }
