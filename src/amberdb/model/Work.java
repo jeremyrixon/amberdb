@@ -174,6 +174,9 @@ public interface Work extends Node {
 
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public Iterable<Work> getChildren();
+    
+    @GremlinGroovy("it.inE.has('label', 'isPartOf').outV.loop(3){true}{true}.has('subType', subType)")
+    public Iterable<Work> getLeafs(@GremlinParam("subType") String subType);
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public void addCopy(final Copy copy);
