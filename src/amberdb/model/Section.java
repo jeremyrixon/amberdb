@@ -25,10 +25,13 @@ public interface Section extends Work {
 	@Adjacency(label = ExistsOn.label, direction = Direction.IN)
 	public void addPage(final Page page);
 	   
-	@GremlinGroovy("it.inE('existsOn').has('relOrder', idx).outV")
+	@GremlinGroovy("it.outE.has('label', 'existsOn').has('relOrder', idx).outV")
 	public Page getPage(@GremlinParam("idx") int idx);
+	
+	@GremlinGroovy("it.outE.has('label', 'existsOn').inV.loop(3){true}{true}.has('subType', subType)")
+    public Iterable<Work> getLeafs(@GremlinParam("subType") String subType);
 	   
-	@GremlinGroovy(value="it.in('existsOn')[p-1].outE.id.toList()[0].toLong()", frame=false)
+	@GremlinGroovy(value="it.out('existsOn')[p-1].inE.id.toList()[0].toLong()", frame=false)
 	public long getExistsOnRef(@GremlinParam("p") int position);
 	
 	@JavaHandler
@@ -40,7 +43,7 @@ public interface Section extends Work {
         }
 	    
         private List<Edge> existsOns() {
-            return (gremlin().inE(ExistsOn.label) == null)? null: gremlin().outE(ExistsOn.label).toList();
+            return (gremlin().outE(ExistsOn.label) == null)? null: gremlin().outE(ExistsOn.label).toList();
         }
 	}
 }

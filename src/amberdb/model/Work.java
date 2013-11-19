@@ -177,6 +177,9 @@ public interface Work extends Node {
     
     @GremlinGroovy("it.inE.has('label', 'isPartOf').outV.loop(3){true}{true}.has('subType', subType)")
     public Iterable<Work> getLeafs(@GremlinParam("subType") String subType);
+    
+    @GremlinGroovy("it.inE.has('label', 'isPartOf').outV.has('subType', subType)")
+    public Iterable<Section> getSections(@GremlinParam("subType") String subType);
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public void addCopy(final Copy copy);
@@ -193,6 +196,13 @@ public interface Work extends Node {
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public Page addPage();
 
+    /**
+     * Noting the page is removed from this work
+     * @param page
+     */
+    @Adjacency(label = IsPartOf.label, direction = Direction.IN)
+    public void removePage(final Page page);
+    
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public Copy addCopy();
 
@@ -207,9 +217,19 @@ public interface Work extends Node {
 
     @JavaHandler
     public int countParts();
+    
+    /**
+     * Noting the part is removed from this work
+     * @param work
+     */
+    @Adjacency(label = IsPartOf.label, direction = Direction.IN)
+    public void removePart(final Work part);
 
     @JavaHandler
     public Page getPage(int position);
+    
+    @JavaHandler
+    public Work getLeaf(String subType, int position);
 
     abstract class Impl implements JavaHandlerContext<Vertex>, Work {
 
@@ -264,7 +284,26 @@ public interface Work extends Node {
             }
             return page;
         }
-
+               
+        @Override
+        public Work getLeaf(String subType, int position) {
+            if (position <= 0)
+                throw new IllegalArgumentException("Cannot get this page, invalid input position "
+                        + position);
+            
+            Iterable<Work> leafs = getLeafs(subType);
+            if (leafs == null)
+                throw new IllegalArgumentException("Cannot get this page, page at position "
+                        + position + " does not exist.");
+            
+            int counter = 1;
+            for (Work leaf : leafs) {
+                if (counter == position)
+                    return leaf;
+            }
+            return null;
+        }
+        
         @Override
         public int countParts() {
             return (parts() == null) ? 0 : parts().size();
