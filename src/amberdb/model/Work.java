@@ -212,7 +212,10 @@ public interface Work extends Node {
     public Page addPage();
     
     /**
-     * removePage: Noting the page is de-attached from this work
+     * This method detatches the page from this work, but the page
+     * continues to exist as an orphan.  Use the deletePage method
+     * in AmberSessoin to actually delete the page with copies and 
+     * files from the graph.
      * @param page
      */
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
@@ -234,7 +237,9 @@ public interface Work extends Node {
     public int countParts();
     
     /**
-     * Noting the part is removed from this work
+     * This method detaches the part from this work, but the part
+     * continues to exist as an orphan.  Use the deletePart method
+     * to actually delete the part and its children from the graph.
      * @param work
      */
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
