@@ -75,18 +75,6 @@ public interface Copy extends Node {
 
     @Property("versionNumber")
     public void setVersionNumber(String versionNumber);
-    
-    /**
-     * Also known as CALLNO     
-     */
-    @Property("holdingNumber")
-    public String getHoldingNumber();
-    
-    /**
-     * Also known as CALLNO     
-     */
-    @Property("holdingNumber")
-    public void setHoldingNumber(String holdingNumber);
         
     @Property("otherNumber")
     public String getOtherNumber();
