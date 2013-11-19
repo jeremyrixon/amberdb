@@ -32,8 +32,7 @@ public class WorkTest {
     }
 
     
-    // @Test
-    @Ignore
+    @Test
     public void testGetLeafsForBlinkyBill() {
         Iterable<Work> leafs = bookBlinkyBill.getLeafs("page");
         System.out.println("List leafs for book blinky bill: ");
@@ -45,8 +44,7 @@ public class WorkTest {
         assertEquals(expectedNoOfPages, noOfPages);
     }
     
-    // @Test
-    @Ignore
+    @Test
     public void testGetLeafsForBlinkyBillAssoication() {
         Iterable<Section> sections = bookBlinkyBill.getSections("chapter");
         Section theNewArrival = null;
