@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import amberdb.AmberDbFactory;
@@ -18,27 +19,16 @@ public class WorkTest {
     private static Work workCollection;
     private static Work bookBlinkyBill;
     private static Work chapterBlinkyBill;
-    private static Work workFrontCover;
-    private static Work workTitlePage;
+    private static Page workFrontCover;
+    private static Page workTitlePage;
     private static Iterable<Copy> copies;
     private static Map<String, Object> expectedResults = new HashMap<String, Object>();    
     private static int expectedNoOfPages = 0;
+    private static int expectedNoOfPagesForSection = 0;
     
     @BeforeClass
     public static void setup() throws IOException, InstantiationException {
-        String dbUrl = "jdbc:mysql://snowy.nla.gov.au:3306/dlir?zeroDateTimeBehavior=convertToNull&useUnicode=yes&characterEncoding=UTF-8";
-        String dbUser = "dlir";
-        String dbPassword = "dlir";   
-        String rootPath = ".";
-        
-        try (AmberSession db = AmberDbFactory.openAmberDb(dbUrl, dbUser, dbPassword, rootPath) ) {
-            if (bookBlinkyBill == null) bookBlinkyBill = db.findWork(179722129L);
-            expectedNoOfPages = 95;
-        } catch (Exception e) {
-            e.printStackTrace();
-            AmberSession db = new AmberSession();
-            setTestDataInH2(db);
-        }
+        resetTestData();
     }
 
     
@@ -54,6 +44,103 @@ public class WorkTest {
         assertEquals(expectedNoOfPages, noOfPages);
     }
     
+    @Test
+    public void testGetLeafsForBlinkyBillAssoication() {
+        Iterable<Section> sections = bookBlinkyBill.getSections("chapter");
+        Section theNewArrival = null;
+        for (Section section : sections) {
+            if (section.getTitle().equalsIgnoreCase("The New Arrival")) 
+                theNewArrival = section;
+        }
+        Iterable<Work> leafs = theNewArrival.getLeafs("page");
+        System.out.println("List leafs for chapter the new arrival: ");
+        int noOfPages = 0;
+        for (Work leaf : leafs) {
+            System.out.println("Leaf: " + leaf.getSubType());
+            noOfPages++;
+        }
+        assertEquals(expectedNoOfPagesForSection, noOfPages);
+    }
+    
+    @Test
+    public void testRemovePage() {
+        AmberSession db = new AmberSession();
+        setTestDataInH2(db);
+        
+        int expectedNoOfPagesBfrRemoval = 3;
+        int expectedNoOfPagesAftRemoval = 2;
+        
+        int actualNoOfPagesBfrRemoval = 0;
+        Iterable<Page> pagesBI = bookBlinkyBill.getPages();
+        for (Page page : pagesBI) {
+            actualNoOfPagesBfrRemoval++;
+        }
+        assertEquals(expectedNoOfPagesBfrRemoval, actualNoOfPagesBfrRemoval);
+        bookBlinkyBill.removePage(workTitlePage);
+
+        int actualNoOfPagesAftRemoval = 0;
+        Iterable<Page> pagesAI = bookBlinkyBill.getPages();
+        for (Page page : pagesAI) {
+            actualNoOfPagesAftRemoval++;
+        }
+        assertEquals(expectedNoOfPagesAftRemoval, actualNoOfPagesAftRemoval);
+        workTitlePage = bookBlinkyBill.addPage();
+        workTitlePage.setSubType("page");
+        workTitlePage.setTitle("Blinky Bill Page 2");
+        workTitlePage.setSubType("page");
+        workTitlePage.setSubUnitType("Title Page");
+        
+        resetTestData();
+    }
+    
+    @Test
+    public void testRemoveLeaf() {
+        AmberSession db = new AmberSession();
+        setTestDataInH2(db);
+        
+        int expectedNoOfPagesBfrRemoval = 2;
+        int expectedNoOfPagesAftRemoval = 1;
+        
+        int actualNoOfPagesBfrRemoval = 0;
+        Iterable<Work> pagesBI = bookBlinkyBill.getLeafs("page");
+        for (Work page : pagesBI) {
+            actualNoOfPagesBfrRemoval++;
+        }
+        assertEquals(expectedNoOfPagesBfrRemoval, actualNoOfPagesBfrRemoval);
+        bookBlinkyBill.removePart(bookBlinkyBill.getLeaf("page", 1));
+
+        int actualNoOfPagesAftRemoval = 0;
+        Iterable<Work> pagesAI = bookBlinkyBill.getLeafs("page");
+        for (Work page : pagesAI) {
+            actualNoOfPagesAftRemoval++;
+        }
+        assertEquals(expectedNoOfPagesAftRemoval, actualNoOfPagesAftRemoval);
+        workTitlePage = bookBlinkyBill.addPage();
+        workTitlePage.setSubType("page");
+        workTitlePage.setTitle("Blinky Bill Page 2");
+        workTitlePage.setSubType("page");
+        workTitlePage.setSubUnitType("Title Page");
+        
+        resetTestData();
+    }
+    
+    private static void resetTestData() {
+        String dbUrl = "jdbc:mysql://snowy.nla.gov.au:3306/dlir?zeroDateTimeBehavior=convertToNull&useUnicode=yes&characterEncoding=UTF-8";
+        String dbUser = "dlir";
+        String dbPassword = "dlir";   
+        String rootPath = ".";
+        
+        try (AmberSession db = AmberDbFactory.openAmberDb(dbUrl, dbUser, dbPassword, rootPath) ) {
+            if (bookBlinkyBill == null) bookBlinkyBill = db.findWork(179722129L);
+            expectedNoOfPages = 95;
+            expectedNoOfPagesForSection = 13;
+        } catch (Exception e) {
+            e.printStackTrace();
+            AmberSession db = new AmberSession();
+            setTestDataInH2(db);
+        }        
+    }
+    
     private static void setTestDataInH2(AmberSession sess) {
         workCollection = sess.addWork();
         
@@ -67,7 +154,7 @@ public class WorkTest {
         
         chapterBlinkyBill = sess.addWork();
         chapterBlinkyBill.setSubType("chapter");
-        chapterBlinkyBill.setTitle("Blinky Bill chapter 1");
+        chapterBlinkyBill.setTitle("The New Arrival");
         bookBlinkyBill.addChild(chapterBlinkyBill);
         
         workFrontCover = bookBlinkyBill.addPage();
@@ -122,5 +209,6 @@ public class WorkTest {
         expectedResults.put("workTitlePage_MASTER_COPY_ID", workTitlePageMasterCopy.getId());        
         
         expectedNoOfPages = 2;
+        expectedNoOfPagesForSection = 0;
     }
 }
