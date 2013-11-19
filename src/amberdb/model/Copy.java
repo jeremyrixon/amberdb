@@ -75,6 +75,18 @@ public interface Copy extends Node {
 
     @Property("versionNumber")
     public void setVersionNumber(String versionNumber);
+    
+    /**
+     * Also known as CALLNO     
+     */
+    @Property("holdingNumber")
+    public String getHoldingNumber();
+    
+    /**
+     * Also known as CALLNO     
+     */
+    @Property("holdingNumber")
+    public void setHoldingNumber(String holdingNumber);
         
     @Property("otherNumber")
     public String getOtherNumber();
@@ -154,6 +166,9 @@ public interface Copy extends Node {
 
     @JavaHandler
     File addFile(Writable contents, String mimeType) throws IOException;
+    
+    @Adjacency(label = IsFileOf.label, direction = Direction.IN)
+    void removeFile(final File file);
 
     @Adjacency(label = IsCopyOf.label)
     public Work getWork();
