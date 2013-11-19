@@ -115,6 +115,18 @@ public interface Work extends Node {
     @Property("digitalStatusDate")
     public void setDigitalStatusDate(String digitalStatusDate);
     
+    /**
+     * Also known as CALLNO
+     */
+    @Property("holdingNumber")
+    public String getHoldingNumber();
+
+    /**
+     * Also known as CALLNO
+     */
+    @Property("holdingNumber")
+    public void setHoldingNumber(String holdingNumber);
+    
     @Property("title")
     public String getTitle();
 
