@@ -115,6 +115,18 @@ public interface Work extends Node {
     @Property("digitalStatusDate")
     public void setDigitalStatusDate(String digitalStatusDate);
     
+    /**
+     * Also known as CALLNO
+     */
+    @Property("holdingNumber")
+    public String getHoldingNumber();
+
+    /**
+     * Also known as CALLNO
+     */
+    @Property("holdingNumber")
+    public void setHoldingNumber(String holdingNumber);
+    
     @Property("title")
     public String getTitle();
 
@@ -183,6 +195,9 @@ public interface Work extends Node {
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public void addCopy(final Copy copy);
+    
+    @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
+    public void removeCopy(final Copy copy);
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public Iterable<Copy> getCopies();
@@ -195,12 +210,12 @@ public interface Work extends Node {
 
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public Page addPage();
-
+    
     /**
      * This method detatches the page from this work, but the page
-     * continues to exist as an orphan. Use the deletePage method 
-     * to actually delete the page with copies and files from the 
-     * graph. 
+     * continues to exist as an orphan.  Use the deletePage method
+     * in AmberSessoin to actually delete the page with copies and 
+     * files from the graph.
      * @param page
      */
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
@@ -222,9 +237,9 @@ public interface Work extends Node {
     public int countParts();
     
     /**
-     * This method detatches the part from this work, but the part
-     * continues to exist as an orphan. Use the deletePart method 
-     * to actually delete the part and its children from the graph. 
+     * This method detaches the part from this work, but the part
+     * continues to exist as an orphan.  Use the deletePart method
+     * to actually delete the part and its children from the graph.
      * @param work
      */
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)

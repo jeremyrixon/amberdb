@@ -87,11 +87,23 @@ public interface File extends Node {
     @Property("device")
     public void setDevice(String device);
     
+    @Property("deviceSerialNumber")
+    public String getDeviceSerialNumber();
+
+    @Property("deviceSerialNumber")
+    public void setDeviceSerialNumber(String deviceSerialNumber);
+    
     @Property("software")
     public String getSoftware();
     
     @Property("software")
     public void setSoftware(String software);
+    
+    @Property("softwareSerialNumber")
+    public String getSoftwareSerialNumber();
+    
+    @Property("softwareSerialNumber")
+    public void setSoftwareSerialNumber(String softwareSerialNumber);
 
     @Adjacency(label = IsFileOf.label)
     public Copy getCopy();
