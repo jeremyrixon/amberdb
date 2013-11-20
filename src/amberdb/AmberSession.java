@@ -179,7 +179,7 @@ public class AmberSession implements AutoCloseable {
      * Finds a work by voyager number.
      */
     public Section findWorkByVn(long vnLink) {
-        return graph.frame(graph.getVertices("bibId", vnLink).iterator().next(), Section.class);
+        return graph.frame(graph.getVertices("bibId", "VOYAGER:" + vnLink).iterator().next(), Section.class);
     }
 
     /**

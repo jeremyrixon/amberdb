@@ -74,7 +74,7 @@ public class IngestTest {
         Work auto1 = amberDb.addWork();
         samplePI = auto1.getObjId();
 
-        auto1.setBibId(12345L);
+        auto1.setBibId("VOYAGER:12345");
         auto1.addPage(job.files.get(6), "image/tiff").setOrder(1);
 
         Page page = auto1.addPage();
@@ -88,7 +88,7 @@ public class IngestTest {
         bookIds.add(auto1.getId());
 
         Work auto2 = amberDb.addWork();
-        auto2.setBibId(55555l);
+        auto2.setBibId("55555");
         auto2.addPage(job.files.get(5), "image/tiff").setOrder(1);
         auto2.setTitle("James and the giant peach");
 
