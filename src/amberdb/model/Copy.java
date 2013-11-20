@@ -154,6 +154,9 @@ public interface Copy extends Node {
 
     @JavaHandler
     File addFile(Writable contents, String mimeType) throws IOException;
+    
+    @Adjacency(label = IsFileOf.label, direction = Direction.IN)
+    void removeFile(final File file);
 
     @Adjacency(label = IsCopyOf.label)
     public Work getWork();

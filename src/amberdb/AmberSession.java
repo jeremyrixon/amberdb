@@ -191,6 +191,28 @@ public class AmberSession implements AutoCloseable {
         Work work = graph.addVertex(null, Work.class);
         return work;
     }
+    
+    /**
+     * Noting deletion of all the vertices representing the work, its copies, and its copy files
+     * within the session.
+     * @param work
+     */
+    public void deletePage(final Page page) {
+        page.getParent().removePart(page);
+        Iterable<Copy> copies = page.getCopies();
+        if (copies != null) {
+            for (Copy copy : copies) {
+                File file = copy.getFile();
+                if (file != null) {
+                    copy.removeFile(file);
+                    graph.removeVertex(file.asVertex());
+                }
+                page.removeCopy(copy);
+                graph.removeVertex(copy.asVertex());
+            }
+            graph.removeVertex(page.asVertex());
+        }
+    }
 
     @Override
     public void close() throws IOException {

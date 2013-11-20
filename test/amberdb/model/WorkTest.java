@@ -3,7 +3,9 @@ package amberdb.model;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.BeforeClass;
@@ -12,6 +14,7 @@ import org.junit.Test;
 
 import amberdb.AmberDbFactory;
 import amberdb.AmberSession;
+import amberdb.NoSuchObjectException;
 import amberdb.enums.CopyRole;
 
 public class WorkTest {
@@ -34,6 +37,7 @@ public class WorkTest {
     
     @Test
     public void testGetLeafsForBlinkyBill() {
+        resetTestData();
         Iterable<Work> leafs = bookBlinkyBill.getLeafs("page");
         System.out.println("List leafs for book blinky bill: ");
         int noOfPages = 0;
@@ -42,10 +46,12 @@ public class WorkTest {
             noOfPages++;
         }
         assertEquals(expectedNoOfPages, noOfPages);
+        resetTestData();
     }
     
     @Test
     public void testGetLeafsForBlinkyBillAssoication() {
+        resetTestData();
         Iterable<Section> sections = bookBlinkyBill.getSections("chapter");
         Section theNewArrival = null;
         for (Section section : sections) {
@@ -60,10 +66,11 @@ public class WorkTest {
             noOfPages++;
         }
         assertEquals(expectedNoOfPagesForSection, noOfPages);
+        resetTestData();
     }
     
     @Test
-    public void testRemovePage() {
+    public void testDeattachPage() {
         AmberSession db = new AmberSession();
         setTestDataInH2(db);
         
@@ -94,7 +101,7 @@ public class WorkTest {
     }
     
     @Test
-    public void testRemoveLeaf() {
+    public void testDeattachLeaf() {
         AmberSession db = new AmberSession();
         setTestDataInH2(db);
         
@@ -124,6 +131,34 @@ public class WorkTest {
         resetTestData();
     }
     
+    @Test(expected = NoSuchObjectException.class)
+    public void testDeleteWork() {
+        AmberSession db = new AmberSession();
+        setTestDataInH2(db);
+        
+        Page work = workTitlePage;
+        long workVertexId = work.getId();
+        assertEquals(workVertexId, work.asVertex().getId());
+        List<Long> copyVertexIds = new ArrayList<Long>();
+        List<Long> fileVertexIds = new ArrayList<Long>();
+        Iterable<Copy> copies = work.getCopies();
+        for (Copy copy : copies) {
+            File file = copy.getFile();
+            copyVertexIds.add(copy.getId());
+            
+            if (file != null) {
+                fileVertexIds.add(file.getId());
+                assertEquals(file.getId(), file.asVertex().getId());
+            }
+            assertEquals(copy.getId(), copy.asVertex().getId());
+        }
+        
+        db.deletePage(work);
+        db.findWork(workVertexId);
+
+        resetTestData();
+    }
+    
     private static void resetTestData() {
         String dbUrl = "jdbc:mysql://snowy.nla.gov.au:3306/dlir?zeroDateTimeBehavior=convertToNull&useUnicode=yes&characterEncoding=UTF-8";
         String dbUser = "dlir";
@@ -131,7 +166,7 @@ public class WorkTest {
         String rootPath = ".";
         
         try (AmberSession db = AmberDbFactory.openAmberDb(dbUrl, dbUser, dbPassword, rootPath) ) {
-            if (bookBlinkyBill == null) bookBlinkyBill = db.findWork(179722129L);
+            bookBlinkyBill = db.findWork(179722129L);
             expectedNoOfPages = 95;
             expectedNoOfPagesForSection = 13;
         } catch (Exception e) {

@@ -89,7 +89,7 @@ public interface File extends Node {
     
     @Property("deviceSerialNumber")
     public String getDeviceSerialNumber();
-    
+
     @Property("deviceSerialNumber")
     public void setDeviceSerialNumber(String deviceSerialNumber);
     
