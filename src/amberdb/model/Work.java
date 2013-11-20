@@ -174,6 +174,18 @@ public interface Work extends Node {
      */
     @Property("bibId")
     public void setBibId(String bibId);
+    
+    /**
+     * To be published in the catalogue
+     */
+    @Property("publicNotes")
+    public String getPublicNotes();
+    
+    /**
+     * To be published in the catalogue
+     */
+    @Property("publicNotes")
+    public void setPublicNotes(String publicNotes);
 
     @Adjacency(label = IsPartOf.label)
     public void setParent(final Work parent);
@@ -224,6 +236,9 @@ public interface Work extends Node {
      * in AmberSessoin to actually delete the page with copies and 
      * files from the graph.
      * @param page
+     * 
+     * Note: remove is a naming convention used by tinkerpop frames
+     *       annotation.
      */
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public void removePage(final Page page);

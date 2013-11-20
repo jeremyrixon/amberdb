@@ -74,7 +74,7 @@ public class IngestTest {
         Work auto1 = amberDb.addWork();
         samplePI = auto1.getObjId();
 
-        auto1.setBibId("VOYAGER:12345");
+        auto1.setBibId("12345");
         auto1.addPage(job.files.get(6), "image/tiff").setOrder(1);
 
         Page page = auto1.addPage();
@@ -136,7 +136,7 @@ public class IngestTest {
 
     @Test
     public void testFixLabel() {
-        Work work = db.findWorkByVn(12345L);
+        Work work = db.findWorkByVn(12345);
 
         try {
             int count = work.countParts();
