@@ -174,6 +174,18 @@ public interface Work extends Node {
      */
     @Property("bibId")
     public void setBibId(Long bibId);
+    
+    /**
+     * To be published in the catalogue
+     */
+    @Property("publicNotes")
+    public String getPublicNotes();
+    
+    /**
+     * To be published in the catalogue
+     */
+    @Property("publicNotes")
+    public void setPublicNotes(String publicNotes);
 
     @Adjacency(label = IsPartOf.label)
     public void setParent(final Work parent);
