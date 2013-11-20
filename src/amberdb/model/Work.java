@@ -167,13 +167,13 @@ public interface Work extends Node {
      * Also known as localsystmno
      */
     @Property("bibId")
-    public Long getBibId();
+    public String getBibId();
     
     /**
      * Also known as localsystmno
      */
     @Property("bibId")
-    public void setBibId(Long bibId);
+    public void setBibId(String bibId);
     
     /**
      * To be published in the catalogue
@@ -202,8 +202,15 @@ public interface Work extends Node {
     @GremlinGroovy("it.inE.has('label', 'isPartOf').outV.loop(3){true}{true}.has('subType', subType)")
     public Iterable<Work> getLeafs(@GremlinParam("subType") String subType);
     
+    @GremlinGroovy("it.inE.has('label', 'isPartOf').outV.loop(3){true}{true}.has('subType', T.in, subTypes)")
+    public Iterable<Work> getLeafs(@GremlinParam("subTypes") List<String> subTypes);
+    
     @GremlinGroovy("it.inE.has('label', 'isPartOf').outV.has('subType', subType)")
     public Iterable<Section> getSections(@GremlinParam("subType") String subType);
+    
+    // TODO: need to test later whether it has any existsOn outE(s)
+    @GremlinGroovy("it")
+    public Section asSection();
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public void addCopy(final Copy copy);
@@ -229,6 +236,9 @@ public interface Work extends Node {
      * in AmberSessoin to actually delete the page with copies and 
      * files from the graph.
      * @param page
+     * 
+     * Note: remove is a naming convention used by tinkerpop frames
+     *       annotation.
      */
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public void removePage(final Page page);
@@ -279,7 +289,7 @@ public interface Work extends Node {
             copy.addFile(sourceFile, mimeType);
             return copy;
         }
-
+        
         @Override
         public List<Page> getPages() {
             List<Page> pages = new ArrayList<Page>();
@@ -345,5 +355,6 @@ public interface Work extends Node {
             return (gremlin().inE(IsPartOf.label) == null) ? null : gremlin().inE(IsPartOf.label)
                     .toList();
         }
+        
     }
 }
