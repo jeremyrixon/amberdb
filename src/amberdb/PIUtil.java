@@ -28,7 +28,7 @@ public class PIUtil {
      */
     public static int taq(Long number) {
         if (number == null)
-            throw new IllegalArgumentException("The input objId is null.");
+            throw new InvalidObjectIDException("The input objId is null.");
         if (number < 0)
             number = -number;
         
@@ -50,7 +50,7 @@ public class PIUtil {
     
     public static long parse(String pi) {
         if (!isValid(pi))
-            throw new IllegalArgumentException("The input pi " + pi + " is invalid.");
+            throw new InvalidObjectIDException("The input pi " + pi + " is invalid.");
         return new Long(pi.substring(pi.indexOf(PI_PREFIX) + 8, pi.length() - 1));
     }
     

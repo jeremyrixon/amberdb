@@ -36,12 +36,12 @@ public class PIUtilTest {
         assertEquals("The returned objId should be " + expected + ".", expected, PIUtil.parse(input));
     }
     
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = InvalidObjectIDException.class)
     public void testReturnExceptionForInvalidObjId() {
         PIUtil.parse("nla.obj-5723");
     }
     
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = InvalidObjectIDException.class)
     public void testCheckDigitsForNull() {
         PIUtil.taq(null);
     }
