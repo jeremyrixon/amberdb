@@ -4,7 +4,8 @@ package amberdb;
  * Borrowing of the Checksums/Damm Algorithm to provide check-digits for PI
  * from:
  * 
- * http://en.wikibooks.org/wiki/Algorithm_Implementation/Checksums/Damm_Algorithm
+ * http://en.wikibooks.org/wiki/Algorithm_Implementation/Checksums/
+ * Damm_Algorithm
  */
 public class PIUtil {
     private static final String PI_PREFIX = "nla.obj-";
@@ -23,7 +24,7 @@ public class PIUtil {
     /**
      * taq: uses totally anti-symmetric quasigroup to generate the check digit
      * for a number.
-     *
+     * 
      * @param number
      * @return check digit.
      */
@@ -44,7 +45,7 @@ public class PIUtil {
     /**
      * Format a numerical object ID as a string with a check 'taq' digit. For
      * example: 179722207 to nla.obj-1797222073. Opposite of parse().
-     *
+     * 
      * @param Long
      *            object id
      * @return String
@@ -60,26 +61,31 @@ public class PIUtil {
     /**
      * Parse a string object ID with a check digit to a numerical one. For
      * example: nla.obj-1797222073 to 179722207. Opposite of format().
-     *
+     * 
      * @param String
      *            object id
-     * @return longs
+     * @return long
      */
     public static long parse(String pi) {
         if (!isValid(pi))
             throw new InvalidObjectIDException("The input pi " + pi + " is invalid.");
-        return new Long(pi.substring(pi.indexOf(PI_PREFIX) + 8, pi.length() - 1));
+        return Long.decode(pi.substring(PI_PREFIX.length(), pi.length() - 1));
     }
 
     /**
      * Is the string object ID valid? That is, is the last digit (the 'taq')
      * valid?
-     *
+     * 
      * @param String
      *            object id
      * @return boolean
      */
     public static boolean isValid(String pi) {
-        return (taq(new Long(pi.substring(pi.indexOf(PI_PREFIX) + 8))) == 0);
+        if (!pi.startsWith(PI_PREFIX))
+            return false;
+        if (pi.length() <= PI_PREFIX.length())
+            return false;
+
+        return (taq(Long.decode(pi.substring(PI_PREFIX.length()))) == 0);
     }
 }
