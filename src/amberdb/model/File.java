@@ -131,12 +131,14 @@ public interface File extends Node {
         }
 
         private Blob getBlob() throws IOException, NoSuchBlobException {
+            // TODO: find a better solution for this
             if (getBlobId() == null) return null;
             return getBlobStore().get(getBlobId());
         }
 
         @Override
         public long getSize() {
+            // TODO: find a better solution for this
             try {
                 if (getBlob() == null) return 0L;
                 return getBlob().size();
