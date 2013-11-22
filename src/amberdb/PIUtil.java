@@ -51,11 +51,7 @@ public class PIUtil {
      * @return String
      */
     public static String format(Long objId) {
-        try {
-            return PI_PREFIX + objId + taq(objId);
-        } catch (ArrayIndexOutOfBoundsException e) {
-            throw new RuntimeException("wot " + objId, e);
-        }
+        return PI_PREFIX + objId + taq(objId);
     }
 
     /**
