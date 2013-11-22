@@ -4,8 +4,7 @@ package amberdb;
  * Borrowing of the Checksums/Damm Algorithm to provide check-digits for PI
  * from:
  * 
- * http://en.wikibooks.org/wiki/Algorithm_Implementation/Checksums/
- * Damm_Algorithm
+ * http://en.wikibooks.org/wiki/Algorithm_Implementation/Checksums/Damm_Algorithm
  */
 public class PIUtil {
     private static final String PI_PREFIX = "nla.obj-";
