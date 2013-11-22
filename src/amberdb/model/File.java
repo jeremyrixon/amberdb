@@ -18,6 +18,7 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 import doss.Blob;
 import doss.BlobStore;
 import doss.BlobTx;
+import doss.NoSuchBlobException;
 import doss.Writable;
 import doss.core.Writables;
 
@@ -129,16 +130,18 @@ public interface File extends Node {
             return AmberSession.ownerOf(g()).getBlobStore();
         }
 
-        private Blob getBlob() throws IOException {
+        private Blob getBlob() throws IOException, NoSuchBlobException {
+            if (getBlobId() == null) return null;
             return getBlobStore().get(getBlobId());
         }
 
         @Override
         public long getSize() {
             try {
+                if (getBlob() == null) return 0L;
                 return getBlob().size();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            } catch (Exception e) {
+                return getFileSize();
             }
         }
 
