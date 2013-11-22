@@ -7,18 +7,25 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.skife.jdbi.v2.DBI;
 
 import com.google.common.collect.Lists;
+import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 import amberdb.enums.CopyRole;
 import amberdb.model.Copy;
 import amberdb.model.File;
 import amberdb.model.Work;
+import amberdb.sql.AmberProperty;
+import amberdb.sql.DataType;
+import amberdb.sql.dao.MigrationDao;
 
 public class JellyTest {
     @ClassRule
@@ -31,13 +38,15 @@ public class JellyTest {
     private static Work workTitlePage;
     private static Iterable<Copy> copies;
     private static Map<String, Object> expectedResults = new HashMap<String, Object>();
+    
+    // private static String dbUrl = "jdbc:mysql://amberserver:3306/dlir?zeroDateTimeBehavior=convertToNull&useUnicode=yes&characterEncoding=UTF-8";
+    private static String dbUrl = "jdbc:mysql://snowy.nla.gov.au:3306/dlir?zeroDateTimeBehavior=convertToNull&useUnicode=yes&characterEncoding=UTF-8&relaxAutoCommit=true";
+    private static String dbUser = "dlir";
+    private static String dbPassword = "dlir";
 
     @BeforeClass
     public static void setup() throws IOException, InstantiationException, IllegalAccessException,
             ClassNotFoundException, SQLException {
-        String dbUrl = "jdbc:mysql://amberserver:3306/dlir?zeroDateTimeBehavior=convertToNull&useUnicode=yes&characterEncoding=UTF-8";
-        String dbUser = "dlir";
-        String dbPassword = "dlir";
         String rootPath = ".";
         
         try (AmberSession db = AmberDbFactory.openAmberDb(dbUrl, dbUser, dbPassword, rootPath)) {
@@ -71,8 +80,136 @@ public class JellyTest {
             }
         }
     }
+    
+    /**
+     * Test to demonstrate of converting image width and length from str to int for Jelly migration.
+     */
+    // @Test
+    @Ignore
+    public void testEncodeImageWidthAsInt() {
+        try {
+            MysqlDataSource mds = new MysqlDataSource();
+            mds.setURL(dbUrl);
+            mds.setUser(dbUser);
+            mds.setPassword(dbPassword);
+            
+            DBI dbi = new DBI(mds);
+            MigrationDao dao = dbi.open(MigrationDao.class);
 
-    @Test
+            long blinkyBillId = 179722129L;
+            List<AmberProperty> rs = dao.getPropertiesForWorkDetails(blinkyBillId, "imageWidth");
+            if (rs != null) {
+                for (AmberProperty p : rs) {
+                    System.out.println("id:" + p.getId() + ", name:" + p.getName() + ", type:" + p.getType() + ", value:" + p.getValue());
+                    Integer width = Integer.parseInt(p.getValue().toString());
+                    AmberProperty np = new AmberProperty(p.getId(), p.getName(), DataType.INT, width);
+                    dao.updProperty(np);
+                }
+            }
+            
+            List<AmberProperty> rs1 = dao.getPropertiesForWorkDetails(blinkyBillId, "imageLength");
+            if (rs != null) {
+                for (AmberProperty p : rs1) {
+                    System.out.println("id:" + p.getId() + ", name:" + p.getName() + ", type:" + p.getType() + ", value:" + p.getValue());
+                    Integer length = Integer.parseInt(p.getValue().toString());
+                    AmberProperty np = new AmberProperty(p.getId(), p.getName(), DataType.INT, length);
+                    dao.updProperty(np);
+                }
+            }  
+
+            dao.commit();
+            dbi.close(dao); 
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
+    
+    // @Test
+    @Ignore
+    public void testPortBlinkyProperties() {
+        try {
+            String amberUrl = "jdbc:mysql://mysql-devel.nla.gov.au:6446/amberdb?zeroDateTimeBehavior=convertToNull&useUnicode=yes&characterEncoding=UTF-8&relaxAutoCommit=true";
+            String amberUser = "amberdb";
+            String amberPassword = "amberdb";
+            
+            MysqlDataSource jellyDS = new MysqlDataSource();
+            jellyDS.setURL(dbUrl);
+            jellyDS.setUser(dbUser);
+            jellyDS.setPassword(dbPassword);
+            
+            MysqlDataSource amberDS = new MysqlDataSource();
+            amberDS.setURL(amberUrl);
+            amberDS.setUser(amberUser);
+            amberDS.setPassword(amberPassword);
+            
+            DBI jellyDBI = new DBI(jellyDS);
+            DBI amberDBI = new DBI(amberDS);
+            
+            MigrationDao fromDao = jellyDBI.open(MigrationDao.class);
+            MigrationDao toDao = amberDBI.open(MigrationDao.class);
+            
+            long blinkyBillId = 179722129L;
+            List<AmberProperty> rs = fromDao.getPropertiesForWorkDetails(blinkyBillId);
+            if (rs != null) {
+                for (AmberProperty p : rs) {
+                    System.out.println("id:" + p.getId() + ", name:" + p.getName() + ", type:" + p.getType() + ", value:" + p.getValue());
+                    AmberProperty np = new AmberProperty(p.getId(), p.getName(), p.getType(), p.getValue());
+                    toDao.updProperty(np);
+                }
+            }
+            
+            toDao.commit();
+            jellyDBI.close(fromDao);
+            amberDBI.close(toDao);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
+    
+
+    // @Test
+    @Ignore
+    public void testEncodeFileSizeAsLongInAmber() {
+        String amberUrl = "jdbc:mysql://mysql-devel.nla.gov.au:6446/amberdb?zeroDateTimeBehavior=convertToNull&useUnicode=yes&characterEncoding=UTF-8&relaxAutoCommit=true";
+        String amberUser = "amberdb";
+        String amberPassword = "amberdb";
+        
+        MysqlDataSource amberDS = new MysqlDataSource();
+        amberDS.setURL(amberUrl);
+        amberDS.setUser(amberUser);
+        amberDS.setPassword(amberPassword);
+        DBI amberDBI = new DBI(amberDS);
+        encodeFileSizeAsLong(amberDBI);
+    }
+    
+    @Ignore
+    public void testEncodeFileSizeAsLongInJelly() {
+        MysqlDataSource jellyDS = new MysqlDataSource();
+        jellyDS.setURL(dbUrl);
+        jellyDS.setUser(dbUser);
+        jellyDS.setPassword(dbPassword);
+        DBI jellyDBI = new DBI(jellyDS);
+        encodeFileSizeAsLong(jellyDBI);
+    }
+    
+    private void encodeFileSizeAsLong(DBI db) {
+        MigrationDao dao = db.open(MigrationDao.class);
+
+        List<AmberProperty> rs = dao.getPropertiesOfName("fileSize");
+        if (rs != null) {
+            for (AmberProperty p : rs) {
+                System.out.println("id:" + p.getId() + ", name:" + p.getName() + ", type:" + p.getType() + ", value:" + p.getValue());
+                Long width = Long.parseLong(p.getValue().toString());
+                AmberProperty np = new AmberProperty(p.getId(), p.getName(), DataType.LNG, width);
+                dao.updProperty(np);
+            }
+        }
+        dao.commit();
+        db.close(dao);
+    }
+
+    // @Test
+    @Ignore
     public void testWorkStructure() {
         // Test retrieving pages
         List pages = Lists.newArrayList(bookBlinkyBill.getPages());
@@ -87,7 +224,8 @@ public class JellyTest {
         assertEquals(1, files.size());
     }
 
-    @Test
+    // @Test
+    @Ignore
     public void testWorkProperties() {
         assertEquals("page", workFrontCover.getSubType());
         assertEquals("Front Cover", workFrontCover.getSubUnitType());
