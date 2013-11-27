@@ -250,7 +250,13 @@ public interface Work extends Node {
     public Page addPage(Path sourceFile, String mimeType) throws IOException;
 
     @JavaHandler
+    public Page addLegacyDossPage(Path sourceFile, String mimeType) throws IOException;
+
+    @JavaHandler
     public Copy addCopy(Path sourceFile, CopyRole copyRole, String mimeType) throws IOException;
+
+    @JavaHandler
+    public Copy addLegacyDossCopy(Path dossPath, CopyRole copyRole, String mimeType) throws IOException;
 
     @JavaHandler
     public Iterable<Page> getPages();
@@ -283,10 +289,25 @@ public interface Work extends Node {
         }
 
         @Override
+        public Page addLegacyDossPage(Path dossPath, String mimeType) throws IOException {
+            Page page = addPage();
+            page.addLegacyDossCopy(dossPath, CopyRole.MASTER_COPY, mimeType);
+            return page;
+        }
+
+        @Override
         public Copy addCopy(Path sourceFile, CopyRole copyRole, String mimeType) throws IOException {
             Copy copy = addCopy();
             copy.setCopyRole(copyRole.code());
             copy.addFile(sourceFile, mimeType);
+            return copy;
+        }
+        
+        @Override
+        public Copy addLegacyDossCopy(Path dossPath, CopyRole copyRole, String mimeType) throws IOException {
+            Copy copy = addCopy();
+            copy.setCopyRole(copyRole.code());
+            copy.addLegacyDossFile(dossPath, mimeType);
             return copy;
         }
         
