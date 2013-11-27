@@ -180,5 +180,9 @@
       <id>nla-public-releases</id>
       <url>http://maven.nla.gov.au/releases</url>
     </repository>
+    <repository>
+      <id>nla-public-snapshots</id>
+      <url>http://maven.nla.gov.au/snapshots</url>
+    </repository>
   </repositories>
 </project>
