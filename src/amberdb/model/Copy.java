@@ -153,6 +153,9 @@ public interface Copy extends Node {
     File addFile(Path source, String mimeType) throws IOException;
 
     @JavaHandler
+    File addLegacyDossFile(Path dossPath, String mimeType) throws IOException;
+
+    @JavaHandler
     File addFile(Writable contents, String mimeType) throws IOException;
     
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
@@ -169,6 +172,13 @@ public interface Copy extends Node {
         }
 
         @Override
+        public File addLegacyDossFile(Path dossPath, String mimeType) throws IOException {
+            File file = (mimeType.startsWith("image"))? addImageFile() : addFile();
+            storeLegacyDossFile(file, dossPath, mimeType);
+            return file;
+        }
+
+        @Override
         public File addFile(Writable contents, String mimeType) throws IOException {
             File file = (mimeType.startsWith("image"))? addImageFile() : addFile();
             storeFile(file, contents, mimeType);
@@ -180,6 +190,10 @@ public interface Copy extends Node {
             file.setMimeType(mimeType);
         }
                 
+        private void storeLegacyDossFile(File file, Path dossPath, String mimeType) throws IOException {
+            file.putLegacyDoss(dossPath);
+            file.setMimeType(mimeType);
+        }
     }
 
 }

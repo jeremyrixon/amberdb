@@ -18,6 +18,7 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 import doss.Blob;
 import doss.BlobStore;
 import doss.BlobTx;
+import doss.local.LocalBlobStore;
 import doss.NoSuchBlobException;
 import doss.Writable;
 import doss.core.Writables;
@@ -124,6 +125,9 @@ public interface File extends Node {
     @JavaHandler
     void put(Writable writable) throws IOException;
 
+    @JavaHandler
+    void putLegacyDoss(Path dossPath) throws IOException;
+
     abstract class Impl implements JavaHandlerContext<Vertex>, File {
 
         private BlobStore getBlobStore() {
@@ -171,5 +175,13 @@ public interface File extends Node {
             }
         }
 
+        @Override
+        public void putLegacyDoss(Path dossPath) throws IOException {
+                try (LocalBlobStore.Tx tx = (LocalBlobStore.Tx) ((LocalBlobStore) getBlobStore()).begin()) {
+                Long blobId = tx.putLegacy(dossPath);
+                setBlobId(blobId);
+                tx.commit();
+            }
+        }
     }
 }
