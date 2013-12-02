@@ -229,6 +229,7 @@ public class AmberVertex implements Vertex {
         
         List<Vertex> vertices = new ArrayList<Vertex>();
         for (AmberVertex v : vs) {
+            if (v == null) continue;
             while (vertexIds.remove((Long) v.getId()) == true) {
                 vertices.add(v);
             }
