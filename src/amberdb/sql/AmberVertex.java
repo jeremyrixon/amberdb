@@ -225,11 +225,11 @@ public class AmberVertex implements Vertex {
         } 
 
         // pull all the vertices into the session
-        graph.getVerticesInList(vertexIds); 
+        List<AmberVertex> vs = graph.getVerticesInList(vertexIds); 
         
         List<Vertex> vertices = new ArrayList<Vertex>();
-        for (Long id : vertexIds) {
-            vertices.add(graph.getVertex(id));
+        for (AmberVertex v : vs) {
+            vertices.add(v);
         }
         return vertices;
     }
