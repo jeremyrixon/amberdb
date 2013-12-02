@@ -2,11 +2,19 @@ package amberdb.sql;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.sqlobject.Bind;
+import org.skife.jdbi.v2.sqlobject.SqlQuery;
+import org.skife.jdbi.v2.util.LongMapper;
+
 import amberdb.sql.State;
 import amberdb.sql.dao.VertexDao;
+import amberdb.sql.map.PersistentEdgeMapper;
+import amberdb.sql.map.SessionEdgeMapper;
 
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
@@ -167,66 +175,27 @@ public class AmberVertex implements Vertex {
     @Override
     public Iterable<Edge> getEdges(Direction direction, String... labels) {
 
-        // load edges from persistent into session (shouldn't overwrite present edges)
-        graph.loadPersistentEdges(this, direction, labels);
+        List<AmberEdge> sessionEdges = Lists.newArrayList(graph.findSessionEdgesForVertex(id, direction, labels));
 
-        // now just get from session - DELETED edges have been removed
-        List<AmberEdge> sessionEdges = getSessionEdges(direction, labels);
-        
+        // get ids for all edges found to exclude from persistence search
+        List<Long> sessionEdgeIds = new ArrayList<Long>();
+        for (AmberEdge e : sessionEdges) {
+            sessionEdgeIds.add((Long) e.getId());
+        }
+
+        // load any remaining edges from persistent into session (shouldn't overwrite present edges)
+        List<AmberEdge> persistentEdges = graph.loadPersistentEdges(this, sessionEdgeIds, direction, labels);
         List<Edge> edges = new ArrayList<Edge>();
-        edges.addAll(sessionEdges);
-        
-        return edges;
-    }
 
-
-    protected List<AmberEdge> getSessionEdges(Direction direction, String... labels) {
-
-        List<AmberEdge> edges = new ArrayList<AmberEdge>();
-        List<AmberEdge> unfilteredEdges = new ArrayList<AmberEdge>();
-
-        if (labels.length == 0) {
-
-            if (direction == Direction.IN || direction == Direction.BOTH) {
-                unfilteredEdges.addAll(Lists.newArrayList(dao().findInEdges(id)));
-            }
-            if (direction == Direction.OUT || direction == Direction.BOTH) {
-                unfilteredEdges.addAll(Lists.newArrayList(dao().findOutEdges(id)));
-            }
-            for (AmberEdge edge : unfilteredEdges) {
-                if (edge.getState() != State.DEL) {
-                    edges.add(edge);
-                }
-            }
-
-        } else {
-            for (String label : labels) {
-                edges.addAll(getSessionEdges(direction, label));
-            }
-        }
-        return edges;
-    }
-
-    public List<AmberEdge> getSessionEdges(Direction direction, String label) {
-
-        List<AmberEdge> edges = new ArrayList<AmberEdge>();
-        List<AmberEdge> unfilteredEdges = new ArrayList<AmberEdge>();
-        
-        
-        if (direction == Direction.IN || direction == Direction.BOTH) {
-            unfilteredEdges.addAll(Lists.newArrayList(dao().findInEdges(id, label)));
-        }
-        if (direction == Direction.OUT || direction == Direction.BOTH) {
-            unfilteredEdges.addAll(Lists.newArrayList(dao().findOutEdges(id, label)));
-        }
-        for (AmberEdge edge: unfilteredEdges) {
+        // remove deleted edges (they'll only be in the session)
+        for (AmberEdge edge : sessionEdges) {
             if (edge.getState() != State.DEL) {
                 edges.add(edge);
             }
         }
+        edges.addAll(persistentEdges);
         return edges;
     }
-
 
     /* 
      * To conform to Blueprint test suite this method can now return the same vertex multiple times
@@ -238,71 +207,33 @@ public class AmberVertex implements Vertex {
      * com.tinkerpop.blueprints.Vertex#getVertices(com.tinkerpop.blueprints.
      * Direction, java.lang.String[])
      */
+    
     @Override
     public Iterable<Vertex> getVertices(Direction direction, String... labels) {
 
-        // load vertices from persistent into session (shouldn't overwrite present vertices)
-        graph.loadPersistentVertices(this, direction, labels);
-        graph.loadPersistentEdges(this, direction, labels);
+        // get the edges
+        Iterable<Edge> edges = getEdges(direction, labels);
 
-        // now just get from session (contains DELETED edges)
-        List<AmberVertex> sessionVertices = getSessionVertices(direction, labels);
+        List<Long> vertexIds = new ArrayList<Long>();
+        for (Edge e : edges) {
+            AmberEdge ae = (AmberEdge) e;
+            if (ae.getInVertexId() == id) {
+                vertexIds.add(ae.getOutVertexId());
+            } else {
+                vertexIds.add(ae.getInVertexId());
+            }
+        } 
+
+        // pull all the vertices into the session
+        graph.getVerticesInList(vertexIds); 
+        
         List<Vertex> vertices = new ArrayList<Vertex>();
-        vertices.addAll(sessionVertices);
-
-        return vertices;
-    }
-
-    protected List<AmberVertex> getSessionVertices(Direction direction, String... labels) {
-        
-        List<AmberVertex> vertices = new ArrayList<AmberVertex>();
-        List<AmberVertex> unfilteredVertices = new ArrayList<AmberVertex>();
-        
-        if (labels.length == 0) {
-
-            if (direction == Direction.IN || direction == Direction.BOTH) {
-                unfilteredVertices.addAll(Lists.newArrayList(dao().findInVertices(id)));
-            }
-            if (direction == Direction.OUT || direction == Direction.BOTH) {
-                unfilteredVertices.addAll(Lists.newArrayList(dao().findOutVertices(id)));
-            }
-            
-            for (AmberVertex vertex : unfilteredVertices) {
-                if (vertex.getState() != State.DEL) {
-                    vertices.add(vertex);
-                }
-            }
-            
-        } else {
-            for (String label : labels) {
-                vertices.addAll(getSessionVertices(direction, label));
-            }
+        for (Long id : vertexIds) {
+            vertices.add(graph.getVertex(id));
         }
         return vertices;
     }
 
-    public List<AmberVertex> getSessionVertices(Direction direction, String label) {
-        
-        List<AmberVertex> vertices = new ArrayList<AmberVertex>();
-        List<AmberVertex> unfilteredVertices = new ArrayList<AmberVertex>();
-
-        if (direction == Direction.IN || direction == Direction.BOTH) {
-            unfilteredVertices.addAll(Lists.newArrayList(dao().findInVertices(id, label)));
-        }
-        if (direction == Direction.OUT || direction == Direction.BOTH) {
-            unfilteredVertices.addAll(Lists.newArrayList(dao().findOutVertices(id, label)));
-        }
-        
-        unfilteredVertices.removeAll(Collections.singleton(null));
-        for (AmberVertex vertex: unfilteredVertices) {
-            if (vertex.getState() != State.DEL) {
-                vertices.add(vertex);
-            }
-        }
-        return vertices;    
-    }
-    
-    
     @Override
     public VertexQuery query() {
         return new DefaultVertexQuery(this);

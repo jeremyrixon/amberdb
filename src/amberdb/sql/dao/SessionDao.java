@@ -268,7 +268,6 @@ public interface SessionDao extends Transactional<SessionDao> {
     @SqlQuery(
             "SELECT id " +
             "FROM edge " +
-            "WHERE state <> 'DEL' " +
             "ORDER BY edge_order")
     Iterator<AmberEdge> getEdges();
 
@@ -285,12 +284,11 @@ public interface SessionDao extends Transactional<SessionDao> {
     
     @SqlQuery(
             "SELECT id " +
-            "FROM vertex " +
-            "WHERE state <> 'DEL'")
+            "FROM vertex")
     Iterator<AmberVertex> findVertices();
 
     @SqlQuery(
-            "SELECT v.id " +
+            "SELECT v.id, v.txn_start, v.txn_end " +
             "FROM vertex v, property p " +
             "WHERE v.id = p.id " +
             "AND p.name = :name " +
