@@ -13,7 +13,7 @@ public class SessionEdgeMapper implements ResultSetMapper<AmberEdge> {
 
     private AmberGraph graph;
     
-    SessionEdgeMapper(AmberGraph graph) {
+    public SessionEdgeMapper(AmberGraph graph) {
         this.graph = graph;
     }
 

@@ -2,10 +2,14 @@ package amberdb.sql;
 
 import amberdb.sql.State;
 import amberdb.sql.dao.*;
+import amberdb.sql.map.PersistentEdgeMapper;
 import amberdb.sql.map.PersistentEdgeMapperFactory;
 import amberdb.sql.map.PersistentPropertyMapper;
+import amberdb.sql.map.PersistentVertexMapper;
 import amberdb.sql.map.PersistentVertexMapperFactory;
+import amberdb.sql.map.SessionEdgeMapper;
 import amberdb.sql.map.SessionEdgeMapperFactory;
+import amberdb.sql.map.SessionVertexMapper;
 import amberdb.sql.map.SessionVertexMapperFactory;
 
 import java.lang.reflect.Field;
@@ -22,6 +26,8 @@ import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException;
+import org.skife.jdbi.v2.sqlobject.Bind;
+import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.util.LongMapper;
 
 import com.google.common.collect.Lists;
@@ -192,7 +198,6 @@ public class AmberGraph implements Graph, TransactionalGraph {
      *            the session data access object
      */
     protected void initSessionSchema(SessionDao dao) {
-        dao.begin();
         dao.createVertexTable();
         dao.createEdgeTable();
         dao.createPropertyTable();
@@ -203,7 +208,6 @@ public class AmberGraph implements Graph, TransactionalGraph {
         }
         dao.createSynchTable();
         dao.initSynchMark();
-        dao.commit();
     }
 
     /**
@@ -303,13 +307,17 @@ public class AmberGraph implements Graph, TransactionalGraph {
      * Convenience function to create an sql in clause from a list of numbers
      * 
      * @param inList a list of numbers a1, a2, a3 ...
+     * @param clausePrefix a string to prefix the IN clause in the SQL statement
+     *        eg: 'AND id ', 'AND id NOT ' 
      *
      * @return a string of the form "IN (a1, a2, a3 ...)"
      */
-    private String constructInClause(List<Long> inList) {
+    private String constructLongInClause(List<Long> inList, String clausePrefix) {
+        if (inList == null) return "";
+        
         StringBuilder inClause;
         if (inList.size() > 0) {
-            inClause = new StringBuilder(" IN (");
+            inClause = new StringBuilder(clausePrefix + " IN (");
             for (Long num : inList) {
                 inClause.append(num).append(",");
             }
@@ -320,10 +328,44 @@ public class AmberGraph implements Graph, TransactionalGraph {
         }
         return inClause.toString();
     }
-    
+
+    /**
+     * Convenience function to create an sql in clause from a list of Strings. Any
+     * string with a quote (') will just be ignored
+     * 
+     * @param inList a list of strings a1, a2, a3 ...
+     * @param clausePrefix the string to connect the IN clause to the SQL statement
+     *        eg: 'AND id ', 'AND id NOT '
+     *
+     * @return a string of the form "IN (a1, a2, a3 ...)"
+     */
+    protected String constructStringInClause(List<String> inList, String clausePrefix) {
+        if (inList == null) return "";
+        
+        StringBuilder inClause;
+        if (inList.size() > 0) {
+            inClause = new StringBuilder(clausePrefix + " IN ('");
+            for (String str : inList) {
+                if (!str.contains("'")) {
+                    inClause.append(str).append("','");
+                }
+            }
+            inClause.setLength(inClause.length() - 3);
+            inClause.append("') ");
+            
+            // replace with blank string if all strings had quotes
+            if (inClause.length() == clausePrefix.length() + 8) {
+                inClause = new StringBuilder();
+            }
+        } else {
+            inClause = new StringBuilder();
+        }
+        return inClause.toString();
+    }
+   
     private List<Long> findMutatedVertexIdsInListSinceTxn(long synchMark, List<Long> vertexIdList) {
         
-        String inClause = constructInClause(vertexIdList);
+        String inClause = constructLongInClause(vertexIdList, "AND id ");
 
         Handle h = persistentDbi.open();
         List<Long> ids = h.createQuery(
@@ -331,7 +373,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
                 "FROM vertex v " +
                 "WHERE (v.txn_start > :txnId " +
                 "OR v.txn_end > :txnId) " +
-                "AND id " + inClause)
+                inClause)
                 .bind("txnId", synchMark)
                 .map(new LongMapper()).list();
         h.close();
@@ -340,7 +382,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
 
     private List<Long> findMutatedEdgeIdsInListSinceTxn(long synchMark, List<Long> edgeIdList) {
 
-        String inClause = constructInClause(edgeIdList);
+        String inClause = constructLongInClause(edgeIdList, "AND id ");
 
         Handle h = persistentDbi.open();
         List<Long> ids = h.createQuery(
@@ -348,7 +390,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
                 "FROM edge e " +
                 "WHERE (e.txn_start > :txnId " +
                 "OR e.txn_end > :txnId) " +
-                "AND id " + inClause)
+                inClause)
                 .bind("txnId", synchMark)
                 .map(new LongMapper()).list();
         h.close();
@@ -442,53 +484,61 @@ public class AmberGraph implements Graph, TransactionalGraph {
     
     
     
-    protected List<AmberEdge> loadPersistentEdges(AmberVertex vertex, Direction direction, String... labels) {
+    protected List<AmberEdge> loadPersistentEdges(AmberVertex vertex, List<Long> excludeIds, Direction direction, String... labels) {
         
         // we load the properties for all persistent elements as a batch after we've 
         // loaded the elements themselves. This list keeps track of them
         loadPropertyIds.clear();
         
         List<AmberEdge> edges = new ArrayList<AmberEdge>();
-        if (labels.length == 0) {
-
-            if (direction == Direction.IN || direction == Direction.BOTH) {
-                edges.addAll(Lists.newArrayList(persistentDao.findInEdges((Long) vertex.getId())));
-            }
-            if (direction == Direction.OUT || direction == Direction.BOTH) {
-                edges.addAll(Lists.newArrayList(persistentDao.findOutEdges((Long) vertex.getId())));
-            }
-            edges.removeAll(Collections.singleton(null));
-        } else {
-            for (String label : labels) {
-                edges.addAll(loadPersistentEdges(vertex, direction, label));
-            }
-        }
-
+        edges.addAll(Lists.newArrayList(findPersistentEdges((Long) vertex.getId(), direction, excludeIds, labels)));
+        edges.removeAll(Collections.singleton(null));
+        
         if (edges.size() > 0) loadProperties(loadPropertyIds);
         loadPropertyIds.clear();
         
         return edges;
     }
 
-    protected List<AmberEdge> loadPersistentEdges(AmberVertex vertex, Direction direction, String label) {
+    private List<AmberEdge> findPersistentEdges(Long vertexId, Direction direction, List<Long> exclusionIds, String... labels) {
+
+        String inClause = constructLongInClause(exclusionIds, "AND id NOT ");
+        String labelsClause = constructStringInClause(Lists.newArrayList(labels), "AND label ");
+
         List<AmberEdge> edges = new ArrayList<AmberEdge>();
-        
+
         if (direction == Direction.IN || direction == Direction.BOTH) {
-            edges.addAll(Lists.newArrayList(persistentDao.findInEdges((Long) vertex.getId(), label)));
-        }
+            edges.addAll(directedFindPersistentEdges(vertexId, "AND v_in = :vertexId ", labelsClause, inClause));
+        } 
         if (direction == Direction.OUT || direction == Direction.BOTH) {
-            edges.addAll(Lists.newArrayList(persistentDao.findOutEdges((Long) vertex.getId(), label)));
+            edges.addAll(directedFindPersistentEdges(vertexId, "AND v_out = :vertexId ", labelsClause, inClause));
         }
-        edges.removeAll(Collections.singleton(null));
+        return edges;
+    } 
+    
+    List<AmberEdge> directedFindPersistentEdges(Long vertexId, String directionClause, String labelsClause, String inClause) {
+        Handle h = persistentDbi.open();
+        List<AmberEdge> edges = h.createQuery(
+                "SELECT id, txn_start, txn_end, v_out, v_in, label, edge_order " +
+                "FROM edge " +
+                "WHERE (txn_start > 0 OR txn_start IS NOT NULL) " +
+                "AND (txn_end = 0 OR txn_end IS NULL) " +
+                directionClause +
+                labelsClause +
+                inClause +
+                "ORDER BY edge_order")
+                .bind("vertexId", vertexId)
+                .map(new PersistentEdgeMapper(this)).list();
+        h.close();
         return edges;
     }
  
-    protected List<AmberEdge> loadEdges() {
+    protected List<AmberEdge> loadEdges(List<Long> excludedIds) {
         
         loadPropertyIds.clear();
         
         List<AmberEdge> edges = new ArrayList<AmberEdge>();
-        edges.addAll(Lists.newArrayList(persistentDao.findEdges()));
+        edges.addAll(Lists.newArrayList(findPersistentEdges(null, null, excludedIds, new String[] {})));
         edges.removeAll(Collections.singleton(null));
         
         if (edges.size() > 0) loadProperties(loadPropertyIds);
@@ -497,88 +547,106 @@ public class AmberGraph implements Graph, TransactionalGraph {
         return edges;
     }
     
-    protected List<AmberEdge> loadEdgesWithProperty(String key, Object value) {
+    protected List<AmberEdge> loadEdgesWithProperty(String key, Object value, List<Long> excludedIds) {
         
         loadPropertyIds.clear();
         
-        List<AmberEdge> edges = new ArrayList<AmberEdge>();
-
-        edges.addAll(Lists.newArrayList(persistentDao.findEdgesWithProperty(key, AmberProperty.encodeBlob(value))));
-        edges.removeAll(Collections.singleton(null));
+        String inClause = constructLongInClause(excludedIds, "AND e.id NOT ");
+        
+        Handle h = persistentDbi.open();
+        List<AmberEdge> edges = h.createQuery(
+                "SELECT e.id, e.txn_start, e.txn_end, e.v_out, e.v_in, e.label, e.edge_order " +
+                "FROM edge e, property p " +
+                "WHERE e.id = p.id " +
+                "AND e.txn_start = p.txn_start " +
+                "AND (e.txn_end = 0 OR e.txn_end IS NULL) " +
+                "AND (e.txn_start > 0 OR e.txn_start IS NOT NULL) " +
+                "AND p.name = :name " +
+                "AND p.value = :value " +
+                inClause +
+                "ORDER BY e.edge_order")
+                .bind("name", key)
+                .bind("value", AmberProperty.encodeBlob(value))
+                .map(new PersistentEdgeMapper(this)).list();
+        h.close();
         
         if (edges.size() > 0) loadProperties(loadPropertyIds);
         loadPropertyIds.clear();
         
         return edges;
     }
-    
-    protected List<AmberVertex> loadPersistentVertices(AmberVertex vertex, Direction direction, String... labels) {
 
-        // we load the properties for all persistent elements as a batch after we've 
-        // loaded the elements themselves. This list keeps track of them
+    protected List<AmberVertex> loadVerticesWithProperty(String key, Object value, List<Long> excludedIds) {
+        
         loadPropertyIds.clear();
-
-        List<AmberVertex> vertices = new ArrayList<AmberVertex>();
-        if (labels.length == 0) {
-
-            if (direction == Direction.IN || direction == Direction.BOTH) {
-                vertices.addAll(Lists.newArrayList(persistentDao.findInVertices((Long) vertex.getId())));
-            }
-            if (direction == Direction.OUT || direction == Direction.BOTH) {
-                vertices.addAll(Lists.newArrayList(persistentDao.findOutVertices((Long) vertex.getId())));
-            }
-            vertices.removeAll(Collections.singleton(null));
-        } else {
-            for (String label : labels) {
-                vertices.addAll(loadPersistentVertices(vertex, direction, label));
-            }
-        }
+        
+        String inClause = constructLongInClause(excludedIds, "AND v.id NOT ");
+        
+        Handle h = persistentDbi.open();
+        List<AmberVertex> vertices = h.createQuery(
+                "SELECT v.id, v.txn_start, v.txn_end " +
+                "FROM vertex v, property p " +
+                "WHERE v.id = p.id " +
+                "AND v.txn_start = p.txn_start " +
+                "AND (v.txn_end = 0 OR v.txn_end IS NULL) " +
+                "AND (v.txn_start > 0 OR v.txn_start IS NOT NULL) " +
+                "AND p.name = :name " +
+                "AND p.value = :value " +
+                inClause)
+                .bind("name", key)
+                .bind("value", AmberProperty.encodeBlob(value))
+                .map(new PersistentVertexMapper(this)).list();
+        h.close();
+        vertices.removeAll(Collections.singleton(null));
         
         if (vertices.size() > 0) loadProperties(loadPropertyIds);
         loadPropertyIds.clear();
         
         return vertices;
     }
+    
+    protected List<AmberVertex> loadVertices(List<Long> excludedIds) {
 
-    protected List<AmberVertex> loadPersistentVertices(AmberVertex vertex, Direction direction, String label) {
-        List<AmberVertex> vertices = new ArrayList<AmberVertex>();
         
-        if (direction == Direction.IN || direction == Direction.BOTH) {
-            vertices.addAll(Lists.newArrayList(persistentDao.findInVertices((Long) vertex.getId(), label)));
-        }
-        if (direction == Direction.OUT || direction == Direction.BOTH) {
-            vertices.addAll(Lists.newArrayList(persistentDao.findOutVertices((Long) vertex.getId(), label)));
-        }
-        vertices.removeAll(Collections.singleton(null));
-        return vertices;
-    }
-
-    protected List<AmberVertex> loadVertices() {
-
         // we load the properties for all persistent elements as a batch after
         // we've loaded the elements themselves. This list keeps track of them
         loadPropertyIds.clear();
 
         List<AmberVertex> vertices = new ArrayList<AmberVertex>();
-
-        vertices.addAll(Lists.newArrayList(persistentDao.findVertices()));
+        vertices.addAll(Lists.newArrayList(findPersistentVertices(excludedIds)));
         vertices.removeAll(Collections.singleton(null));
-
+        
         if (vertices.size() > 0) loadProperties(loadPropertyIds);
         loadPropertyIds.clear();
-
+        
         return vertices;
     }
+    
+    private List<AmberVertex> findPersistentVertices(List<Long> exclusionIds) {
 
+        String inClause = constructLongInClause(exclusionIds, "AND id NOT ");
+
+        Handle h = persistentDbi.open();
+        List<AmberVertex> vertices = h.createQuery(
+                "SELECT id, txn_start, txn_end " +
+                "FROM vertex " +
+                "WHERE (txn_start > 0 OR txn_start IS NOT NULL) " +
+                "AND (txn_end = 0 OR txn_end IS NULL) " +
+                inClause)
+                .map(new PersistentVertexMapper(this)).list();
+        h.close();
+        vertices.removeAll(Collections.singleton(null));
+        
+        return vertices;
+    }
+    
     protected List<AmberVertex> loadVerticesWithProperty(String key, Object value) {
 
         // we load the properties for all persistent elements as a batch after
         // we've loaded the elements themselves. This list keeps track of them
         loadPropertyIds.clear();
 
-        List<AmberVertex> vertices = new ArrayList<AmberVertex>();
-
-        vertices.addAll(Lists.newArrayList(persistentDao.findVerticesWithProperty(key, AmberProperty.encodeBlob(value))));
+        List<AmberVertex> vertices = Lists.newArrayList(persistentDao.findVerticesWithProperty(key, AmberProperty.encodeBlob(value)));
         vertices.removeAll(Collections.singleton(null));
 
         if (vertices.size() > 0) loadProperties(loadPropertyIds);
@@ -589,7 +657,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
     
     protected void loadProperties(List<Long> ids) {
 
-        String inClause = constructInClause(ids);
+        String inClause = constructLongInClause(ids, "AND id ");
         
         // run the query
         Handle h = persistentDbi.open();
@@ -597,7 +665,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
                 "SELECT id, name, type, value " +
                 "FROM property " +
                 "WHERE (txn_end = 0 OR txn_end IS NULL) " +        
-                "AND id " + inClause)
+                inClause)
                 .map(new PersistentPropertyMapper()).iterator();
 
         // put the properties found into the session db
@@ -616,8 +684,6 @@ public class AmberGraph implements Graph, TransactionalGraph {
         
         h.close();
     }
-    
-
     
     /*
      * Tinkerpop blueprints graph interface implementation
@@ -651,9 +717,8 @@ public class AmberGraph implements Graph, TransactionalGraph {
         
         // argument guards
         if (edgeId == null) throw new IllegalArgumentException("edge id is null");
-        if (!(edgeId instanceof Long || edgeId instanceof String)) {
-            return null;
-        }
+        if (!(edgeId instanceof Long || edgeId instanceof String)) { return null; }
+        
         long id = 0;
         try {
             if (edgeId instanceof String) id = Long.parseLong((String) edgeId);
@@ -681,38 +746,49 @@ public class AmberGraph implements Graph, TransactionalGraph {
     }
 
     /**
-     * This will naturally blow up if the number of edges in the graph is big.
-     * Can we refactor to be lazy ?  
+     * This method sucks all edges into memory. This is of course a bad thing as it will 
+     * naturally blow up if the number of edges in the graph is big. 
+     * 
+     * Can we refactor to be lazy ?
      */
     @Override
     public Iterable<Edge> getEdges() {
-        loadEdges();
-        
+
         List<Edge> edges = new ArrayList<Edge>();
-        Iterator<AmberEdge> iter = sessionDao.getEdges();
-        while (iter.hasNext()) {
-            Edge e = iter.next();
-            if (e != null) {
+
+        // following list includes deleted session edges
+        List<AmberEdge> sessionEdges = Lists.newArrayList(sessionDao.getEdges());
+        
+        List<Long> sessionEdgeIds = new ArrayList<Long>();
+        for (AmberEdge e : sessionEdges) {
+            //if (e == null) continue;
+            sessionEdgeIds.add((Long) e.getId());
+            if (e != null && e.getState() != State.DEL) {            
                 edges.add(e);
             }
         }
-        return edges;
+        edges.addAll(loadEdges(sessionEdgeIds));
+        return edges;        
     }
 
     @Override
     public Iterable<Edge> getEdges(String key, Object value) {
-        loadEdgesWithProperty(key, value);
-        
-        List<AmberEdge> edges = new ArrayList<AmberEdge>();
-        edges.addAll(Lists.newArrayList(sessionDao.findEdgesWithProperty(key, AmberProperty.encodeBlob(value))));
 
-        List<Edge> filteredEdges = new ArrayList<Edge>();
-        for (AmberEdge e : edges) {
-            if (e != null) {
-                filteredEdges.add(e);
+        List<Edge> edges = new ArrayList<Edge>();
+
+        // Includes deleted edges
+        List<AmberEdge> sessionEdges = Lists.newArrayList(sessionDao.findEdgesWithProperty(key, AmberProperty.encodeBlob(value)));
+
+        List<Long> sessionEdgeIds = new ArrayList<Long>();
+        for (AmberEdge e : sessionEdges) {
+            //if (e == null) continue;
+            sessionEdgeIds.add((Long) e.getId());
+            if (e != null && e.getState() != State.DEL) {            
+                edges.add(e);
             }
         }
-        return filteredEdges;
+        edges.addAll(loadEdgesWithProperty(key, value, sessionEdgeIds));
+        return (Iterable<Edge>) edges;        
     }
 
     @Override
@@ -739,6 +815,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
         features.supportsEdgeProperties = true;
         features.supportsEdgeIteration = true;
         features.supportsEdgeRetrieval = true;
+        features.supportsTransactions = true;
         features.checkCompliance();
         return features;
     }
@@ -749,7 +826,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
         // argument guards
         if (vertexId == null)
             throw new IllegalArgumentException("vertex id is null");
-        if (!(vertexId instanceof Long || vertexId instanceof String)) {
+        if (!(vertexId instanceof Long || vertexId instanceof String || vertexId instanceof Integer)) {
             return null;
         }
         long id = 0;
@@ -761,6 +838,8 @@ public class AmberGraph implements Graph, TransactionalGraph {
         }
         if (vertexId instanceof Long)
             id = (Long) vertexId;
+        if (vertexId instanceof Integer)
+            id = ((Integer) vertexId).longValue();
 
         // is the vertex in the session ?
         AmberVertex vertex = sessionDao.findVertex(id);
@@ -782,35 +861,43 @@ public class AmberGraph implements Graph, TransactionalGraph {
         return vertex;
     }
     
-    
     @Override
     public Iterable<Vertex> getVertices() {
-        loadVertices();
-
+        
         List<Vertex> vertices = new ArrayList<Vertex>();
-        Iterator<AmberVertex> iter = sessionDao.findVertices();
-        while (iter.hasNext()) {
-            vertices.add(iter.next());
+
+        // following list includes deleted session vertices
+        List<AmberVertex> sessionVertices = Lists.newArrayList(sessionDao.findVertices());
+        
+        List<Long> sessionVertexIds = new ArrayList<Long>();
+        for (AmberVertex v : sessionVertices) {
+            //if (e == null) continue;
+            sessionVertexIds.add((Long) v.getId());
+            if (v != null && v.getState() != State.DEL) {            
+                vertices.add(v);
+            }
         }
+        vertices.addAll(loadVertices(sessionVertexIds));
         return vertices;
     }
 
-
     @Override
     public Iterable<Vertex> getVertices(String key, Object value) {
-        loadVerticesWithProperty(key, value);
-        
-        List<AmberVertex> vertices = new ArrayList<AmberVertex>();
-        vertices.addAll(Lists.newArrayList(sessionDao.findVerticesWithProperty(key, AmberProperty.encodeBlob(value))));
 
-        List<Vertex> filteredVertices = new ArrayList<Vertex>();
-        for (AmberVertex v : vertices) {
-            if (v.getState() != State.DEL) {
-                filteredVertices.add(v);
+        List<Vertex> vertices = new ArrayList<Vertex>();
+
+        // Includes deleted vertices
+        List<AmberVertex> sessionVertices = Lists.newArrayList(sessionDao.findVerticesWithProperty(key, AmberProperty.encodeBlob(value)));
+
+        List<Long> sessionVertexIds = new ArrayList<Long>();
+        for (AmberVertex v : sessionVertices) {
+            sessionVertexIds.add((Long) v.getId());
+            if (v != null && v.getState() != State.DEL) {            
+                vertices.add(v);
             }
         }
-
-        return filteredVertices;
+        vertices.addAll(loadVerticesWithProperty(key, value, sessionVertexIds));
+        return (Iterable<Vertex>) vertices;             
     }
     
     /**
@@ -837,7 +924,6 @@ public class AmberGraph implements Graph, TransactionalGraph {
      */
     @Override
     public void shutdown() {
-
         commit();
         persistentDao.close();
         transactionDao.close();
@@ -856,7 +942,6 @@ public class AmberGraph implements Graph, TransactionalGraph {
         final int MAX_RETRIES = 1;
 
         try {
-            
             AmberTransaction txn = null;
             while (true) {
                 txn = new AmberTransaction(this, user, operation);
@@ -959,17 +1044,14 @@ public class AmberGraph implements Graph, TransactionalGraph {
 
     private List<Long[]> checkForMutations(AmberTransaction txn) {
         s("checking for mutations...");
-        
         List<Long[]> deletions = persistentDao.findDeletionMutations(txn.getId());
         s("\tdeletions: " + deletions.size());
-
         List<Long[]> alterations = persistentDao.findAlterationMutations(txn.getId());
         s("\talterations: " + alterations.size());
 
         // IMPORTANT: will need to check for new incident edges too. This will require
         // a refactor where starting a session acquires a session start id to compare 
         // with txn_start commit is of incident edges (or some such contrivance)
-        
         deletions.addAll(alterations);
         
         return deletions;
@@ -1038,4 +1120,80 @@ public class AmberGraph implements Graph, TransactionalGraph {
         sessionDao.clearEdges();
         sessionDao.clearProperty();
     }
+    
+    protected List<AmberEdge> findSessionEdgesForVertex(Long vertexId, Direction direction, String... labels) {
+        String labelsClause = constructStringInClause(Lists.newArrayList(labels), "AND label ");
+        List<AmberEdge> edges = new ArrayList<AmberEdge>();
+
+        if (direction == Direction.IN || direction == Direction.BOTH) {
+            edges.addAll(directedFindSessionEdgesForVertex(vertexId, "WHERE v_in = :vertexId ", labelsClause));
+        } 
+        if (direction == Direction.OUT || direction == Direction.BOTH) {
+            edges.addAll(directedFindSessionEdgesForVertex(vertexId, "WHERE v_out = :vertexId ", labelsClause));
+        }
+        return edges;
+    }
+
+
+    protected List<AmberEdge> directedFindSessionEdgesForVertex(Long vertexId, String directionClause, String labelsClause) {
+
+        Handle h = sessionDbi.open();
+        List<AmberEdge> edges = h.createQuery(
+                "SELECT id " +
+                "FROM edge " +
+                directionClause +
+                labelsClause +
+                "ORDER BY edge_order")
+                .bind("vertexId", vertexId)
+                .map(new SessionEdgeMapper(this)).list();
+        h.close();
+        return edges;
+    }
+
+    protected List<AmberVertex> findSessionVerticesInList(List<Long> vertexIds) {
+
+        String idsClause = constructLongInClause(vertexIds, "WHERE id ");
+
+        Handle h = sessionDbi.open();
+        List<AmberVertex> vertices = h.createQuery(
+                "SELECT id " +
+                "FROM vertex " +
+                idsClause)
+                .map(new SessionVertexMapper(this)).list();
+        h.close();
+        return vertices;
+    }
+
+    protected List<AmberVertex> findPersistentVerticesInList(List<Long> vertexIds) {
+
+        String idsClause = constructLongInClause(vertexIds, "AND id ");
+
+        Handle h = persistentDbi.open();
+        List<AmberVertex> vertices = h.createQuery(
+                "SELECT id, txn_start, txn_end " +
+                "FROM vertex " +
+                "WHERE (txn_end = 0 OR txn_end IS NULL) " +
+                idsClause)
+                .map(new SessionVertexMapper(this)).list();
+        h.close();
+        return vertices;
+    }
+
+    protected List<AmberVertex> getVerticesInList(List<Long> vertexIds) {
+
+        // get vertices in session first
+        List<AmberVertex> vertices = findSessionVerticesInList(vertexIds);
+
+        List<Long> sessionVertexIds = new ArrayList<Long>();
+        for (AmberVertex v : vertices) {
+            sessionVertexIds.add((Long) v.getId());
+        }
+        List<Long> persistentVertexIds = new ArrayList<Long>(vertexIds);
+        persistentVertexIds.removeAll(sessionVertexIds);
+
+        List<AmberVertex> persistentVertices = findPersistentVerticesInList(persistentVertexIds);
+        vertices.addAll(persistentVertices);
+        
+        return vertices;
+    }    
 }

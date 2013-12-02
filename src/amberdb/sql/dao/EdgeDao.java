@@ -58,7 +58,7 @@ public interface EdgeDao extends Transactional<EdgeDao> {
             "SELECT state " +
             "FROM edge " +
             "WHERE id = :id")
-    @Mapper(StringMapper.class)
+//    @Mapper(StringMapper.class)
     String getEdgeState(
             @Bind("id") long id);
 

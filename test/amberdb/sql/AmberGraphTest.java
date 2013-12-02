@@ -36,7 +36,7 @@ public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
 //        ds.setDatabaseName("dlir");
         
         graph = new AmberGraph(sessionDs, persistentDs, "tester");
-        graph.createPersistentSchema();
+
     }
 
     @After

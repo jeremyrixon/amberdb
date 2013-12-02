@@ -246,6 +246,9 @@ public interface Work extends Node {
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public Copy addCopy();
 
+    /**
+     * Adds a page Work and create a MASTER_COPY Copy Node with a File for it
+     */
     @JavaHandler
     public Page addPage(Path sourceFile, String mimeType) throws IOException;
 

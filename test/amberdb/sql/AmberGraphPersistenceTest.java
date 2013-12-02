@@ -19,6 +19,7 @@ import org.junit.Assert;
 import static org.junit.Assert.*;
 import org.junit.rules.TemporaryFolder;
 
+import com.google.common.collect.Lists;
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import com.tinkerpop.blueprints.Direction;
@@ -173,7 +174,6 @@ public class AmberGraphPersistenceTest {
         assertEquals(v.getProperty("Double"),  v2.getProperty("Double"));
     }
     
-    @Ignore
     @Test
     public void testSynchMarking() throws Exception {
         
@@ -228,77 +228,6 @@ public class AmberGraphPersistenceTest {
         // this graph is 2 updates behind now - removal of a vertex and its edge
         mutes = graph1.getSynchLists();
         assertEquals(1, mutes.get("vertex").size());
-        // need to fix - think this next should be expect 1
-        assertEquals(0, mutes.get("edge").size());
-
-        // this graph is now 5 elements behind 
-        mutes2 = graph2.getSynchLists();
-        // need to fix - think this next should be expect 3
-        assertEquals(2, mutes2.get("vertex").size());
-        // need to fix - think this next should be expect 2
-        assertEquals(1, mutes2.get("edge").size());
-
-        // this graph should be up to date 
-        mutes3 = graph3.getSynchLists();
-        assertEquals(0, mutes3.get("vertex").size());
-        assertEquals(0, mutes3.get("edge").size());
-
-    }
-
-    @Ignore
-    @Test
-    public void testSessionRefresh() throws Exception {
-        
-        s("Synch marking ---");
-        
-        // save a graph to persist 
-        Long rootId = buildTestGraph(graph1, "red");
-        graph1.commit();
-        
-        // read it back into a new session
-        graph2.updateSynchMark();
-        s("--- synching from txn "+ graph2.getSynchMark());
-        Vertex root = graph2.getVertex(rootId);
-        
-        List<Vertex> vs = readTree(root, 5, "branch");
-        assertEquals(9, vs.size());
-        
-        // modify 2 vertices and an edge in the original session and commit
-        Vertex oRoot = graph1.getVertex(rootId);
-        List<Vertex> oVs = readTree(oRoot, 5, "branch");
-        Vertex n1 = oRoot.getVertices(Direction.OUT, "branch").iterator().next();
-        n1.setProperty("new prop", "a new value");
-        Vertex n2 = n1.getVertices(Direction.OUT, "branch").iterator().next();
-        n2.setProperty("name", "new name");
-        Edge e1 = oRoot.getEdges(Direction.OUT, "branch").iterator().next();
-        e1.setProperty("name", "link 1");
-        graph1.commit();
-
-        // this graph is up to date - its own commit was the last performed
-        Map<String, List<Long>> mutes = graph1.getSynchLists();
-        assertEquals(0, mutes.get("vertex").size());
-        assertEquals(0, mutes.get("edge").size());
-
-        // this graph is 3 elements behind 
-        Map<String, List<Long>> mutes2 = graph2.getSynchLists();
-        assertEquals(2, mutes2.get("vertex").size());
-        assertEquals(1, mutes2.get("edge").size());
-
-        // this graph hasn't pulled anything from persistence - nothing to synch yet 
-        Map<String, List<Long>> mutes3 = graph3.getSynchLists();
-        assertEquals(0, mutes3.get("vertex").size());
-        assertEquals(0, mutes3.get("edge").size());
-        
-
-        
-        // graph 3 to delete a leaf
-        Vertex del = graph3.getVertices("name", "Leaf 5 red").iterator().next();
-        del.remove();
-        graph3.commit();
-
-        // this graph is 2 updates behind now - removal of a vertex and its edge
-        mutes = graph1.getSynchLists();
-        assertEquals(1, mutes.get("vertex").size());
         assertEquals(1, mutes.get("edge").size());
 
         // this graph is now 5 elements behind 
@@ -310,29 +239,127 @@ public class AmberGraphPersistenceTest {
         mutes3 = graph3.getSynchLists();
         assertEquals(0, mutes3.get("vertex").size());
         assertEquals(0, mutes3.get("edge").size());
-        
-        // what happens when we synch ?
-        graph1.synch();
-        graph2.synch();
-        graph3.synch();
 
-        mutes = graph1.getSynchLists();
-        assertEquals(0, mutes.get("vertex").size());
-        assertEquals(0, mutes.get("edge").size());
-
-        // this graph is now 5 elements behind 
-        mutes2 = graph2.getSynchLists();
-        assertEquals(0, mutes2.get("vertex").size());
-        assertEquals(0, mutes2.get("edge").size());
-
-        // this graph should be up to date 
-        mutes3 = graph3.getSynchLists();
-        assertEquals(0, mutes3.get("vertex").size());
-        assertEquals(0, mutes3.get("edge").size());
-        
     }
 
-    
+    @Test
+    public void testGetEdgesWithProperty() throws Exception {
+        
+        s("Edges with property ---");
+        
+        // save a graph to persist
+        Vertex v = graph1.addVertex(null);
+        
+        Edge e = v.addEdge("e1", graph1.addVertex(null));
+        e.setProperty("string", "value1");
+        e.setProperty("int", 5);
+
+        Edge e2 = v.addEdge("e2", graph1.addVertex(null));
+        e2.setProperty("string", "value1");
+        e2.setProperty("int", 10);
+
+        Edge e3 = v.addEdge("e3", graph1.addVertex(null));
+        e3.setProperty("string", "value2");
+        e3.setProperty("int", 10);
+        
+        graph1.commit();
+
+        // now add some session edges just for fun
+        Edge e4 = v.addEdge("e4", graph1.addVertex(null));
+        e4.setProperty("string", "value1");
+        e4.setProperty("int", 5);
+
+        Edge e5 = v.addEdge("e5", graph1.addVertex(null));
+        e5.setProperty("string", "value3");
+        e5.setProperty("int", 8);
+
+        Edge e6 = v.addEdge("e6", graph1.addVertex(null));
+        e6.setProperty("string", "value2");
+        e6.setProperty("int", 10);
+        
+        // ok let's get testing
+        
+        // find edges with a particular string property 
+        List<Edge> edges = Lists.newArrayList(graph1.getEdges("string", "value1"));
+        s("edges with property 'string' = 'value1'");
+        for (Edge edge : edges) {
+            s("" + edge);
+        }
+        assertEquals(3, edges.size());
+        assertTrue(edges.contains(e));
+        assertTrue(edges.contains(e2));
+        assertTrue(edges.contains(e4));
+        
+        // now try getting by the int properties to be sure
+        edges = Lists.newArrayList(graph1.getEdges("int", 10));
+        s("edges with property 'int' = 10");
+        for (Edge edge : edges) {
+            s("" + edge);
+        }
+        assertEquals(3, edges.size());
+        assertTrue(edges.contains(e2));
+        assertTrue(edges.contains(e3));
+        assertTrue(edges.contains(e6));        
+    }
+
+    @Test
+    public void testGetVerticesWithProperty() throws Exception {
+        
+        s("Vertices with property ---");
+        
+        // save a graph to persist
+        Vertex v0 = graph1.addVertex(null);
+        v0.setProperty("string", "v1");
+        
+        Vertex v1 = graph1.addVertex(null);
+        v1.setProperty("string", "v3");
+
+        Vertex v2 = graph1.addVertex(null);
+        v2.setProperty("string", "v1");
+
+        Vertex v3 = graph1.addVertex(null);
+        v3.setProperty("string", "v1");
+
+        Vertex v4 = graph1.addVertex(null);
+        v4.setProperty("string2", "v1");
+
+        // persist that sucker
+        graph1.commit();
+        
+        // add a couple more
+        Vertex v5 = graph1.addVertex(null);
+        v5.setProperty("string", "v1");
+
+        Vertex v6 = graph1.addVertex(null);
+        v6.setProperty("string2", "v1");
+
+        // ok let's get testing
+        
+        // find vertices with a particular string property 
+        List<Vertex> vertices = Lists.newArrayList(graph1.getVertices("string", "v1"));
+        s("vertices with property 'string' = 'v1'");
+        for (Vertex v : vertices) {
+            s("" + v);
+        }
+        assertEquals(4, vertices.size());
+        assertTrue(vertices.contains(v0));
+        assertTrue(vertices.contains(v2));
+        assertTrue(vertices.contains(v3));
+        assertTrue(vertices.contains(v5));
+        
+        // now try deleting a vertex and a property
+        v5.remove();
+        v2.removeProperty("string");
+        
+        vertices = Lists.newArrayList(graph1.getVertices("string", "v1"));
+        s("vertices with property 'string' = 'v1'");
+        for (Vertex v : vertices) {
+            s("" + v);
+        }
+        assertEquals(2, vertices.size());
+        assertTrue(vertices.contains(v0));
+        assertTrue(vertices.contains(v3));
+    }
     
     /*
      * Following 3 methods ripped directly from tinkerpop blueprint testing framework
