@@ -26,8 +26,6 @@ import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException;
-import org.skife.jdbi.v2.sqlobject.Bind;
-import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.util.LongMapper;
 
 import com.google.common.collect.Lists;
@@ -1174,13 +1172,15 @@ public class AmberGraph implements Graph, TransactionalGraph {
                 "FROM vertex " +
                 "WHERE (txn_end = 0 OR txn_end IS NULL) " +
                 idsClause)
-                .map(new SessionVertexMapper(this)).list();
+                .map(new PersistentVertexMapper(this)).list();
         h.close();
         return vertices;
     }
 
     protected List<AmberVertex> getVerticesInList(List<Long> vertexIds) {
 
+        loadPropertyIds.clear();
+        
         // get vertices in session first
         List<AmberVertex> vertices = findSessionVerticesInList(vertexIds);
 
@@ -1193,6 +1193,9 @@ public class AmberGraph implements Graph, TransactionalGraph {
 
         List<AmberVertex> persistentVertices = findPersistentVerticesInList(persistentVertexIds);
         vertices.addAll(persistentVertices);
+        
+        if (persistentVertices.size() > 0) loadProperties(loadPropertyIds);
+        loadPropertyIds.clear();
         
         return vertices;
     }    
