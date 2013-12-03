@@ -49,43 +49,43 @@ public interface ImageFile extends File {
     public void setImageLength(int imageLength);    
     
     @Property("manufacturerMake")
-    public int getManufacturerMake();
+    public String getManufacturerMake();
         
     @Property("manufacturerMake")
     public void setManufacturerMake(String manufacturerMake);
     
     @Property("manufacturerModelName")
-    public int getManufacturerModelName();
+    public String getManufacturerModelName();
         
     @Property("manufacturerModelName")
     public void setManufacturerModelName(String manufacturerModelName);
     
     @Property("manufacturerSerialNumber")
-    public int getManufacturerSerialNumber();
+    public String getManufacturerSerialNumber();
         
     @Property("manufacturerSerialNumber")
     public void setManufacturerSerialNumber(String manufacturerSerialNumber);
     
     @Property("applicationDateCreated")
-    public int getApplicationDateCreated();
+    public String getApplicationDateCreated();
         
     @Property("applicationDateCreated")
     public void setApplicationDateCreated(String applicationDateCreated);
     
     @Property("application")
-    public int getApplication();
+    public String getApplication();
         
     @Property("application")
     public void setApplication(String application);
     
     @Property("dateDigitised")
-    public int getDateDigitised();
+    public String getDateDigitised();
         
     @Property("dateDigitised")
     public void setDateDigitised(String dateDigitised);
     
     @Property("bitDepth")
-    public int getBitDepth();
+    public String getBitDepth();
         
     @Property("bitDepth")
     public void setBitDepth(String bitDepth);
