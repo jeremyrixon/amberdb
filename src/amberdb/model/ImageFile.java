@@ -5,6 +5,7 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
 @TypeValue("ImageFile")
 public interface ImageFile extends File {
+    
     @Property("resolution")
     public String getResolution();
     
@@ -45,5 +46,47 @@ public interface ImageFile extends File {
      * In pixels
      */
     @Property("imageLength")
-    public void setImageLength(int imageLength);
+    public void setImageLength(int imageLength);    
+    
+    @Property("manufacturerMake")
+    public int getManufacturerMake();
+        
+    @Property("manufacturerMake")
+    public void setManufacturerMake(String manufacturerMake);
+    
+    @Property("manufacturerModelName")
+    public int getManufacturerModelName();
+        
+    @Property("manufacturerModelName")
+    public void setManufacturerModelName(String manufacturerModelName);
+    
+    @Property("manufacturerSerialNumber")
+    public int getManufacturerSerialNumber();
+        
+    @Property("manufacturerSerialNumber")
+    public void setManufacturerSerialNumber(String manufacturerSerialNumber);
+    
+    @Property("applicationDateCreated")
+    public int getApplicationDateCreated();
+        
+    @Property("applicationDateCreated")
+    public void setApplicationDateCreated(String applicationDateCreated);
+    
+    @Property("application")
+    public int getApplication();
+        
+    @Property("application")
+    public void setApplication(String application);
+    
+    @Property("dateDigitised")
+    public int getDateDigitised();
+        
+    @Property("dateDigitised")
+    public void setDateDigitised(String dateDigitised);
+    
+    @Property("bitDepth")
+    public int getBitDepth();
+        
+    @Property("bitDepth")
+    public void setBitDepth(String bitDepth);
 }
