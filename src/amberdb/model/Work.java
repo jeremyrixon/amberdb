@@ -34,6 +34,17 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
  */
 @TypeValue("Work")
 public interface Work extends Node {
+    @Property ("abstract")
+    public String getAbstract();
+    
+    @Property ("abstract")
+    public void setAbstract(String aBstract);
+    
+    @Property("category")
+    public String getCategory();
+    
+    @Property("category")
+    public void setCategory(String category);
     
     /* DCM Legacy Data */
     @Property("dcmWorkPid")
@@ -115,6 +126,18 @@ public interface Work extends Node {
     @Property("digitalStatusDate")
     public void setDigitalStatusDate(String digitalStatusDate);
     
+    @Property("heading")
+    public String getHeading();
+    
+    @Property("heading")
+    public void setHeading(String heading);
+    
+    @Property("subHeadings")
+    public String getSubHeadings();
+    
+    @Property("subHeadings")
+    public void setSubHeadings(String subHeadings);
+    
     /**
      * Also known as CALLNO
      */
@@ -126,6 +149,12 @@ public interface Work extends Node {
      */
     @Property("holdingNumber")
     public void setHoldingNumber(String holdingNumber);
+    
+    @Property("issn")
+    public String getISSN();
+    
+    @Property("issn")
+    public void setISSN(String issn);
     
     @Property("title")
     public String getTitle();
