@@ -51,6 +51,9 @@ public class AmberVertex implements Vertex {
     protected void setGraph(AmberGraph graph) {
         this.graph = graph;
     }
+    public AmberGraph getGraph() {
+        return graph;
+    }
     private VertexDao dao() {
         return graph.vertexDao();
     }
@@ -214,6 +217,10 @@ public class AmberVertex implements Vertex {
         // get the edges
         Iterable<Edge> edges = getEdges(direction, labels);
 
+        for (Edge e : edges) {
+            AmberEdge ae = (AmberEdge) e;
+        }
+        
         List<Long> vertexIds = new ArrayList<Long>();
         for (Edge e : edges) {
             AmberEdge ae = (AmberEdge) e;
@@ -225,8 +232,7 @@ public class AmberVertex implements Vertex {
         } 
 
         // pull all the vertices into the session
-        List<AmberVertex> vs = graph.getVerticesInList(vertexIds); 
-        
+        List<AmberVertex> vs = graph.getVerticesById(vertexIds); 
         List<Vertex> vertices = new ArrayList<Vertex>();
         for (AmberVertex v : vs) {
             if (v == null) continue;
