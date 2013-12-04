@@ -10,10 +10,15 @@ import java.util.List;
 import amberdb.enums.CopyRole;
 import amberdb.relation.IsCopyOf;
 import amberdb.relation.IsPartOf;
+import amberdb.sql.AmberGraph;
+import amberdb.sql.AmberVertex;
 
+import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.util.wrappers.wrapped.WrappedGraph;
+import com.tinkerpop.blueprints.util.wrappers.wrapped.WrappedVertex;
 import com.tinkerpop.frames.Adjacency;
 import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.annotations.gremlin.GremlinGroovy;
@@ -310,6 +315,9 @@ public interface Work extends Node {
     
     @JavaHandler
     public Work getLeaf(String subType, int position);
+    
+    @JavaHandler
+    public List<Work> loadPagedWork(List<String> subTypes);
 
     abstract class Impl implements JavaHandlerContext<Vertex>, Work {
 
@@ -409,5 +417,45 @@ public interface Work extends Node {
                     .toList();
         }
         
+        public List<Work> loadPagedWork(List<String> subTypes) {
+            
+            AmberVertex work = (AmberVertex) ((WrappedVertex) this.asVertex()).getBaseVertex();
+            AmberGraph g = work.getGraph();
+            
+            // load all the work's parts
+            List<Vertex> parts = Lists.newArrayList(work.getVertices(Direction.IN, "isPartOf"));
+            
+            // discard all but the pages
+            //List<Page> pages = new ArrayList<Page>();
+            List<Long> pageIds = new ArrayList<Long>();
+            for (Vertex v : parts) {
+                if (v.getProperty("subType").equals("page")) {
+                    //pages.add(this.g().frame(v, Page.class));
+                    pageIds.add((Long) v.getId());
+                }
+            }
+            
+            // load the pages' copies
+            List<AmberVertex> copies = Lists.newArrayList(g.getVerticesByAdjacentVertexId(pageIds, Direction.IN, "isCopyOf"));
+            List<Long> copyIds = new ArrayList<Long>();
+            for (Vertex v : copies) {
+                    copyIds.add((Long) v.getId());
+            }
+            
+            // load the copies' files
+            //List<AmberVertex> files = 
+            Lists.newArrayList(g.getVerticesByAdjacentVertexId(copyIds, Direction.IN, "isFileOf"));
+
+            // just return the pages
+            List<Edge> partEdges = Lists.newArrayList(work.getEdges(Direction.IN, "isPartOf"));
+            List<Work> works = new ArrayList<Work>();
+            for (Edge e : partEdges) {
+                Vertex v = e.getVertex(Direction.OUT);
+                if (subTypes == null || subTypes.size() == 0 || subTypes.contains(v.getProperty("subType"))) {
+                    works.add(this.g().frame(v, Work.class));
+                }
+            }
+            return works;
+        }
     }
 }

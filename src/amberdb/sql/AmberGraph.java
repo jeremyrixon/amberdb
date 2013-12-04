@@ -1132,7 +1132,6 @@ public class AmberGraph implements Graph, TransactionalGraph {
         return edges;
     }
 
-
     protected List<AmberEdge> directedFindSessionEdgesForVertex(Long vertexId, String directionClause, String labelsClause) {
 
         Handle h = sessionDbi.open();
@@ -1177,7 +1176,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
         return vertices;
     }
 
-    protected List<AmberVertex> getVerticesInList(List<Long> vertexIds) {
+    protected List<AmberVertex> getVerticesById(List<Long> vertexIds) {
 
         loadPropertyIds.clear();
         
@@ -1191,12 +1190,221 @@ public class AmberGraph implements Graph, TransactionalGraph {
         List<Long> persistentVertexIds = new ArrayList<Long>(vertexIds);
         persistentVertexIds.removeAll(sessionVertexIds);
 
-        List<AmberVertex> persistentVertices = findPersistentVerticesInList(persistentVertexIds);
-        vertices.addAll(persistentVertices);
-        
-        if (persistentVertices.size() > 0) loadProperties(loadPropertyIds);
+        if (persistentVertexIds.size() > 0) {
+            List<AmberVertex> persistentVertices = findPersistentVerticesInList(persistentVertexIds);
+            vertices.addAll(persistentVertices);
+
+            if (persistentVertices.size() > 0)
+                loadProperties(loadPropertyIds);
+        }
         loadPropertyIds.clear();
         
         return vertices;
     }    
+
+    public List<AmberEdge> getEdgesByIncidentVertexId(List<Long> vertexIds, Direction direction, String... label) {
+
+        loadPropertyIds.clear();
+        
+        List<AmberEdge> sessionInEdges = new ArrayList<AmberEdge>();
+        List<AmberEdge> sessionOutEdges = new ArrayList<AmberEdge>();
+        List<AmberEdge> persistentInEdges = new ArrayList<AmberEdge>();
+        List<AmberEdge> persistentOutEdges = new ArrayList<AmberEdge>();
+        
+        // exclude edge id lists for subsequent persistent queries
+        List<Long> sessionInEdgeIds = new ArrayList<Long>();
+        List<Long> sessionOutEdgeIds = new ArrayList<Long>();
+        
+        if (direction == Direction.IN || direction == Direction.BOTH) {
+            sessionInEdges = getSessionEdgesByIncidentVertexIds(vertexIds, "AND v_in ", label);
+            for (AmberEdge e : sessionInEdges) {
+                sessionInEdgeIds.add((Long) e.getId()); 
+            }
+            persistentInEdges = getPersistentEdgesByIncidentVertexIds(vertexIds, "AND v_in ", sessionInEdgeIds, label);
+        }
+
+        if (direction == Direction.OUT || direction == Direction.BOTH) {
+            sessionOutEdges = getSessionEdgesByIncidentVertexIds(vertexIds, "AND v_out ", label); 
+            for (AmberEdge e : sessionOutEdges) {
+                sessionOutEdgeIds.add((Long) e.getId()); 
+            }
+            persistentOutEdges = getPersistentEdgesByIncidentVertexIds(vertexIds, "AND v_out ", sessionOutEdgeIds, label); 
+        }
+
+        List<AmberEdge> edges = sessionInEdges;
+        edges.addAll(sessionOutEdges);
+        
+        List<AmberEdge> persistentEdges = persistentInEdges;
+        persistentEdges.addAll(persistentOutEdges);
+        
+        if (persistentEdges.size() > 0) loadProperties(loadPropertyIds);
+        loadPropertyIds.clear();
+        
+        edges.addAll(persistentEdges);
+        
+        return edges;
+    }   
+
+    protected List<AmberEdge> getSessionEdgesByIncidentVertexIds(List<Long> vertexIds, String inClausePrefix, String... label) {
+        
+        String vertexIdsClause = constructLongInClause(vertexIds, inClausePrefix);
+        String labelClause = constructStringInClause(Lists.newArrayList(label), "AND label ");
+        
+        Handle h = sessionDbi.open();
+        List<AmberEdge> edges = h.createQuery(
+                "SELECT id " +
+                "FROM edge " +
+                "WHERE 1=1 " +
+                vertexIdsClause +
+                labelClause +
+                "ORDER BY edge_order")
+                .map(new SessionEdgeMapper(this)).list();
+        h.close();
+        return edges;
+    }
+
+    protected List<AmberEdge> getPersistentEdgesByIncidentVertexIds(List<Long> vertexIds, String inClausePrefix, List<Long> excludedEdgeIds, String... label) {
+        
+        String vertexIdsClause = constructLongInClause(vertexIds, inClausePrefix); 
+        String excludedEdgeIdsClause = constructLongInClause(excludedEdgeIds, "AND id NOT "); 
+        String labelClause = constructStringInClause(Lists.newArrayList(label), "AND label ");
+        
+        Handle h = persistentDbi.open();
+        List<AmberEdge> edges = h.createQuery(
+                "SELECT id, txn_start, txn_end, v_out, v_in, label, edge_order " +
+                "FROM edge " +
+                "WHERE 1=1 " +
+                vertexIdsClause +
+                excludedEdgeIdsClause +
+                labelClause +
+                "AND (txn_end IS NULL OR txn_end = 0) " +
+                "ORDER BY edge_order")
+                .map(new PersistentEdgeMapper(this)).list();
+        h.close();
+        edges.removeAll(Collections.singleton(null));
+        return edges;
+    }
+    
+    public List<AmberVertex> getVerticesByAdjacentVertexId(List<Long> vertexIds, Direction direction, String... label) {
+        
+        // need to pull the connecting edges into the session too
+        List <AmberEdge> edges = getEdgesByIncidentVertexId(vertexIds, direction, label);
+        
+        loadPropertyIds.clear();
+        
+        List<AmberVertex> sessionInVertices = new ArrayList<AmberVertex>();
+        List<AmberVertex> sessionOutVertices = new ArrayList<AmberVertex>();
+        List<AmberVertex> persistentInVertices = new ArrayList<AmberVertex>();
+        List<AmberVertex> persistentOutVertices = new ArrayList<AmberVertex>();
+        
+        // exclude edge id lists for subsequent persistent queries
+        List<Long> sessionInVertexIds = new ArrayList<Long>();
+        List<Long> sessionOutVertexIds = new ArrayList<Long>();
+        
+        if (direction == Direction.IN || direction == Direction.BOTH) {
+            sessionInVertices = getSessionVerticesByAdjacentVertexIds(vertexIds, Direction.IN, label);
+            for (AmberVertex v : sessionInVertices) {
+                sessionInVertexIds.add((Long) v.getId()); 
+            }
+            persistentInVertices = getPersistentVerticesByAdjacentVertexIds(vertexIds, Direction.IN, sessionInVertexIds, label);
+        }
+
+        if (direction == Direction.OUT || direction == Direction.BOTH) {
+            sessionOutVertices = getSessionVerticesByAdjacentVertexIds(vertexIds, Direction.OUT, label); 
+            for (AmberVertex v : sessionOutVertices) {
+                sessionOutVertexIds.add((Long) v.getId()); 
+            }
+            persistentOutVertices = getPersistentVerticesByAdjacentVertexIds(vertexIds, Direction.OUT, sessionOutVertexIds, label); 
+        }
+
+        List<AmberVertex> vertices = sessionInVertices;
+        vertices.addAll(sessionOutVertices);
+        
+        List<AmberVertex> persistentVertices = persistentInVertices;
+        persistentVertices.addAll(persistentOutVertices);
+        
+        if (persistentVertices.size() > 0) loadProperties(loadPropertyIds);
+        loadPropertyIds.clear();
+        
+        vertices.addAll(persistentVertices);
+        
+        return vertices;
+    }   
+    
+    protected List<AmberVertex> getSessionVerticesByAdjacentVertexIds(List<Long> vertexIds, Direction direction, String... label) {
+        
+        // argument guard
+        if (Direction.BOTH == direction) { 
+            throw new IllegalArgumentException("Can only get a vertex from a single direction");
+        }    
+        
+        String srcVerticesPrefix;
+        String destVerticesClause;
+        
+        if (Direction.IN == direction) {
+            srcVerticesPrefix = "AND e.v_in ";
+            destVerticesClause = "AND v.id = e.v_out ";
+        } else {
+            srcVerticesPrefix = "AND e.v_out ";
+            destVerticesClause = "AND v.id = e.v_in ";
+        }
+        
+        String vertexIdsClause = constructLongInClause(vertexIds, srcVerticesPrefix);
+        String labelClause = constructStringInClause(Lists.newArrayList(label), "AND label ");
+        
+        Handle h = sessionDbi.open();
+        List<AmberVertex> vertices = h.createQuery(
+                "SELECT v.id " +
+                "FROM edge e, vertex v " +
+                "WHERE 1=1 " +
+                vertexIdsClause +
+                destVerticesClause +
+                labelClause +
+                "ORDER BY e.edge_order")
+                .map(new SessionVertexMapper(this)).list();
+        h.close();
+        return vertices;
+    }
+
+    protected List<AmberVertex> getPersistentVerticesByAdjacentVertexIds(List<Long> vertexIds, Direction direction, List<Long> excludedVertexIds, String... label) {
+
+        // argument guard
+        if (Direction.BOTH == direction) { 
+            throw new IllegalArgumentException("Can only get a vertex from a single direction");
+        }    
+
+        String srcVerticesPrefix;
+        String destVerticesClause;
+        
+        if (Direction.IN == direction) {
+            srcVerticesPrefix = "AND e.v_in ";
+            destVerticesClause = "AND v.id = e.v_out ";
+        } else {
+            srcVerticesPrefix = "AND e.v_out ";
+            destVerticesClause = "AND v.id = e.v_in ";
+        }
+        
+        String vertexIdsClause = constructLongInClause(vertexIds, srcVerticesPrefix); 
+        String excludedVertexIdsClause = constructLongInClause(excludedVertexIds, "AND v.id NOT "); 
+        String labelClause = constructStringInClause(Lists.newArrayList(label), "AND label ");
+        
+        Handle h = persistentDbi.open();
+        List<AmberVertex> vertices = h.createQuery(
+                "SELECT v.id, v.txn_start, v.txn_end " +
+                "FROM edge e, vertex v " +
+                "WHERE 1=1 " +
+                vertexIdsClause +
+                excludedVertexIdsClause +
+                destVerticesClause +
+                labelClause +
+                "AND (v.txn_end IS NULL OR v.txn_end = 0) " +
+                "AND (e.txn_end IS NULL OR e.txn_end = 0) " +
+                "ORDER BY e.edge_order")
+                .map(new PersistentVertexMapper(this)).list();
+        h.close();
+        vertices.removeAll(Collections.singleton(null));
+        return vertices;
+    }
+
 }
+

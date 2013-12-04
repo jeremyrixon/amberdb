@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +13,8 @@ import java.util.Map;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import com.google.common.collect.Lists;
 
 import amberdb.AmberDbFactory;
 import amberdb.AmberSession;
@@ -53,21 +57,30 @@ public class WorkTest {
     @Test
     public void testGetLeafsOfSubTypesForBlinkyBill() {
         resetTestData();
-        List<String> subTypes = new ArrayList<String>();
-        subTypes.add("page");
-        subTypes.add("chapter");
-        Iterable<Work> leafs = bookBlinkyBill.getLeafs(subTypes);
-        System.out.println("List leafs for book blinky bill of type page and chapter: ");
-        int noOfPages = 0;
-        for (Work leaf : leafs) {
+        
+        Long start = new Date().getTime();
+        System.out.println("starting actual test");
+        
+        // try loading the book first
+        List<Work> leaves = bookBlinkyBill.loadPagedWork(Arrays.asList(new String[] {"page", "chapter"}));
+        System.out.println("loaded work millis: " + (new Date().getTime()-start));
+        
+        System.out.println("List leaves for book blinky bill of type page and chapter: ");
+        int noOfLeaves = 0;
+        for (Work leaf : leaves) {
             System.out.println("Leaf: " + leaf.getSubType() + ", " + leaf.getSubUnitType() + ", " + leaf.getTitle());
-            noOfPages++;
+            noOfLeaves++;
         }
+        System.out.println("Total number of leaves was: " + noOfLeaves);
+        System.out.println("got leaves millis: " + (new Date().getTime()-start));
+        System.out.println("now resetting test data");
+
         resetTestData();
+        System.out.println("data reset millis: " + (new Date().getTime()-start));
     }
     
-    // @Test
     @Ignore
+    @Test
     public void testGetLeafsForBlinkyBillAssoication() {
         resetTestData();
         Iterable<Section> sections = bookBlinkyBill.getSections("chapter");
