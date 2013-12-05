@@ -280,7 +280,7 @@ public class AmberVertex implements Vertex {
     }
     
     private void s(String s) {
-        System.out.println(s);
+        graph.log.info(s);
     }
     
     public Long getTxnEnd() {
