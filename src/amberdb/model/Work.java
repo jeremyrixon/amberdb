@@ -448,11 +448,7 @@ public interface Work extends Node {
             List<Long> pageIds = new ArrayList<Long>();
             for (Vertex v : parts) {
                 if (v.getProperty("subType").equals("page")) {
-                    Long id = (Long) v.getId();
-                    // drop duplicates
-                    if (!pageIds.contains(id)) {
-                        pageIds.add(id);
-                    }
+                    pageIds.add((Long) v.getId());
                 }
             }
             
