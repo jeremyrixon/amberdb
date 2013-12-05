@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.sql.DataSource;
 
@@ -41,6 +42,8 @@ import com.tinkerpop.blueprints.util.DefaultGraphQuery;
 
 public class AmberGraph implements Graph, TransactionalGraph {
 
+    public Logger log = Logger.getLogger(AmberGraph.class.getName());
+    
     public static final String DEFAULT_USER = "anon";
     public static final DataSource DEFAULT_SESSION_DATASOURCE = 
             JdbcConnectionPool.create("jdbc:h2:mem:session","sess","sess");
@@ -1095,7 +1098,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
     
     // Convenience for debugging
     private void s(String s) {
-        System.out.println(s);
+        log.info(s);
     }
 
     @Override

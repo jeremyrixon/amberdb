@@ -45,6 +45,6 @@ public class PersistentVertexMapper implements ResultSetMapper<AmberVertex> {
     }
     
     private void s(String s) {
-        System.out.println(s);
+        graph.log.info(s);
     }
 }

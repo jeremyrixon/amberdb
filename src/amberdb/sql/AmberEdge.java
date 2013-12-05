@@ -241,6 +241,6 @@ public class AmberEdge implements Edge {
     }
     
     private void s(String s) {
-        System.out.println(s);
+        graph.log.info(s);
     }
 }
