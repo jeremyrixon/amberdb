@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -33,8 +34,8 @@ public class WorkTest {
     private static int expectedNoOfPages = 0;
     private static int expectedNoOfPagesForSection = 0;
     
-    @BeforeClass
-    public static void setup() throws IOException, InstantiationException {
+    @Before
+    public void setup() throws IOException, InstantiationException {
         resetTestData();
     }
 
@@ -56,13 +57,14 @@ public class WorkTest {
     
     @Test
     public void testGetLeafsOfSubTypesForBlinkyBill() {
-        resetTestData();
         
         Long start = new Date().getTime();
         System.out.println("starting actual test");
         
         // try loading the book first
-        List<Work> leaves = bookBlinkyBill.loadPagedWork(Arrays.asList(new String[] {"page", "chapter"}));
+        bookBlinkyBill.loadPagedWork();
+        
+        List<Work> leaves = bookBlinkyBill.getPartsOf(Arrays.asList(new String[] {"page", "chapter"}));
         System.out.println("loaded work millis: " + (new Date().getTime()-start));
         
         System.out.println("List leaves for book blinky bill of type page and chapter: ");
@@ -75,14 +77,11 @@ public class WorkTest {
         System.out.println("got leaves millis: " + (new Date().getTime()-start));
         System.out.println("now resetting test data");
 
-        resetTestData();
-        System.out.println("data reset millis: " + (new Date().getTime()-start));
     }
     
     @Ignore
     @Test
     public void testGetLeafsForBlinkyBillAssoication() {
-        resetTestData();
         Iterable<Section> sections = bookBlinkyBill.getSections("chapter");
         Section theNewArrival = null;
         for (Section section : sections) {
@@ -97,19 +96,16 @@ public class WorkTest {
             noOfPages++;
         }
         assertEquals(expectedNoOfPagesForSection, noOfPages);
-        resetTestData();
     }
     
     @Test
     public void testGetWorkAsSection() {
-        resetTestData();
         Section theChapter = chapterBlinkyBill.asSection();
         assertEquals(chapterBlinkyBill.getId(), theChapter.getId());
         
         // Also verify bibId can be returned as a String
         System.out.println("voyager id for blinky bill: " + bookBlinkyBill.getBibId().toString());
         // assertEquals(bookBlinkyBill.getBibId().getClass().getName(), "java.lang.String");
-        resetTestData();
     }
     
     @Test
@@ -139,8 +135,6 @@ public class WorkTest {
         workTitlePage.setTitle("Blinky Bill Page 2");
         workTitlePage.setSubType("page");
         workTitlePage.setSubUnitType("Title Page");
-        
-        resetTestData();
     }
     
     @Test
@@ -170,8 +164,6 @@ public class WorkTest {
         workTitlePage.setTitle("Blinky Bill Page 2");
         workTitlePage.setSubType("page");
         workTitlePage.setSubUnitType("Title Page");
-        
-        resetTestData();
     }
     
     @Test(expected = NoSuchObjectException.class)
@@ -198,8 +190,6 @@ public class WorkTest {
         
         db.deletePage(work);
         db.findWork(workVertexId);
-
-        resetTestData();
     }
     
     private static void resetTestData() {

@@ -3,6 +3,7 @@ package amberdb.model;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -17,7 +18,6 @@ import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.util.wrappers.wrapped.WrappedGraph;
 import com.tinkerpop.blueprints.util.wrappers.wrapped.WrappedVertex;
 import com.tinkerpop.frames.Adjacency;
 import com.tinkerpop.frames.Property;
@@ -317,8 +317,21 @@ public interface Work extends Node {
     public Work getLeaf(String subType, int position);
     
     @JavaHandler
-    public List<Work> loadPagedWork(List<String> subTypes);
+    public void loadPagedWork();
 
+    @JavaHandler
+    public List<Work> getPartsOf(List<String> subTypes);
+
+    @JavaHandler
+    public List<Work> getExistsOn(List<String> subTypes);
+
+    @JavaHandler
+    public List<Work> getPartsOf(String subType);
+
+    @JavaHandler
+    public List<Work> getExistsOn(String subType);
+
+    
     abstract class Impl implements JavaHandlerContext<Vertex>, Work {
 
         @Override
@@ -417,21 +430,29 @@ public interface Work extends Node {
                     .toList();
         }
         
-        public List<Work> loadPagedWork(List<String> subTypes) {
+        /**
+         * Loads all of a work into the session including Pages with their Copies and Files
+         */
+        public void loadPagedWork() {
             
             AmberVertex work = (AmberVertex) ((WrappedVertex) this.asVertex()).getBaseVertex();
             AmberGraph g = work.getGraph();
             
             // load all the work's parts
             List<Vertex> parts = Lists.newArrayList(work.getVertices(Direction.IN, "isPartOf"));
+
+            // load any the other direct relations for the work
+            parts.addAll(Lists.newArrayList(work.getVertices(Direction.OUT, "existsOn")));
             
             // discard all but the pages
-            //List<Page> pages = new ArrayList<Page>();
             List<Long> pageIds = new ArrayList<Long>();
             for (Vertex v : parts) {
                 if (v.getProperty("subType").equals("page")) {
-                    //pages.add(this.g().frame(v, Page.class));
-                    pageIds.add((Long) v.getId());
+                    Long id = (Long) v.getId();
+                    // drop duplicates
+                    if (!pageIds.contains(id)) {
+                        pageIds.add(id);
+                    }
                 }
             }
             
@@ -443,8 +464,13 @@ public interface Work extends Node {
             }
             
             // load the copies' files
-            //List<AmberVertex> files = 
             Lists.newArrayList(g.getVerticesByAdjacentVertexId(copyIds, Direction.IN, "isFileOf"));
+
+        }
+        
+        public List<Work> getPartsOf(List<String> subTypes) {
+
+            AmberVertex work = (AmberVertex) ((WrappedVertex) this.asVertex()).getBaseVertex();
 
             // just return the pages
             List<Edge> partEdges = Lists.newArrayList(work.getEdges(Direction.IN, "isPartOf"));
@@ -456,6 +482,30 @@ public interface Work extends Node {
                 }
             }
             return works;
+        }
+
+        public List<Work> getExistsOn(List<String> subTypes) {
+
+            AmberVertex work = (AmberVertex) ((WrappedVertex) this.asVertex()).getBaseVertex();
+
+            // just return the pages
+            List<Edge> partEdges = Lists.newArrayList(work.getEdges(Direction.OUT, "existsOn"));
+            List<Work> works = new ArrayList<Work>();
+            for (Edge e : partEdges) {
+                Vertex v = e.getVertex(Direction.IN);
+                if (subTypes == null || subTypes.size() == 0 || subTypes.contains(v.getProperty("subType"))) {
+                    works.add(this.g().frame(v, Work.class));
+                }
+            }
+            return works;
+        }
+
+        public List<Work> getPartsOf(String subType) {
+            return getPartsOf(Arrays.asList(new String[] {subType}));
+        }
+        
+        public List<Work> getExistsOn(String subType) {
+            return getExistsOn(Arrays.asList(new String[] {subType}));
         }
     }
 }
