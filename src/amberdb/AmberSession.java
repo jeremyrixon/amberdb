@@ -146,9 +146,13 @@ public class AmberSession implements AutoCloseable {
     protected FramedGraph<TransactionalGraph> openGraph(TransactionalGraph graph) {
         TransactionalGraph g = new OwnedGraph(graph);
         return new FramedGraphFactory(new JavaHandlerModule(), new GremlinGroovyModule(),
-                new TypedGraphModuleBuilder().withClass(Copy.class).withClass(File.class)
-                        .withClass(ImageFile.class).withClass(Page.class).withClass(Section.class)
-                        .withClass(Work.class).build()).create(g);
+                new TypedGraphModuleBuilder()
+            .withClass(Copy.class)
+            .withClass(File.class)
+            .withClass(ImageFile.class)
+            .withClass(Page.class)
+            .withClass(Section.class)
+            .withClass(Work.class).build()).create(g);
     }
 
     /**
