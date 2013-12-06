@@ -429,13 +429,21 @@ public interface Work extends Node {
             return (gremlin().inE(IsPartOf.label) == null) ? null : gremlin().inE(IsPartOf.label)
                     .toList();
         }
+
+        private AmberVertex asAmberVertex() {
+            if (this.asVertex() instanceof WrappedVertex) {
+                return (AmberVertex) ((WrappedVertex) this.asVertex()).getBaseVertex();
+            } else {
+                return (AmberVertex) this.asVertex();
+            }
+        }
         
         /**
          * Loads all of a work into the session including Pages with their Copies and Files
          */
         public void loadPagedWork() {
             
-            AmberVertex work = (AmberVertex) ((WrappedVertex) this.asVertex()).getBaseVertex();
+            AmberVertex work = this.asAmberVertex();
             AmberGraph g = work.getGraph();
             
             // load all the work's parts
@@ -466,7 +474,7 @@ public interface Work extends Node {
         
         public List<Work> getPartsOf(List<String> subTypes) {
 
-            AmberVertex work = (AmberVertex) ((WrappedVertex) this.asVertex()).getBaseVertex();
+            AmberVertex work = this.asAmberVertex();
 
             // just return the pages
             List<Edge> partEdges = Lists.newArrayList(work.getEdges(Direction.IN, "isPartOf"));
@@ -482,7 +490,7 @@ public interface Work extends Node {
 
         public List<Work> getExistsOn(List<String> subTypes) {
 
-            AmberVertex work = (AmberVertex) ((WrappedVertex) this.asVertex()).getBaseVertex();
+            AmberVertex work = this.asAmberVertex();
 
             // just return the pages
             List<Edge> partEdges = Lists.newArrayList(work.getEdges(Direction.OUT, "existsOn"));
