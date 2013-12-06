@@ -19,13 +19,13 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
  */
 @TypeValue("Section")
 public interface Section extends Work {
-	@Adjacency(label = ExistsOn.label, direction = Direction.IN)
+	@Adjacency(label = ExistsOn.label, direction = Direction.OUT)
 	public Iterable<Page> getExistsOnPages();
 
-	@Adjacency(label = ExistsOn.label, direction = Direction.IN)
+	@Adjacency(label = ExistsOn.label, direction = Direction.OUT)
 	public void addPage(final Page page);
 	   
-	@GremlinGroovy("it.outE.has('label', 'existsOn').has('relOrder', idx).outV")
+	@GremlinGroovy("it.outE.has('label', 'existsOn').has('relOrder', idx).inV")
 	public Page getPage(@GremlinParam("idx") int idx);
 	
 	@GremlinGroovy("it.outE.has('label', 'existsOn').inV.loop(3){true}{true}.has('subType', subType)")
