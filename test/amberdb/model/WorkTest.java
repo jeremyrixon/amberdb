@@ -73,6 +73,10 @@ public class WorkTest {
             System.out.println("Leaf: " + leaf.getSubType() + ", " + leaf.getSubUnitType() + ", " + leaf.getTitle());
             noOfLeaves++;
         }
+        
+        // Check output bits
+        leaves.get(0).getExistsOn("pages");
+        
         System.out.println("Total number of leaves was: " + noOfLeaves);
         System.out.println("got leaves millis: " + (new Date().getTime()-start));
         System.out.println("now resetting test data");
