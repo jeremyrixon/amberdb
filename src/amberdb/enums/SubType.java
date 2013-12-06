@@ -3,23 +3,23 @@ package amberdb.enums;
 import java.util.ArrayList;
 import java.util.List;
 
-public enum BibLevel {
-    
-    COMPONENT("Component"), 
-    SET("Set"), 
-    ITEM("Item"), 
-    PART("Part"),
-    SECTION("Section");
+public enum SubType {
+
+    PAGE("Page"),
+    BOOK("Book"),
+    ARTICLE("Article"),
+    CHAPTER("Chapter"),
+    VOLUME("Volume");
 
     private String code;
 
-    private BibLevel(String code) {
+    private SubType(String code) {
         this.code = code;
     }
 
-    public static BibLevel fromString(String code) {
+    public static SubType fromString(String code) {
         if (code != null) {
-            for (BibLevel e : BibLevel.values()) {
+            for (SubType e : SubType.values()) {
                 if (code.equalsIgnoreCase(e.code)) {
                     return e;
                 }
@@ -31,10 +31,10 @@ public enum BibLevel {
     public String code() {
         return code;
     }
-    
+
     public static List<String> list() {
         List<String> list = new ArrayList<String>();
-        for (BibLevel lu : BibLevel.values()) {
+        for (SubType lu : SubType.values()) {
             list.add(lu.code());
         }
         return list;
