@@ -8,7 +8,8 @@ public enum BibLevel {
     COMPONENT("Component"), 
     SET("Set"), 
     ITEM("Item"), 
-    PART("Part");
+    PART("Part"),
+    SECTION("Section");
 
     private String code;
 
