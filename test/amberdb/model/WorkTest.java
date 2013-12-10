@@ -11,11 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import com.google.common.collect.Lists;
 
 import amberdb.AmberDbFactory;
 import amberdb.AmberSession;
@@ -29,7 +26,6 @@ public class WorkTest {
     private static Work chapterBlinkyBill;
     private static Page workFrontCover;
     private static Page workTitlePage;
-    private static Iterable<Copy> copies;
     private static Map<String, Object> expectedResults = new HashMap<String, Object>();    
     private static int expectedNoOfPages = 0;
     private static int expectedNoOfPagesForSection = 0;
@@ -122,6 +118,7 @@ public class WorkTest {
         
         int actualNoOfPagesBfrRemoval = 0;
         Iterable<Page> pagesBI = bookBlinkyBill.getPages();
+        
         for (Page page : pagesBI) {
             actualNoOfPagesBfrRemoval++;
         }
@@ -151,6 +148,7 @@ public class WorkTest {
         
         int actualNoOfPagesBfrRemoval = 0;
         Iterable<Work> pagesBI = bookBlinkyBill.getLeafs("page");
+        
         for (Work page : pagesBI) {
             actualNoOfPagesBfrRemoval++;
         }

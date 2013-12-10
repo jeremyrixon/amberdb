@@ -5,7 +5,6 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -27,7 +26,6 @@ import amberdb.model.Copy;
 import amberdb.model.File;
 import amberdb.model.Page;
 import amberdb.model.Work;
-import amberdb.sql.AmberGraph;
 
 public class AmberDbTest {
 
