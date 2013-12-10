@@ -239,8 +239,4 @@ public class AmberEdge implements Edge {
         .append(" state:").append(dao().getEdgeState(id));
         return sb.toString();
     }
-    
-    private void s(String s) {
-        graph.log.info(s);
-    }
 }

@@ -1,5 +1,7 @@
 package amberdb.sql.dao;
 
+import java.util.List;
+
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
@@ -9,7 +11,6 @@ import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
 import amberdb.sql.AmberProperty;
 import amberdb.sql.bind.BindAmberProperty;
 import amberdb.sql.map.PersistentPropertyMapper;
-import java.util.List;
 
 public interface MigrationDao extends Transactional<MigrationDao> {
     @SqlQuery("select p.id, p.name, p.type, p.value " +

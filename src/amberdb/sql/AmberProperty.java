@@ -37,7 +37,7 @@ public class AmberProperty {
     public String toString() {
         StringBuilder sb = new StringBuilder("property [")
         .append("id:").append(id).append(", ").append(name)
-        .append(": ").append(value).append("]");
+        .append(": ").append(value).append(']');
         return sb.toString();
     }
     
@@ -54,7 +54,7 @@ public class AmberProperty {
             return bb.array();
         } else if (value instanceof Boolean) {
             ByteBuffer bb = ByteBuffer.allocate(4);
-            bb.putInt((boolean) value == true ? 1 : 0);
+            bb.putInt((boolean) value ? 1 : 0);
             return bb.array();
         } else if (value instanceof Float) {
             ByteBuffer bb = ByteBuffer.allocate(4);

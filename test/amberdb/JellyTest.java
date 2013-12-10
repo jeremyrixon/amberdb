@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +13,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Ignore;
-import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.skife.jdbi.v2.DBI;
 
@@ -23,6 +23,7 @@ import amberdb.enums.CopyRole;
 import amberdb.enums.SubType;
 import amberdb.model.Copy;
 import amberdb.model.File;
+import amberdb.model.Page;
 import amberdb.model.Work;
 import amberdb.sql.AmberProperty;
 import amberdb.sql.DataType;
@@ -213,15 +214,15 @@ public class JellyTest {
     @Ignore
     public void testWorkStructure() {
         // Test retrieving pages
-        List pages = Lists.newArrayList(bookBlinkyBill.getPages());
+        ArrayList<Page> pages = Lists.newArrayList(bookBlinkyBill.getPages());
         assertEquals(3, pages.size());
         
         // Test retrieving copies
-        List copies = Lists.newArrayList(workFrontCover.getCopies());
+        ArrayList<Copy> copies = Lists.newArrayList(workFrontCover.getCopies());
         assertEquals(3, copies.size());
         
         // Test retrieving files
-        List files = Lists.newArrayList(workFrontCover.getCopy(CopyRole.ACCESS_COPY).getFiles());
+        ArrayList<File> files = Lists.newArrayList(workFrontCover.getCopy(CopyRole.ACCESS_COPY).getFiles());
         assertEquals(1, files.size());
     }
 

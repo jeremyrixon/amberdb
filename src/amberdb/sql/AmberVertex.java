@@ -1,20 +1,10 @@
 package amberdb.sql;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.skife.jdbi.v2.Handle;
-import org.skife.jdbi.v2.sqlobject.Bind;
-import org.skife.jdbi.v2.sqlobject.SqlQuery;
-import org.skife.jdbi.v2.util.LongMapper;
-
-import amberdb.sql.State;
 import amberdb.sql.dao.VertexDao;
-import amberdb.sql.map.PersistentEdgeMapper;
-import amberdb.sql.map.SessionEdgeMapper;
 
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
@@ -217,10 +207,6 @@ public class AmberVertex implements Vertex {
         // get the edges
         Iterable<Edge> edges = getEdges(direction, labels);
 
-        for (Edge e : edges) {
-            AmberEdge ae = (AmberEdge) e;
-        }
-        
         List<Long> vertexIds = new ArrayList<Long>();
         for (Edge e : edges) {
             AmberEdge ae = (AmberEdge) e;
@@ -236,7 +222,7 @@ public class AmberVertex implements Vertex {
         List<Vertex> vertices = new ArrayList<Vertex>();
         for (AmberVertex v : vs) {
             if (v == null) continue;
-            while (vertexIds.remove((Long) v.getId()) == true) {
+            while (vertexIds.remove((Long) v.getId())) {
                 vertices.add(v);
             }
         }
@@ -277,10 +263,6 @@ public class AmberVertex implements Vertex {
         .append(" end:").append(dao().getVertexTxnEnd(id))
         .append(" state:").append(dao().getVertexState(id).toString());
         return sb.toString();
-    }
-    
-    private void s(String s) {
-        graph.log.info(s);
     }
     
     public Long getTxnEnd() {

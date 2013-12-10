@@ -2,7 +2,6 @@ package amberdb.sql;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -10,10 +9,7 @@ import javax.sql.DataSource;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.skife.jdbi.v2.DBI;
-import org.skife.jdbi.v2.Handle;
 
 import amberdb.enums.SubType;
 import amberdb.sql.dao.PersistentDao;
@@ -35,7 +31,7 @@ public class AmberGraphDaoTest {
         System.out.println("Setting up graph");
 
         DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:mem:h2testSession","sess","sess");
-        DataSource persistentDs = JdbcConnectionPool.create("jdbc:h2:mem:h2testPersist","persist","persist");
+        JdbcConnectionPool.create("jdbc:h2:mem:h2testPersist","persist","persist");
       
         graph = new AmberGraph(sessionDs, null, "tester");
     }

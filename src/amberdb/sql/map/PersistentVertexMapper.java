@@ -1,15 +1,14 @@
 package amberdb.sql.map;
 
-import amberdb.sql.AmberGraph;
-import amberdb.sql.AmberProperty;
-import amberdb.sql.AmberVertex;
-import amberdb.sql.State;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
+
+import amberdb.sql.AmberGraph;
+import amberdb.sql.AmberVertex;
+import amberdb.sql.State;
 
 public class PersistentVertexMapper implements ResultSetMapper<AmberVertex> {
     

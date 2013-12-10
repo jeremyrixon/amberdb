@@ -3,7 +3,6 @@ package amberdb.sql;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -12,16 +11,13 @@ import javax.sql.DataSource;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.Assert;
+
 import static org.junit.Assert.*;
 import org.junit.rules.TemporaryFolder;
 
 import com.google.common.collect.Lists;
-import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
-import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
@@ -109,7 +105,7 @@ public class AmberGraphPersistenceTest {
         v2.setProperty("other number", 40.40);
         
         try {
-            Edge e1 = graph1.addEdge(null, v1, v2, "the connector");
+            graph1.addEdge(null, v1, v2, "the connector");
         } catch (Exception e) {
             s("Expected ....." + e.getMessage());
         }
@@ -159,7 +155,7 @@ public class AmberGraphPersistenceTest {
         Vertex v = graph1.addVertex(null);
         v.setProperty("String", "this is a string");
         v.setProperty("Boolean", true);
-        v.setProperty("Long", 1234567891011l);
+        v.setProperty("Long", 1234567891011L);
         v.setProperty("Integer", 1234567);
         v.setProperty("Float", 123456.123456);
         v.setProperty("Double", 12345678901232354.0d);
@@ -193,7 +189,7 @@ public class AmberGraphPersistenceTest {
         
         // modify 2 vertices and an edge in the original session and commit
         Vertex oRoot = graph1.getVertex(rootId);
-        List<Vertex> oVs = readTree(oRoot, 5, "branch");
+        readTree(oRoot, 5, "branch");
         Vertex n1 = oRoot.getVertices(Direction.OUT, "branch").iterator().next();
         n1.setProperty("new prop", "a new value");
         Vertex n2 = n1.getVertices(Direction.OUT, "branch").iterator().next();
@@ -218,7 +214,7 @@ public class AmberGraphPersistenceTest {
         assertEquals(0, mutes3.get("edge").size());
 
         // make sure graph 1 is aware of "Leaf red 5" and all its edges
-        Vertex v3 = graph1.getVertices("name", "Leaf 5 red").iterator().next();
+        graph1.getVertices("name", "Leaf 5 red").iterator().next();
         
         // graph 3 to delete a leaf
         Vertex del = graph3.getVertices("name", "Leaf 5 red").iterator().next();

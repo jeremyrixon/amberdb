@@ -1,17 +1,5 @@
 package amberdb.sql;
 
-import amberdb.sql.State;
-import amberdb.sql.dao.*;
-import amberdb.sql.map.PersistentEdgeMapper;
-import amberdb.sql.map.PersistentEdgeMapperFactory;
-import amberdb.sql.map.PersistentPropertyMapper;
-import amberdb.sql.map.PersistentVertexMapper;
-import amberdb.sql.map.PersistentVertexMapperFactory;
-import amberdb.sql.map.SessionEdgeMapper;
-import amberdb.sql.map.SessionEdgeMapperFactory;
-import amberdb.sql.map.SessionVertexMapper;
-import amberdb.sql.map.SessionVertexMapperFactory;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,6 +16,23 @@ import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException;
 import org.skife.jdbi.v2.util.LongMapper;
+
+import amberdb.sql.dao.EdgeDao;
+import amberdb.sql.dao.PersistentDao;
+import amberdb.sql.dao.PersistentDaoH2;
+import amberdb.sql.dao.PersistentDaoMYSQL;
+import amberdb.sql.dao.SessionDao;
+import amberdb.sql.dao.TransactionDao;
+import amberdb.sql.dao.VertexDao;
+import amberdb.sql.map.PersistentEdgeMapper;
+import amberdb.sql.map.PersistentEdgeMapperFactory;
+import amberdb.sql.map.PersistentPropertyMapper;
+import amberdb.sql.map.PersistentVertexMapper;
+import amberdb.sql.map.PersistentVertexMapperFactory;
+import amberdb.sql.map.SessionEdgeMapper;
+import amberdb.sql.map.SessionEdgeMapperFactory;
+import amberdb.sql.map.SessionVertexMapper;
+import amberdb.sql.map.SessionVertexMapperFactory;
 
 import com.google.common.collect.Lists;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
@@ -320,10 +325,10 @@ public class AmberGraph implements Graph, TransactionalGraph {
         if (inList.size() > 0) {
             inClause = new StringBuilder(clausePrefix + " IN (");
             for (Long num : inList) {
-                inClause.append(num).append(",");
+                inClause.append(num).append(',');
             }
             inClause.setLength(inClause.length() - 1);
-            inClause.append(")");
+            inClause.append(')');
         } else {
             inClause = new StringBuilder();
         }
@@ -1063,13 +1068,13 @@ public class AmberGraph implements Graph, TransactionalGraph {
         
         Long txnId = txn.getId();
         
-        // add an end transaction to superceded and deleted elements 
-        int numEndedVertices = dao.updateSupercededVertices(txnId);
-        int numEndedEdges = dao.updateSupercededEdges(txnId);
+        // add an end transaction to superseded and deleted elements 
+        int numEndedVertices = dao.updateSupersededVertices(txnId);
+        int numEndedEdges = dao.updateSupersededEdges(txnId);
 
-        // add an end transaction to superceded and deleted properties
-        int numEndedEdgeProperties = dao.updateSupercededEdgeProperties(txnId);
-        int numEndedVertexProperties = dao.updateSupercededVertexProperties(txnId);
+        // add an end transaction to superseded and deleted properties
+        int numEndedEdgeProperties = dao.updateSupersededEdgeProperties(txnId);
+        int numEndedVertexProperties = dao.updateSupersededVertexProperties(txnId);
         
         // IMPORTANT : will need to delete incident edges for deleted vertices too
         // They may not have been queried into the session, but are none the less

@@ -18,10 +18,10 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 import doss.Blob;
 import doss.BlobStore;
 import doss.BlobTx;
-import doss.local.LocalBlobStore;
 import doss.NoSuchBlobException;
 import doss.Writable;
 import doss.core.Writables;
+import doss.local.LocalBlobStore;
 
 @TypeValue("File")
 public interface File extends Node {

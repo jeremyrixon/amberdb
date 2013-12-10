@@ -1,6 +1,7 @@
 package amberdb;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -174,7 +175,7 @@ public class IngestTest {
     private void describeWork(JobMockup job, Work work) {
         // fill in default values
         for (Page p : work.getPages()) {
-          
+            assertNotNull(p.getId());
         }
 
         // show the qa form

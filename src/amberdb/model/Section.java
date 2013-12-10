@@ -3,6 +3,7 @@ package amberdb.model;
 import java.util.List;
 
 import amberdb.relation.ExistsOn;
+
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;

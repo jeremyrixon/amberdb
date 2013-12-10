@@ -3,18 +3,21 @@ package amberdb.sql.dao;
 import java.util.Iterator;
 import java.util.List;
 
-import  amberdb.sql.*;
-import amberdb.sql.bind.BindAmberEdge;
-import amberdb.sql.bind.BindAmberProperty;
-import amberdb.sql.bind.BindAmberVertex;
-import  amberdb.sql.map.*;
-
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
+
+import amberdb.sql.AmberEdge;
+import amberdb.sql.AmberProperty;
+import amberdb.sql.AmberVertex;
+import amberdb.sql.bind.BindAmberEdge;
+import amberdb.sql.bind.BindAmberProperty;
+import amberdb.sql.bind.BindAmberVertex;
+import amberdb.sql.map.LongArrayMapper;
+import amberdb.sql.map.PersistentPropertyMapper;
 
 public interface PersistentDao extends Transactional<PersistentDao> {
 
@@ -394,18 +397,18 @@ public interface PersistentDao extends Transactional<PersistentDao> {
             @Bind("txnId") long txnId);
 
     @SqlUpdate("")
-    int updateSupercededVertices(
+    int updateSupersededVertices(
             @Bind("txnId") long txnId);
     
     @SqlUpdate("")
-    int updateSupercededEdges(
+    int updateSupersededEdges(
             @Bind("txnId") long txnId);
 
     @SqlUpdate("")
-    int updateSupercededEdgeProperties(@Bind("txnId") long txnId);
+    int updateSupersededEdgeProperties(@Bind("txnId") long txnId);
     
     @SqlUpdate("")
-    int updateSupercededVertexProperties(@Bind("txnId") long txnId);
+    int updateSupersededVertexProperties(@Bind("txnId") long txnId);
 
     @SqlQuery("")
     boolean schemaTablesExist();

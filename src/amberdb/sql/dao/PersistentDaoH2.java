@@ -41,7 +41,7 @@ public interface PersistentDaoH2 extends PersistentDao {
             "  WHERE state <> 'NEW' " +
             "  AND txn_new = :txnId) " +
             "AND (txn_end = 0 OR txn_end IS NULL)")
-    int updateSupercededVertices(
+    int updateSupersededVertices(
             @Bind("txnId") long txnId);
     
     @SqlUpdate(
@@ -53,7 +53,7 @@ public interface PersistentDaoH2 extends PersistentDao {
             "  WHERE state <> 'NEW' " +
             "  AND txn_new = :txnId) " +
             "AND (txn_end = 0 OR txn_end IS NULL)")
-    int updateSupercededEdges(
+    int updateSupersededEdges(
             @Bind("txnId") long txnId);
 
     @SqlUpdate(            
@@ -65,7 +65,7 @@ public interface PersistentDaoH2 extends PersistentDao {
             "  WHERE state <> 'NEW' " +
             "  AND txn_new = :txnId) " +
             "AND (p.txn_end = 0 OR p.txn_end IS NULL)")
-    int updateSupercededEdgeProperties(
+    int updateSupersededEdgeProperties(
             @Bind("txnId") long txnId);
 
     @SqlUpdate(            
@@ -77,7 +77,7 @@ public interface PersistentDaoH2 extends PersistentDao {
             "  WHERE state <> 'NEW' " +
             "  AND txn_new = :txnId) " +
             "AND (p.txn_end = 0 OR p.txn_end IS NULL)")
-    int updateSupercededVertexProperties(
+    int updateSupersededVertexProperties(
             @Bind("txnId") long txnId);
 
     @SqlQuery(            

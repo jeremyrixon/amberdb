@@ -1,14 +1,13 @@
 package amberdb;
 
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.h2.jdbcx.JdbcConnectionPool;
-
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 
@@ -47,7 +46,7 @@ public class JellyAmberPropertyMigrater {
     public static void testGraph(DataSource sess, MysqlDataSource pers) {
         AmberGraph g = new AmberGraph(sess, pers);
         
-        Vertex v1 = g.getVertex(179722129l);
+        Vertex v1 = g.getVertex(179722129L);
         s(showVertex(v1));
         
         Iterable<Vertex> vs = v1.getVertices(Direction.IN);
@@ -59,7 +58,7 @@ public class JellyAmberPropertyMigrater {
 
     public static String showVertex(Vertex v) {
         StringBuilder sb = new StringBuilder();
-        sb.append(v.toString()).append("\n");
+        sb.append(v.toString()).append('\n');
         for (String k : v.getPropertyKeys()) {
             sb.append("\t" + k + ": " + v.getProperty(k) + "\n");
         }
