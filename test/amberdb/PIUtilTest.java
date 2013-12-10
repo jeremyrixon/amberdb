@@ -32,6 +32,9 @@ public class PIUtilTest {
         input = "nla.obj-";
         assertFalse("The input PI '" + input + "' is invalid.", PIUtil.isValid(input));
 
+        input = "nla.obj-fgsfds";
+        assertFalse("The input PI '" + input + "' is invalid.", PIUtil.isValid(input));
+
         input = "!!!Are Emus valid PIs???";
         assertFalse("The input PI '" + input + "' is invalid.", PIUtil.isValid(input));
     }

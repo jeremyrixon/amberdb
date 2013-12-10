@@ -1,5 +1,7 @@
 package amberdb;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * Borrowing of the Checksums/Damm Algorithm to provide check-digits for PI
  * from:
@@ -80,7 +82,10 @@ public class PIUtil {
             return false;
         if (pi.length() <= PI_PREFIX.length())
             return false;
-
+        if (!StringUtils.isNumeric(pi.substring(PI_PREFIX.length()))) {
+            return false;
+        }
+        
         return (taq(Long.decode(pi.substring(PI_PREFIX.length()))) == 0);
     }
 }
