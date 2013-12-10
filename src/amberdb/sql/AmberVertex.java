@@ -1,20 +1,10 @@
 package amberdb.sql;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.skife.jdbi.v2.Handle;
-import org.skife.jdbi.v2.sqlobject.Bind;
-import org.skife.jdbi.v2.sqlobject.SqlQuery;
-import org.skife.jdbi.v2.util.LongMapper;
-
-import amberdb.sql.State;
 import amberdb.sql.dao.VertexDao;
-import amberdb.sql.map.PersistentEdgeMapper;
-import amberdb.sql.map.SessionEdgeMapper;
 
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;

@@ -1,14 +1,13 @@
 package amberdb;
 
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.h2.jdbcx.JdbcConnectionPool;
-
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 

@@ -3,17 +3,19 @@ package amberdb.sql.dao;
 import java.util.Iterator;
 import java.util.List;
 
-import  amberdb.sql.*;
-import amberdb.sql.bind.BindAmberEdge;
-import amberdb.sql.bind.BindAmberProperty;
-import  amberdb.sql.map.*;
-
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlBatch;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
+
+import amberdb.sql.AmberEdge;
+import amberdb.sql.AmberProperty;
+import amberdb.sql.AmberVertex;
+import amberdb.sql.bind.BindAmberEdge;
+import amberdb.sql.bind.BindAmberProperty;
+import amberdb.sql.map.SessionPropertyMapper;
 
 public interface SessionDao extends Transactional<SessionDao> {
 

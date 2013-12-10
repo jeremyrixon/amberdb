@@ -7,14 +7,11 @@ import java.nio.file.Path;
 
 import javax.sql.DataSource;
 
-import amberdb.sql.AmberGraph;
-
 public class AmberDb {
     final private DataSource dataSource;
     final private Path rootPath;
     final private Path sessionsPath;
-    
-    
+
     public AmberDb(DataSource dataSource, Path rootPath) {
         this.dataSource = dataSource;
         this.rootPath = rootPath;

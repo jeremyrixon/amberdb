@@ -1,14 +1,14 @@
 package amberdb.sql.map;
 
-import amberdb.sql.AmberProperty;
-import amberdb.sql.DataType;
-
 import java.sql.Blob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
+
+import amberdb.sql.AmberProperty;
+import amberdb.sql.DataType;
 
 public class SessionPropertyMapper implements ResultSetMapper<AmberProperty> {
 
