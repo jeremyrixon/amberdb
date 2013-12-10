@@ -1068,13 +1068,13 @@ public class AmberGraph implements Graph, TransactionalGraph {
         
         Long txnId = txn.getId();
         
-        // add an end transaction to superceded and deleted elements 
-        int numEndedVertices = dao.updateSupercededVertices(txnId);
-        int numEndedEdges = dao.updateSupercededEdges(txnId);
+        // add an end transaction to superseded and deleted elements 
+        int numEndedVertices = dao.updateSupersededVertices(txnId);
+        int numEndedEdges = dao.updateSupersededEdges(txnId);
 
-        // add an end transaction to superceded and deleted properties
-        int numEndedEdgeProperties = dao.updateSupercededEdgeProperties(txnId);
-        int numEndedVertexProperties = dao.updateSupercededVertexProperties(txnId);
+        // add an end transaction to superseded and deleted properties
+        int numEndedEdgeProperties = dao.updateSupersededEdgeProperties(txnId);
+        int numEndedVertexProperties = dao.updateSupersededVertexProperties(txnId);
         
         // IMPORTANT : will need to delete incident edges for deleted vertices too
         // They may not have been queried into the session, but are none the less

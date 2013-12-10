@@ -35,7 +35,7 @@ public interface PersistentDaoMYSQL extends PersistentDao {
             "AND s.state <> 'NEW' " +
             "AND s.txn_new = :txnId " +
             "AND (v.txn_end = 0 OR v.txn_end IS NULL)")
-    int updateSupercededVertices(
+    int updateSupersededVertices(
             @Bind("txnId") long txnId);
     
     @SqlUpdate(
@@ -45,7 +45,7 @@ public interface PersistentDaoMYSQL extends PersistentDao {
             "AND s.state <> 'NEW' " +
             "AND s.txn_new = :txnId " +
             "AND (e.txn_end = 0 OR e.txn_end IS NULL)")
-    int updateSupercededEdges(
+    int updateSupersededEdges(
             @Bind("txnId") long txnId);
 
     @SqlUpdate(
@@ -55,7 +55,7 @@ public interface PersistentDaoMYSQL extends PersistentDao {
             "AND e.state <> 'NEW' " + 
             "AND e.txn_new = :txnId " +
             "AND (p.txn_end = 0 OR p.txn_end IS NULL)")
-    int updateSupercededEdgeProperties(@Bind("txnId") long txnId);
+    int updateSupersededEdgeProperties(@Bind("txnId") long txnId);
     
     @SqlUpdate(
             "UPDATE property p, stage_vertex v " + 
@@ -64,7 +64,7 @@ public interface PersistentDaoMYSQL extends PersistentDao {
             "AND v.state <> 'NEW' " + 
             "AND v.txn_new = :txnId " +
             "AND (p.txn_end = 0 OR p.txn_end IS NULL)")
-    int updateSupercededVertexProperties(@Bind("txnId") long txnId);
+    int updateSupersededVertexProperties(@Bind("txnId") long txnId);
     
     @SqlQuery(            
             "SELECT (COUNT(table_name) = 8) " +
