@@ -1,6 +1,7 @@
 package amberdb.sql;
 
 import java.lang.reflect.Field;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -155,9 +156,21 @@ public class AmberGraph implements Graph, TransactionalGraph {
         peFactory.setGraph(this);
 
         // set up required data access objects
-        if (ds instanceof MysqlDataSource || ds instanceof BoneCPDataSource) {
+        String dbProduct = "";
+        try {
+            dbProduct = ds.getConnection().getMetaData().getDatabaseProductName();
+            s("Persistent database is " + dbProduct);
+        } catch (SQLException e) {
+            s("could not determine the persistent database product - assuming it is H2");
+            s(e.getMessage());
+        } 
+
+        if (dbProduct.equals("MySQL")) {
             persistentDao = persistentDbi.onDemand(PersistentDaoMYSQL.class);
+        } else if (dbProduct.equals("H2")) {
+            persistentDao = persistentDbi.onDemand(PersistentDaoH2.class);
         } else {
+            // defaulting to H2
             persistentDao = persistentDbi.onDemand(PersistentDaoH2.class);
         }
         transactionDao = persistentDbi.onDemand(TransactionDao.class);
