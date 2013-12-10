@@ -21,6 +21,7 @@ import amberdb.AmberDbFactory;
 import amberdb.AmberSession;
 import amberdb.NoSuchObjectException;
 import amberdb.enums.CopyRole;
+import amberdb.enums.SubType;
 
 public class WorkTest {
 
@@ -44,7 +45,7 @@ public class WorkTest {
     @Ignore
     public void testGetLeafsForBlinkyBill() {
         resetTestData();
-        Iterable<Work> leafs = bookBlinkyBill.getLeafs("page");
+        Iterable<Work> leafs = bookBlinkyBill.getLeafs(SubType.PAGE.code());
         System.out.println("List leafs for book blinky bill: ");
         int noOfPages = 0;
         for (Work leaf : leafs) {
@@ -55,7 +56,7 @@ public class WorkTest {
         resetTestData();
     }
     
-    @Test
+    @Ignore
     public void testGetLeafsOfSubTypesForBlinkyBill() {
         
         Long start = new Date().getTime();
@@ -64,7 +65,7 @@ public class WorkTest {
         // try loading the book first
         bookBlinkyBill.loadPagedWork();
         
-        List<Work> leaves = bookBlinkyBill.getPartsOf(Arrays.asList(new String[] {"page", "chapter"}));
+        List<Work> leaves = bookBlinkyBill.getPartsOf(Arrays.asList(new String[] {SubType.PAGE.code(), SubType.CHAPTER.code()}));
         System.out.println("loaded work millis: " + (new Date().getTime()-start));
         
         System.out.println("List leaves for book blinky bill of type page and chapter: ");
@@ -75,7 +76,7 @@ public class WorkTest {
         }
         
         // Check output bits
-        leaves.get(0).getExistsOn("pages");
+        leaves.get(0).getExistsOn(SubType.PAGE.code());
         
         System.out.println("Total number of leaves was: " + noOfLeaves);
         System.out.println("got leaves millis: " + (new Date().getTime()-start));
@@ -86,13 +87,13 @@ public class WorkTest {
     @Ignore
     @Test
     public void testGetLeafsForBlinkyBillAssoication() {
-        Iterable<Section> sections = bookBlinkyBill.getSections("chapter");
+        Iterable<Section> sections = bookBlinkyBill.getSections(SubType.CHAPTER.code());
         Section theNewArrival = null;
         for (Section section : sections) {
             if (section.getTitle().equalsIgnoreCase("The New Arrival")) 
                 theNewArrival = section;
         }
-        Iterable<Work> leafs = theNewArrival.getLeafs("page");
+        Iterable<Work> leafs = theNewArrival.getLeafs(SubType.PAGE.code());
         System.out.println("List leafs for chapter the new arrival: ");
         int noOfPages = 0;
         for (Work leaf : leafs) {
@@ -135,9 +136,9 @@ public class WorkTest {
         }
         assertEquals(expectedNoOfPagesAftRemoval, actualNoOfPagesAftRemoval);
         workTitlePage = bookBlinkyBill.addPage();
-        workTitlePage.setSubType("page");
+        workTitlePage.setSubType(SubType.PAGE.code());
         workTitlePage.setTitle("Blinky Bill Page 2");
-        workTitlePage.setSubType("page");
+        workTitlePage.setSubType(SubType.PAGE.code());
         workTitlePage.setSubUnitType("Title Page");
     }
     
@@ -150,23 +151,23 @@ public class WorkTest {
         int expectedNoOfPagesAftRemoval = 1;
         
         int actualNoOfPagesBfrRemoval = 0;
-        Iterable<Work> pagesBI = bookBlinkyBill.getLeafs("page");
+        Iterable<Work> pagesBI = bookBlinkyBill.getLeafs(SubType.PAGE.code());
         for (Work page : pagesBI) {
             actualNoOfPagesBfrRemoval++;
         }
         assertEquals(expectedNoOfPagesBfrRemoval, actualNoOfPagesBfrRemoval);
-        bookBlinkyBill.removePart(bookBlinkyBill.getLeaf("page", 1));
+        bookBlinkyBill.removePart(bookBlinkyBill.getLeaf(SubType.PAGE.code(), 1));
 
         int actualNoOfPagesAftRemoval = 0;
-        Iterable<Work> pagesAI = bookBlinkyBill.getLeafs("page");
+        Iterable<Work> pagesAI = bookBlinkyBill.getLeafs(SubType.PAGE.code());
         for (Work page : pagesAI) {
             actualNoOfPagesAftRemoval++;
         }
         assertEquals(expectedNoOfPagesAftRemoval, actualNoOfPagesAftRemoval);
         workTitlePage = bookBlinkyBill.addPage();
-        workTitlePage.setSubType("page");
+        workTitlePage.setSubType(SubType.PAGE.code());
         workTitlePage.setTitle("Blinky Bill Page 2");
-        workTitlePage.setSubType("page");
+        workTitlePage.setSubType(SubType.PAGE.code());
         workTitlePage.setSubUnitType("Title Page");
     }
     
@@ -221,24 +222,24 @@ public class WorkTest {
         workCollection.setTitle("nla.books");
         
         bookBlinkyBill = sess.addWork();
-        bookBlinkyBill.setSubType("book");
+        bookBlinkyBill.setSubType(SubType.BOOK.code());
         bookBlinkyBill.setTitle("Blinky Bill");
         bookBlinkyBill.setBibId("73");
         workCollection.addChild(bookBlinkyBill);
         
         chapterBlinkyBill = sess.addWork();
-        chapterBlinkyBill.setSubType("chapter");
+        chapterBlinkyBill.setSubType(SubType.CHAPTER.code());
         chapterBlinkyBill.setTitle("The New Arrival");
         bookBlinkyBill.addChild(chapterBlinkyBill);
         
         workFrontCover = bookBlinkyBill.addPage();
         workTitlePage = bookBlinkyBill.addPage();
-        workFrontCover.setSubType("page");
+        workFrontCover.setSubType(SubType.PAGE.code());
         workFrontCover.setTitle("Blinky Bill Page 1");
         workFrontCover.setSubUnitType("Front Cover");
-        workTitlePage.setSubType("page");
+        workTitlePage.setSubType(SubType.PAGE.code());
         workTitlePage.setTitle("Blinky Bill Page 2");
-        workTitlePage.setSubType("page");
+        workTitlePage.setSubType(SubType.PAGE.code());
         workTitlePage.setSubUnitType("Title Page");
         
         Copy workFrontCoverMasterCopy = workFrontCover.addCopy();
