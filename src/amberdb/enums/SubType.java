@@ -5,11 +5,11 @@ import java.util.List;
 
 public enum SubType {
 
-    PAGE("Page"),
-    BOOK("Book"),
-    ARTICLE("Article"),
-    CHAPTER("Chapter"),
-    VOLUME("Volume");
+    PAGE("page"),
+    BOOK("book"),
+    ARTICLE("article"),
+    CHAPTER("chapter"),
+    VOLUME("volume");
 
     private String code;
 
