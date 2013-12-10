@@ -34,7 +34,7 @@ public class PIUtil {
             number = -number;
 
         char interim = '0';
-        char[] numStr = new Long(number).toString().toCharArray();
+        char[] numStr = Long.toString(number).toCharArray();
         for (char digit : numStr) {
             interim = taqDhmd111rr[(interim - '0')][(digit - '0')];
         }
@@ -50,7 +50,7 @@ public class PIUtil {
      * @return String
      */
     public static String format(Long objId) {
-        return PI_PREFIX + objId + taq(objId);
+        return PI_PREFIX + (objId + taq(objId));
     }
 
     /**

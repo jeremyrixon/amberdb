@@ -226,7 +226,7 @@ public class AmberVertex implements Vertex {
         List<Vertex> vertices = new ArrayList<Vertex>();
         for (AmberVertex v : vs) {
             if (v == null) continue;
-            while (vertexIds.remove((Long) v.getId()) == true) {
+            while (vertexIds.remove((Long) v.getId())) {
                 vertices.add(v);
             }
         }
@@ -267,10 +267,6 @@ public class AmberVertex implements Vertex {
         .append(" end:").append(dao().getVertexTxnEnd(id))
         .append(" state:").append(dao().getVertexState(id).toString());
         return sb.toString();
-    }
-    
-    private void s(String s) {
-        graph.log.info(s);
     }
     
     public Long getTxnEnd() {

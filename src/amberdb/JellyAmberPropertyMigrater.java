@@ -46,7 +46,7 @@ public class JellyAmberPropertyMigrater {
     public static void testGraph(DataSource sess, MysqlDataSource pers) {
         AmberGraph g = new AmberGraph(sess, pers);
         
-        Vertex v1 = g.getVertex(179722129l);
+        Vertex v1 = g.getVertex(179722129L);
         s(showVertex(v1));
         
         Iterable<Vertex> vs = v1.getVertices(Direction.IN);
@@ -58,7 +58,7 @@ public class JellyAmberPropertyMigrater {
 
     public static String showVertex(Vertex v) {
         StringBuilder sb = new StringBuilder();
-        sb.append(v.toString()).append("\n");
+        sb.append(v.toString()).append('\n');
         for (String k : v.getPropertyKeys()) {
             sb.append("\t" + k + ": " + v.getProperty(k) + "\n");
         }

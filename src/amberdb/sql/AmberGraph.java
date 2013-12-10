@@ -325,10 +325,10 @@ public class AmberGraph implements Graph, TransactionalGraph {
         if (inList.size() > 0) {
             inClause = new StringBuilder(clausePrefix + " IN (");
             for (Long num : inList) {
-                inClause.append(num).append(",");
+                inClause.append(num).append(',');
             }
             inClause.setLength(inClause.length() - 1);
-            inClause.append(")");
+            inClause.append(')');
         } else {
             inClause = new StringBuilder();
         }
