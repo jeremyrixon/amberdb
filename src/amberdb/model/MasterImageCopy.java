@@ -28,6 +28,8 @@ public interface MasterImageCopy extends Copy {
             // set the masterImage file to have file extension of .tif
             try (LocalBlobStore.Tx tx = (LocalBlobStore.Tx) ((LocalBlobStore) AmberSession.ownerOf(g()).getBlobStore()).begin()) {
                 tx.setExtension(masterImage.getBlobId(), ".tif");    
+                tx.commit();
+                
                 Path jp2ImgPath = generateImage(tiffUnCompressor, jp2Generator, masterImage);
                 
                 Work work = this.getWork();
