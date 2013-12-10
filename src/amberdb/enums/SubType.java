@@ -39,4 +39,12 @@ public enum SubType {
         }
         return list;
     }
+    
+    public static List<String> map(String[] subtypes) {
+        List<String> subTypes = new ArrayList<String>();
+        for (String subtype : subtypes) {
+            subTypes.add(SubType.valueOf(subtype.toUpperCase()).code());
+        }
+        return subTypes;
+    }
 }
