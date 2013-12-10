@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import amberdb.enums.CopyRole;
+import amberdb.enums.SubType;
 import amberdb.relation.IsCopyOf;
 import amberdb.relation.IsPartOf;
 import amberdb.sql.AmberGraph;
@@ -455,7 +456,7 @@ public interface Work extends Node {
             // discard all but the pages
             List<Long> pageIds = new ArrayList<Long>();
             for (Vertex v : parts) {
-                if (v.getProperty("subType").equals("page")) {
+                if (v.getProperty("subType").toString().equalsIgnoreCase(SubType.PAGE.code())) {
                     pageIds.add((Long) v.getId());
                 }
             }

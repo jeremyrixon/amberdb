@@ -11,6 +11,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import amberdb.enums.SubType;
+import amberdb.sql.dao.PersistentDao;
+import amberdb.sql.dao.SessionDao;
+
+import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.Edge;
@@ -96,18 +101,18 @@ public class AmberGraphDaoTest {
         Vertex v10 = graph.addVertex(null);
         Vertex v11 = graph.addVertex(null);
         
-        vp.setProperty("type", "book");
-        v1.setProperty("type", "page");
-        v2.setProperty("type", "page");
-        v3.setProperty("type", "page");
-        v4.setProperty("type", "page");
-        v5.setProperty("type", "page");
-        v6.setProperty("type", "page");
-        v7.setProperty("type", "page");
-        v8.setProperty("type", "page");
-        v9.setProperty("type", "page");
-        v10.setProperty("type", "page");
-        v11.setProperty("type", "page");
+        vp.setProperty("type", SubType.BOOK.code());
+        v1.setProperty("type", SubType.PAGE.code());
+        v2.setProperty("type", SubType.PAGE.code());
+        v3.setProperty("type", SubType.PAGE.code());
+        v4.setProperty("type", SubType.PAGE.code());
+        v5.setProperty("type", SubType.PAGE.code());
+        v6.setProperty("type", SubType.PAGE.code());
+        v7.setProperty("type", SubType.PAGE.code());
+        v8.setProperty("type", SubType.PAGE.code());
+        v9.setProperty("type", SubType.PAGE.code());
+        v10.setProperty("type", SubType.PAGE.code());
+        v11.setProperty("type", SubType.PAGE.code());
         
         Edge e1 = graph.addEdge(null, vp, v1, "hasPage");
         Edge e2 = graph.addEdge(null, vp, v2, "hasPage");

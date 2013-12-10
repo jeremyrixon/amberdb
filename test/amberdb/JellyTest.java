@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 import amberdb.enums.CopyRole;
+import amberdb.enums.SubType;
 import amberdb.model.Copy;
 import amberdb.model.File;
 import amberdb.model.Page;
@@ -63,7 +64,7 @@ public class JellyTest {
             if (workTitlePage == null) workTitlePage = db.findWork(179722746L);
             
             if (!AmberDbFactory.h2Test) {
-                expectedResults.put("workFrontCover_getSubType", "page");
+                expectedResults.put("workFrontCover_getSubType", SubType.PAGE.code());
                 expectedResults.put("workFrontCover_getSubUnitType", "Front Cover");
                 expectedResults.put("copy_carrier", "Online");
                 expectedResults.put("workFrontCover_OCR_JSON_COPY_ID", 179722446L);
@@ -72,7 +73,7 @@ public class JellyTest {
                 expectedResults.put("workFrontCover_OCR_JSON_COPY_FILE_ID", 179722447L);
                 expectedResults.put("workFrontCover_MASTER_COPY_FILE_ID", 179722449L);
                 
-                expectedResults.put("workTitlePage_getSubType", "page");
+                expectedResults.put("workTitlePage_getSubType", SubType.PAGE.code());
                 expectedResults.put("workTitlePage_getSubUnitType", "Title Page");
                 expectedResults.put("workTitlePage_ACCESS_COPY_ID", 179722751L);
                 
@@ -228,7 +229,7 @@ public class JellyTest {
     // @Test
     @Ignore
     public void testWorkProperties() {
-        assertEquals("page", workFrontCover.getSubType());
+        assertEquals(SubType.PAGE.code(), workFrontCover.getSubType());
         assertEquals("Front Cover", workFrontCover.getSubUnitType());
 
         for (Copy copy : copies) {
@@ -273,23 +274,23 @@ public class JellyTest {
         workCollection.setTitle("nla.books");
         
         bookBlinkyBill = sess.addWork();
-        bookBlinkyBill.setSubType("book");
+        bookBlinkyBill.setSubType(SubType.BOOK.code());
         bookBlinkyBill.setTitle("Blinky Bill");
         workCollection.addChild(bookBlinkyBill);
         
         chapterBlinkyBill = sess.addWork();
-        chapterBlinkyBill.setSubType("chapter");
+        chapterBlinkyBill.setSubType(SubType.CHAPTER.code());
         chapterBlinkyBill.setTitle("Blinky Bill chapter 1");
         bookBlinkyBill.addChild(chapterBlinkyBill);
         
         workFrontCover = bookBlinkyBill.addPage();
         workTitlePage = bookBlinkyBill.addPage();
-        workFrontCover.setSubType("page");
+        workFrontCover.setSubType(SubType.PAGE.code());
         workFrontCover.setTitle("Blinky Bill Page 1");
         workFrontCover.setSubUnitType("Front Cover");
-        workTitlePage.setSubType("page");
+        workTitlePage.setSubType(SubType.PAGE.code());
         workTitlePage.setTitle("Blinky Bill Page 2");
-        workTitlePage.setSubType("page");
+        workTitlePage.setSubType(SubType.PAGE.code());
         workTitlePage.setSubUnitType("Title Page");
         
         Copy workFrontCoverMasterCopy = workFrontCover.addCopy();
