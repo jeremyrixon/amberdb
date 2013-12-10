@@ -35,6 +35,7 @@ import amberdb.sql.map.SessionVertexMapper;
 import amberdb.sql.map.SessionVertexMapperFactory;
 
 import com.google.common.collect.Lists;
+import com.jolbox.bonecp.BoneCPDataSource;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
@@ -154,7 +155,7 @@ public class AmberGraph implements Graph, TransactionalGraph {
         peFactory.setGraph(this);
 
         // set up required data access objects
-        if (ds instanceof MysqlDataSource) {
+        if (ds instanceof MysqlDataSource || ds instanceof BoneCPDataSource) {
             persistentDao = persistentDbi.onDemand(PersistentDaoMYSQL.class);
         } else {
             persistentDao = persistentDbi.onDemand(PersistentDaoH2.class);
