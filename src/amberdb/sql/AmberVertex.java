@@ -207,10 +207,6 @@ public class AmberVertex implements Vertex {
         // get the edges
         Iterable<Edge> edges = getEdges(direction, labels);
 
-        for (Edge e : edges) {
-            AmberEdge ae = (AmberEdge) e;
-        }
-        
         List<Long> vertexIds = new ArrayList<Long>();
         for (Edge e : edges) {
             AmberEdge ae = (AmberEdge) e;

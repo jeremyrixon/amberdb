@@ -50,7 +50,7 @@ public class PIUtil {
      * @return String
      */
     public static String format(Long objId) {
-        return PI_PREFIX + (objId + taq(objId));
+        return PI_PREFIX + objId + taq(objId);
     }
 
     /**
