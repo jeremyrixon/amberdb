@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import amberdb.AmberSession;
 import amberdb.NoSuchCopyException;
 import amberdb.enums.CopyRole;
+import amberdb.utils.OSProcessBuilder;
 
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.frames.modules.javahandler.JavaHandler;
@@ -33,15 +34,18 @@ public interface MasterImageCopy extends Copy {
                 Path jp2ImgPath = generateImage(tiffUnCompressor, jp2Generator, masterImage);
                 
                 Work work = this.getWork();
-                return work.addCopy(jp2ImgPath, CopyRole.ACCESS_COPY, "jp2");
+                Copy ac = work.addCopy(jp2ImgPath, CopyRole.ACCESS_COPY, "jp2");
+                AccessImageFile acf = (AccessImageFile) ac.getFile();
+                acf.setLocation(jp2ImgPath.toString());
+                return ac;
             }
         }
         
         private Path generateImage(Path tiffUnCompressor, Path jp2Generator, File masterImage) throws IOException, InterruptedException {
             // Step 1: uncompress Tiff
-            String tiffTool = tiffUnCompressor.toString();
-            Path tiffUnCompPath = Paths.get("/tmp");
-            ProcessBuilder tiffPb = new ProcessBuilder(tiffTool, "");
+            Path tiffInput = Paths.get("");
+            Path tiffOutput = Paths.get("");
+            ProcessBuilder tiffPb = new OSProcessBuilder("tiffCmd", "").setCmdPath(tiffUnCompressor).setInputPath(tiffInput).setOutputPath(tiffOutput).assemble();
             Process tiffProcess = tiffPb.start();
             tiffProcess.waitFor();
             tiffProcess.exitValue();
