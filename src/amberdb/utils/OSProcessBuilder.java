@@ -3,9 +3,9 @@ package amberdb.utils;
 import java.nio.file.Path;
 
 public class OSProcessBuilder {
-    private Path osCmd;
-    private Path input;
-    private Path output;
+    private Path osCmd = null;
+    private Path input = null;
+    private Path output = null;
     private Options options;
     
     public OSProcessBuilder(String... args) {
@@ -30,9 +30,9 @@ public class OSProcessBuilder {
     public ProcessBuilder assemble() {
         if (options == null) return null;
         
-        options.setCmdPath(osCmd.toString());
-        options.setInput(input.toString());
-        options.setOutput(output.toString());
+        if (osCmd != null) options.setCmdPath(osCmd.toString());
+        if (input != null) options.setInput(input.toString());
+        if (output != null) options.setOutput(output.toString());
 
         return new ProcessBuilder(options.asArray());
     }
