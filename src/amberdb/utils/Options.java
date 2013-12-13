@@ -5,7 +5,7 @@ public class Options {
     int inputArgIdx = -1;
     int outputArgIdx = -1;
     
-    Options(String... options) {
+    public Options(String... options) {
         this.options = options;
         if (options != null) {
             int i = 0;
@@ -13,7 +13,7 @@ public class Options {
                 if (option.equalsIgnoreCase("$input")) 
                     inputArgIdx = i;
                 else if (option.equalsIgnoreCase("$output"))
-                    inputArgIdx = i;
+                    outputArgIdx = i;
                 i++;
             }
         }
@@ -37,5 +37,15 @@ public class Options {
     
     public String[] asArray() {
         return options;
+    }
+    
+    public String toString() {
+        if (options == null) return "";
+        
+        String cmd = "";
+        for (String option : options) {
+            cmd += option + " ";
+        }
+        return cmd;
     }
 }

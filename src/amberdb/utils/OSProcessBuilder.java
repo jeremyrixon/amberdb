@@ -27,6 +27,10 @@ public class OSProcessBuilder {
         return this;
     }
     
+    public Options getOptions() {
+        return options;
+    }
+    
     public ProcessBuilder assemble() {
         if (options == null) return null;
         
@@ -34,6 +38,7 @@ public class OSProcessBuilder {
         if (input != null) options.setInput(input.toString());
         if (output != null) options.setOutput(output.toString());
 
+        System.out.println("assembled command: " + options.toString());
         return new ProcessBuilder(options.asArray());
     }
 }
