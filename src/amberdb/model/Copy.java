@@ -264,9 +264,9 @@ public interface Copy extends Node {
             // Step 2: generate and store JP2 image on DOSS
             OSProcessBuilder jp2Util = getJP2ProcessBuilder(jp2Generator);
             Path jp2ImgPath = stagingPath.resolve(masterImage.getBlobId().toString() + ".jp2");  
-            String jp2Cmd = "./img.sh";
+            String jp2Cmd = stagingPath.toString() + "/img.sh";
             if (!Paths.get(jp2Cmd).toFile().exists()) {
-                jp2Cmd = stagingPath.toString() + "/img.sh";
+                jp2Cmd = "./img.sh";
             }
             String[] options = { jp2Cmd, jp2Generator.toString(), tiffOutput.toString(), jp2ImgPath.toString() };
             ProcessBuilder jp2Pb = new ProcessBuilder(options);
