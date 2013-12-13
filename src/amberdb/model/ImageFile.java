@@ -89,4 +89,10 @@ public interface ImageFile extends File {
         
     @Property("bitDepth")
     public void setBitDepth(String bitDepth);
+    
+    @Property("location")
+    public String getLocation();
+    
+    @Property("location")
+    public void setLocation(String location);
 }
