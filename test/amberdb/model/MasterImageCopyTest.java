@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import doss.BlobStore;
@@ -24,10 +25,11 @@ public class MasterImageCopyTest {
     
     @Before
     public void setup() throws IOException, InstantiationException {
-        resetTestData();
+        // resetTestData();
     }
     
-    @Test
+    // @Test
+    @Ignore
     public void testDriveImage() {
         // MasterImageCopy mc = (MasterImageCopy) coverPageFor341935.getCopy(CopyRole.MASTER_COPY);
         Copy mc = coverPageFor341935.getCopy(CopyRole.MASTER_COPY);
