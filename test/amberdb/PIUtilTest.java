@@ -8,7 +8,7 @@ public class PIUtilTest {
 
     @Test
     public void testCreateRightCheckDigit() {
-        int expected = 4;
+        Integer expected = 4;
         long input = 572L;
         assertEquals("The check digit of " + input + " should be " + expected + ".", expected, PIUtil.taq(input));
     }
@@ -41,7 +41,7 @@ public class PIUtilTest {
 
     @Test
     public void testReturnValidObjId() {
-        long expected = 572;
+        Long expected = 572L;
         String input = "nla.obj-5724";
         assertEquals("The returned objId should be " + expected + ".", expected, PIUtil.parse(input));
     }

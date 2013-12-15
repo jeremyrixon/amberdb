@@ -29,7 +29,7 @@ public class PIUtil {
      * @param number
      * @return check digit.
      */
-    public static int taq(Long number) {
+    public static Integer taq(Long number) {
         if (number == null)
             throw new InvalidObjectIDException("The input objId is null.");
         if (number < 0)
@@ -63,7 +63,7 @@ public class PIUtil {
      *            object id
      * @return long
      */
-    public static long parse(String pi) {
+    public static Long parse(String pi) {
         if (!isValid(pi))
             throw new InvalidObjectIDException("The input pi " + pi + " is invalid.");
         return Long.decode(pi.substring(PI_PREFIX.length(), pi.length() - 1));
@@ -77,7 +77,7 @@ public class PIUtil {
      *            object id
      * @return boolean
      */
-    public static boolean isValid(String pi) {
+    public static Boolean isValid(String pi) {
         if (!pi.startsWith(PI_PREFIX))
             return false;
         if (pi.length() <= PI_PREFIX.length())
