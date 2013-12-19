@@ -34,7 +34,7 @@ public class MasterImageCopyTest {
         // MasterImageCopy mc = (MasterImageCopy) coverPageFor341935.getCopy(CopyRole.MASTER_COPY);
         Copy mc = coverPageFor341935.getCopy(CopyRole.MASTER_COPY);
         try {
-            mc.deriveImageCopy(doss, tiffUnCompressor, jp2Generator, stagingPath);
+            mc.deriveImageCopy(tiffUnCompressor, jp2Generator);
         } catch (IllegalStateException | IOException | InterruptedException e) {
             e.printStackTrace();
         }
