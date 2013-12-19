@@ -3,8 +3,8 @@ package amberdb.model;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Date;
 
@@ -14,12 +14,6 @@ import amberdb.enums.CopyRole;
 import amberdb.relation.IsCopyOf;
 import amberdb.relation.IsFileOf;
 import amberdb.relation.IsSourceCopyOf;
-import amberdb.utils.OSProcessBuilder;
-import amberdb.utils.images.ImgConvertBuilder;
-import amberdb.utils.images.JP2EchoBuilder;
-import amberdb.utils.images.KduCompressBuilder;
-import amberdb.utils.images.TiffCPBuilder;
-import amberdb.utils.images.TiffEchoBuilder;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
@@ -30,6 +24,7 @@ import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
 import doss.Blob;
+import doss.BlobStore;
 import doss.Writable;
 import doss.core.Writables;
 import doss.local.LocalBlobStore;
@@ -180,7 +175,7 @@ public interface Copy extends Node {
     public Work getWork();
     
     @JavaHandler
-    Copy deriveImageCopy(LocalBlobStore doss, Path tiffUnCompressor, Path jp2Generator, Path stagingPath) throws IllegalStateException, IOException, InterruptedException;
+    Copy deriveImageCopy(Path tiffUnCompressor, Path jp2Generator) throws IllegalStateException, IOException, InterruptedException;
 
 
     abstract class Impl implements JavaHandlerContext<Vertex>, Copy {
@@ -215,104 +210,106 @@ public interface Copy extends Node {
         }
         
         @Override
-        public Copy deriveImageCopy(LocalBlobStore doss, Path tiffUnCompressor, Path jp2Generator, Path stagingPath) throws IllegalStateException, IOException, InterruptedException {
-            File masterImage = this.getFile();
-            if (masterImage == null || masterImage.getBlobId() == null) 
-                throw new NoSuchCopyException(getWork().getId(), CopyRole.MASTER_COPY);
+        public Copy deriveImageCopy(Path tiffUncompressor, Path jp2Generator) throws IllegalStateException, IOException, InterruptedException {
             
-            // set the masterImage file to have file extension of .tif
-            System.out.println("Copy.deriveImageCopy:  about to locating local blob store...");
-            // LocalBlobStore doss = (LocalBlobStore) AmberSession.ownerOf(g()).getBlobStore();
-            try (LocalBlobStore.Tx tx = (LocalBlobStore.Tx) doss.begin()) {
-                System.out.println("master image blob id: " + masterImage.getBlobId());
-                tx.setExtension(masterImage.getBlobId(), ".tif");    
-                tx.commit();
-                
-                Path jp2ImgPath = generateImage(doss, tiffUnCompressor, jp2Generator, stagingPath, masterImage);
-               
+            Path stage = null;
+            try {
+                // create a temporary file processing location for deriving the
+                // jpeg2000 from the tiff
+                stage = Files.createTempDirectory("amberdb-derivative");
+
+                // assume this Copy is a tiff master copy and access the amber file
+                Long tiffBlobId = this.getFile().getBlobId();
+
+                // let us also assume we are using a local blob store ...
+                LocalBlobStore doss = (LocalBlobStore) AmberSession.ownerOf(g()).getBlobStore();
+
+                // aaaaand generate the derivative ...
+                Path jp2ImgPath = generateImage(doss, tiffUncompressor, jp2Generator, stage, tiffBlobId);
+
+                // add the derived jp2 image to this Copy's work as an access copy
+                Copy ac = null;
                 if (jp2ImgPath != null) {
                     Work work = this.getWork();
-                    Copy ac = work.addCopy(jp2ImgPath, CopyRole.ACCESS_COPY, "jp2");
+                    ac = work.addCopy(jp2ImgPath, CopyRole.ACCESS_COPY, "jp2");
                     ImageFile acf = ac.getImageFile();
                     acf.setLocation(jp2ImgPath.toString());
-                    System.out.println("generated ac file with file id : " + ac.getFile().getId() + ", blob id: " + ac.getFile().getBlobId() + ", location: " + ac.getImageFile().getLocation());
-                    return ac;
+                    System.out.println("generated ac file with " + "file id : " + ac.getFile().getId() + ", blob id: " + ac.getFile().getBlobId() + ", location: " + ac.getImageFile().getLocation());
                 }
-                return null;
+                return ac;
+                
+            } finally {
+                java.io.File[] files = stage.toFile().listFiles();
+                if (files != null) {
+                    for (java.io.File f : files) {
+                        f.delete();
+                    }
+                }
+                stage.toFile().delete();
             }
         }
         
-        private Path generateImage(LocalBlobStore doss, Path tiffUnCompressor, Path jp2Generator, Path stagingPath, File masterImage) throws IOException, InterruptedException, NoSuchCopyException {
-            if (masterImage == null || masterImage.getBlobId() == null)
+        private Path generateImage(BlobStore doss, Path tiffUncompressor, Path jp2Generator, Path stage, Long tiffBlobId) throws IOException, InterruptedException, NoSuchCopyException {
+            
+            if (tiffBlobId == null)
                 throw new NoSuchCopyException(this.getWork().getId(), CopyRole.MASTER_COPY);
-            
-            // Step 1: uncompress Tiff
-            OSProcessBuilder tiffUtil = getTiffProcessBuilder(tiffUnCompressor);
-            
-            // NOTE: setting staging path to cater for TiffEcho and JP2Echo test cases running in Travis env.
-            if (!stagingPath.toFile().exists())
-                stagingPath = Paths.get(".");
-            
-            Path tiffInput = stagingPath.resolve(masterImage.getBlobId().toString() + ".tif"); 
-            Path tiffOutput = stagingPath.resolve("uncompressed_" + masterImage.getBlobId().toString() + ".tif");
-            stageTiffInput(tiffInput, doss.get(masterImage.getBlobId()));
-            ProcessBuilder tiffPb = tiffUtil.setCmdPath(tiffUnCompressor).setInputPath(tiffInput).setOutputPath(tiffOutput).assemble();
-            Process tiffProcess = tiffPb.start();
-            tiffProcess.waitFor();
-            tiffProcess.exitValue();
+
+            // prepare the files for conversion
+            Path tiffPath = stage.resolve(tiffBlobId + ".tif");                                 // where to put the tif retrieved from the amber blob
+            Path uncompressedTiffPath = stage.resolve("uncompressed_" + tiffBlobId + ".tif");   // what to call the uncompressed tif 
+            copyBlobToFile(doss.get(tiffBlobId), tiffPath);                                     // get the blob from amber
+
+            // Step 1: uncompress tiff
+            String[] uncompressCmd = {
+                    tiffUncompressor.toString(),
+                    "-c none", 
+                    tiffPath.toString(), 
+                    uncompressedTiffPath.toString()};
+
+            ProcessBuilder uncompressPb = new ProcessBuilder(uncompressCmd);
+            Process uncompressProcess = uncompressPb.start();
+            uncompressProcess.waitFor();
+            int uncompressResult = uncompressProcess.exitValue();
             
             // Step 2: generate and store JP2 image on DOSS
-            OSProcessBuilder jp2Util = getJP2ProcessBuilder(jp2Generator);
-            Path jp2ImgPath = stagingPath.resolve(masterImage.getBlobId().toString() + ".jp2");  
-            String jp2Cmd = stagingPath.toString() + "/img.sh";
-            if (!Paths.get(jp2Cmd).toFile().exists()) {
-                jp2Cmd = "./img.sh";
-            }
-            String[] options = { jp2Cmd, jp2Generator.toString(), tiffOutput.toString(), jp2ImgPath.toString() };
-            ProcessBuilder jp2Pb = new ProcessBuilder(options);
+            Path jp2ImgPath = stage.resolve(tiffBlobId + ".jp2"); // name the jpeg2000 derivative after the original uncompressed blob
+            
+            // This can be shifted out to config down the track
+            String[] convertCmd = {
+                    jp2Generator.toString(),
+                    "-i",
+                    uncompressedTiffPath.toString(),
+                    "-o",
+                    jp2ImgPath.toString(),
+                    "-rate",
+                    "0.5",
+                    "Clayers=1",
+                    "Clevels=7",
+                    "Cprecincts={256,256},{256,256},{256,256},{128,128},{128,128},{64,64},{64,64},{32,32},{16,16}",
+                    "Corder=RPCL",
+                    "ORGgen_plt=yes",
+                    "Cblk={32,32}",
+                    "Cuse_sop=yes"};
+
+            ProcessBuilder jp2Pb = new ProcessBuilder(convertCmd);
             Process jp2Process = jp2Pb.start();
             jp2Process.waitFor();
-            jp2Process.exitValue();
+            int convertResult = jp2Process.exitValue(); // really should check it's worked
             
             // NOTE: to return null at this point to cater for TiffEcho and JP2Echo test cases running in Travis env.
-            if (!tiffUnCompressor.toFile().exists() || !jp2Generator.toFile().exists()) return null;
+            if (!tiffUncompressor.toFile().exists() || !jp2Generator.toFile().exists()) return null;
             return jp2ImgPath;
         }
         
-        private OSProcessBuilder getTiffProcessBuilder(Path tiffUnCompressor) {
-            OSProcessBuilder tiffUtil = null;
-            if (!tiffUnCompressor.toFile().exists()) {
-                tiffUtil = new TiffEchoBuilder();
-            } else {
-                String tiffUncompressorPath = tiffUnCompressor.toString();
-                if (tiffUncompressorPath.contains("tiffcp")) {
-                    tiffUtil = new TiffCPBuilder();
-                } else {
-                    tiffUtil = new ImgConvertBuilder();
-                }
-            }
-            return tiffUtil;
-        }
-        
-        private OSProcessBuilder getJP2ProcessBuilder(Path jp2Generator) {
-            OSProcessBuilder jp2Util = null;
-            if (!jp2Generator.toFile().exists()) {
-                jp2Util = new JP2EchoBuilder();
-            } else {
-                jp2Util = new KduCompressBuilder();
-            }
-            return jp2Util;
-        }
-        
-        private void stageTiffInput(Path tiffInput, Blob tiff) throws IOException {
-            ReadableByteChannel channel = tiff.openChannel();
-            FileChannel dest = FileChannel.open(tiffInput,
+        private long copyBlobToFile(Blob blob, Path destinationFile) throws IOException {
+            ReadableByteChannel channel = blob.openChannel();
+            FileChannel dest = FileChannel.open(
+                    destinationFile,
                     StandardOpenOption.WRITE,
                     StandardOpenOption.CREATE,
                     StandardOpenOption.TRUNCATE_EXISTING);
-            long bytesTransferred = dest.transferFrom(channel, 0,
-                    Long.MAX_VALUE);
+            long bytesTransferred = dest.transferFrom(channel, 0, Long.MAX_VALUE);
+            return bytesTransferred;
         }
     }
-
 }
