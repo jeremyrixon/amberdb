@@ -17,15 +17,15 @@ import amberdb.enums.CopyRole;
 
 public class MasterImageCopyTest {
     private static Page coverPageFor341935;
-    private static Path tiffUnCompressor = Paths.get("/opt/local/bin").resolve("convert");
-    private static Path jp2Generator = Paths.get("/usr/bin").resolve("kdu_compress");
+    private static Path tiffUnCompressor = Paths.get("/usr/bin").resolve("tiffcp");
+    private static Path jp2Generator = Paths.get("/usr/local/bin").resolve("kdu_compress");
     
     @Before
     public void setup() throws IOException, InstantiationException {
-        // resetTestData();
+        resetTestData();
     }
     
-    // @Test
+    //@Test
     @Ignore
     public void testDriveImage() {
         // MasterImageCopy mc = (MasterImageCopy) coverPageFor341935.getCopy(CopyRole.MASTER_COPY);

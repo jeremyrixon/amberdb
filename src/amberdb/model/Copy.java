@@ -214,39 +214,38 @@ public interface Copy extends Node {
             
             Path stage = null;
             try {
-            // create a temporary file processing location for deriving the jpeg2000 from the tiff
-            stage = Files.createTempDirectory("amberdb-derivative");
-            
-            // assume this Copy is a tiff master copy and access the amber file
-            Long tiffBlobId = this.getFile().getBlobId();
-            
-            // let us also assume we are using a local blob store ... 
-            LocalBlobStore doss = (LocalBlobStore) AmberSession.ownerOf(g()).getBlobStore();
-            
-            // aaaaand generate the derivative ...
-            Path jp2ImgPath = generateImage(doss, tiffUncompressor, jp2Generator, stage, tiffBlobId);
+                // create a temporary file processing location for deriving the
+                // jpeg2000 from the tiff
+                stage = Files.createTempDirectory("amberdb-derivative");
 
-            // add the derived jp2 image to this Copy's work as an access copy
-            Copy ac = null;
-            if (jp2ImgPath != null) {
-                Work work = this.getWork();
-                ac = work.addCopy(jp2ImgPath, CopyRole.ACCESS_COPY, "jp2");
-                ImageFile acf = ac.getImageFile();
-                acf.setLocation(jp2ImgPath.toString());
-                System.out.println("generated ac file with " +
-                		"file id : " + ac.getFile().getId() + 
-                		", blob id: " + ac.getFile().getBlobId() + 
-                		", location: " + ac.getImageFile().getLocation());
-            }
-            return ac;
+                // assume this Copy is a tiff master copy and access the amber file
+                Long tiffBlobId = this.getFile().getBlobId();
+
+                // let us also assume we are using a local blob store ...
+                LocalBlobStore doss = (LocalBlobStore) AmberSession.ownerOf(g()).getBlobStore();
+
+                // aaaaand generate the derivative ...
+                Path jp2ImgPath = generateImage(doss, tiffUncompressor, jp2Generator, stage, tiffBlobId);
+
+                // add the derived jp2 image to this Copy's work as an access copy
+                Copy ac = null;
+                if (jp2ImgPath != null) {
+                    Work work = this.getWork();
+                    ac = work.addCopy(jp2ImgPath, CopyRole.ACCESS_COPY, "jp2");
+                    ImageFile acf = ac.getImageFile();
+                    acf.setLocation(jp2ImgPath.toString());
+                    System.out.println("generated ac file with " + "file id : " + ac.getFile().getId() + ", blob id: " + ac.getFile().getBlobId() + ", location: " + ac.getImageFile().getLocation());
+                }
+                return ac;
+                
             } finally {
-                 java.io.File[] files = stage.toFile().listFiles();
-                 if (files != null) {
-                     for (java.io.File f : files) {
-                         f.delete();
-                     }
-                 }
-                 stage.toFile().delete();
+                java.io.File[] files = stage.toFile().listFiles();
+                if (files != null) {
+                    for (java.io.File f : files) {
+                        f.delete();
+                    }
+                }
+                stage.toFile().delete();
             }
         }
         
