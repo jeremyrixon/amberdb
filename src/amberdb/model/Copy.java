@@ -262,7 +262,8 @@ public interface Copy extends Node {
             // Step 1: uncompress tiff
             String[] uncompressCmd = {
                     tiffUncompressor.toString(),
-                    "-c none", 
+                    "-c",
+                    "none", 
                     tiffPath.toString(), 
                     uncompressedTiffPath.toString()};
 
