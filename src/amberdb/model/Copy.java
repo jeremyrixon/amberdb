@@ -231,7 +231,7 @@ public interface Copy extends Node {
                 Copy ac = null;
                 if (jp2ImgPath != null) {
                     Work work = this.getWork();
-                    ac = work.addCopy(jp2ImgPath, CopyRole.ACCESS_COPY, "jp2");
+                    ac = work.addCopy(jp2ImgPath, CopyRole.ACCESS_COPY, "image/jp2");
                     ImageFile acf = ac.getImageFile();
                     acf.setLocation(jp2ImgPath.toString());
                     System.out.println("generated ac file with " + "file id : " + ac.getFile().getId() + ", blob id: " + ac.getFile().getBlobId() + ", location: " + ac.getImageFile().getLocation());
