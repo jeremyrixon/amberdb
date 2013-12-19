@@ -8,7 +8,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import doss.BlobStore;
 import doss.CorruptBlobStoreException;
 import doss.local.LocalBlobStore;
 
@@ -20,8 +19,6 @@ public class MasterImageCopyTest {
     private static Page coverPageFor341935;
     private static Path tiffUnCompressor = Paths.get("/opt/local/bin").resolve("convert");
     private static Path jp2Generator = Paths.get("/usr/bin").resolve("kdu_compress");
-    private static Path stagingPath = Paths.get("/tmp");
-    private static LocalBlobStore doss;
     
     @Before
     public void setup() throws IOException, InstantiationException {
@@ -56,12 +53,10 @@ public class MasterImageCopyTest {
         } catch (Exception e) {
             e.printStackTrace();
             rootPath = ".";
-            stagingPath = Paths.get(".");
             AmberSession db = new AmberSession();
             setTestDataInH2(db);
         } 
         
-        doss = openBlobStore(Paths.get(rootPath));
     }
     
     private static void setTestDataInH2(AmberSession db) {

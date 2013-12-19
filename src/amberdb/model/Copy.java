@@ -5,7 +5,6 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Date;
 
@@ -15,12 +14,6 @@ import amberdb.enums.CopyRole;
 import amberdb.relation.IsCopyOf;
 import amberdb.relation.IsFileOf;
 import amberdb.relation.IsSourceCopyOf;
-import amberdb.utils.OSProcessBuilder;
-import amberdb.utils.images.ImgConvertBuilder;
-import amberdb.utils.images.JP2EchoBuilder;
-import amberdb.utils.images.KduCompressBuilder;
-import amberdb.utils.images.TiffCPBuilder;
-import amberdb.utils.images.TiffEchoBuilder;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
