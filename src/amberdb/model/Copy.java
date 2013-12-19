@@ -260,7 +260,7 @@ public interface Copy extends Node {
             ProcessBuilder uncompressPb = new ProcessBuilder(uncompressCmd);
             Process uncompressProcess = uncompressPb.start();
             uncompressProcess.waitFor();
-            uncompressProcess.exitValue();
+            int uncompressResult = uncompressProcess.exitValue();
             
             // Step 2: generate and store JP2 image on DOSS
             Path jp2ImgPath = stage.resolve(tiffBlobId + ".jp2"); // name the jpeg2000 derivative after the original uncompressed blob
@@ -268,23 +268,24 @@ public interface Copy extends Node {
             // This can be shifted out to config down the track
             String[] convertCmd = {
                     jp2Generator.toString(),
-                    "-i " + uncompressedTiffPath.toString(),
-                    "-o " + jp2ImgPath.toString(),
-                    "-rate 0.5",
+                    "-i",
+                    uncompressedTiffPath.toString(),
+                    "-o",
+                    jp2ImgPath.toString(),
+                    "-rate",
+                    "0.5",
                     "Clayers=1",
                     "Clevels=7",
-                    "'Cprecincts={256,256},{256,256},{256,256},{128,128},{128,128},{64,64},{64,64},{32,32},{16,16}'",
-                    "'Corder=RPCL'",
-                    "'ORGgen_plt=yes'",
-                    "'Cblk={32,32}'",
-                    "Cuse_sop=yes",
-                    ">/dev/null",
-                    "2>&1"};
+                    "Cprecincts={256,256},{256,256},{256,256},{128,128},{128,128},{64,64},{64,64},{32,32},{16,16}",
+                    "Corder=RPCL",
+                    "ORGgen_plt=yes",
+                    "Cblk={32,32}",
+                    "Cuse_sop=yes"};
 
             ProcessBuilder jp2Pb = new ProcessBuilder(convertCmd);
             Process jp2Process = jp2Pb.start();
             jp2Process.waitFor();
-            jp2Process.exitValue(); // really should check it's worked
+            int convertResult = jp2Process.exitValue(); // really should check it's worked
             
             // NOTE: to return null at this point to cater for TiffEcho and JP2Echo test cases running in Travis env.
             if (!tiffUncompressor.toFile().exists() || !jp2Generator.toFile().exists()) return null;
