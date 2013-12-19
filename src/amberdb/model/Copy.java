@@ -212,8 +212,10 @@ public interface Copy extends Node {
         @Override
         public Copy deriveImageCopy(Path tiffUncompressor, Path jp2Generator) throws IllegalStateException, IOException, InterruptedException {
             
+            Path stage = null;
+            try {
             // create a temporary file processing location for deriving the jpeg2000 from the tiff
-            Path stage = Files.createTempDirectory("amberdb-derivative");
+            stage = Files.createTempDirectory("amberdb-derivative");
             
             // assume this Copy is a tiff master copy and access the amber file
             Long tiffBlobId = this.getFile().getBlobId();
@@ -225,19 +227,27 @@ public interface Copy extends Node {
             Path jp2ImgPath = generateImage(doss, tiffUncompressor, jp2Generator, stage, tiffBlobId);
 
             // add the derived jp2 image to this Copy's work as an access copy
+            Copy ac = null;
             if (jp2ImgPath != null) {
                 Work work = this.getWork();
-                Copy ac = work.addCopy(jp2ImgPath, CopyRole.ACCESS_COPY, "jp2");
+                ac = work.addCopy(jp2ImgPath, CopyRole.ACCESS_COPY, "jp2");
                 ImageFile acf = ac.getImageFile();
                 acf.setLocation(jp2ImgPath.toString());
                 System.out.println("generated ac file with " +
                 		"file id : " + ac.getFile().getId() + 
                 		", blob id: " + ac.getFile().getBlobId() + 
                 		", location: " + ac.getImageFile().getLocation());
-                return ac;
             }
-            
-            return null; // this is what happens when assumptions don't pan out :-(
+            return ac;
+            } finally {
+                 java.io.File[] files = stage.toFile().listFiles();
+                 if (files != null) {
+                     for (java.io.File f : files) {
+                         f.delete();
+                     }
+                 }
+                 stage.toFile().delete();
+            }
         }
         
         private Path generateImage(BlobStore doss, Path tiffUncompressor, Path jp2Generator, Path stage, Long tiffBlobId) throws IOException, InterruptedException, NoSuchCopyException {
