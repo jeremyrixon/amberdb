@@ -27,7 +27,7 @@ import doss.Blob;
 import doss.BlobStore;
 import doss.Writable;
 import doss.core.Writables;
-import doss.local.LocalBlobStore;
+
 
 /**
  * A physical or digital manifestation of a {@link Work}. The library may hold
