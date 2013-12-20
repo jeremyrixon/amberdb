@@ -7,7 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Date;
-import java.util.logging.Logger;
 
 import amberdb.AmberSession;
 import amberdb.NoSuchCopyException;
