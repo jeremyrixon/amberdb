@@ -233,7 +233,7 @@ public interface Copy extends Node {
 
                     ac = work.getCopy(CopyRole.ACCESS_COPY);
                     if ( ac == null ) {
-                        ac = work.addCopy(jp2ImgPath, CopyRole.ACCESS_COPY, "jp2");
+                        ac = work.addCopy(jp2ImgPath, CopyRole.ACCESS_COPY, "image/jp2");
                     }
 
                     ImageFile acf = ac.getImageFile();
