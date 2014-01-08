@@ -213,7 +213,7 @@ public interface Copy extends Node {
         public Copy deriveImageCopy(Path tiffUncompressor, Path jp2Generator) throws IllegalStateException, IOException, InterruptedException {
 
             ImageFile tiffImage = this.getImageFile();
-            if (tiffImage.getMimeType() != "image/tiff") {
+            if (!tiffImage.getMimeType().equals("image/tiff")){
                 throw new IllegalStateException(this.getWork().getObjId() + " master is not a tiff.  You may not generate a jpeg2000 from anything but a tiff");
             }
 
