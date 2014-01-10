@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public enum CopyRole {
-    ACCESS_COPY("ac"), MASTER_COPY("m"), OCR_JSON_COPY("oc"), OCR_ALTO_COPY("at"), OCR_METS_COPY("mt");
+    ACCESS_COPY("ac"), MASTER_COPY("m"), CO_MASTER_COPY("c"), OCR_JSON_COPY("oc"), OCR_ALTO_COPY("at"), OCR_METS_COPY("mt");
 
     private String code;
 
