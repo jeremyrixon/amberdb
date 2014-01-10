@@ -1,0 +1,110 @@
+package amberdb.sql;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.VertexQuery;
+import com.tinkerpop.blueprints.util.DefaultVertexQuery;
+
+public class BaseVertex extends BaseElement implements Vertex {
+
+    
+    protected List<Edge> inEdges = new ArrayList<Edge>();
+    protected List<Edge> outEdges = new ArrayList<Edge>();
+
+    
+    public BaseVertex(long id, Map<String, Object> properties, BaseGraph graph) {
+        super(id, properties, graph);
+    }
+    
+    
+    @Override
+    public void remove() {
+        graph.removeVertex(this);
+    }
+
+    
+    @Override
+    public Edge addEdge(String label, Vertex inVertex) {
+        // argument guard
+        if (label == null) throw new IllegalArgumentException("edge label cannot be null");
+        Edge edge = graph.addEdge(null, this, inVertex, label);
+        return (Edge) edge;
+    }
+    
+    
+    private List<Edge> getEdges(List<Edge> edgeList, String... labels) {
+        // get edges for all labels if none specified
+        if (labels.length == 0) { 
+            return edgeList; 
+        }
+
+        List<String> labelList = Arrays.asList(labels);
+        List<Edge> edges = new ArrayList<Edge>();
+        for (Edge e : edgeList) {
+            if (labelList.contains(e.getLabel())) {
+                edges.add(e);
+            }
+        }
+        return edges;
+    }
+
+    
+    @Override
+    public Iterable<Edge> getEdges(Direction direction, String... labels) {
+        List<Edge> edges = new ArrayList<>();
+
+        if (direction == Direction.OUT || direction == Direction.BOTH) {
+            edges.addAll(getEdges(outEdges, labels));
+        }
+        if (direction == Direction.IN || direction == Direction.BOTH) {
+            edges.addAll(getEdges(inEdges, labels));
+        }
+        return edges;
+    }
+
+
+    @Override
+    public Iterable<Vertex> getVertices(Direction direction, String... labels) {
+        List<Vertex> vertices = new ArrayList<Vertex>();
+
+        // get the edges
+        Iterable<Edge> edges = getEdges(direction, labels);
+        
+        for (Edge e : edges) {
+            if (e.getVertex(Direction.IN) == (Vertex) this) {
+                vertices.add(e.getVertex(Direction.OUT));
+            } else {    
+                vertices.add(e.getVertex(Direction.IN));
+            }    
+        }        
+        return vertices;
+    }
+
+    
+    @Override
+    public VertexQuery query() {
+        return new DefaultVertexQuery(this);
+    }
+
+    
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("vertex id:").append(id);
+        // properties
+        sb.append(" {");
+        if (properties.size() > 0) {
+            for (String key : properties.keySet()) {
+                sb.append(key).append(":").append(properties.get(key)).append(", ");
+            }
+            sb.setLength(sb.length()-2);
+        }
+        sb.append("}");
+        return sb.toString();
+    }
+}
