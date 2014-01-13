@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import amberdb.InvalidSubtypeException;
 import amberdb.enums.CopyRole;
 import amberdb.enums.SubType;
 import amberdb.relation.IsCopyOf;
@@ -127,10 +128,10 @@ public interface Work extends Node {
     public void setDigitalStatus(String digitalStatus);
     
     @Property("digitalStatusDate")
-    public String getDigitalStatusDate();
+    public Date getDigitalStatusDate();
 
     @Property("digitalStatusDate")
-    public void setDigitalStatusDate(String digitalStatusDate);
+    public void setDigitalStatusDate(Date digitalStatusDate);
     
     @Property("heading")
     public String getHeading();
@@ -318,7 +319,7 @@ public interface Work extends Node {
     public Work getLeaf(String subType, int position);
     
     @JavaHandler
-    public void loadPagedWork();
+    public void loadPagedWork() throws InvalidSubtypeException;
 
     @JavaHandler
     public List<Work> getPartsOf(List<String> subTypes);
@@ -442,7 +443,7 @@ public interface Work extends Node {
         /**
          * Loads all of a work into the session including Pages with their Copies and Files
          */
-        public void loadPagedWork() {
+        public void loadPagedWork() throws InvalidSubtypeException {
             
             AmberVertex work = this.asAmberVertex();
             AmberGraph g = work.getGraph();
@@ -455,10 +456,18 @@ public interface Work extends Node {
             
             // discard all but the pages
             List<Long> pageIds = new ArrayList<Long>();
+            String missingSubtypes = "";
             for (Vertex v : parts) {
-                if (v.getProperty("subType").toString().equalsIgnoreCase(SubType.PAGE.code())) {
+                if (v.getProperty("subType") == null)
+                    missingSubtypes += v.getId().toString() + " ";
+                else if (v.getProperty("subType").toString().equalsIgnoreCase(SubType.PAGE.code())) {
                     pageIds.add((Long) v.getId());
                 }
+            }
+            
+            // cater for ingest error when ingested parts did not have subtype defined.
+            if (!missingSubtypes.isEmpty()) {
+                throw new InvalidSubtypeException("work item parts without the subtype property defined: " + missingSubtypes);
             }
             
             // load the pages' copies

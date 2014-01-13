@@ -16,6 +16,7 @@ import org.junit.Test;
 
 import amberdb.AmberDbFactory;
 import amberdb.AmberSession;
+import amberdb.InvalidSubtypeException;
 import amberdb.NoSuchObjectException;
 import amberdb.enums.CopyRole;
 import amberdb.enums.SubType;
@@ -31,11 +32,42 @@ public class WorkTest {
     private static int expectedNoOfPages = 0;
     private static int expectedNoOfPagesForSection = 0;
     
+    private static Work journalNLAOH;
+    
     @Before
     public void setup() throws IOException, InstantiationException {
         resetTestData();
     }
 
+    @Test
+    public void testLoadPagedWork() {
+        try {
+            journalNLAOH.loadPagedWork();
+        } catch (Exception e) {
+             System.out.println(e.getCause().getCause().toString());
+        }
+        
+        List<String> subTypes = new ArrayList<String>();
+        subTypes.add("page");
+        // subTypes.add("article");
+        // subTypes.add("chapter");
+        List<Work> pages = journalNLAOH.getPartsOf(subTypes);
+        System.out.println("no. of pages: " + pages.size());
+        if (pages != null) {
+            for (Work page : pages) {
+                System.out.println("page: " + page.getId());
+            }
+        }
+        subTypes.remove("page");
+        subTypes.add("article");
+        List<Work> articles = journalNLAOH.getPartsOf(subTypes);
+        System.out.println("no. of articles: " + articles.size());
+        if (articles != null) {
+            for (Work article : articles) {
+                System.out.println("article: " + article.getId());
+            }
+        }
+    }
     
     // @Test
     @Ignore
@@ -59,7 +91,12 @@ public class WorkTest {
         System.out.println("starting actual test");
         
         // try loading the book first
-        bookBlinkyBill.loadPagedWork();
+        try {
+            bookBlinkyBill.loadPagedWork();
+        } catch (InvalidSubtypeException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         
         List<Work> leaves = bookBlinkyBill.getPartsOf(Arrays.asList(new String[] {SubType.PAGE.code(), SubType.CHAPTER.code()}));
         System.out.println("loaded work millis: " + (new Date().getTime()-start));
@@ -196,12 +233,13 @@ public class WorkTest {
     private static void resetTestData() {
         String dbUrl = "jdbc:mysql://snowy.nla.gov.au:3306/dlir?zeroDateTimeBehavior=convertToNull&useUnicode=yes&characterEncoding=UTF-8";
         String dbUser = "dlir";
-        String dbPassword = "dlir";   
+        String dbPassword = "dlir"; 
         String rootPath = ".";
         
         try (AmberSession db = AmberDbFactory.openAmberDb(dbUrl, dbUser, dbPassword, rootPath) ) {
             bookBlinkyBill = db.findWork(179722129L);
             chapterBlinkyBill = db.findWork(179763338);
+            journalNLAOH = db.findWork("nla.obj-665167");
             expectedNoOfPages = 95;
             expectedNoOfPagesForSection = 13;
         } catch (Exception e) {
@@ -217,6 +255,7 @@ public class WorkTest {
         workCollection.setSubType("title");
         workCollection.setTitle("nla.books");
         
+        journalNLAOH = sess.addWork();
         bookBlinkyBill = sess.addWork();
         bookBlinkyBill.setSubType(SubType.BOOK.code());
         bookBlinkyBill.setTitle("Blinky Bill");

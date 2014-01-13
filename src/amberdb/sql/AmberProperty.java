@@ -2,6 +2,7 @@ package amberdb.sql;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.util.Date;
 
 public class AmberProperty {
 
@@ -64,6 +65,10 @@ public class AmberProperty {
             ByteBuffer bb = ByteBuffer.allocate(8);
             bb.putDouble((double) value);
             return bb.array();
+        } else if (value instanceof Date) { 
+            ByteBuffer bb = ByteBuffer.allocate(8);
+            bb.putLong(((Date) value).getTime());
+            return bb.array();
         } else if (value == null) {
             return null;
         } else {
@@ -81,7 +86,7 @@ public class AmberProperty {
         if (type == DataType.LNG) return bb.asLongBuffer().get();
         if (type == DataType.FLT) return bb.asFloatBuffer().get();
         if (type == DataType.DBL) return bb.asDoubleBuffer().get();
-
+        if (type == DataType.DTE) return new Date(bb.asLongBuffer().get());
         throw new RuntimeException("Type not supported for decoding property: " + type.toString());
     }
 }
