@@ -20,6 +20,12 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
  */
 @TypeValue("Section")
 public interface Section extends Work {
+        @Property("metsId")
+        public String getMetsId();
+    
+        @Property("metsId")
+        public void setMetsId();
+
 	@Adjacency(label = ExistsOn.label, direction = Direction.OUT)
 	public Iterable<Page> getExistsOnPages();
 
