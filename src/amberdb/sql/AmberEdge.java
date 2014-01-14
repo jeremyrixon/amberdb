@@ -1,6 +1,9 @@
 package amberdb.sql;
 
 import java.util.Set;
+import java.util.Date;
+
+import java.io.Serializable;
 
 import amberdb.sql.dao.EdgeDao;
 
@@ -148,7 +151,8 @@ public class AmberEdge implements Edge {
         }
         if (!(value instanceof Integer || value instanceof String || 
               value instanceof Boolean || value instanceof Double ||
-              value instanceof Long    || value instanceof Float)) {
+              value instanceof Long    || value instanceof Float  ||
+              value instanceof Date    || value instanceof Serializable)) {
             throw new IllegalArgumentException("Illegal property type [" + value.getClass() + "].");
         }
         if (!(value instanceof Integer) && propertyName.equals(SORT_ORDER_PROPERTY_NAME)) {

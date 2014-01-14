@@ -3,6 +3,9 @@ package amberdb.sql;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.Date;
+
+import java.io.Serializable;
 
 import amberdb.sql.dao.VertexDao;
 
@@ -142,7 +145,8 @@ public class AmberVertex implements Vertex {
         }
         if (!(value instanceof Integer || value instanceof String || 
               value instanceof Boolean || value instanceof Double ||
-              value instanceof Long    || value instanceof Float)) {
+              value instanceof Long    || value instanceof Float  ||
+              value instanceof Date    || value instanceof Serializable)) {
             throw new IllegalArgumentException("Illegal property type [" + value.getClass() + "].");
         }
         

@@ -4,6 +4,13 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Date;
 
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.Serializable;
+import java.io.IOException;
+
 public class AmberProperty {
 
     private long id;
@@ -69,6 +76,15 @@ public class AmberProperty {
             ByteBuffer bb = ByteBuffer.allocate(8);
             bb.putLong(((Date) value).getTime());
             return bb.array();
+        } else if (value instanceof Serializable) {
+            try {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ObjectOutputStream oos = new ObjectOutputStream(baos);
+                oos.writeObject(value);
+                return baos.toByteArray();
+            } catch (IOException e) {
+                    throw new RuntimeException("Failed to encode serialized type " + value.getClass().getName(), e);
+            }
         } else if (value == null) {
             return null;
         } else {
@@ -87,6 +103,13 @@ public class AmberProperty {
         if (type == DataType.FLT) return bb.asFloatBuffer().get();
         if (type == DataType.DBL) return bb.asDoubleBuffer().get();
         if (type == DataType.DTE) return new Date(bb.asLongBuffer().get());
+        if (type == DataType.SER) {
+            try {
+                return new ObjectInputStream(new ByteArrayInputStream(bb.array())).readObject();
+            } catch (IOException | ClassNotFoundException e) {
+                throw new RuntimeException("Failed to decode serialized type ",e);
+            }
+        }
         throw new RuntimeException("Type not supported for decoding property: " + type.toString());
     }
 }
