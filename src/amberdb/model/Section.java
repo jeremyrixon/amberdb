@@ -8,6 +8,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.frames.Adjacency;
+import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.annotations.gremlin.GremlinGroovy;
 import com.tinkerpop.frames.annotations.gremlin.GremlinParam;
 import com.tinkerpop.frames.modules.javahandler.JavaHandler;
@@ -20,6 +21,12 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
  */
 @TypeValue("Section")
 public interface Section extends Work {
+        @Property("metsId")
+        public String getMetsId();
+    
+        @Property("metsId")
+        public void setMetsId(String metsId);
+
 	@Adjacency(label = ExistsOn.label, direction = Direction.OUT)
 	public Iterable<Page> getExistsOnPages();
 
