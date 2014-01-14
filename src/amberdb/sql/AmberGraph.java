@@ -829,6 +829,11 @@ public class AmberGraph implements Graph, TransactionalGraph {
         features.supportsDoubleProperty = true;
         features.supportsLongProperty = true;
         features.supportsFloatProperty = true;
+        features.supportsSerializableObjectProperty = true;
+        features.supportsUniformListProperty = true;
+        features.supportsMixedListProperty = true;
+        features.supportsPrimitiveArrayProperty = true;
+        features.supportsMapProperty = true;
         features.ignoresSuppliedIds = true;
         features.supportsVertexProperties = true;
         features.supportsVertexIteration = true;
