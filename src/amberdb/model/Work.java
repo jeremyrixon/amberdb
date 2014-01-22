@@ -103,6 +103,12 @@ public interface Work extends Node {
     @Property("subType")
     public void setSubType(String subType);
     
+    @Property("issueDate")
+    public Date getIssueDate();
+    
+    @Property("issueDate")
+    public void setIssueDate(Date issueDate);
+        
     @Property("collection")
     public String getCollection();
 
