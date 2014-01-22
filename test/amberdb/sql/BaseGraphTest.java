@@ -4,9 +4,6 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 
-import javax.sql.DataSource;
-
-import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.After;
 import org.junit.Before;
 
@@ -16,26 +13,15 @@ import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.TestSuite;
 import com.tinkerpop.blueprints.VertexTestSuite;
 
-public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
+public class BaseGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
 
-    public AmberGraph graph;
+    public BaseGraph graph;
     
     @Before
     public void setup() throws MalformedURLException, IOException {
         
         System.out.println("Setting up graph");
-
-        DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:mem:","sess","sess");
-        DataSource persistentDs = JdbcConnectionPool.create("jdbc:h2:mem:","persist","persist");
-        
-//        MysqlDataSource ds = new MysqlDataSource();
-//        ds.setUser("dlir");
-//        ds.setPassword("dlir");
-//        ds.setServerName("localhost");
-//        ds.setPort(3306);
-//        ds.setDatabaseName("dlir");
-        
-        graph = new AmberGraph(persistentDs);
+        graph = new BaseGraph();
 
     }
 
@@ -114,7 +100,7 @@ public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
     }
     
     public void doTestSuite(final TestSuite testSuite) throws Exception {
-        String doTest = System.getProperty("testAmberGraph");
+        String doTest = System.getProperty("testBaseGraph");
         if (doTest == null || doTest.equals("true")) {
             for (Method method : testSuite.getClass().getDeclaredMethods()) {
                 if (method.getName().startsWith("test")) {

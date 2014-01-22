@@ -8,11 +8,13 @@ import com.tinkerpop.blueprints.Vertex;
 
 public class BaseEdge extends BaseElement implements Edge {
 
+	
     private String label;
     protected BaseVertex inVertex;
     protected BaseVertex outVertex;
     
-    public BaseEdge(long id, String label, BaseVertex inVertex, BaseVertex outVertex, Map<String, Object> properties, BaseGraph graph) {
+    
+    public BaseEdge(Long id, String label, BaseVertex inVertex, BaseVertex outVertex, Map<String, Object> properties, BaseGraph graph) {
         super(id, properties, graph);
         this.label = label;
         this.inVertex = inVertex;
@@ -43,8 +45,9 @@ public class BaseEdge extends BaseElement implements Edge {
     @Override
     public Vertex getVertex(Direction direction) throws IllegalArgumentException {
         // argument guard
-        if (Direction.BOTH == direction) { throw new IllegalArgumentException("Can only get a vertex from a single direction"); }
-        
+        if (Direction.BOTH == direction) {  
+        	throw new IllegalArgumentException("Can only get a vertex from a single direction"); 
+        }
         if (direction == Direction.IN) {
             return (Vertex) inVertex;
         } 

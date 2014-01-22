@@ -2,8 +2,10 @@ package amberdb.sql;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.logging.Logger;
+import java.util.Map;
+import java.util.Set;
 
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Edge;
@@ -21,23 +23,51 @@ public class BaseGraph implements Graph, TransactionalGraph {
     List<Edge> graphEdges = new ArrayList<Edge>();
     List<Vertex> graphVertices = new ArrayList<Vertex>();
     
-    public Logger log = Logger.getLogger(BaseGraph.class.getName());
+    Set<BaseElement> modifiedElements = new HashSet<BaseElement>();
+    
+    
+    
+    // id generation handling - overridden in subclass AmberGraph
+    class IdGeneratorImpl implements IdGenerator {
+        private long id = -1;
+        public Long newId() { return id--; }
+    }
+    protected IdGenerator idGen = new IdGeneratorImpl();
+    
+    
+    
+    // element modification handling - overridden in subclass AmberGraph
+    class ElementModifiedListenerImpl implements ElementModifiedListener {
+    	public void elementModified(Object element) {} // do nothing
+    }
+    protected ElementModifiedListener elementModListener = new ElementModifiedListenerImpl();
 
     
-    class IdGenerator {
-        private long id = -1;
-        long getNewId() { return id--; }
+    
+    // edge factory - overridden in subclass AmberGraph
+    class BaseEdgeFactory implements EdgeFactory {
+    	public Edge newEdge(Object id, String label, Vertex in, Vertex out, Map<String, Object> properties, Graph graph) {
+    		return new BaseEdge((Long) id, label, (BaseVertex) in, (BaseVertex) out, properties, (BaseGraph) graph);
+    	} 
     }
-    private IdGenerator idGen = new IdGenerator();
-
+    protected EdgeFactory edgeFactory = new BaseEdgeFactory();
+    
+    
+    
+    // vertex factory - overridden in subclass AmberGraph
+    class BaseVertexFactory implements VertexFactory {
+    	public Vertex newVertex(Object id, Map<String, Object> properties, Graph graph) {
+    		return new BaseVertex((Long) id, properties, (BaseGraph) graph);
+    	} 
+    }
+    protected VertexFactory vertexFactory = new BaseVertexFactory();
+    
+    
     
     /* 
      * Constructors
      */
-    public BaseGraph() {
-        // set up id generation later based on env
-    }
-
+    public BaseGraph() {}
     
     /*
      * 
@@ -49,8 +79,8 @@ public class BaseGraph implements Graph, TransactionalGraph {
     public Edge addEdge(Object id, Vertex out, Vertex in, String label) {
         // argument guard
         if (label == null) throw new IllegalArgumentException("edge label cannot be null");
-        long newId = idGen.getNewId();
-        BaseEdge edge = new BaseEdge(newId, label, (BaseVertex) in, (BaseVertex) out, null, this);
+        Long newId = idGen.newId();
+        Edge edge = edgeFactory.newEdge(newId, label, (BaseVertex) in, (BaseVertex) out, null, this);
         graphEdges.add(edge);
         return edge;
     }
@@ -58,8 +88,8 @@ public class BaseGraph implements Graph, TransactionalGraph {
     
     @Override
     public Vertex addVertex(Object id) {
-        long newId = idGen.getNewId();
-        BaseVertex vertex = new BaseVertex(newId, null, this);
+        long newId = idGen.newId();
+        Vertex vertex = vertexFactory.newVertex(newId, null, this);
         graphVertices.add(vertex);
         return vertex;
     }

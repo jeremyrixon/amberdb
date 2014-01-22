@@ -8,9 +8,11 @@ import com.google.common.collect.Sets;
 
 public class BaseElement {
 
+	
     protected long id;
     protected Map<String, Object> properties;
     protected BaseGraph graph;
+ 
     
     BaseElement(long id, Map<String, Object> properties, BaseGraph graph) {
         this.id = id;
@@ -39,6 +41,7 @@ public class BaseElement {
     @SuppressWarnings("unchecked")
     public <T> T removeProperty(String propertyName) {
         T value = (T) properties.remove(propertyName);
+        graph.modifiedElements.add(this);
         return value;
     }
 
@@ -53,7 +56,12 @@ public class BaseElement {
               value instanceof Long    || value instanceof Float)) {
             throw new IllegalArgumentException("Illegal property type [" + value.getClass() + "].");
         }
-
         properties.put(propertyName, value);
+        graph.modifiedElements.add(this);
+    }
+
+    
+    protected Map<String, Object> getProperties() {
+    	return properties;
     }
 }
