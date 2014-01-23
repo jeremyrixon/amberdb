@@ -5,7 +5,7 @@ import org.skife.jdbi.v2.ResultSetMapperFactory;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
-import amberdb.sql.AmberEdge;
+import amberdb.sql.AmberVertexWithState;
 import amberdb.sql.AmberGraph;
 
 @SuppressWarnings("rawtypes")
@@ -15,7 +15,7 @@ public class VertexMapperFactory implements ResultSetMapperFactory {
     
     @Override
     public boolean accepts(Class type, StatementContext ctx) {
-        return AmberEdge.class.isAssignableFrom(type);
+        return AmberVertexWithState.class.isAssignableFrom(type);
     }
 
     @Override

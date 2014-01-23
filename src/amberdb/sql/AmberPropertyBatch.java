@@ -11,6 +11,7 @@ public class AmberPropertyBatch {
 	List<byte[]> value    = new ArrayList<byte[]>();
 
 	void add(Long id, Map<String, Object> properties) {
+		if (properties == null) return;
 		for (String name : properties.keySet()) {
 			this.id.add(id);
 			this.name.add(name);

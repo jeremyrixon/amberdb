@@ -1,12 +1,8 @@
 package amberdb.sql;
 
-import java.lang.reflect.Field;
-import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,50 +12,16 @@ import javax.sql.DataSource;
 
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
-//import org.skife.jdbi.v2.Handle;
-//import org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException;
-//import org.skife.jdbi.v2.util.LongMapper;
-
-
-
-
-
-
-
+import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.util.StringMapper;
 
 import amberdb.sql.dao.AmberDao;
-
-//import amberdb.sql.map.PersistentEdgeMapper;
-//import amberdb.sql.map.PersistentEdgeMapperFactory;
-//import amberdb.sql.map.PersistentPropertyMapper;
-//import amberdb.sql.map.PersistentVertexMapper;
-//import amberdb.sql.map.PersistentVertexMapperFactory;
-//import amberdb.sql.map.SessionEdgeMapper;
-//import amberdb.sql.map.SessionEdgeMapperFactory;
-//import amberdb.sql.map.SessionVertexMapper;
-//import amberdb.sql.map.SessionVertexMapperFactory;
-
-
-
-
-
-
-import amberdb.sql.map.EdgeMapperFactory;
-import amberdb.sql.map.VertexMapperFactory;
+import amberdb.sql.map.EdgeMapper;
+import amberdb.sql.map.VertexMapper;
 
 import com.tinkerpop.blueprints.Edge;
-//import com.google.common.collect.Lists;
-//import com.jolbox.bonecp.BoneCPDataSource;
-//import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
-//
-//import com.tinkerpop.blueprints.Direction;
-//import com.tinkerpop.blueprints.Edge;
-//import com.tinkerpop.blueprints.Features;
 import com.tinkerpop.blueprints.Graph;
-//import com.tinkerpop.blueprints.GraphQuery;
 import com.tinkerpop.blueprints.TransactionalGraph;
-//import com.tinkerpop.blueprints.Vertex;
-//import com.tinkerpop.blueprints.util.DefaultGraphQuery;
 import com.tinkerpop.blueprints.Vertex;
 
 public class AmberGraph extends BaseGraph 
@@ -98,24 +60,12 @@ public class AmberGraph extends BaseGraph
     }
 
     private void initGraph(DataSource dataSource) {
-
     	idGen = this;
-    	edgeFactory = this;
-    	vertexFactory = this;
+//    	edgeFactory = this;
+//    	vertexFactory = this;
     	elementModListener = this;
 
     	dbi = new DBI(dataSource);
-    	
-        // register mapper factories for passing this graph
-        // to elements instantiated via the amber datastore
-        VertexMapperFactory vFactory = new VertexMapperFactory();
-        dbi.registerMapper(vFactory);
-        vFactory.setGraph(this);
-
-        EdgeMapperFactory eFactory = new EdgeMapperFactory();
-        dbi.registerMapper(eFactory);
-        eFactory.setGraph(this);
-    	
     	dao = dbi.onDemand(AmberDao.class);
         if (!dao.schemaTablesExist()) {
             log.info("Schema doesn't exist - creating ...");
@@ -218,8 +168,8 @@ public class AmberGraph extends BaseGraph
     	batchSuspendEdges(e, p);
     	batchSuspendVertices(v, p);
     	
-    	dao.suspendEdges(sessId, e.id, e.txnStart, e.txnEnd, e.vertexOut, e.vertexIn, e.label, e.order, e.status);
-    	dao.suspendVertices(sessId, v.id, v.txnStart, v.txnEnd, v.status);
+    	dao.suspendEdges(sessId, e.id, e.txnStart, e.txnEnd, e.vertexOut, e.vertexIn, e.label, e.order, e.state);
+    	dao.suspendVertices(sessId, v.id, v.txnStart, v.txnEnd, v.state);
     	dao.suspendProperties(sessId, p.id, p.name, p.type, p.value);
     	
     	return sessId;
@@ -229,21 +179,17 @@ public class AmberGraph extends BaseGraph
     	for (Edge e : removedEdges) {
     		modifiedEdges.remove(e);
     		if (newEdges.remove(e)) continue;
-    		AmberEdge ae = (AmberEdge) e;
-    		ae.status = "DEL";
-    		edges.add(ae);
+    		edges.add(new AmberEdgeWithState((AmberEdge) e, "DEL"));
     	}
     	for (Edge e : newEdges) {
     		modifiedEdges.remove(e);
     		AmberEdge ae = (AmberEdge) e;
-    		ae.status = "NEW";
-    		edges.add(ae);
+    		edges.add(new AmberEdgeWithState(ae, "NEW"));
     		properties.add((Long) ae.getId(), ae.getProperties());
     	}
     	for (Edge e : modifiedEdges) {
     		AmberEdge ae = (AmberEdge) e;
-    		ae.status = "MOD";
-    		edges.add(ae);
+    		edges.add(new AmberEdgeWithState(ae, "MOD"));
     		properties.add((Long) ae.getId(), ae.getProperties());
     	}
     }
@@ -252,50 +198,264 @@ public class AmberGraph extends BaseGraph
     	for (Vertex v : removedVertices) {
     		modifiedVertices.remove(v);
     		if (newVertices.remove(v)) continue;
-    		AmberVertex av = (AmberVertex) v;
-    		av.status = "DEL";
-    		vertices.add(av);
+    		vertices.add(new AmberVertexWithState((AmberVertex) v, "DEL"));
     	}
     	for (Vertex v : newVertices) {
     		modifiedVertices.remove(v);
     		AmberVertex av = (AmberVertex) v;
-    		av.status = "NEW";
-    		vertices.add(av);
+    		vertices.add(new AmberVertexWithState(av, "NEW"));
     		properties.add((Long) av.getId(), av.getProperties());
     	}
     	for (Vertex v : modifiedVertices) {
     		AmberVertex av = (AmberVertex) v;
-    		av.status = "MOD";
-    		vertices.add(av);
+    		vertices.add(new AmberVertexWithState(av, "MOD"));
     		properties.add((Long) av.getId(), av.getProperties());
     	}
     }
 
 	@Override
 	public Vertex newVertex(Object id, Map<String, Object> properties, Graph graph) {
-		return new AmberVertex((Long) id, properties, this, 0L, 0L, null);
+		return new AmberVertex((Long) id, properties, this, 0L, 0L);
 	}
 
 	@Override
 	public Edge newEdge(Object id, String label, Vertex inVertex, Vertex outVertex, Map<String, Object> properties, Graph graph) {
-		return new AmberEdge((Long) id, label, (AmberVertex) inVertex, (AmberVertex) outVertex, properties, this, 0L, 0L, 0L, null);
+		return new AmberEdge((Long) id, label, (AmberVertex) inVertex, (AmberVertex) outVertex, properties, this, 0L, 0L, 0L);
 	}
     
-//**********	Add constructors to ambervertex and amberedge
+	
+	public void clear() {
+		graphEdges.clear();
+		graphVertices.clear();
+		
+		removedEdges.clear();
+		removedVertices.clear();
+
+		newEdges.clear();
+		newVertices.clear();
+
+		modifiedEdges.clear();
+		modifiedVertices.clear();
+	}
+	
 	
     public void resume(Long sessId) {
 
-    	// Do vertices first as edges depend on vertex existence
-    	List<AmberVertex> vertices = dao.resumeVertices(sessId);
-    	//for ()
+    	clear();
     	
-    	List<AmberEdge> edges = dao.resumeEdges(sessId);
+    	// get then separate the properties into the maps for their elements
+    	List<AmberProperty> properties = dao.resumeProperties(sessId);
+    	Map<Long, Map<String, Object>> propertyMaps = new HashMap<Long, Map<String, Object>>();
+    	for (AmberProperty prop : properties) {
+    		Long id = prop.getId();
+    		if (propertyMaps.get(id) == null) {
+    			propertyMaps.put(id, new HashMap<String, Object>());
+    		}
+    		propertyMaps.get(id).put(prop.getName(), prop.getValue());
+    	}
     	
-    	//List<AmberVertex> vertices = dao.resumeVertices(sessId);
+    	// Restore vertices to the graph before edges because 
+    	// edge construction depends on vertex existence
+    	List<AmberVertexWithState> vertexStateWrappers = resumeVertices(sessId);
+    	for (AmberVertexWithState wrapper : vertexStateWrappers) {
+    		AmberVertex vertex = wrapper.vertex; 
+    		
+    		String state = wrapper.state;
+    		if (state.equals("DEL")) {
+    			removedVertices.add(vertex);
+    			continue;
+    		} 
+    		
+    		graphVertices.add(vertex);
+    		vertex.replaceProperties(propertyMaps.get((Long) vertex.getId()));
+    		
+    		if (state.equals("NEW")) {
+    			newVertices.add(vertex);
+    		} else if (state.equals("MOD")) {
+    			modifiedVertices.add(vertex);
+    		}
+    	}
+    	
+    	List<AmberEdgeWithState> edgeStateWrappers = resumeEdges(sessId);
+    	for (AmberEdgeWithState wrapper : edgeStateWrappers) {
+    		AmberEdge edge = wrapper.edge; 
+    		
+    		String state = wrapper.state;
+    		if (state.equals("DEL")) {
+    			removedEdges.add(edge);
+    			continue;
+    		} 
+    		
+    		graphEdges.add(edge);
+    		edge.replaceProperties(propertyMaps.get((Long) edge.getId()));
+    		
+    		if (state.equals("NEW")) {
+    			newEdges.add(edge);
+    		} else if (state.equals("MOD")) {
+    			modifiedEdges.add(edge);
+    		}
+    	}
     }
     
-	
-//    /**
+    private List<AmberVertexWithState> resumeVertices(Long sessId) {
+        Handle h = dbi.open();
+        List<AmberVertexWithState> vertices = h.createQuery(
+        		"SELECT id, txn_start, txn_end, state " + 
+        	    "FROM sess_vertex " +
+        	    "WHERE s_id = :sessId")
+                .bind("sessId", sessId)
+                .map(new VertexMapper(this)).list();
+        h.close();
+        return vertices;
+    }
+    
+    private List<AmberEdgeWithState> resumeEdges(Long sessId) {
+        Handle h = dbi.open();
+        List<AmberEdgeWithState> edges = h.createQuery(
+        		"SELECT id, txn_start, txn_end, v_out, v_in, label, edge_order, state " + 
+        	    "FROM sess_edge " +
+   	            "WHERE s_id = :sessId")
+                .bind("sessId", sessId)
+                .map(new EdgeMapper(this)).list();
+        h.close();
+        return edges;
+    }
+    
+    
+    public Long commit(String user, String operation) {
+    	
+    	AmberTransaction txn = new AmberTransaction(this, user, operation);
+    	
+    	Long txnId = txn.getId();
+    	
+    	AmberEdgeBatch edges = new AmberEdgeBatch();
+    	AmberVertexBatch vertices = new AmberVertexBatch();
+    	AmberPropertyBatch properties = new AmberPropertyBatch();
+
+    	List<Long> endedEdgeIds = new ArrayList<Long>();
+    	List<Long> endedVertexIds = new ArrayList<Long>();
+    	List<Long> removedVertexIds = new ArrayList<Long>(); // used to check for broken incident edges
+
+    	batchCommitEdges(txnId, edges, properties, endedEdgeIds);
+    	batchCommitVertices(txnId, vertices, properties, endedVertexIds, removedVertexIds);
+    	
+    	//dao.begin();
+    	
+    	endEdges(txnId, endedEdgeIds);
+    	//endVertices(txnId, endedVertexIds);
+    	//removedEdgeIds = removeEdgesIncidentToRemovedVertices(txnId, removedVertexIds)
+    	//endProperties(txnId, endedEdgeIds, endedVertexIds, removedEdgeIds)
+
+    	//startVertices(txnId, vertices);
+    	//startEdges(edges);
+    	//startProperties(properties);
+    	
+    	//dao.commit();
+    	//dao.end
+    	
+    	//log.info("")
+    	
+    	// 
+    	for (String name : testMultipartQuery()) {
+    		log.info("name is: " + name);
+    	}
+    	
+    	
+    	
+//    	dao.suspendEdges(sessId, e.id, e.txnStart, e.txnEnd, e.vertexOut, e.vertexIn, e.label, e.order, e.state);
+//    	dao.suspendVertices(sessId, v.id, v.txnStart, v.txnEnd, v.state);
+//    	dao.suspendProperties(sessId, p.id, p.name, p.type, p.value);
+    	
+    	return txnId;
+    }
+    
+    private void endEdges(Long txnId, List<Long> endedEdgeIds) {
+		
+    	//TODO Auto-generated method stub
+		
+	}
+
+	private List<Long> batchCommitEdges(Long txnId, AmberEdgeBatch edges, 
+    		AmberPropertyBatch properties, List<Long> endIds) {
+
+    	for (Edge e : removedEdges) {
+    		modifiedEdges.remove(e);
+    		if (newEdges.remove(e)) continue;
+    		endIds.add((Long) e.getId());
+    	}
+
+    	for (Edge e : modifiedEdges) {
+    		AmberEdge ae = (AmberEdge) e;
+    		if (newEdges.contains(ae)) continue;
+    		endIds.add((Long) e.getId());
+    		ae.txnStart = txnId;
+    		edges.add(new AmberEdgeWithState(ae, null));
+    		properties.add((Long) ae.getId(), ae.getProperties());
+    	}
+
+    	for (Edge e : newEdges) {
+    		AmberEdge ae = (AmberEdge) e;
+    		ae.txnStart = txnId;
+    		edges.add(new AmberEdgeWithState(ae, null));
+    		properties.add((Long) ae.getId(), ae.getProperties());
+    	}
+    	
+    	return endIds;
+    }
+    
+    private List<Long> batchCommitVertices(Long txnId, AmberVertexBatch vertices, 
+    		AmberPropertyBatch properties, List<Long> endIds, List<Long> deletedIds) {
+
+    	for (Vertex v : removedVertices) {
+    		modifiedVertices.remove(v);
+    		if (newVertices.remove(v)) continue;
+        	deletedIds.add((Long) v.getId());
+    		endIds.add((Long) v.getId());
+    	}
+    	
+    	for (Vertex v : modifiedVertices) {
+    		AmberVertex av = (AmberVertex) v;
+    		if (newVertices.contains(av)) continue;
+    		endIds.add((Long) v.getId());
+    		av.txnStart = txnId;
+    		vertices.add(new AmberVertexWithState(av, null));
+    		properties.add((Long) av.getId(), av.getProperties());
+    	}
+
+    	for (Vertex v : newVertices) {
+    		AmberVertex av = (AmberVertex) v;
+    		av.txnStart = txnId;
+    		vertices.add(new AmberVertexWithState(av, null));
+    		properties.add((Long) av.getId(), av.getProperties());
+    	}
+    	
+    	return endIds;
+    }
+
+    
+    private List<String> testMultipartQuery() {
+  	
+        Handle h = dbi.open();
+        h.begin();
+        h.execute(
+        		"CREATE TEMPORARY TABLE t1 AS " +
+        		"SELECT id " + 
+        	    "FROM sess_vertex");
+////                .bind("sessId", sessId)
+        
+        List<String> names = h.createQuery(
+   	            "SELECT name " +
+   	            "FROM sess_property sp, t1 "
+   	            + "WHERE sp.id = t1.id")
+////                .bind("sessId", sessId)
+                .map(new StringMapper()).list();
+        h.commit();	
+        h.close();
+
+        return names;
+    }
+    
+    //    /**
 //     * Find all elements in persistent data store that exist in the session and
 //     * have been modified since this session was last synchronised.
 //     */

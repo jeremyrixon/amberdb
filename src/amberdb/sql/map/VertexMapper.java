@@ -6,12 +6,12 @@ import java.sql.SQLException;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
-import amberdb.sql.AmberEdge;
 import amberdb.sql.AmberGraph;
 import amberdb.sql.AmberVertex;
+import amberdb.sql.AmberVertexWithState;
 
 
-public class VertexMapper implements ResultSetMapper<AmberVertex> {
+public class VertexMapper implements ResultSetMapper<AmberVertexWithState> {
     
     private AmberGraph graph;
     
@@ -19,15 +19,16 @@ public class VertexMapper implements ResultSetMapper<AmberVertex> {
         this.graph = graph;
     }
     
-    public AmberVertex map(int index, ResultSet rs, StatementContext ctx)
+    public AmberVertexWithState map(int index, ResultSet rs, StatementContext ctx)
             throws SQLException {
 
-    	return new AmberVertex(
+    	AmberVertex vertex = new AmberVertex(
                 rs.getLong("id"), 
                 null,
                 graph,
                 rs.getLong("txn_start"),
-                rs.getLong("txn_end"),
-                rs.getString("status"));
+                rs.getLong("txn_end"));
+    	
+    	return new AmberVertexWithState(vertex, rs.getString("state"));
     }
 }

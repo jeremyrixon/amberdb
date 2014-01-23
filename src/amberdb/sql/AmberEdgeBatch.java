@@ -11,16 +11,25 @@ public class AmberEdgeBatch {
 	List<Long>   vertexIn  = new ArrayList<Long>();
 	List<String> label     = new ArrayList<String>();
 	List<Long>   order     = new ArrayList<Long>();
-	List<String> status    = new ArrayList<String>();
+	List<String> state     = new ArrayList<String>();
 	
-	void add(AmberEdge edge) {
+	void add(AmberEdgeWithState wrapper) {
+		AmberEdge edge = wrapper.edge;
+		String state = wrapper.state;
+		
 		id.add((Long) edge.getId());
 		txnStart.add(edge.txnStart);
 		txnEnd.add(edge.txnEnd);
-		vertexOut.add((Long) edge.outVertex.getId());
-		vertexIn.add((Long) edge.inVertex.getId());
+		
+		if (state != null && state.equals("DEL")) {
+			vertexOut.add(null);
+			vertexIn.add(null);
+		} else {
+			vertexOut.add((Long) edge.outVertex.getId());
+			vertexIn.add((Long) edge.inVertex.getId());
+		}
 		label.add(edge.getLabel());
 		order.add(edge.order);
-		status.add(edge.status);
+		this.state.add(state);
 	}
 }

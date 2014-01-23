@@ -8,19 +8,16 @@ public class AmberEdge extends BaseEdge {
 	Long txnStart;
 	Long txnEnd;
 	Long order;
-	String status;
 
 	
 	public AmberEdge(Long id, String label, AmberVertex inVertex, 
     		AmberVertex outVertex, Map<String, Object> properties, 
-    		AmberGraph graph, Long txnStart, Long txnEnd, Long order,
-    		String status) {
+    		AmberGraph graph, Long txnStart, Long txnEnd, Long order) {
     	
         super(id, label, (BaseVertex) inVertex, (BaseVertex) outVertex, properties, (BaseGraph) graph);
         this.txnStart = txnStart;
         this.txnEnd = txnEnd;
         this.order = order;
-        this.status = status;
     }
 
 	
@@ -28,8 +25,15 @@ public class AmberEdge extends BaseEdge {
         StringBuilder sb = new StringBuilder();
         sb.append(" start:" ).append(txnStart)
           .append(" end:"   ).append(txnEnd)
-          .append(" order:" ).append(order)
-          .append(" status:").append(status);
+          .append(" order:" ).append(order);
         return super.toString() + sb.toString();
+    }
+    
+    
+    public boolean equals(Object o) {
+    	if ((o == null) || !(o instanceof AmberEdge)) return false;
+    	AmberEdge e = (AmberEdge) o;
+    	if (getId() != e.getId()) return false;
+    	return true;
     }
 }

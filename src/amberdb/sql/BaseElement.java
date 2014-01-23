@@ -1,5 +1,7 @@
 package amberdb.sql;
 
+import java.io.Serializable;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -53,7 +55,8 @@ public class BaseElement {
         }
         if (!(value instanceof Integer || value instanceof String || 
               value instanceof Boolean || value instanceof Double ||
-              value instanceof Long    || value instanceof Float)) {
+              value instanceof Long    || value instanceof Float  ||
+              value instanceof Date    || value instanceof Serializable)) {
             throw new IllegalArgumentException("Illegal property type [" + value.getClass() + "].");
         }
         properties.put(propertyName, value);
@@ -63,5 +66,10 @@ public class BaseElement {
     
     protected Map<String, Object> getProperties() {
     	return properties;
+    }
+    
+    
+    protected void replaceProperties(Map<String, Object> newProperties) {
+    	properties = newProperties;
     }
 }

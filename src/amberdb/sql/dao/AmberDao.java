@@ -12,8 +12,10 @@ import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
 
 import amberdb.sql.AmberEdge;
+import amberdb.sql.AmberEdgeWithState;
 import amberdb.sql.AmberProperty;
 import amberdb.sql.AmberVertex;
+import amberdb.sql.AmberVertexWithState;
 import amberdb.sql.map.EdgeMapper;
 import amberdb.sql.map.VertexMapper;
 import amberdb.sql.map.PropertyMapper;
@@ -97,7 +99,7 @@ public interface AmberDao extends Transactional<AmberDao> {
     @SqlUpdate(
             "CREATE TABLE IF NOT EXISTS transaction (" +
             "id        BIGINT UNIQUE, " +
-            "commit    BIGINT UNIQUE, " +
+            "time      BIGINT, " +
             "user      VARCHAR(100), " +
             "operation TEXT)")
     void createTransactionTable();
@@ -129,7 +131,7 @@ public interface AmberDao extends Transactional<AmberDao> {
     void createEdgeOutVertexIndex();
 
     @SqlQuery(            
-            "SELECT (COUNT(table_name) = 5) " +
+            "SELECT (COUNT(table_name) = 8) " +
             "FROM information_schema.tables " + 
             "WHERE table_name IN (" +
             "  'VERTEX', 'EDGE', 'PROPERTY', " +
@@ -190,30 +192,30 @@ public interface AmberDao extends Transactional<AmberDao> {
     void suspendProperties(
     		@Bind("sessId")    Long         sessId,
     		@Bind("id")        List<Long>   id,
-            @Bind("name")      List<String> label,
+            @Bind("name")      List<String> name,
             @Bind("type")      List<String> type,
     		@Bind("value")     List<byte[]> value);
 
-
-    @SqlQuery("SELECT id, txn_start, txn_end, state " + 
-    		"FROM sess_vertex " +
-            "WHERE s_id = :sessId)")
-    @Mapper(VertexMapper.class)
-    List<AmberVertex> resumeVertices(@Bind("sessId") Long sessId);
-    
-    @SqlQuery("SELECT id, txn_start, txn_end, v_out, v_in, label, edge_order, state " + 
-    		"FROM sess_edge " +
-            "WHERE s_id = :sessId)")
-    @Mapper(EdgeMapper.class)
-    List<AmberEdge> resumeEdges(@Bind("sessId") Long sessId);
-    
     @SqlQuery("SELECT id, name, type, value " + 
     		"FROM sess_property " +
-            "WHERE s_id = :sessId)")
+            "WHERE s_id = :sessId")
     @Mapper(PropertyMapper.class)
     List<AmberProperty> resumeProperties(@Bind("sessId") Long sessId);
     
+    /* Note: resume edge and vertex implemented in AmberGraph
     
+    /*
+     * commit operations
+     */
+    @SqlUpdate(
+            "INSERT INTO transaction (id, time, user, operation)" +
+            "VALUES (:id, :time, :user, :operation)")
+    void insertTransaction(
+            @Bind("id") long id, 
+            @Bind("time") long time, 
+            @Bind("user") String user,
+            @Bind("operation") String operation);
+
     
 //    @SqlUpdate(
 //            "INSERT INTO stage_vertex (id, txn_start, state, txn_new) " +

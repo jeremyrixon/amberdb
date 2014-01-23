@@ -5,7 +5,7 @@ import org.skife.jdbi.v2.ResultSetMapperFactory;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
-import amberdb.sql.AmberEdge;
+import amberdb.sql.AmberEdgeWithState;
 import amberdb.sql.AmberGraph;
 
 @SuppressWarnings("rawtypes")
@@ -15,7 +15,7 @@ public class EdgeMapperFactory implements ResultSetMapperFactory {
     
     @Override
     public boolean accepts(Class type, StatementContext ctx) {
-        return AmberEdge.class.isAssignableFrom(type);
+        return AmberEdgeWithState.class.isAssignableFrom(type);
     }
 
     @Override

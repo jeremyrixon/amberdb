@@ -23,6 +23,6 @@ public class PropertyMapper implements ResultSetMapper<AmberProperty> {
         Blob b = rs.getBlob("value");
         Object value = PropertyCodec.decode(b.getBytes(1, (int) b.length()), type);
     	
-    	return new AmberProperty(id, name, type, value);
+    	return new AmberProperty(id, name, value);
     }
 }

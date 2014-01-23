@@ -1,6 +1,8 @@
 package amberdb.sql;
 
-import amberdb.sql.dao.TransactionDao;
+
+import java.util.Date;
+
 
 public class AmberTransaction {
     
@@ -9,32 +11,26 @@ public class AmberTransaction {
         return id;
     }
     
-    
-    AmberGraph graph;
+    private AmberGraph graph;
     protected void graph(AmberGraph g) { graph = g; }
     protected AmberGraph graph()       { return graph; }  
     
-    private TransactionDao dao() { return graph().transactionDao(); }
-
-    private long commit;
+    private long time;
     private String user;
     private String operation;
+
     
     public AmberTransaction(AmberGraph graph, String user, String operation) {
         graph(graph);
-        id = graph.newPersistentId();
-        commit = id;
+        id = graph.newId();
+        time = new Date().getTime();
         this.user = user;
         this.operation = operation;
-        
-        dao().insertTransaction(id, commit, user, operation);
+        graph.dao().insertTransaction(id, time, user, operation);
     }
+    
     
     public String toString() {
-        return String.format("[%d] %s : %s", id, user, operation);
+        return String.format("[%d] %s : %s : %s", id, new Date(time), user, operation);
     }
-    public void setOperation(String operation) {
-        dao().setOperation(id, operation);
-    }
-    
 }

@@ -3,6 +3,8 @@ package amberdb.sql;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +17,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
+
 import org.junit.rules.TemporaryFolder;
 
 import com.google.common.collect.Lists;
@@ -29,19 +32,17 @@ public class AmberGraphSuspendResumeTest {
     public TemporaryFolder tempFolder = new TemporaryFolder();
     
     public AmberGraph graph;
+    public AmberGraph graph2;
     
     DataSource src;
     
     @Before
     public void setup() throws MalformedURLException, IOException {
-        
     	System.out.println("Setting up graph");
-        
         String tempPath = tempFolder.getRoot().getAbsolutePath();
         s("amber db located here: " + tempPath);
         src = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"amber","sess","sess");
         graph = new AmberGraph(src);
-
     }
 
     @After
@@ -50,22 +51,36 @@ public class AmberGraphSuspendResumeTest {
 	@Test
 	public void testPersistVertex() throws Exception {
 
-		Vertex v1 = graph.addVertex(null);
-		v1.setProperty("name", "enter the dragon");
-		v1.setProperty("number", 42);
-		s("v1 is: " + v1);
+		Vertex book = graph.addVertex(null);
+		book.setProperty("title", "enter the dragon");
+		book.setProperty("date", new Date());
+		s("Book is: " + book);
 		
-		Vertex v2 = graph.addVertex(null);
-		v2.setProperty("name", "game of death");
-		v2.setProperty("number", 99);
-		s("v2 is: " + v2);
-		
-		Edge e = graph.addEdge(null, v1, v2, "similar");
-		s("e is: " + e);
-		
+		for (int i=0; i<100; i++) {
+			Vertex page = graph.addVertex(null);
+			page.setProperty("number", i+1);
+			page.setProperty("name", "page " + (i+1));
+			page.setProperty("something", "a property");
+			Edge relationship = graph.addEdge(null, book, page, "hasPage");
+		}
+		Long bookId = (Long) book.getId();
 		Long sessId = graph.suspend();
-
-		s("session id is: " + sessId);
+		
+        graph2 = new AmberGraph(src);
+		graph2.resume(sessId);
+        
+		Vertex sameBook = graph2.getVertex(bookId);
+		s("Same book is: " + sameBook);
+		assertEquals(book, sameBook);
+		
+		List<Vertex> pages = (List<Vertex>) sameBook.getVertices(Direction.OUT, "hasPage");
+		s("Number of pages is: " + pages.size());
+		for (Vertex page : pages) {
+			s("page: " + page);
+		}
+		
+		graph2.commit("marvin", "depressed");
+		
 	}
 
     /*
