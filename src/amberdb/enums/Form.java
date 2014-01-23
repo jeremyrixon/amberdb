@@ -6,7 +6,8 @@ import java.util.List;
 public enum Form {
     
     BOOK("Book"), 
-    JOURNAL("Journal");
+    JOURNAL("Journal"),
+    MULTIBOOK("Multi Volume Book");
 
     private String code;
 
