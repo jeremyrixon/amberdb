@@ -105,6 +105,28 @@ public class BaseVertex extends BaseElement implements Vertex {
             sb.setLength(sb.length()-2);
         }
         sb.append("}");
+        sb.append("-"+hashCode());
         return sb.toString();
+    }
+    
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((Long) id).hashCode();
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+
+        BaseVertex other = (BaseVertex) obj;
+        if (id != (Long) other.getId()) return false;
+
+        return true;
     }
 }

@@ -40,7 +40,7 @@ public class AmberGraphSuspendResumeTest {
     public void setup() throws MalformedURLException, IOException {
     	System.out.println("Setting up graph");
         String tempPath = tempFolder.getRoot().getAbsolutePath();
-        s("amber db located here: " + tempPath);
+        s("amber db located here: " + tempPath + "amber");
         src = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"amber","sess","sess");
         graph = new AmberGraph(src);
     }

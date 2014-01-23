@@ -139,10 +139,10 @@ public interface AmberDao extends Transactional<AmberDao> {
             "  'ID_GENERATOR', 'TRANSACTION')")
     boolean schemaTablesExist();
     
-    @SqlUpdate("DROP TABLE IF EXISTS " +
-    		"vertex, edge, property, " +
-    		"sess_vertex, sess_edge, sess_property, " +
-    		"transaction, id_generator")
+	@SqlUpdate("DROP TABLE IF EXISTS "
+			+ "vertex, edge, property, "
+			+ "sess_vertex, sess_edge, sess_property, "
+			+ "transaction, id_generator")
     void dropTables();
 
     
@@ -150,23 +150,21 @@ public interface AmberDao extends Transactional<AmberDao> {
      * id generation operations
      */
     @GetGeneratedKeys
-    @SqlUpdate(
-            "INSERT INTO id_generator () " + 
-            "VALUES ()")
+    @SqlUpdate("INSERT INTO id_generator () "
+    		+ "VALUES ()")
     long newId();
 
-    @SqlUpdate(
-            "DELETE " +
-            "FROM id_generator " +
-            "WHERE id < :id")
+    @SqlUpdate("DELETE "
+    		+ "FROM id_generator "
+    		+ "WHERE id < :id")
     void garbageCollectIds(
             @Bind("id") long id);
 
     /*
      * suspend/resume operations
      */
-    @SqlBatch("INSERT INTO sess_edge (s_id, id, txn_start, txn_end, v_out, v_in, label, edge_order, state) " +
-    		"VALUES (:sessId, :id, :txnStart, :txnEnd, :outId, :inId, :label, :edgeOrder, :state)")
+    @SqlBatch("INSERT INTO sess_edge (s_id, id, txn_start, txn_end, v_out, v_in, label, edge_order, state) "
+    		+ "VALUES (:sessId, :id, :txnStart, :txnEnd, :outId, :inId, :label, :edgeOrder, :state)")
     void suspendEdges(
     		@Bind("sessId")    Long         sessId,
     		@Bind("id")        List<Long>   id,
@@ -178,8 +176,8 @@ public interface AmberDao extends Transactional<AmberDao> {
     		@Bind("edgeOrder") List<Long>   edgeOrder,
             @Bind("state")     List<String> state);
 
-    @SqlBatch("INSERT INTO sess_vertex (s_id, id, txn_start, txn_end, state) " +
-    		"VALUES (:sessId, :id, :txnStart, :txnEnd, :state)")
+    @SqlBatch("INSERT INTO sess_vertex (s_id, id, txn_start, txn_end, state) "
+    		+ "VALUES (:sessId, :id, :txnStart, :txnEnd, :state)")
     void suspendVertices(
     		@Bind("sessId")    Long         sessId,
     		@Bind("id")        List<Long>   id,
@@ -187,8 +185,8 @@ public interface AmberDao extends Transactional<AmberDao> {
     		@Bind("txnEnd")    List<Long>   txnEnd,
             @Bind("state")     List<String> state);
 
-    @SqlBatch("INSERT INTO sess_property (s_id, id, name, type, value) " +
-    		"VALUES (:sessId, :id, :name, :type, :value)")
+    @SqlBatch("INSERT INTO sess_property (s_id, id, name, type, value) "
+    		+ "VALUES (:sessId, :id, :name, :type, :value)")
     void suspendProperties(
     		@Bind("sessId")    Long         sessId,
     		@Bind("id")        List<Long>   id,
@@ -196,9 +194,9 @@ public interface AmberDao extends Transactional<AmberDao> {
             @Bind("type")      List<String> type,
     		@Bind("value")     List<byte[]> value);
 
-    @SqlQuery("SELECT id, name, type, value " + 
-    		"FROM sess_property " +
-            "WHERE s_id = :sessId")
+	@SqlQuery("SELECT id, name, type, value "
+			+ "FROM sess_property "
+			+ "WHERE s_id = :sessId")
     @Mapper(PropertyMapper.class)
     List<AmberProperty> resumeProperties(@Bind("sessId") Long sessId);
     
@@ -216,6 +214,83 @@ public interface AmberDao extends Transactional<AmberDao> {
             @Bind("user") String user,
             @Bind("operation") String operation);
 
+    @SqlUpdate("SET @txn = :txnId;\n"
+    		
+    		// edges    		
+    		+ "UPDATE edge e "
+    		+ "SET txn_end = ("
+    		+ "  SELECT s_id "
+    		+ "  FROM sess_edge se "
+    		+ "  WHERE e.id = se.id "
+    		+ "  AND se.state <> 'NEW' "
+    		+ "  AND s_id = @txn "
+    		+ "  AND e.txn_end = 0);\n"
+
+    		// edge properties
+			+ "UPDATE property p "
+			+ "SET txn_end = ("
+			+ "  SELECT s_id "
+			+ "  FROM sess_edge se "
+			+ "  WHERE p.id = se.id "
+			+ "  AND se.state <> 'NEW' "
+			+ "  AND s_id = @txn "
+			+ "  AND p.txn_end = 0);\n"
+    		
+			// vertices
+			+ "UPDATE vertex v "
+			+ "SET txn_end = ("
+			+ "  SELECT s_id "
+			+ "  FROM sess_vertex sv "
+			+ "  WHERE v.id = sv.id "
+			+ "  AND sv.state <> 'NEW' "
+			+ "  AND s_id = @txn "
+			+ "  AND v.txn_end = 0);\n"
+
+			// vertex properties
+			+ "UPDATE property p "
+			+ "SET txn_end = ("
+			+ "  SELECT s_id "
+			+ "  FROM sess_vertex sv "
+			+ "  WHERE p.id = sv.id "
+			+ "  AND sv.state <> 'NEW' "
+			+ "  AND s_id = @txn "
+			+ "  AND p.txn_end = 0);\n"
+			
+			// orphan edges
+			+ "UPDATE edge e "
+			+ "SET txn_end = ("
+			+ "  SELECT s_id "
+			+ "  FROM sess_vertex sv "
+			+ "  WHERE (e.v_in = sv.id OR e.v_out = sv.id)"
+			+ "  AND sv.state = 'DEL' "
+			+ "  AND s_id = @txn "
+			+ "  AND e.txn_end = 0)") 
+    void endElements(
+            @Bind("txnId") Long txnId);
+
+    @SqlUpdate("SET @txn = :txnId;\n"
+    		
+    		// edges    		
+    		+ "INSERT INTO edge (id, txn_start, txn_end, v_out, v_in, label, edge_order) "
+    		+ "SELECT id, s_id, 0, v_out, v_in, label, edge_order "
+    		+ "FROM sess_edge "
+    		+ "WHERE s_id = @txn "
+    		+ "AND (state = 'NEW' OR state = 'MOD');\n"
+
+    		// vertices    		
+    		+ "INSERT INTO vertex (id, txn_start, txn_end) "
+    		+ "SELECT id, s_id, 0 "
+    		+ "FROM sess_vertex "
+    		+ "WHERE s_id = @txn "
+    		+ "AND (state = 'NEW' OR state = 'MOD');\n"
+
+    		// properties    		
+    		+ "INSERT INTO property (id, txn_start, txn_end, name, type, value) "
+    		+ "SELECT id, s_id, 0, name, type, value "
+    		+ "FROM sess_property "
+    		+ "WHERE s_id = @txn") 
+    void startElements(
+            @Bind("txnId") Long txnId);
     
 //    @SqlUpdate(
 //            "INSERT INTO stage_vertex (id, txn_start, state, txn_new) " +

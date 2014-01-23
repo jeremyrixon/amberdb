@@ -21,13 +21,5 @@ public class AmberVertex extends BaseVertex {
           .append(" end:"   ).append(txnEnd);
         return super.toString() + sb.toString();
     }
-    
-    
-    public boolean equals(Object o) {
-    	if ((o == null) || !(o instanceof AmberVertex)) return false;
-    	AmberVertex e = (AmberVertex) o;
-    	if (getId() != e.getId()) return false;
-    	return true;
-    }
 }
 

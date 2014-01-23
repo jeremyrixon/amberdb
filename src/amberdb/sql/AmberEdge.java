@@ -28,12 +28,4 @@ public class AmberEdge extends BaseEdge {
           .append(" order:" ).append(order);
         return super.toString() + sb.toString();
     }
-    
-    
-    public boolean equals(Object o) {
-    	if ((o == null) || !(o instanceof AmberEdge)) return false;
-    	AmberEdge e = (AmberEdge) o;
-    	if (getId() != e.getId()) return false;
-    	return true;
-    }
 }

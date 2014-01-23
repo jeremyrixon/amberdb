@@ -192,7 +192,12 @@ public class BaseGraph implements Graph, TransactionalGraph {
     @Override
     public void removeEdge(Edge e) {
         BaseEdge ae = (BaseEdge) e;
-        
+System.out.println("removing :" + ae);
+
+if ((Long) ae.getId() == 128L) {
+	System.out.println("----check :" + ae);
+}
+
         ae.inVertex.inEdges.remove(e);
         ae.outVertex.outEdges.remove(e);
         
