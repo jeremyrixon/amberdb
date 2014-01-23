@@ -106,6 +106,15 @@ public interface File extends Node {
     
     @Property("softwareSerialNumber")
     public void setSoftwareSerialNumber(String softwareSerialNumber);
+    
+    /*
+     * Fields migrated from DCM
+     */
+    @Property("dcmCopyPid")
+    public String getDcmCopyPid();
+    
+    @Property("dcmCopyPid")
+    public void setDcmCopyPid(String dcmCopyPid);
 
     @Adjacency(label = IsFileOf.label)
     public Copy getCopy();
