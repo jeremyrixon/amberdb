@@ -21,7 +21,7 @@ public class VertexMapper implements ResultSetMapper<AmberVertexWithState> {
     
     public AmberVertexWithState map(int index, ResultSet rs, StatementContext ctx)
             throws SQLException {
-
+    	
     	AmberVertex vertex = new AmberVertex(
                 rs.getLong("id"), 
                 null,

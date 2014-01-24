@@ -43,7 +43,7 @@ public class BaseElement {
     @SuppressWarnings("unchecked")
     public <T> T removeProperty(String propertyName) {
         T value = (T) properties.remove(propertyName);
-        graph.modifiedElements.add(this);
+        graph.elementModListener.elementModified(this);
         return value;
     }
 
@@ -60,7 +60,7 @@ public class BaseElement {
             throw new IllegalArgumentException("Illegal property type [" + value.getClass() + "].");
         }
         properties.put(propertyName, value);
-        graph.modifiedElements.add(this);
+        graph.elementModListener.elementModified(this);
     }
 
     

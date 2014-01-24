@@ -51,7 +51,8 @@ public class BaseEdge extends BaseElement implements Edge {
         if (direction == Direction.IN) {
             return (Vertex) inVertex;
         } 
-        return (Vertex) outVertex; // direction must be out
+//X check we always load an edge's vs        
+		return (Vertex) outVertex; // direction must be out
     }
 
  

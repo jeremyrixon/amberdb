@@ -1,6 +1,5 @@
 package amberdb.sql.dao;
 
-import java.util.Iterator;
 import java.util.List;
 
 import org.skife.jdbi.v2.sqlobject.Bind;
@@ -11,15 +10,8 @@ import org.skife.jdbi.v2.sqlobject.SqlBatch;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
 
-import amberdb.sql.AmberEdge;
-import amberdb.sql.AmberEdgeWithState;
 import amberdb.sql.AmberProperty;
-import amberdb.sql.AmberVertex;
-import amberdb.sql.AmberVertexWithState;
-import amberdb.sql.map.EdgeMapper;
-import amberdb.sql.map.VertexMapper;
 import amberdb.sql.map.PropertyMapper;
-
 public interface AmberDao extends Transactional<AmberDao> {
 
     /*
@@ -29,117 +21,118 @@ public interface AmberDao extends Transactional<AmberDao> {
     /*
      * Main tables
      */
-    @SqlUpdate(
-    		"CREATE TABLE IF NOT EXISTS vertex (" +
-    		"id         BIGINT, " +
-    		"txn_start  BIGINT, " +
-    		"txn_end    BIGINT)")
+	@SqlUpdate(
+			"CREATE TABLE IF NOT EXISTS vertex (" 
+			+ "id         BIGINT, "
+			+ "txn_start  BIGINT DEFAULT 0 NOT NULL, " 
+			+ "txn_end    BIGINT DEFAULT 0 NOT NULL)")
     void createVertexTable();
     
-    @SqlUpdate(
-            "CREATE TABLE IF NOT EXISTS edge (" +
-    		"id         BIGINT, " +
-    		"txn_start  BIGINT, " +
-    		"txn_end    BIGINT, " +
-    		"v_out      BIGINT, " +
-    		"v_in       BIGINT, " +
-    		"label      VARCHAR(100), " +
-    		"edge_order BIGINT)")
+	@SqlUpdate(
+			"CREATE TABLE IF NOT EXISTS edge (" 
+			+ "id         BIGINT, "
+			+ "txn_start  BIGINT DEFAULT 0 NOT NULL, " 
+			+ "txn_end    BIGINT DEFAULT 0 NOT NULL, "
+			+ "v_out      BIGINT, " 
+			+ "v_in       BIGINT, "
+			+ "label      VARCHAR(100), " 
+			+ "edge_order BIGINT)")
     void createEdgeTable();
     
     @SqlUpdate(
-            "CREATE TABLE IF NOT EXISTS property (" +
-    		"id        BIGINT, " +
-            "txn_start BIGINT, " +
-            "txn_end   BIGINT, " +
-    		"name      VARCHAR(100), " +
-    		"type      CHAR(3), " +
-            "value     BLOB)")
+    		"CREATE TABLE IF NOT EXISTS property (" 
+    		+ "id        BIGINT, "
+			+ "txn_start BIGINT DEFAULT 0 NOT NULL, " 
+    		+ "txn_end   BIGINT DEFAULT 0 NOT NULL, "
+			+ "name      VARCHAR(100), " 
+    		+ "type      CHAR(3), "
+			+ "value     BLOB)")
     void createPropertyTable();
     
     /*
      * Session tables
      */
-    @SqlUpdate(
-    		"CREATE TABLE IF NOT EXISTS sess_vertex (" +
-     		"s_id       BIGINT, " +
-            "id         BIGINT, " +
-    		"txn_start  BIGINT, " +
-    		"txn_end    BIGINT, " +
-    		"state      CHAR(3))")
+	@SqlUpdate(
+			"CREATE TABLE IF NOT EXISTS sess_vertex ("
+			+ "s_id       BIGINT, " 
+			+ "id         BIGINT, "
+			+ "txn_start  BIGINT DEFAULT 0 NOT NULL, " 
+			+ "txn_end    BIGINT DEFAULT 0 NOT NULL, "
+			+ "state      CHAR(3))")
     void createSessionVertexTable();
     
-    @SqlUpdate(
-            "CREATE TABLE IF NOT EXISTS sess_edge (" +
-       		"s_id       BIGINT, " +
-    		"id         BIGINT, " +
-    		"txn_start  BIGINT, " +
-    		"txn_end    BIGINT, " +
-    		"v_out      BIGINT, " +
-    		"v_in       BIGINT, " +
-    		"label      VARCHAR(100), " +
-    		"edge_order BIGINT, " +
-    		"state      CHAR(3))")
+	@SqlUpdate(
+			"CREATE TABLE IF NOT EXISTS sess_edge (" 
+			+ "s_id       BIGINT, "
+			+ "id         BIGINT, " 
+			+ "txn_start  BIGINT DEFAULT 0 NOT NULL, "
+			+ "txn_end    BIGINT DEFAULT 0 NOT NULL, " 
+			+ "v_out      BIGINT, "
+			+ "v_in       BIGINT, " 
+			+ "label      VARCHAR(100), "
+			+ "edge_order BIGINT, " 
+			+ "state      CHAR(3))")
     void createSessionEdgeTable();
     
-    @SqlUpdate(
-            "CREATE TABLE IF NOT EXISTS sess_property (" +
-       		"s_id      BIGINT, " +
-      		"id        BIGINT, " +
-    		"name      VARCHAR(100), " +
-    		"type      CHAR(3), " +
-            "value     BLOB)")
+	@SqlUpdate(
+			"CREATE TABLE IF NOT EXISTS sess_property ("
+			+ "s_id      BIGINT, " 
+			+ "id        BIGINT, "
+			+ "name      VARCHAR(100), " 
+			+ "type      CHAR(3), "
+			+ "value     BLOB)")
     void createSessionPropertyTable();
     
     @SqlUpdate(
-            "CREATE TABLE IF NOT EXISTS id_generator (" +
-            "id BIGINT PRIMARY KEY AUTO_INCREMENT)")
+            "CREATE TABLE IF NOT EXISTS id_generator ("
+            + "id BIGINT PRIMARY KEY AUTO_INCREMENT)")
     void createIdGeneratorTable();
     
-    @SqlUpdate(
-            "CREATE TABLE IF NOT EXISTS transaction (" +
-            "id        BIGINT UNIQUE, " +
-            "time      BIGINT, " +
-            "user      VARCHAR(100), " +
-            "operation TEXT)")
+	@SqlUpdate(
+			"CREATE TABLE IF NOT EXISTS transaction ("
+			+ "id        BIGINT UNIQUE, " 
+			+ "time      BIGINT, "
+			+ "user      VARCHAR(100), " 
+			+ "operation TEXT)")
     void createTransactionTable();
 
     /*
      * Main table indexes - these require review as they might need indexes.
      */
     @SqlUpdate(
-            "CREATE UNIQUE INDEX unique_vert " +
-            "ON vertex(id, txn_start)")
+            "CREATE UNIQUE INDEX unique_vert "
+            + "ON vertex(id, txn_start)")
     void createVertexIndex();
     @SqlUpdate(
-            "CREATE UNIQUE INDEX unique_edge " +
-            "ON edge(id, txn_start)")
+            "CREATE UNIQUE INDEX unique_edge "
+            + "ON edge(id, txn_start)")
     void createEdgeIndex();
     @SqlUpdate(
-            "CREATE UNIQUE INDEX unique_prop " +
-            "ON property(id, txn_start, name)")
+            "CREATE UNIQUE INDEX unique_prop "
+            + "ON property(id, txn_start, name)")
     void createPropertyIndex();
 
     @SqlUpdate(
-            "CREATE UNIQUE INDEX edge_in_idx " +
-            "ON edge(v_in)")
+            "CREATE UNIQUE INDEX edge_in_idx "
+            + "ON edge(v_in)")
     void createEdgeInVertexIndex();
     
     @SqlUpdate(
-            "CREATE UNIQUE INDEX edge_out_idx " +
-            "ON edge(v_out)")
+            "CREATE UNIQUE INDEX edge_out_idx "
+            + "ON edge(v_out)")
     void createEdgeOutVertexIndex();
 
-    @SqlQuery(            
-            "SELECT (COUNT(table_name) = 8) " +
-            "FROM information_schema.tables " + 
-            "WHERE table_name IN (" +
-            "  'VERTEX', 'EDGE', 'PROPERTY', " +
-            "  'SESS_VERTEX', 'SESS_EDGE', 'SESS_PROPERTY', " +
-            "  'ID_GENERATOR', 'TRANSACTION')")
+	@SqlQuery(
+			"SELECT (COUNT(table_name) = 8) "
+			+ "FROM information_schema.tables " 
+			+ "WHERE table_name IN ("
+			+ "  'VERTEX', 'EDGE', 'PROPERTY', "
+			+ "  'SESS_VERTEX', 'SESS_EDGE', 'SESS_PROPERTY', "
+			+ "  'ID_GENERATOR', 'TRANSACTION')")
     boolean schemaTablesExist();
     
-	@SqlUpdate("DROP TABLE IF EXISTS "
+	@SqlUpdate(
+			"DROP TABLE IF EXISTS "
 			+ "vertex, edge, property, "
 			+ "sess_vertex, sess_edge, sess_property, "
 			+ "transaction, id_generator")
@@ -215,56 +208,65 @@ public interface AmberDao extends Transactional<AmberDao> {
             @Bind("operation") String operation);
 
     @SqlUpdate("SET @txn = :txnId;\n"
-    		
+// == CHANGE FOR MYSQL ==    		
     		// edges    		
     		+ "UPDATE edge e "
-    		+ "SET txn_end = ("
-    		+ "  SELECT s_id "
-    		+ "  FROM sess_edge se "
-    		+ "  WHERE e.id = se.id "
-    		+ "  AND se.state <> 'NEW' "
-    		+ "  AND s_id = @txn "
-    		+ "  AND e.txn_end = 0);\n"
+    		+ "SET txn_end = @txn "
+    		+ "WHERE e.txn_end = 0 "
+    		+ "AND e.id IN ("
+    		+ "  SELECT id "
+    		+ "  FROM sess_edge "
+    		+ "  WHERE s_id = @txn "
+    		+ "  AND state <> 'NEW');\n"
 
     		// edge properties
 			+ "UPDATE property p "
-			+ "SET txn_end = ("
-			+ "  SELECT s_id "
-			+ "  FROM sess_edge se "
-			+ "  WHERE p.id = se.id "
-			+ "  AND se.state <> 'NEW' "
-			+ "  AND s_id = @txn "
-			+ "  AND p.txn_end = 0);\n"
+			+ "SET txn_end = @txn "
+			+ "WHERE p.txn_end = 0 "
+			+ "AND p.id IN ("
+			+ "  SELECT id "
+			+ "  FROM sess_edge "
+			+ "  WHERE s_id = @txn "
+			+ "  AND state <> 'NEW');\n"
     		
 			// vertices
-			+ "UPDATE vertex v "
-			+ "SET txn_end = ("
-			+ "  SELECT s_id "
-			+ "  FROM sess_vertex sv "
-			+ "  WHERE v.id = sv.id "
-			+ "  AND sv.state <> 'NEW' "
-			+ "  AND s_id = @txn "
-			+ "  AND v.txn_end = 0);\n"
+    		+ "UPDATE vertex v "
+    		+ "SET txn_end = @txn "
+    		+ "WHERE v.txn_end = 0 "
+    		+ "AND v.id IN ("
+    		+ "  SELECT id "
+    		+ "  FROM sess_vertex "
+    		+ "  WHERE s_id = @txn "
+    		+ "  AND state <> 'NEW');\n"
 
-			// vertex properties
+    		// vertex properties
 			+ "UPDATE property p "
-			+ "SET txn_end = ("
-			+ "  SELECT s_id "
-			+ "  FROM sess_vertex sv "
-			+ "  WHERE p.id = sv.id "
-			+ "  AND sv.state <> 'NEW' "
-			+ "  AND s_id = @txn "
-			+ "  AND p.txn_end = 0);\n"
+			+ "SET txn_end = @txn "
+			+ "WHERE p.txn_end = 0 "
+			+ "AND p.id IN ("
+			+ "  SELECT id "
+			+ "  FROM sess_vertex "
+			+ "  WHERE s_id = @txn "
+			+ "  AND state <> 'NEW');\n"
 			
 			// orphan edges
 			+ "UPDATE edge e "
-			+ "SET txn_end = ("
-			+ "  SELECT s_id "
-			+ "  FROM sess_vertex sv "
-			+ "  WHERE (e.v_in = sv.id OR e.v_out = sv.id)"
-			+ "  AND sv.state = 'DEL' "
-			+ "  AND s_id = @txn "
-			+ "  AND e.txn_end = 0)") 
+			+ "SET txn_end = @txn "
+			+ "WHERE e.txn_end = 0 "
+			+ "AND e.v_in IN ("
+			+ "  SELECT id "
+			+ "  FROM sess_vertex "
+			+ "  WHERE state = 'DEL' "
+			+ "  AND s_id = @txn);\n"
+
+			+ "UPDATE edge e "
+			+ "SET txn_end = @txn "
+			+ "WHERE e.txn_end = 0 "
+			+ "AND e.v_out IN ("
+			+ "  SELECT id "
+			+ "  FROM sess_vertex "
+			+ "  WHERE state = 'DEL' "
+			+ "  AND s_id = @txn);\n")
     void endElements(
             @Bind("txnId") Long txnId);
 

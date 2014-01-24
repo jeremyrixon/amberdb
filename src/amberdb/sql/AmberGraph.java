@@ -17,6 +17,7 @@ import org.skife.jdbi.v2.Handle;
 
 import amberdb.sql.dao.AmberDao;
 import amberdb.sql.map.EdgeMapper;
+import amberdb.sql.map.PropertyMapper;
 import amberdb.sql.map.VertexMapper;
 
 import com.tinkerpop.blueprints.Edge;
@@ -180,6 +181,10 @@ public class AmberGraph extends BaseGraph
     	batchSuspendEdges(e, p);
     	batchSuspendVertices(v, p);
     	
+    	log.info("vertices   in batch: " + v.id.size());
+    	log.info("edges      in batch: " + e.id.size());
+    	log.info("properties in batch: " + p.id.size());
+    	
     	dao.suspendEdges(sessId, e.id, e.txnStart, e.txnEnd, e.vertexOut, e.vertexIn, e.label, e.order, e.state);
     	dao.suspendVertices(sessId, v.id, v.txnStart, v.txnEnd, v.state);
     	dao.suspendProperties(sessId, p.id, p.name, p.type, p.value);
@@ -189,6 +194,9 @@ public class AmberGraph extends BaseGraph
 
     
     private void batchSuspendEdges(AmberEdgeBatch edges, AmberPropertyBatch properties) {
+    	
+    	log.info("suspending edges -- r:" + removedEdges.size() + " n:" + newEdges.size() + " m:" + modifiedEdges.size());
+    	
     	for (Edge e : removedEdges) {
     		modifiedEdges.remove(e);
     		if (newEdges.remove(e)) continue;
@@ -209,6 +217,9 @@ public class AmberGraph extends BaseGraph
     
     
     private void batchSuspendVertices(AmberVertexBatch vertices, AmberPropertyBatch properties) {
+
+    	log.info("suspending verts -- r:" + removedVertices.size() + " n:" + newVertices.size() + " m:" + modifiedVertices.size());
+    	
     	for (Vertex v : removedVertices) {
     		modifiedVertices.remove(v);
     		if (newVertices.remove(v)) continue;
@@ -241,8 +252,8 @@ public class AmberGraph extends BaseGraph
     
 	
 	public void clear() {
-		graphEdges.clear();
-		graphVertices.clear();
+		
+		super.clear();
 		
 		removedEdges.clear();
 		removedVertices.clear();
@@ -259,7 +270,7 @@ public class AmberGraph extends BaseGraph
 
     	clear();
     	
-    	// get then separate the properties into the maps for their elements
+    	// get, then separate the properties into the maps for their elements
     	List<AmberProperty> properties = dao.resumeProperties(sessId);
     	Map<Long, Map<String, Object>> propertyMaps = new HashMap<Long, Map<String, Object>>();
     	for (AmberProperty prop : properties) {
@@ -269,6 +280,7 @@ public class AmberGraph extends BaseGraph
     		}
     		propertyMaps.get(id).put(prop.getName(), prop.getValue());
     	}
+    	log.info("property maps resumed: " + propertyMaps.size());
     	
     	// Restore vertices to the graph before edges because 
     	// edge construction depends on vertex existence
@@ -311,6 +323,13 @@ public class AmberGraph extends BaseGraph
     			modifiedEdges.add(edge);
     		}
     	}
+    	
+    	log.info("resuming vr:" + removedVertices.size()
+    			+ " vn:" + newVertices.size()
+    			+ " vm:" + modifiedVertices.size()
+    			+ " er:" + removedEdges.size()
+    			+ " en:" + newEdges.size()
+    			+ " em:" + modifiedEdges.size());
     }
     
     private List<AmberVertexWithState> resumeVertices(Long sessId) {
@@ -353,8 +372,88 @@ public class AmberGraph extends BaseGraph
     	
     	dao.insertTransaction(txnId, new Date().getTime(), user, operation);
     	
+    	clear();
+    	
+    	// refresh local graph or something :-)
     	
     	return txnId;
+    }
+    
+    
+    public Vertex getVertex(Object id) {
+    	
+    	Vertex vertex = super.getVertex(id);
+    	if (vertex != null) return vertex;
+    	
+    	if (parseId(id) == null) return null; // super may have returned null because the id didn't parse
+    	
+    	Handle h = dbi.open();
+		AmberVertexWithState vs = h.createQuery(
+				"SELECT id, txn_start, txn_end, 'AMB' state "
+				+ "FROM vertex " 
+				+ "WHERE id = :id "
+				+ "AND txn_end = 0")
+                .bind("id", parseId(id))
+                .map(new VertexMapper(this)).first();
+
+		if (vs == null) return null;
+        vertex = vs.vertex;
+        if (removedVertices.contains(vertex)) return null;
+
+        AmberVertex v = (AmberVertex) vertex;
+        v.replaceProperties(getElementPropertyMap((Long) v.getId(), v.txnStart, h));
+        h.close();
+        
+        return vertex;
+    } 
+    
+    public Edge getEdge(Object id) {
+    	
+    	Edge edge = super.getEdge(id);
+    	if (edge != null) return edge;
+
+    	if (parseId(id) == null) return null; // super may have returned null because the id didn't parse
+    	
+    	Handle h = dbi.open();
+		AmberEdgeWithState es = h.createQuery(
+				"SELECT id, txn_start, txn_end, label, v_in, v_out, edge_order, 'AMB' state "
+				+ "FROM edge " 
+				+ "WHERE id = :id "
+				+ "AND txn_end = 0")
+                .bind("id", parseId(id))
+                .map(new EdgeMapper(this)).first();
+
+		if (es == null) return null;
+        edge = es.edge;
+        if (removedEdges.contains(edge)) return null;
+        
+        AmberEdge e = (AmberEdge) edge;
+        e.replaceProperties(getElementPropertyMap((Long) e.getId(), e.txnStart, h));
+        h.close();
+
+        return e;
+    } 
+    
+    private Map<String, Object> getElementPropertyMap(Long elementId, Long txnStart, Handle h) {
+
+    	Map<String, Object> propMap = new HashMap<String, Object>();
+
+        List<AmberProperty> propList = h.createQuery(
+				"SELECT id, name, type, value "
+				+ "FROM property " 
+				+ "WHERE id = :id "
+				+ "AND txn_start = :txnStart "
+				+ "AND txn_end = 0")
+                .bind("id", elementId)
+                .bind("txnStart", txnStart)
+                .map(new PropertyMapper()).list();
+        h.close();
+        if (propList == null || propList.size() == 0) return propMap;
+        
+        for (AmberProperty p : propList) {
+        	propMap.put(p.getName(), p.getValue());
+        }
+    	return propMap;
     }
 }
 

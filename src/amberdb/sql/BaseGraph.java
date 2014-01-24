@@ -2,10 +2,8 @@ package amberdb.sql;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Edge;
@@ -22,9 +20,6 @@ public class BaseGraph implements Graph, TransactionalGraph {
     
     List<Edge> graphEdges = new ArrayList<Edge>();
     List<Vertex> graphVertices = new ArrayList<Vertex>();
-    
-    Set<BaseElement> modifiedElements = new HashSet<BaseElement>();
-    
     
     
     // id generation handling - overridden in subclass AmberGraph
@@ -192,11 +187,6 @@ public class BaseGraph implements Graph, TransactionalGraph {
     @Override
     public void removeEdge(Edge e) {
         BaseEdge ae = (BaseEdge) e;
-System.out.println("removing :" + ae);
-
-if ((Long) ae.getId() == 128L) {
-	System.out.println("----check :" + ae);
-}
 
         ae.inVertex.inEdges.remove(e);
         ae.outVertex.outEdges.remove(e);
@@ -295,6 +285,11 @@ if ((Long) ae.getId() == 128L) {
     
     @Override
     public void rollback() {
+    }
+    
+    public void clear() {
+    	graphEdges.clear();
+    	graphVertices.clear();
     }
 }
 
