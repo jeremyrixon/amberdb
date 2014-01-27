@@ -15,7 +15,7 @@ import java.io.IOException;
 
 public class PropertyCodec {
 
-	
+    
     public static byte[] encode(Object value) {
         if (value instanceof String) {
             return ((String) value).getBytes(Charset.forName("UTF-8"));

@@ -10,7 +10,7 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 public class EdgeMapper implements ResultSetMapper<AmberEdgeWithState> {
     
-	
+    
     private AmberGraph graph;
     private boolean localOnly; 
     
@@ -24,11 +24,11 @@ public class EdgeMapper implements ResultSetMapper<AmberEdgeWithState> {
     public AmberEdgeWithState map(int index, ResultSet rs, StatementContext ctx)
             throws SQLException {
 
-    	AmberVertex in = (AmberVertex) graph.getVertex(rs.getLong("v_in"), localOnly);
-    	AmberVertex out = (AmberVertex) graph.getVertex(rs.getLong("v_out"), localOnly);
-    	if (in == null || out == null) return null;
-    	
-    	AmberEdge edge = new AmberEdge(
+        AmberVertex in = (AmberVertex) graph.getVertex(rs.getLong("v_in"), localOnly);
+        AmberVertex out = (AmberVertex) graph.getVertex(rs.getLong("v_out"), localOnly);
+        if (in == null || out == null) return null;
+        
+        AmberEdge edge = new AmberEdge(
                 rs.getLong("id"), 
                 rs.getString("label"),
                 in,
@@ -38,7 +38,7 @@ public class EdgeMapper implements ResultSetMapper<AmberEdgeWithState> {
                 rs.getLong("txn_start"),
                 rs.getLong("txn_end"),
                 rs.getLong("edge_order"));
-    	
-    	return new AmberEdgeWithState(edge, rs.getString("state"));
+        
+        return new AmberEdgeWithState(edge, rs.getString("state"));
     }
 }

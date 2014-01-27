@@ -4,7 +4,7 @@ package amberdb.sql;
 @SuppressWarnings("serial")
 public class InvalidDataTypeException extends RuntimeException {
 
-	
+    
     public InvalidDataTypeException() {
     }
 

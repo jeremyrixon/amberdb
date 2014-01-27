@@ -10,7 +10,7 @@ import com.tinkerpop.blueprints.Vertex;
 
 public class BaseEdge extends BaseElement implements Edge {
 
-	
+    
     private String label;
     protected BaseVertex inVertex;
     protected BaseVertex outVertex;
@@ -48,12 +48,12 @@ public class BaseEdge extends BaseElement implements Edge {
     public Vertex getVertex(Direction direction) throws IllegalArgumentException {
         // argument guard
         if (Direction.BOTH == direction) {  
-        	throw new IllegalArgumentException("Can only get a vertex from a single direction"); 
+            throw new IllegalArgumentException("Can only get a vertex from a single direction"); 
         }
         if (direction == Direction.IN) {
             return (Vertex) inVertex;
         } 
-		return (Vertex) outVertex; // direction must be out
+        return (Vertex) outVertex; // direction must be out
         // note: we should always be loading an edge's vertices
     }
 

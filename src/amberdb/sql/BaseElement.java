@@ -12,7 +12,7 @@ import com.google.common.collect.Sets;
 
 public class BaseElement {
 
-	
+    
     protected long id;
     protected Map<String, Object> properties;
     protected BaseGraph graph;
@@ -67,11 +67,11 @@ public class BaseElement {
 
     
     protected Map<String, Object> getProperties() {
-    	return properties;
+        return properties;
     }
     
     
     protected void replaceProperties(Map<String, Object> newProperties) {
-    	properties = newProperties;
+        properties = newProperties;
     }
 }

@@ -39,7 +39,7 @@ public class AmberGraphSuspendResumeTest {
     
     @Before
     public void setup() throws MalformedURLException, IOException {
-    	System.out.println("Setting up graph");
+        System.out.println("Setting up graph");
         String tempPath = tempFolder.getRoot().getAbsolutePath();
         s("amber db located here: " + tempPath + "amber");
         src = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"amber;auto_server=true","sess","sess");
@@ -51,175 +51,175 @@ public class AmberGraphSuspendResumeTest {
 
     @Test
     public void testPersistingVertex() throws Exception {
-    	
-    	// persist vertex
-    	Vertex v = graph.addVertex(null);
-    	v.setProperty("date", new Date());
-    	
-    	Object vId = v.getId();
-    	graph.commit("tester", "testPersistingVertex");
-    	
-    	// clear local session
-    	graph.clear();
-    	
-    	// get from persistent data store
-    	Vertex v2 = graph.getVertex(vId);
-    	assertEquals(v, v2);
-    	s("matched: " + v2);
-    	
-    	// remove from local session
-    	v.remove();
-    	Vertex v3 = graph.getVertex(vId);
-    	assertNull(v3);
-    	
-    	graph.clear();
-    	
-    	// get from persistent data store
-    	Vertex v4 = graph.getVertex(vId);
-    	assertEquals(v, v4);
-    	
-    	s("note: we hung onto v after persisting so it is no longer up to date");
-    	s("v : " + v);
-    	s("v4: " + v4);
-    	
-    	// modify and persist
-    	v4.setProperty("array", new char[] {'1','a'});
-    	graph.commit("tester", "testModifyAndPersist");
-    	
-    	graph.clear();
-    	
-    	// get from persistent data store
-    	Vertex v5 = graph.getVertex(vId);
-    	assertEquals(v5, v4);
-    	
-    	s("note: we hung onto v4 after persisting so it is no longer up to date");
-    	s("v4: " + v4);
-    	s("v5: " + v5);
-    	
-    	// delete from data store
-    	v5.remove();
-    	graph.commit("tester", "removeVertex");
+        
+        // persist vertex
+        Vertex v = graph.addVertex(null);
+        v.setProperty("date", new Date());
+        
+        Object vId = v.getId();
+        graph.commit("tester", "testPersistingVertex");
+        
+        // clear local session
+        graph.clear();
+        
+        // get from persistent data store
+        Vertex v2 = graph.getVertex(vId);
+        assertEquals(v, v2);
+        s("matched: " + v2);
+        
+        // remove from local session
+        v.remove();
+        Vertex v3 = graph.getVertex(vId);
+        assertNull(v3);
+        
+        graph.clear();
+        
+        // get from persistent data store
+        Vertex v4 = graph.getVertex(vId);
+        assertEquals(v, v4);
+        
+        s("note: we hung onto v after persisting so it is no longer up to date");
+        s("v : " + v);
+        s("v4: " + v4);
+        
+        // modify and persist
+        v4.setProperty("array", new char[] {'1','a'});
+        graph.commit("tester", "testModifyAndPersist");
+        
+        graph.clear();
+        
+        // get from persistent data store
+        Vertex v5 = graph.getVertex(vId);
+        assertEquals(v5, v4);
+        
+        s("note: we hung onto v4 after persisting so it is no longer up to date");
+        s("v4: " + v4);
+        s("v5: " + v5);
+        
+        // delete from data store
+        v5.remove();
+        graph.commit("tester", "removeVertex");
 
-    	// get from persistent data store
-    	Vertex v6 = graph.getVertex(vId);
-    	assertNull(v6);
+        // get from persistent data store
+        Vertex v6 = graph.getVertex(vId);
+        assertNull(v6);
 
     }
 
     @Test
     public void testPersistingEdge() throws Exception {
-    	
-    	// persist edge
-    	Vertex v = graph.addVertex(null);
-    	v.setProperty("name", "ajax");
-    	v.setProperty("date", new Date());
+        
+        // persist edge
+        Vertex v = graph.addVertex(null);
+        v.setProperty("name", "ajax");
+        v.setProperty("date", new Date());
 
-    	Vertex v2 = graph.addVertex(null);
-    	v2.setProperty("name", "hector");
-    	v2.setProperty("date", new Date());
-    	
-    	Edge e = graph.addEdge(null, v, v2, "foughtWith");
-    	
-    	Object eId = e.getId();
-    	graph.commit("tester", "testPersistingEdge");
-    	// commit clears the local session
-    	
-    	// get from persistent data store
-    	Edge e2 = graph.getEdge(eId);
-    	assertEquals(e, e2);
-    	s("matched: " + e2);
-    	
-    	assertEquals(e.getVertex(Direction.OUT), e2.getVertex(Direction.OUT));
-    	assertEquals(e.getVertex(Direction.IN), e2.getVertex(Direction.IN));
-    	
-    	
-    	// remove from local session
-    	e2.remove();
-    	Edge e3 = graph.getEdge(eId);
-    	assertNull(e3);
-    	
-    	graph.clear();
-    	
-    	// get from persistent data store
-    	Edge e4 = graph.getEdge(eId);
-    	assertEquals(e, e4);
-    	
-    	s("note: we hung onto e after persisting so it is no longer up to date");
-    	s("e : " + e);
-    	s("e4: " + e4);
-    	
-    	// modify and persist
-    	e4.setProperty("array", new char[] {'1','a'});
-    	graph.commit("tester", "testModifyAndPersist");
-    	
-    	graph.clear();
-    	
-    	// get from persistent data store
-    	Edge e5 = graph.getEdge(eId);
-    	assertEquals(e5, e4);
-    	
-    	s("note: we hung onto e4 after persisting so it is no longer up to date");
-    	s("e4: " + e4);
-    	s("e5: " + e5);
-    	
-    	// delete an incident vertex from data store
-    	Object remainingVertexId = e5.getVertex(Direction.OUT).getId();
-    	Object removedVertexId = e5.getVertex(Direction.IN).getId();
-    	e5.getVertex(Direction.IN).remove();
-    	graph.commit("tester", "removeVertex");
+        Vertex v2 = graph.addVertex(null);
+        v2.setProperty("name", "hector");
+        v2.setProperty("date", new Date());
+        
+        Edge e = graph.addEdge(null, v, v2, "foughtWith");
+        
+        Object eId = e.getId();
+        graph.commit("tester", "testPersistingEdge");
+        // commit clears the local session
+        
+        // get from persistent data store
+        Edge e2 = graph.getEdge(eId);
+        assertEquals(e, e2);
+        s("matched: " + e2);
+        
+        assertEquals(e.getVertex(Direction.OUT), e2.getVertex(Direction.OUT));
+        assertEquals(e.getVertex(Direction.IN), e2.getVertex(Direction.IN));
+        
+        
+        // remove from local session
+        e2.remove();
+        Edge e3 = graph.getEdge(eId);
+        assertNull(e3);
+        
+        graph.clear();
+        
+        // get from persistent data store
+        Edge e4 = graph.getEdge(eId);
+        assertEquals(e, e4);
+        
+        s("note: we hung onto e after persisting so it is no longer up to date");
+        s("e : " + e);
+        s("e4: " + e4);
+        
+        // modify and persist
+        e4.setProperty("array", new char[] {'1','a'});
+        graph.commit("tester", "testModifyAndPersist");
+        
+        graph.clear();
+        
+        // get from persistent data store
+        Edge e5 = graph.getEdge(eId);
+        assertEquals(e5, e4);
+        
+        s("note: we hung onto e4 after persisting so it is no longer up to date");
+        s("e4: " + e4);
+        s("e5: " + e5);
+        
+        // delete an incident vertex from data store
+        Object remainingVertexId = e5.getVertex(Direction.OUT).getId();
+        Object removedVertexId = e5.getVertex(Direction.IN).getId();
+        e5.getVertex(Direction.IN).remove();
+        graph.commit("tester", "removeVertex");
 
-    	// that should have deleted the edge as well, but the other vertex should remain
-    	assertNull(graph.getEdge(eId));
-    	assertNull(graph.getVertex(removedVertexId));
-    	assertNotNull(graph.getVertex(remainingVertexId));
-    	s("vertex remaining: " + graph.getVertex(remainingVertexId));
+        // that should have deleted the edge as well, but the other vertex should remain
+        assertNull(graph.getEdge(eId));
+        assertNull(graph.getVertex(removedVertexId));
+        assertNotNull(graph.getVertex(remainingVertexId));
+        s("vertex remaining: " + graph.getVertex(remainingVertexId));
     }
     
     @Ignore
-	@Test
-	public void testPersistVertex() throws Exception {
+    @Test
+    public void testPersistVertex() throws Exception {
 
-		Vertex book = graph.addVertex(null);
-		book.setProperty("title", "enter the dragon");
-		book.setProperty("date", new Date());
-		s("Book is: " + book);
-		
-		for (int i=0; i<500; i++) {
-			Vertex page = graph.addVertex(null);
-			page.setProperty("number", i+1);
-			page.setProperty("name", "page " + (i+1));
-			page.setProperty("something", "a property");
-			Edge relationship = graph.addEdge(null, book, page, "hasPage");
-		}
-		Long bookId = (Long) book.getId();
-		Long sessId = graph.suspend();
-		
-        graph2 = new AmberGraph(src);
-		graph2.resume(sessId);
+        Vertex book = graph.addVertex(null);
+        book.setProperty("title", "enter the dragon");
+        book.setProperty("date", new Date());
+        s("Book is: " + book);
         
-		Vertex sameBook = graph2.getVertex(bookId);
-		s("Same book is: " + sameBook);
-		assertEquals(book, sameBook);
-		
-		List<Vertex> pages = (List<Vertex>) sameBook.getVertices(Direction.OUT, "hasPage");
-		assertEquals(pages.size(), 500);
-		s("Number of pages is: " + pages.size());
-		
-		graph2.commit("test1", "saved book");
-		
-		for (int i=0; i<100; i++) {
-			pages.get(i).setProperty("name", "skwak");
-		}
-		for (int i=100; i<200; i++) {
-			graph2.removeVertex(pages.get(i));
-		}
-		
-		graph2.commit("test2", "modified book");
-		
-		graph = new AmberGraph(src);
-		Vertex bookAlso = graph.getVertex(bookId);
-		s("-----BOOK also is : " + bookAlso);
-	}
+        for (int i=0; i<500; i++) {
+            Vertex page = graph.addVertex(null);
+            page.setProperty("number", i+1);
+            page.setProperty("name", "page " + (i+1));
+            page.setProperty("something", "a property");
+            Edge relationship = graph.addEdge(null, book, page, "hasPage");
+        }
+        Long bookId = (Long) book.getId();
+        Long sessId = graph.suspend();
+        
+        graph2 = new AmberGraph(src);
+        graph2.resume(sessId);
+        
+        Vertex sameBook = graph2.getVertex(bookId);
+        s("Same book is: " + sameBook);
+        assertEquals(book, sameBook);
+        
+        List<Vertex> pages = (List<Vertex>) sameBook.getVertices(Direction.OUT, "hasPage");
+        assertEquals(pages.size(), 500);
+        s("Number of pages is: " + pages.size());
+        
+        graph2.commit("test1", "saved book");
+        
+        for (int i=0; i<100; i++) {
+            pages.get(i).setProperty("name", "skwak");
+        }
+        for (int i=100; i<200; i++) {
+            graph2.removeVertex(pages.get(i));
+        }
+        
+        graph2.commit("test2", "modified book");
+        
+        graph = new AmberGraph(src);
+        Vertex bookAlso = graph.getVertex(bookId);
+        s("-----BOOK also is : " + bookAlso);
+    }
 
     /*
      * my convenience 

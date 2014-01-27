@@ -8,5 +8,5 @@ import com.tinkerpop.blueprints.Vertex;
 
 
 public interface VertexFactory {
-	Vertex newVertex(Object id, Map<String, Object> properties, Graph graph); 
+    Vertex newVertex(Object id, Map<String, Object> properties, Graph graph); 
 }

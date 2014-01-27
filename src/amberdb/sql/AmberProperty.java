@@ -3,7 +3,7 @@ package amberdb.sql;
 
 public class AmberProperty {
 
-	
+    
     private long id;
     private String name; 
     private Object value;

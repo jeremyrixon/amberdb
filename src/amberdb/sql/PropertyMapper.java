@@ -11,7 +11,7 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 public class PropertyMapper implements ResultSetMapper<AmberProperty> {
 
-	
+    
     public AmberProperty map(int index, ResultSet rs, StatementContext ctx)
             throws SQLException {
 

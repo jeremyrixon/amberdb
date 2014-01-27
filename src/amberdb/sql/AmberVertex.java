@@ -11,19 +11,19 @@ import com.tinkerpop.blueprints.Vertex;
 
 public class AmberVertex extends BaseVertex {
 
-	
-	Long txnStart;
-	Long txnEnd;
-	
-	
+    
+    Long txnStart;
+    Long txnEnd;
+    
+    
     public AmberVertex(long id, Map<String, Object> properties, 
-    		AmberGraph graph, Long txnStart, Long txnEnd) {
-    	
+            AmberGraph graph, Long txnStart, Long txnEnd) {
+        
         super(id, properties, graph);
         this.txnStart = txnStart;
         this.txnEnd = txnEnd;
     }
-	
+    
     
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -35,18 +35,18 @@ public class AmberVertex extends BaseVertex {
     
     public Iterable<Edge> getEdges(Direction direction, String... labels) {
         
-    	((AmberGraph) graph).getBranch(this.id, Direction.BOTH, labels);
-    	List<Edge> edges = (List<Edge>) super.getEdges(direction, labels);
-    	
+        ((AmberGraph) graph).getBranch(this.id, Direction.BOTH, labels);
+        List<Edge> edges = (List<Edge>) super.getEdges(direction, labels);
+        
         return edges;
     }
 
 
     public Iterable<Vertex> getVertices(Direction direction, String... labels) {
 
-		((AmberGraph) graph).getBranch(this.id, Direction.BOTH, labels);
-    	List<Vertex> vertices = (List<Vertex>) super.getVertices(direction, labels);
-    	
+        ((AmberGraph) graph).getBranch(this.id, Direction.BOTH, labels);
+        List<Vertex> vertices = (List<Vertex>) super.getVertices(direction, labels);
+        
         return vertices;
     }
 }

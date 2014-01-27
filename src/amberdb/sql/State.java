@@ -3,7 +3,7 @@ package amberdb.sql;
 
 public enum State {
 
-	
+    
     NEW, MOD, DEL, AMB, BAD;
     
     

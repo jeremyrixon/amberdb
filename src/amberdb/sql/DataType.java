@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 public enum DataType {
 
-	
+    
         STR, INT, DBL, BLN, LNG, FLT, DTE, SER, BAD;
     
         
