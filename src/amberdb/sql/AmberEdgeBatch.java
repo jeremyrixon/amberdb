@@ -8,14 +8,14 @@ import java.util.List;
 public class AmberEdgeBatch {
 
     
-    List<Long>   id        = new ArrayList<Long>();
-    List<Long>   txnStart  = new ArrayList<Long>();
-    List<Long>   txnEnd    = new ArrayList<Long>();
-    List<Long>   vertexOut = new ArrayList<Long>();
-    List<Long>   vertexIn  = new ArrayList<Long>();
-    List<String> label     = new ArrayList<String>();
-    List<Long>   order     = new ArrayList<Long>();
-    List<String> state     = new ArrayList<String>();
+    List<Long>    id        = new ArrayList<Long>();
+    List<Long>    txnStart  = new ArrayList<Long>();
+    List<Long>    txnEnd    = new ArrayList<Long>();
+    List<Long>    vertexOut = new ArrayList<Long>();
+    List<Long>    vertexIn  = new ArrayList<Long>();
+    List<String>  label     = new ArrayList<String>();
+    List<Integer> order     = new ArrayList<Integer>();
+    List<String>  state     = new ArrayList<String>();
     
     
     void add(AmberEdgeWithState wrapper) {

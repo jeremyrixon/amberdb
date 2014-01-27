@@ -37,7 +37,7 @@ public class EdgeMapper implements ResultSetMapper<AmberEdgeWithState> {
                 graph,
                 rs.getLong("txn_start"),
                 rs.getLong("txn_end"),
-                rs.getLong("edge_order"));
+                rs.getInt("edge_order"));
         
         return new AmberEdgeWithState(edge, rs.getString("state"));
     }

@@ -34,10 +34,10 @@ public class AmberVertex extends BaseVertex {
     
     
     public Iterable<Edge> getEdges(Direction direction, String... labels) {
-        
+
         ((AmberGraph) graph).getBranch(this.id, Direction.BOTH, labels);
         List<Edge> edges = (List<Edge>) super.getEdges(direction, labels);
-        
+
         return edges;
     }
 
@@ -46,8 +46,13 @@ public class AmberVertex extends BaseVertex {
 
         ((AmberGraph) graph).getBranch(this.id, Direction.BOTH, labels);
         List<Vertex> vertices = (List<Vertex>) super.getVertices(direction, labels);
-        
+
         return vertices;
+    }
+    
+    
+    public AmberGraph getAmberGraph() {
+        return (AmberGraph) graph;
     }
 }
 

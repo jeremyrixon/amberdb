@@ -180,15 +180,15 @@ public interface AmberDao extends Transactional<AmberDao> {
     @SqlBatch("INSERT INTO sess_edge (s_id, id, txn_start, txn_end, v_out, v_in, label, edge_order, state) "
             + "VALUES (:sessId, :id, :txnStart, :txnEnd, :outId, :inId, :label, :edgeOrder, :state)")
     void suspendEdges(
-            @Bind("sessId")    Long         sessId,
-            @Bind("id")        List<Long>   id,
-            @Bind("txnStart")  List<Long>   txnStart,
-            @Bind("txnEnd")    List<Long>   txnEnd,
-            @Bind("outId")     List<Long>   outId,
-            @Bind("inId")      List<Long>   inId,
-            @Bind("label")     List<String> label,
-            @Bind("edgeOrder") List<Long>   edgeOrder,
-            @Bind("state")     List<String> state);
+            @Bind("sessId")    Long          sessId,
+            @Bind("id")        List<Long>    id,
+            @Bind("txnStart")  List<Long>    txnStart,
+            @Bind("txnEnd")    List<Long>    txnEnd,
+            @Bind("outId")     List<Long>    outId,
+            @Bind("inId")      List<Long>    inId,
+            @Bind("label")     List<String>  label,
+            @Bind("edgeOrder") List<Integer> edgeOrder,
+            @Bind("state")     List<String>  state);
 
     
     @SqlBatch("INSERT INTO sess_vertex (s_id, id, txn_start, txn_end, state) "

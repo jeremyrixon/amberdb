@@ -41,15 +41,19 @@ import doss.local.LocalBlobStore;
 
 
 public class AmberSession implements AutoCloseable {
+
+
     private final FramedGraph<TransactionalGraph> graph;
     private final BlobStore blobStore;
     private final TempDirectory tempDir;
-    private long sessionId;
+    //private long sessionId;
 
+    
     /**
      * Constructs an in-memory AmberDb for testing with.
      */
     public AmberSession() {
+    
         tempDir = new TempDirectory();
         tempDir.deleteOnExit();
         
@@ -57,19 +61,19 @@ public class AmberSession implements AutoCloseable {
         blobStore = openBlobStore(tempDir.getPath());
         
         // Graph
-        DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:mem:", "fish", "fish");
-        DataSource persistDs = JdbcConnectionPool.create("jdbc:h2:" + tempDir.getPath().resolve("graph"), "pers", "pers");
-        AmberGraph amber = new AmberGraph(sessionDs, persistDs, "amberdb");
-        amber.createPersistentSchema();
+        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:" + tempDir.getPath().resolve("graph"), "pers", "pers");
+        AmberGraph amber = new AmberGraph(dataSource);
         graph = openGraph(amber);
     }
 
+    
     /**
      * Constructs an AmberDb stored on the local filesystem.
      */
-    public AmberSession(Path dataPath) throws IOException {
-        DataSource persistDs = JdbcConnectionPool.create("jdbc:h2:" + dataPath.resolve("graph"), "pers", "pers");
-        AmberGraph amber = init(persistDs, "pers", "pers", dataPath, dataPath.resolve("session"), sessionId);
+    public AmberSession(Path dataPath, Long sessionId) throws IOException {
+        
+        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:" + dataPath.resolve("graph"), "pers", "pers");
+        AmberGraph amber = init(dataSource, "pers", "pers", dataPath, sessionId);
         tempDir = null;
         
         // DOSS
@@ -78,9 +82,25 @@ public class AmberSession implements AutoCloseable {
         // Graph
         graph = openGraph(amber);
     }
+
     
-    public AmberSession(DataSource dataSource, Path dataPath, Path sessionPath, long sessionId) {
-        AmberGraph amber = init(dataSource, "fish", "fish", dataPath, sessionPath, sessionId);
+    public AmberSession(Path dataPath) throws IOException {
+        
+        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:" + dataPath.resolve("graph"), "pers", "pers");
+        AmberGraph amber = init(dataSource, "pers", "pers", dataPath, null);
+        tempDir = null;
+        
+        // DOSS
+        blobStore = openBlobStore(dataPath);
+
+        // Graph
+        graph = openGraph(amber);
+    }
+
+    
+    public AmberSession(DataSource dataSource, Path dataPath, Long sessionId) {
+    
+        AmberGraph amber = init(dataSource, "fish", "fish", dataPath, sessionId);
         tempDir = null;
         
         // DOSS
@@ -89,28 +109,30 @@ public class AmberSession implements AutoCloseable {
         // Graph
         graph = openGraph(amber);     
     }
+
     
-    private AmberGraph init(DataSource dataSource, String user, String password, Path dataPath, Path sessionPath, long sessionId) {
+    private AmberGraph init(DataSource dataSource, String user, String password, Path dataPath, Long sessionId) {
         try {
             Files.createDirectories(dataPath);
 
             DriverManager.registerDriver(new Driver());
 
             // Graph
-            DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:" + sessionPath, user, password);
-            AmberGraph amber = new AmberGraph(sessionDs, dataSource, "amberdb");
-            amber.createPersistentSchema();
-
-            this.sessionId = sessionId;
+            AmberGraph amber = new AmberGraph(dataSource);
+            if (sessionId != null) amber.resume(sessionId);
+            
             return amber;
+            
         } catch (IOException | SQLException e) {
             throw new RuntimeException(e);
         }        
     }
 
+    
     public AmberGraph getAmberGraph() {
         return ((OwnedGraph) graph.getBaseGraph()).getAmberGraph();
     }
+
     
     private BlobStore openBlobStore(Path root) {
         try {
@@ -125,6 +147,7 @@ public class AmberSession implements AutoCloseable {
         }
     }
 
+    
     /**
      * commit saves everything in the current transaction.
      */
@@ -132,6 +155,7 @@ public class AmberSession implements AutoCloseable {
         ((TransactionalGraph) graph).commit();
     }
 
+    
     /**
      * rollback rollback everything in the current transaction.
      */
@@ -139,12 +163,14 @@ public class AmberSession implements AutoCloseable {
         ((TransactionalGraph) graph).rollback();
     }
 
+    
     public JsonNode serializeToJson() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         GraphSONWriter.outputGraph(graph.getBaseGraph(), bos);
         return new ObjectMapper().reader().readTree(bos.toString());
     }
 
+    
     protected FramedGraph<TransactionalGraph> openGraph(TransactionalGraph graph) {
         TransactionalGraph g = new OwnedGraph(graph);
         return new FramedGraphFactory(new JavaHandlerModule(), new GremlinGroovyModule(),
@@ -157,6 +183,7 @@ public class AmberSession implements AutoCloseable {
             .withClass(Work.class).build()).create(g);
     }
 
+    
     /**
      * Finds a work by id.
      */
@@ -168,6 +195,7 @@ public class AmberSession implements AutoCloseable {
         return work;
     }
 
+    
     /**
      * Finds a work by id or alias.
      */
@@ -188,6 +216,7 @@ public class AmberSession implements AutoCloseable {
         return graph.frame(graph.getVertices("bibId", vnLink).iterator().next(), Section.class);
     }
     
+    
     /**
      * Finds a work by voyager number.
      */
@@ -195,6 +224,7 @@ public class AmberSession implements AutoCloseable {
         return graph.frame(graph.getVertices("bibId", Long.toString(vnLink)).iterator().next(), Section.class);
     }
 
+    
     /**
      * Creates a new work.
      * 
@@ -204,6 +234,7 @@ public class AmberSession implements AutoCloseable {
         Work work = graph.addVertex(null, Work.class);
         return work;
     }
+    
     
     /**
      * Noting deletion of all the vertices representing the work, its copies, and its copy files
@@ -227,6 +258,7 @@ public class AmberSession implements AutoCloseable {
         }
     }
 
+    
     @Override
     public void close() throws IOException {
         graph.shutdown();
@@ -235,25 +267,28 @@ public class AmberSession implements AutoCloseable {
         }
     }
 
+    
     /**
      * Suspend suspends the current transaction.
      * 
      * @return the id of the current transaction.
      */
     public long suspend() {
-        return sessionId;
+        return ((OwnedGraph) graph.getBaseGraph()).getAmberGraph().suspend();
     }
 
+    
     /**
      * Recover recovers the suspended transaction of the specified txId.
      * 
      * @param txId
      *            the transaction id of the suspended transaction to reover.
      */
-    public void recover(int txId) {
-        // TODO
+    public void recover(Long txId) {
+        ((OwnedGraph) graph.getBaseGraph()).getAmberGraph().resume(txId);        
     }
 
+    
     /**
      * getGraph
      * 
@@ -262,6 +297,7 @@ public class AmberSession implements AutoCloseable {
     protected FramedGraph<TransactionalGraph> getGraph() {
         return graph;
     }
+    
     
     /**
      * Wrapper around the graph that stores a reference to the AmberDb which
@@ -308,6 +344,7 @@ public class AmberSession implements AutoCloseable {
         public void stopTransaction(Conclusion arg0) {}
     }
     
+    
     /**
      * Returns the AmberDb instance that owns the given graph.
      */
@@ -320,6 +357,7 @@ public class AmberSession implements AutoCloseable {
             throw new RuntimeException("Not an AmberDb graph: " + graph);
         }
     }
+    
     
     /**
      * Returns the DOSS BlobStore for this AmberDb.

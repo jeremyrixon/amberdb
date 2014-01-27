@@ -4,18 +4,12 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.List;
 
-import javax.sql.DataSource;
-
-import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import amberdb.enums.SubType;
-import amberdb.sql.dao.PersistentDao;
-import amberdb.sql.dao.SessionDao;
 
-import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.Edge;
@@ -30,10 +24,7 @@ public class AmberGraphDaoTest {
         
         System.out.println("Setting up graph");
 
-        DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:mem:h2testSession","sess","sess");
-        JdbcConnectionPool.create("jdbc:h2:mem:h2testPersist","persist","persist");
-      
-        graph = new AmberGraph(sessionDs, null, "tester");
+        graph = new AmberGraph();
     }
 
     @After

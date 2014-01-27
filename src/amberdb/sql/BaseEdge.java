@@ -21,8 +21,8 @@ public class BaseEdge extends BaseElement implements Edge {
         this.label = label;
         this.inVertex = inVertex;
         this.outVertex = outVertex;
-        inVertex.inEdges.add(this);
-        outVertex.outEdges.add(this);
+        inVertex.outEdges.add(this);
+        outVertex.inEdges.add(this);
     }
 
     
@@ -76,7 +76,7 @@ public class BaseEdge extends BaseElement implements Edge {
         .append(" in:").append(inVertex.getId());
         // properties
         sb.append(" {");
-        if (properties.size() > 0) {
+        if (properties != null && properties.size() > 0) {
             for (String key : properties.keySet()) {
                 sb.append(key).append(":").append(properties.get(key)).append(", ");
             }

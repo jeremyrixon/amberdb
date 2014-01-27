@@ -259,8 +259,10 @@ public class AmberGraph extends BaseGraph
 
     
     @Override
-    public Edge newEdge(Object id, String label, Vertex inVertex, Vertex outVertex, Map<String, Object> properties, Graph graph) {
-        return new AmberEdge((Long) id, label, (AmberVertex) inVertex, (AmberVertex) outVertex, properties, (AmberGraph) graph, 0L, 0L, 0L);
+    public Edge newEdge(Object id, String label, Vertex inVertex, Vertex outVertex, 
+            Map<String, Object> properties, Graph graph) {
+        return new AmberEdge((Long) id, label, (AmberVertex) inVertex, (AmberVertex) outVertex, 
+                properties, (AmberGraph) graph, 0L, 0L, 0);
     }
     
     
@@ -382,14 +384,21 @@ public class AmberGraph extends BaseGraph
         // start new elements for new and modified transaction elements
         dao.startElements(txnId);
         // Refactor note: need to check when adding (modding?) edges that both ends exist
-        
         dao.insertTransaction(txnId, new Date().getTime(), user, operation);
-        dao.commit();
-        clear();
         
+        dao.commit();
+        
+        clear();
+
         return txnId;
     }
+
     
+    @Override
+    public void commit() {
+        commit("amberdb", "commit");
+    }
+
     
     @Override
     public Vertex getVertex(Object id) {
@@ -421,6 +430,7 @@ public class AmberGraph extends BaseGraph
 
         AmberVertex v = (AmberVertex) vertex;
         v.replaceProperties(getElementPropertyMap((Long) v.getId(), v.txnStart, h));
+        graphVertices.put(v.getId(), v);
         h.close();
         
         return vertex;
@@ -457,6 +467,7 @@ public class AmberGraph extends BaseGraph
         
         AmberEdge e = (AmberEdge) edge;
         e.replaceProperties(getElementPropertyMap((Long) e.getId(), e.txnStart, h));
+        graphEdges.put(e.getId(), e);
         h.close();
 
         return e;
@@ -504,26 +515,29 @@ public class AmberGraph extends BaseGraph
      * Used by AmberVertex.
      */
     protected void getBranch(Long id, Direction direction, String[] labels) {
-
-        AmberQuery q = new AmberQuery(id);
+        AmberQuery q = new AmberQuery(id, this);
         q.branch(Lists.newArrayList(labels), direction);
-        Handle h = dbi.open();
-        q.execute(h, this);
-        h.close();
+        q.execute();
     }
     
     
     /**
-     * Used by AmberVertex. Culls edges modified in current session.
+     * Used by AmberVertex.
      */
     protected void getBranch(Long id, Direction direction) {
-
-        AmberQuery q = new AmberQuery(id);
+        AmberQuery q = new AmberQuery(id, this);
         q.branch(null, direction);
-        Handle h = dbi.open();
-        q.execute(h, this);
-        h.close();
+        q.execute();
     }
+
     
+    public AmberQuery newQuery(Long id) {
+        return new AmberQuery(id, this);
+    }
+
+
+    public AmberQuery newQuery(List<Long> ids) {
+        return new AmberQuery(ids, this);
+    }
 }
 

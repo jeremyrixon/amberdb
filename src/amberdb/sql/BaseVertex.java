@@ -41,6 +41,7 @@ public class BaseVertex extends BaseElement implements Vertex {
     
     
     private List<Edge> getEdges(List<Edge> edgeList, String... labels) {
+
         // get edges for all labels if none specified
         if (labels.length == 0) { 
             return edgeList; 
@@ -62,10 +63,12 @@ public class BaseVertex extends BaseElement implements Vertex {
         List<Edge> edges = new ArrayList<>();
 
         if (direction == Direction.OUT || direction == Direction.BOTH) {
-            edges.addAll(getEdges(outEdges, labels));
+            //edges.addAll(getEdges(((BaseVertex)graph.graphVertices.get(this.getId())).outEdges, labels));
+            edges.addAll(getEdges(inEdges, labels));
         }
         if (direction == Direction.IN || direction == Direction.BOTH) {
-            edges.addAll(getEdges(inEdges, labels));
+            //edges.addAll(getEdges(((BaseVertex)graph.graphVertices.get(this.getId())).inEdges, labels));
+            edges.addAll(getEdges(outEdges, labels));
         }
         return edges;
     }
@@ -73,18 +76,18 @@ public class BaseVertex extends BaseElement implements Vertex {
 
     @Override
     public Iterable<Vertex> getVertices(Direction direction, String... labels) {
+        
         List<Vertex> vertices = new ArrayList<Vertex>();
 
         // get the edges
         Iterable<Edge> edges = getEdges(direction, labels);
-        
         for (Edge e : edges) {
             if (e.getVertex(Direction.IN) == (Vertex) this) {
                 vertices.add(e.getVertex(Direction.OUT));
             } else {    
                 vertices.add(e.getVertex(Direction.IN));
             }    
-        }        
+        } 
         return vertices;
     }
 

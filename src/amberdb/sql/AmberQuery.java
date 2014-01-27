@@ -10,6 +10,7 @@ import java.util.Map;
 import org.skife.jdbi.v2.Handle;
 
 import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 
 
@@ -18,19 +19,20 @@ public class AmberQuery {
     
     List<Long> head;       
     List<QueryClause> clauses = new ArrayList<QueryClause>();
+    private AmberGraph graph;
 
-
-    public AmberQuery(Long head) {
+    protected AmberQuery(Long head, AmberGraph graph) {
 
         // guard
         if (head == null) throw new IllegalArgumentException("Query must have starting vertices");
         
         this.head = new ArrayList<Long>();
         this.head.add(head);
+        this.graph = graph;
     }
 
     
-    public AmberQuery(List<Long> head) {
+    protected AmberQuery(List<Long> head, AmberGraph graph) {
         
         // guards
         if (head == null) throw new IllegalArgumentException("Query must have starting vertices");
@@ -38,6 +40,7 @@ public class AmberQuery {
         if (head.size() == 0) throw new IllegalArgumentException("Query must have starting vertices");            
         
         this.head = head;
+        this.graph = graph;
     }
 
     
@@ -175,7 +178,9 @@ public class AmberQuery {
     }
 
     
-    List<Vertex> execute(Handle h, AmberGraph graph) {
+    public List<Vertex> execute() {
+
+        Handle h = graph.dbi().open();
 
         // run the generated query
         h.begin();
@@ -186,7 +191,9 @@ public class AmberQuery {
         Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h);
         List<Vertex> vertices = getVertices(h, graph, propMaps);
         getEdges(h, graph, propMaps);
-
+        
+        h.close();
+        
         return vertices;
     }
     
@@ -236,7 +243,8 @@ public class AmberQuery {
                 vertex.replaceProperties(propMaps.get((Long) vertex.getId()));
             }
             vertices.add(vertex);
-        }        
+        } 
+        
         return vertices;
     }
     
@@ -252,8 +260,9 @@ public class AmberQuery {
         
         // add them to the graph
         for (AmberEdgeWithState wrapper : wrappedEdges) {
+
             AmberEdge edge = wrapper.edge; 
-            
+
             if (graph.removedEdges.contains(edge) || graph.modifiedEdges.contains(edge)) {
                 continue;
             } 

@@ -60,7 +60,7 @@ public class AmberQueryTest {
         List<Long> heads = new ArrayList<Long>();
         heads.add(100L);
         
-        AmberQuery q = new AmberQuery(heads);
+        AmberQuery q = graph.newQuery(heads);
 
         q.branch(Arrays.asList(new String[] {"partOf", "belongsTo"}),
                 Direction.BOTH);
@@ -98,7 +98,7 @@ public class AmberQueryTest {
         heads.add((Long) book3Id);
         
         s("Preparing query...");
-        AmberQuery q = new AmberQuery(heads);
+        AmberQuery q = graph.newQuery(heads);
 
         q.branch(Arrays.asList(new String[] {"hasPage"}),
                 Direction.OUT);
@@ -111,7 +111,7 @@ public class AmberQueryTest {
 
         s("Executing query");
         Handle h = graph.dbi().open();
-        List<Vertex> results = q.execute(h, graph);
+        List<Vertex> results = q.execute();
         h.close();
         
         s("Done " + results.size());

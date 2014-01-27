@@ -20,8 +20,8 @@ import com.tinkerpop.blueprints.util.DefaultGraphQuery;
 public class BaseGraph implements Graph, TransactionalGraph {
 
     
-	Map<Object, Edge> graphEdges = new HashMap<Object, Edge>();
-	Map<Object, Vertex> graphVertices = new HashMap<Object, Vertex>();
+    Map<Object, Edge> graphEdges = new HashMap<Object, Edge>();
+    Map<Object, Vertex> graphVertices = new HashMap<Object, Vertex>();
     
     
     // id generation handling - overridden in subclass AmberGraph
@@ -34,25 +34,25 @@ public class BaseGraph implements Graph, TransactionalGraph {
     
     // element modification handling - overridden in subclass AmberGraph
     class ElementModifiedListenerImpl implements ElementModifiedListener {
-    	public void elementModified(Object element) {} // do nothing
+        public void elementModified(Object element) {} // do nothing
     }
     protected ElementModifiedListener elementModListener = new ElementModifiedListenerImpl();
     
     
     // edge factory - overridden in subclass AmberGraph
     class BaseEdgeFactory implements EdgeFactory {
-    	public Edge newEdge(Object id, String label, Vertex in, Vertex out, Map<String, Object> properties, Graph graph) {
-    		return new BaseEdge((Long) id, label, (BaseVertex) in, (BaseVertex) out, properties, (BaseGraph) graph);
-    	} 
+        public Edge newEdge(Object id, String label, Vertex in, Vertex out, Map<String, Object> properties, Graph graph) {
+            return new BaseEdge((Long) id, label, (BaseVertex) in, (BaseVertex) out, properties, (BaseGraph) graph);
+        } 
     }
     protected EdgeFactory edgeFactory = new BaseEdgeFactory();
     
     
     // vertex factory - overridden in subclass AmberGraph
     class BaseVertexFactory implements VertexFactory {
-    	public Vertex newVertex(Object id, Map<String, Object> properties, Graph graph) {
-    		return new BaseVertex((Long) id, properties, (BaseGraph) graph);
-    	} 
+        public Vertex newVertex(Object id, Map<String, Object> properties, Graph graph) {
+            return new BaseVertex((Long) id, properties, (BaseGraph) graph);
+        } 
     }
     protected VertexFactory vertexFactory = new BaseVertexFactory();
     
@@ -110,7 +110,8 @@ public class BaseGraph implements Graph, TransactionalGraph {
     public Iterable<Edge> getEdges(String key, Object value) {
         List<Edge> edges = new ArrayList<Edge>();
         for (Edge edge : graphEdges.values()) {
-            if (edge.getProperty(key).equals(value)) {
+            Object o = edge.getProperty(key); 
+            if (o != null && o.equals(value)) {
                 edges.add(edge);
             }
         }
@@ -119,7 +120,7 @@ public class BaseGraph implements Graph, TransactionalGraph {
 
 
     protected Long parseId(Object eId) {
-    	
+        
         // argument guards
         if (!(eId instanceof Long || eId instanceof String || eId instanceof Integer) || eId == null) {
             return null;
@@ -129,7 +130,7 @@ public class BaseGraph implements Graph, TransactionalGraph {
             if (eId instanceof String)
                 id = Long.parseLong((String) eId);
         } catch (NumberFormatException e) {
-        	return null;
+            return null;
         }
         if (eId instanceof Long)
             id = (Long) eId;
@@ -162,7 +163,8 @@ public class BaseGraph implements Graph, TransactionalGraph {
     public Iterable<Vertex> getVertices(String key, Object value) {
         List<Vertex> vertices = new ArrayList<Vertex>();
         for (Vertex vertex : graphVertices.values()) {
-            if (vertex.getProperty(key).equals(value)) {
+            Object o = vertex.getProperty(key); 
+            if (o != null && o.equals(value)) {
                 vertices.add(vertex);
             }
         }
@@ -183,8 +185,8 @@ public class BaseGraph implements Graph, TransactionalGraph {
     public void removeEdge(Edge e) {
         BaseEdge ae = (BaseEdge) e;
 
-        ae.inVertex.inEdges.remove(e);
-        ae.outVertex.outEdges.remove(e);
+        ae.inVertex.outEdges.remove(e);
+        ae.outVertex.inEdges.remove(e);
         
         ae.inVertex = null;
         ae.outVertex = null;
@@ -198,7 +200,7 @@ public class BaseGraph implements Graph, TransactionalGraph {
         
         for (Edge e : av.inEdges) {
             BaseEdge ae = (BaseEdge) e;
-            ae.outVertex.outEdges.remove(e);
+            ae.inVertex.outEdges.remove(e);
             ae.inVertex = null;
             ae.outVertex = null;
             graphEdges.remove(e.getId());
@@ -206,7 +208,7 @@ public class BaseGraph implements Graph, TransactionalGraph {
         
         for (Edge e : av.outEdges) {
             BaseEdge ae = (BaseEdge) e;
-            ae.inVertex.inEdges.remove(e);
+            ae.outVertex.inEdges.remove(e);
             ae.inVertex = null;
             ae.outVertex = null;
             graphEdges.remove(e.getId());
@@ -219,12 +221,10 @@ public class BaseGraph implements Graph, TransactionalGraph {
 
     
     /**
-     * REFACTOR NOTE: This method needs to cater for session suspension. Dropping the session tables is an interim
-     * measure.
+     * REFACTOR NOTE: This method needs to cater for session suspension.
      */
     @Override
     public void shutdown() {
-        commit();
     }
 
     
@@ -284,8 +284,8 @@ public class BaseGraph implements Graph, TransactionalGraph {
     
     
     public void clear() {
-    	graphEdges.clear();
-    	graphVertices.clear();
+        graphEdges.clear();
+        graphVertices.clear();
     }
 }
 
