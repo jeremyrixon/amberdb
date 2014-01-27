@@ -1,7 +1,9 @@
 package amberdb.sql;
 
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,8 +20,8 @@ import com.tinkerpop.blueprints.util.DefaultGraphQuery;
 public class BaseGraph implements Graph, TransactionalGraph {
 
     
-    List<Edge> graphEdges = new ArrayList<Edge>();
-    List<Vertex> graphVertices = new ArrayList<Vertex>();
+	Map<Object, Edge> graphEdges = new HashMap<Object, Edge>();
+	Map<Object, Vertex> graphVertices = new HashMap<Object, Vertex>();
     
     
     // id generation handling - overridden in subclass AmberGraph
@@ -30,13 +32,11 @@ public class BaseGraph implements Graph, TransactionalGraph {
     protected IdGenerator idGen = new IdGeneratorImpl();
     
     
-    
     // element modification handling - overridden in subclass AmberGraph
     class ElementModifiedListenerImpl implements ElementModifiedListener {
     	public void elementModified(Object element) {} // do nothing
     }
     protected ElementModifiedListener elementModListener = new ElementModifiedListenerImpl();
-
     
     
     // edge factory - overridden in subclass AmberGraph
@@ -48,7 +48,6 @@ public class BaseGraph implements Graph, TransactionalGraph {
     protected EdgeFactory edgeFactory = new BaseEdgeFactory();
     
     
-    
     // vertex factory - overridden in subclass AmberGraph
     class BaseVertexFactory implements VertexFactory {
     	public Vertex newVertex(Object id, Map<String, Object> properties, Graph graph) {
@@ -56,7 +55,6 @@ public class BaseGraph implements Graph, TransactionalGraph {
     	} 
     }
     protected VertexFactory vertexFactory = new BaseVertexFactory();
-    
     
     
     /* 
@@ -76,7 +74,7 @@ public class BaseGraph implements Graph, TransactionalGraph {
         if (label == null) throw new IllegalArgumentException("edge label cannot be null");
         Long newId = idGen.newId();
         Edge edge = edgeFactory.newEdge(newId, label, (BaseVertex) in, (BaseVertex) out, null, this);
-        graphEdges.add(edge);
+        graphEdges.put((Long) edge.getId(), edge);
         return edge;
     }
 
@@ -85,7 +83,7 @@ public class BaseGraph implements Graph, TransactionalGraph {
     public Vertex addVertex(Object id) {
         long newId = idGen.newId();
         Vertex vertex = vertexFactory.newVertex(newId, null, this);
-        graphVertices.add(vertex);
+        graphVertices.put((Long) vertex.getId(), vertex);
         return vertex;
     }
 
@@ -97,16 +95,13 @@ public class BaseGraph implements Graph, TransactionalGraph {
         Long id = parseId(edgeId);
         if (id == null) return null;
         
-        for (Edge e : graphEdges) {
-            if (id.equals(e.getId())) return e;
-        }
-        return null;
+        return graphEdges.get(edgeId);
     }
 
     
     @Override
     public Iterable<Edge> getEdges() {
-        List<Edge> edges = Lists.newArrayList(graphEdges);
+        List<Edge> edges = Lists.newArrayList(graphEdges.values());
         return edges;
     }
 
@@ -114,7 +109,7 @@ public class BaseGraph implements Graph, TransactionalGraph {
     @Override
     public Iterable<Edge> getEdges(String key, Object value) {
         List<Edge> edges = new ArrayList<Edge>();
-        for (Edge edge : graphEdges) {
+        for (Edge edge : graphEdges.values()) {
             if (edge.getProperty(key).equals(value)) {
                 edges.add(edge);
             }
@@ -124,6 +119,7 @@ public class BaseGraph implements Graph, TransactionalGraph {
 
 
     protected Long parseId(Object eId) {
+    	
         // argument guards
         if (!(eId instanceof Long || eId instanceof String || eId instanceof Integer) || eId == null) {
             return null;
@@ -133,7 +129,7 @@ public class BaseGraph implements Graph, TransactionalGraph {
             if (eId instanceof String)
                 id = Long.parseLong((String) eId);
         } catch (NumberFormatException e) {
-            return null;
+        	return null;
         }
         if (eId instanceof Long)
             id = (Long) eId;
@@ -142,6 +138,7 @@ public class BaseGraph implements Graph, TransactionalGraph {
 
         return id;
     }
+
     
     @Override
     public Vertex getVertex(Object vertexId) {
@@ -150,16 +147,13 @@ public class BaseGraph implements Graph, TransactionalGraph {
         Long id = parseId(vertexId);
         if (id == null) return null;
         
-        for (Vertex v : graphVertices) {
-            if (id.equals(v.getId())) return v;
-        }
-        return null;
+        return graphVertices.get(id);
     }
 
     
     @Override
     public Iterable<Vertex> getVertices() {
-        List<Vertex> vertices = Lists.newArrayList(graphVertices);
+        List<Vertex> vertices = Lists.newArrayList(graphVertices.values());
         return vertices;        
     }
 
@@ -167,13 +161,14 @@ public class BaseGraph implements Graph, TransactionalGraph {
     @Override
     public Iterable<Vertex> getVertices(String key, Object value) {
         List<Vertex> vertices = new ArrayList<Vertex>();
-        for (Vertex vertex : graphVertices) {
+        for (Vertex vertex : graphVertices.values()) {
             if (vertex.getProperty(key).equals(value)) {
                 vertices.add(vertex);
             }
         }
         return vertices;        
     }
+    
     
     /**
      * Implement later if necessary 
@@ -193,7 +188,7 @@ public class BaseGraph implements Graph, TransactionalGraph {
         
         ae.inVertex = null;
         ae.outVertex = null;
-        graphEdges.remove(e);
+        graphEdges.remove(e.getId());
     }
 
     
@@ -206,7 +201,7 @@ public class BaseGraph implements Graph, TransactionalGraph {
             ae.outVertex.outEdges.remove(e);
             ae.inVertex = null;
             ae.outVertex = null;
-            graphEdges.remove(e);
+            graphEdges.remove(e.getId());
         }
         
         for (Edge e : av.outEdges) {
@@ -214,12 +209,12 @@ public class BaseGraph implements Graph, TransactionalGraph {
             ae.inVertex.inEdges.remove(e);
             ae.inVertex = null;
             ae.outVertex = null;
-            graphEdges.remove(e);
+            graphEdges.remove(e.getId());
         }
         
         av.inEdges = null;
         av.outEdges = null;
-        graphVertices.remove(v);
+        graphVertices.remove(v.getId());
     }
 
     
@@ -286,6 +281,7 @@ public class BaseGraph implements Graph, TransactionalGraph {
     @Override
     public void rollback() {
     }
+    
     
     public void clear() {
     	graphEdges.clear();

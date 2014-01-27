@@ -16,10 +16,9 @@ import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 
 import amberdb.sql.dao.AmberDao;
-import amberdb.sql.map.EdgeMapper;
-import amberdb.sql.map.PropertyMapper;
-import amberdb.sql.map.VertexMapper;
 
+import com.google.common.collect.Lists;
+import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.TransactionalGraph;
@@ -29,6 +28,7 @@ import com.tinkerpop.blueprints.Vertex;
 public class AmberGraph extends BaseGraph 
 		implements Graph, TransactionalGraph, IdGenerator, ElementModifiedListener, EdgeFactory, VertexFactory {
 
+	
     public Logger log = Logger.getLogger(AmberGraph.class.getName());
     
     public static final DataSource DEFAULT_DATASOURCE = 
@@ -37,14 +37,14 @@ public class AmberGraph extends BaseGraph
     private DBI dbi;
     private AmberDao dao;
 
-    private Set<Edge> removedEdges = new HashSet<Edge>();
-    private Set<Vertex> removedVertices = new HashSet<Vertex>();
+    protected Set<Edge> removedEdges = new HashSet<Edge>();
+    protected Set<Vertex> removedVertices = new HashSet<Vertex>();
 
     private Set<Edge> newEdges = new HashSet<Edge>();
     private Set<Vertex> newVertices = new HashSet<Vertex>();
 
-    private Set<Edge> modifiedEdges = new HashSet<Edge>();
-    private Set<Vertex> modifiedVertices = new HashSet<Vertex>();
+    protected Set<Edge> modifiedEdges = new HashSet<Edge>();
+    protected Set<Vertex> modifiedVertices = new HashSet<Vertex>();
     
     /** Identify this graph instance */
     private String user;
@@ -79,19 +79,20 @@ public class AmberGraph extends BaseGraph
     }
     
     
-    /**
-     * WARNING: This method should only ever be used for testing. It will 
-     * destroy and rebuild the persistent database sans data. This will 
-     * likely make people very angry if run against production.
-     *
-     * REFACTOR NOTE: prevent this method from being inadvertently called
-     */
     public void createAmberSchema() {
         
     	dao.createVertexTable();
         dao.createEdgeTable();
         dao.createPropertyTable();
+
+        dao.createVertexIndex();
         
+        dao.createEdgeIndex();
+        dao.createEdgeInVertexIndex();
+        dao.createEdgeOutVertexIndex();
+        
+        dao.createPropertyIndex();
+
         dao.createSessionVertexTable();
         dao.createSessionEdgeTable();
         dao.createSessionPropertyTable();
@@ -133,6 +134,11 @@ public class AmberGraph extends BaseGraph
         return dao;
     }
 
+    
+    protected DBI dbi() {
+        return dbi;
+    }
+    
     
 	public String toString() {
 		return ("ambergraph");
@@ -195,7 +201,10 @@ public class AmberGraph extends BaseGraph
     
     private void batchSuspendEdges(AmberEdgeBatch edges, AmberPropertyBatch properties) {
     	
-    	log.info("suspending edges -- r:" + removedEdges.size() + " n:" + newEdges.size() + " m:" + modifiedEdges.size());
+    	log.info("suspending edges -- r:" 
+    			+ removedEdges.size() + " n:" 
+    			+ newEdges.size() + " m:" 
+    			+ modifiedEdges.size());
     	
     	for (Edge e : removedEdges) {
     		modifiedEdges.remove(e);
@@ -218,7 +227,10 @@ public class AmberGraph extends BaseGraph
     
     private void batchSuspendVertices(AmberVertexBatch vertices, AmberPropertyBatch properties) {
 
-    	log.info("suspending verts -- r:" + removedVertices.size() + " n:" + newVertices.size() + " m:" + modifiedVertices.size());
+    	log.info("suspending verts -- r:" 
+    			+ removedVertices.size() + " n:" 
+    			+ newVertices.size() + " m:" 
+    			+ modifiedVertices.size());
     	
     	for (Vertex v : removedVertices) {
     		modifiedVertices.remove(v);
@@ -294,7 +306,7 @@ public class AmberGraph extends BaseGraph
     			continue;
     		} 
     		
-    		graphVertices.add(vertex);
+    		graphVertices.put(vertex.getId(), vertex);
     		vertex.replaceProperties(propertyMaps.get((Long) vertex.getId()));
     		
     		if (state.equals("NEW")) {
@@ -314,7 +326,7 @@ public class AmberGraph extends BaseGraph
     			continue;
     		} 
     		
-    		graphEdges.add(edge);
+    		graphEdges.put(edge.getId(), edge);
     		edge.replaceProperties(propertyMaps.get((Long) edge.getId()));
     		
     		if (state.equals("NEW")) {
@@ -351,7 +363,7 @@ public class AmberGraph extends BaseGraph
         	    "FROM sess_edge " +
    	            "WHERE s_id = :sessId")
                 .bind("sessId", sessId)
-                .map(new EdgeMapper(this)).list();
+                .map(new EdgeMapper(this, false)).list();
         h.close();
         return edges;
     }
@@ -361,31 +373,37 @@ public class AmberGraph extends BaseGraph
     	
     	Long txnId = suspend();
     	
-    	// end current elements where this transaction modifies or deletes it.
-    	// additionally, end edges orphaned by this procedure.
+    	dao.begin();
+
+    	// End current elements where this transaction modifies or deletes it.
+    	// Additionally, end edges orphaned by this procedure.
     	dao.endElements(txnId);
-    	
     	// start new elements for new and modified transaction elements
     	dao.startElements(txnId);
-    	
-    	// *** note: need to check when adding (modding?) edges that both ends exist
+    	// Refactor note: need to check when adding (modding?) edges that both ends exist
     	
     	dao.insertTransaction(txnId, new Date().getTime(), user, operation);
-    	
+    	dao.commit();
     	clear();
-    	
-    	// refresh local graph or something :-)
     	
     	return txnId;
     }
     
     
+    @Override
     public Vertex getVertex(Object id) {
+    	return getVertex(id, false);
+    } 
+    
+    
+    protected Vertex getVertex(Object id, boolean localOnly) {
     	
     	Vertex vertex = super.getVertex(id);
     	if (vertex != null) return vertex;
+    	if (localOnly) return null;
     	
-    	if (parseId(id) == null) return null; // super may have returned null because the id didn't parse
+    	// super may have returned null because the id didn't parse
+    	if (parseId(id) == null) return null;
     	
     	Handle h = dbi.open();
 		AmberVertexWithState vs = h.createQuery(
@@ -406,13 +424,22 @@ public class AmberGraph extends BaseGraph
         
         return vertex;
     } 
+
     
+    @Override
     public Edge getEdge(Object id) {
+    	return getEdge(id, false);
+    } 
+    
+    
+    protected Edge getEdge(Object id, boolean localOnly) {
     	
     	Edge edge = super.getEdge(id);
     	if (edge != null) return edge;
-
-    	if (parseId(id) == null) return null; // super may have returned null because the id didn't parse
+    	if (localOnly) return null;
+    	
+    	// super may have returned null because the id didn't parse
+    	if (parseId(id) == null) return null;
     	
     	Handle h = dbi.open();
 		AmberEdgeWithState es = h.createQuery(
@@ -421,7 +448,7 @@ public class AmberGraph extends BaseGraph
 				+ "WHERE id = :id "
 				+ "AND txn_end = 0")
                 .bind("id", parseId(id))
-                .map(new EdgeMapper(this)).first();
+                .map(new EdgeMapper(this, false)).first();
 
 		if (es == null) return null;
         edge = es.edge;
@@ -434,7 +461,8 @@ public class AmberGraph extends BaseGraph
         return e;
     } 
     
-    private Map<String, Object> getElementPropertyMap(Long elementId, Long txnStart, Handle h) {
+    
+    protected Map<String, Object> getElementPropertyMap(Long elementId, Long txnStart, Handle h) {
 
     	Map<String, Object> propMap = new HashMap<String, Object>();
 
@@ -455,5 +483,46 @@ public class AmberGraph extends BaseGraph
         }
     	return propMap;
     }
+    
+
+    /**
+     * Notes on Tinkerpop Graph interface method implementations for
+     * 
+     * 	  Iterable<Edge> getEdges()
+     *    Iterable<Edge> getEdges(String key, Object value)
+     * 	  Iterable<Vertex> getVertices()
+     *    Iterable<Vertex> getVertices(String key, Object value)
+     * 
+     * To avoid crashing a large amber system these method does not return 
+     * all edges or vertices stored in a persistent amber data store, only
+     * the ones that have been referenced so far in a session.
+     */
+    
+
+    /**
+     * Used by AmberVertex.
+     */
+    protected void getBranch(Long id, Direction direction, String[] labels) {
+
+    	AmberQuery q = new AmberQuery(id);
+    	q.branch(Lists.newArrayList(labels), direction);
+    	Handle h = dbi.open();
+    	q.execute(h, this);
+    	h.close();
+	}
+    
+    
+    /**
+     * Used by AmberVertex. Culls edges modified in current session.
+     */
+    protected void getBranch(Long id, Direction direction) {
+
+    	AmberQuery q = new AmberQuery(id);
+    	q.branch(null, direction);
+    	Handle h = dbi.open();
+    	q.execute(h, this);
+    	h.close();
+	}
+    
 }
 

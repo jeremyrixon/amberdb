@@ -1,9 +1,13 @@
 package amberdb.sql;
 
+
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class AmberEdgeBatch {
+
+	
 	List<Long>   id        = new ArrayList<Long>();
 	List<Long>   txnStart  = new ArrayList<Long>();
 	List<Long>   txnEnd    = new ArrayList<Long>();
@@ -12,6 +16,7 @@ public class AmberEdgeBatch {
 	List<String> label     = new ArrayList<String>();
 	List<Long>   order     = new ArrayList<Long>();
 	List<String> state     = new ArrayList<String>();
+	
 	
 	void add(AmberEdgeWithState wrapper) {
 		AmberEdge edge = wrapper.edge;

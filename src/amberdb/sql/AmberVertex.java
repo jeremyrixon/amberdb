@@ -1,7 +1,6 @@
 package amberdb.sql;
 
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -34,33 +33,21 @@ public class AmberVertex extends BaseVertex {
     }
     
     
-//    public Iterable<Edge> getEdges(Direction direction, String... labels) {
-//        List<Edge> edges = new ArrayList<>();
-//
-//        if (direction == Direction.OUT || direction == Direction.BOTH) {
-//            edges.addAll(getEdges(outEdges, labels));
-//        }
-//        if (direction == Direction.IN || direction == Direction.BOTH) {
-// X           edges.addAll(getEdges(inEdges, labels));
-//        }
-//        return edges;
-//    }
-//
-//
-//    public Iterable<Vertex> getVertices(Direction direction, String... labels) {
-//        List<Vertex> vertices = new ArrayList<Vertex>();
-//
-//        // get the edges
-//        Iterable<Edge> edges = getEdges(direction, labels);
-//        
-//        for (Edge e : edges) {
-//            if (e.getVertex(Direction.IN) == (Vertex) this) {
-//                vertices.add(e.getVertex(Direction.OUT));
-//            } else {    
-//                vertices.add(e.getVertex(Direction.IN));
-//X            }    
-//        }        
-//        return vertices;
-//    }
+    public Iterable<Edge> getEdges(Direction direction, String... labels) {
+        
+    	((AmberGraph) graph).getBranch(this.id, Direction.BOTH, labels);
+    	List<Edge> edges = (List<Edge>) super.getEdges(direction, labels);
+    	
+        return edges;
+    }
+
+
+    public Iterable<Vertex> getVertices(Direction direction, String... labels) {
+
+		((AmberGraph) graph).getBranch(this.id, Direction.BOTH, labels);
+    	List<Vertex> vertices = (List<Vertex>) super.getVertices(direction, labels);
+    	
+        return vertices;
+    }
 }
 

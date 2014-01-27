@@ -1,10 +1,12 @@
 package amberdb.sql;
 
+
 import java.util.Map;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
+
 
 public class BaseEdge extends BaseElement implements Edge {
 
@@ -51,8 +53,8 @@ public class BaseEdge extends BaseElement implements Edge {
         if (direction == Direction.IN) {
             return (Vertex) inVertex;
         } 
-//X check we always load an edge's vs        
 		return (Vertex) outVertex; // direction must be out
+        // note: we should always be loading an edge's vertices
     }
 
  
@@ -84,6 +86,7 @@ public class BaseEdge extends BaseElement implements Edge {
         return sb.toString();
     }
 
+    
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -92,6 +95,7 @@ public class BaseEdge extends BaseElement implements Edge {
         return result;
     }
 
+    
     @Override
     public boolean equals(Object obj) {
         

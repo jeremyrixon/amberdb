@@ -1,12 +1,16 @@
 package amberdb.sql;
 
+
 import java.util.Date;
 import java.io.Serializable;
 
+
 public enum DataType {
 
+	
         STR, INT, DBL, BLN, LNG, FLT, DTE, SER, BAD;
     
+        
     public static String forObject(Object obj) {
         if (obj instanceof String)       return DataType.STR.toString();
         if (obj instanceof Integer)      return DataType.INT.toString();

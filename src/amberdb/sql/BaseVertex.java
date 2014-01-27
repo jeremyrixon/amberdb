@@ -1,5 +1,6 @@
 package amberdb.sql;
 
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,6 +11,7 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.VertexQuery;
 import com.tinkerpop.blueprints.util.DefaultVertexQuery;
+
 
 public class BaseVertex extends BaseElement implements Vertex {
 
@@ -108,6 +110,7 @@ public class BaseVertex extends BaseElement implements Vertex {
         sb.append("-"+hashCode());
         return sb.toString();
     }
+
     
     @Override
     public int hashCode() {
@@ -117,6 +120,7 @@ public class BaseVertex extends BaseElement implements Vertex {
         return result;
     }
 
+    
     @Override
     public boolean equals(Object obj) {
         

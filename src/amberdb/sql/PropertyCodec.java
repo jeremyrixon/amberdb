@@ -1,5 +1,6 @@
 package amberdb.sql;
 
+
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Date;
@@ -11,8 +12,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.Serializable;
 import java.io.IOException;
 
+
 public class PropertyCodec {
 
+	
     public static byte[] encode(Object value) {
         if (value instanceof String) {
             return ((String) value).getBytes(Charset.forName("UTF-8"));
@@ -55,6 +58,7 @@ public class PropertyCodec {
             throw new RuntimeException("Type not supported for encoding property: " + value.getClass());
         }
     }
+
     
     public static Object decode(byte[] blob, DataType type) {
 

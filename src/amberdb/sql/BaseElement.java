@@ -1,5 +1,6 @@
 package amberdb.sql;
 
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
@@ -7,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
+
 
 public class BaseElement {
 
