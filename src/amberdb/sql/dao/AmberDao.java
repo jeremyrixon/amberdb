@@ -234,66 +234,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             @Bind("operation") String operation);
 
         
-    @SqlUpdate("SET @txn = :txnId;\n"
-    // == CHANGE FOR MYSQL ==            
-            // edges            
-            + "UPDATE edge e "
-            + "SET txn_end = @txn "
-            + "WHERE e.txn_end = 0 "
-            + "AND e.id IN ("
-            + "  SELECT id "
-            + "  FROM sess_edge "
-            + "  WHERE s_id = @txn "
-            + "  AND state <> 'NEW');\n"
-
-            // edge properties
-            + "UPDATE property p "
-            + "SET txn_end = @txn "
-            + "WHERE p.txn_end = 0 "
-            + "AND p.id IN ("
-            + "  SELECT id "
-            + "  FROM sess_edge "
-            + "  WHERE s_id = @txn "
-            + "  AND state <> 'NEW');\n"
-            
-            // vertices
-            + "UPDATE vertex v "
-            + "SET txn_end = @txn "
-            + "WHERE v.txn_end = 0 "
-            + "AND v.id IN ("
-            + "  SELECT id "
-            + "  FROM sess_vertex "
-            + "  WHERE s_id = @txn "
-            + "  AND state <> 'NEW');\n"
-
-            // vertex properties
-            + "UPDATE property p "
-            + "SET txn_end = @txn "
-            + "WHERE p.txn_end = 0 "
-            + "AND p.id IN ("
-            + "  SELECT id "
-            + "  FROM sess_vertex "
-            + "  WHERE s_id = @txn "
-            + "  AND state <> 'NEW');\n"
-            
-            // orphan edges
-            + "UPDATE edge e "
-            + "SET txn_end = @txn "
-            + "WHERE e.txn_end = 0 "
-            + "AND e.v_in IN ("
-            + "  SELECT id "
-            + "  FROM sess_vertex "
-            + "  WHERE state = 'DEL' "
-            + "  AND s_id = @txn);\n"
-
-            + "UPDATE edge e "
-            + "SET txn_end = @txn "
-            + "WHERE e.txn_end = 0 "
-            + "AND e.v_out IN ("
-            + "  SELECT id "
-            + "  FROM sess_vertex "
-            + "  WHERE state = 'DEL' "
-            + "  AND s_id = @txn);\n")
+    @SqlUpdate("")
     void endElements(
             @Bind("txnId") Long txnId);
 

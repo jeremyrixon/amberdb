@@ -1,6 +1,7 @@
 package amberdb.sql;
 
 
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,6 +17,8 @@ import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 
 import amberdb.sql.dao.AmberDao;
+import amberdb.sql.dao.AmberDaoH2;
+import amberdb.sql.dao.AmberDaoMySql;
 
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
@@ -66,16 +69,37 @@ public class AmberGraph extends BaseGraph
 
     
     private void initGraph(DataSource dataSource) {
+
         idGen = this;
         edgeFactory = this;
         vertexFactory = this;
         elementModListener = this;
-
+        
         dbi = new DBI(dataSource);
-        dao = dbi.onDemand(AmberDao.class);
+        dao = selectDao(dataSource);
         if (!dao.schemaTablesExist()) {
             log.info("Schema doesn't exist - creating ...");
             createAmberSchema();
+        }
+    }
+    
+    
+    private AmberDao selectDao(DataSource dataSource) {
+        String dbProduct = "";
+        try {
+            dbProduct = dataSource.getConnection().getMetaData().getDatabaseProductName();
+            log.info("Amber database type is " + dbProduct);
+        } catch (SQLException e) {
+            log.info("could not determine the database type - assuming it is H2");
+            s(e.getMessage());
+        }
+
+        if (dbProduct.equals("MySQL")) {
+            return dbi.onDemand(AmberDaoMySql.class);
+        } else if (dbProduct.equals("H2")) {
+            return dbi.onDemand(AmberDaoH2.class);
+        } else { // default to H2
+            return dbi.onDemand(AmberDaoH2.class);
         }
     }
     
