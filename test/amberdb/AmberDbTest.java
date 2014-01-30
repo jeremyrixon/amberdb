@@ -130,13 +130,7 @@ public class AmberDbTest {
             Page p1 = book2.getPage(1);
             System.out.println("Page::::::::::::::::::::: " + p1);
             
-            for (Copy c : p1.getCopies()) {
-//                System.out.println("Copy::::::::::::::::::::: " + c);
-                
-//                for (File f : c.getFiles()) {
-//                    System.out.println("File::::::::::::::::::::: " + f);
-//                }
-            }
+            for (Copy c : p1.getCopies()) {} // WHY IS THIS REQUIRED ? BUG IN AMBER :-(
             
             Copy c1 = p1.getCopy(CopyRole.MASTER_COPY);
             

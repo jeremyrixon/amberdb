@@ -80,28 +80,22 @@ public class BaseVertex extends BaseElement implements Vertex {
         // get the edges
         Iterable<Edge> edges = ((BaseVertex) this).getEdges(direction, labels);
         for (Edge e : edges) {
-s("BaseVertex.getVertices : " + e);        	
-        	
+
             if (direction == Direction.IN) {
                 vertices.add(e.getVertex(Direction.OUT));
-            }
-            if (direction == Direction.OUT) {
+            } else if (direction == Direction.OUT) {
                 vertices.add(e.getVertex(Direction.IN));
-            }
-            if (direction == Direction.BOTH) {
-				if (e.getVertex(Direction.IN) == (Vertex) this) {
-					vertices.add(e.getVertex(Direction.OUT));
-				} else {
-					vertices.add(e.getVertex(Direction.IN));
-				}
+            } else if (direction == Direction.BOTH) {
+                if (e.getVertex(Direction.IN) == (Vertex) this) {
+                    vertices.add(e.getVertex(Direction.OUT));
+                } else {
+                    vertices.add(e.getVertex(Direction.IN));
+                }
             }
         } 
         return vertices;
     }
 
-    void s(String s) {
-     System.out.println(s);
-    }
     
     @Override
     public VertexQuery query() {
