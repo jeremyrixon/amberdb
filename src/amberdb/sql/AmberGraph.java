@@ -259,9 +259,9 @@ public class AmberGraph extends BaseGraph
 
     
     @Override
-    public Edge newEdge(Object id, String label, Vertex inVertex, Vertex outVertex, 
+    public Edge newEdge(Object id, String label, Vertex outVertex, Vertex inVertex, 
             Map<String, Object> properties, Graph graph) {
-        return new AmberEdge((Long) id, label, (AmberVertex) inVertex, (AmberVertex) outVertex, 
+        return new AmberEdge((Long) id, label, (AmberVertex) outVertex, (AmberVertex) inVertex, 
                 properties, (AmberGraph) graph, 0L, 0L, 0);
     }
     
@@ -405,11 +405,14 @@ public class AmberGraph extends BaseGraph
         return getVertex(id, false);
     } 
     
+    void s(String s) {
+    	System.out.println(s);
+    }
     
     protected Vertex getVertex(Object id, boolean localOnly) {
         
         Vertex vertex = super.getVertex(id);
-        if (vertex != null) return vertex;
+        if (vertex != null) {s("* found local "+vertex); return vertex;}
         if (localOnly) return null;
         
         // super may have returned null because the id didn't parse
@@ -515,21 +518,14 @@ public class AmberGraph extends BaseGraph
      * Used by AmberVertex.
      */
     protected void getBranch(Long id, Direction direction, String[] labels) {
+    	
+    	s("branching ...");
+    	
         AmberQuery q = new AmberQuery(id, this);
         q.branch(Lists.newArrayList(labels), direction);
         q.execute();
     }
     
-    
-    /**
-     * Used by AmberVertex.
-     */
-    protected void getBranch(Long id, Direction direction) {
-        AmberQuery q = new AmberQuery(id, this);
-        q.branch(null, direction);
-        q.execute();
-    }
-
     
     public AmberQuery newQuery(Long id) {
         return new AmberQuery(id, this);

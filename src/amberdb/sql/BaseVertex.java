@@ -3,8 +3,10 @@ package amberdb.sql;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
@@ -16,12 +18,10 @@ import com.tinkerpop.blueprints.util.DefaultVertexQuery;
 public class BaseVertex extends BaseElement implements Vertex {
 
     
-    protected List<Edge> inEdges = new ArrayList<Edge>();
-    protected List<Edge> outEdges = new ArrayList<Edge>();
-
-    
     public BaseVertex(long id, Map<String, Object> properties, BaseGraph graph) {
         super(id, properties, graph);
+        graph.inEdgeSets.put(id, new HashSet<Edge>());
+        graph.outEdgeSets.put(id, new HashSet<Edge>());
     }
     
     
@@ -40,16 +40,16 @@ public class BaseVertex extends BaseElement implements Vertex {
     }
     
     
-    private List<Edge> getEdges(List<Edge> edgeList, String... labels) {
+    private Set<Edge> getEdges(Set<Edge> edgeSet, String... labels) {
 
         // get edges for all labels if none specified
         if (labels.length == 0) { 
-            return edgeList; 
+            return edgeSet; 
         }
 
         List<String> labelList = Arrays.asList(labels);
-        List<Edge> edges = new ArrayList<Edge>();
-        for (Edge e : edgeList) {
+        Set<Edge> edges = new HashSet<Edge>();
+        for (Edge e : edgeSet) {
             if (labelList.contains(e.getLabel())) {
                 edges.add(e);
             }
@@ -62,13 +62,11 @@ public class BaseVertex extends BaseElement implements Vertex {
     public Iterable<Edge> getEdges(Direction direction, String... labels) {
         List<Edge> edges = new ArrayList<>();
 
-        if (direction == Direction.OUT || direction == Direction.BOTH) {
-            //edges.addAll(getEdges(((BaseVertex)graph.graphVertices.get(this.getId())).outEdges, labels));
-            edges.addAll(getEdges(inEdges, labels));
-        }
         if (direction == Direction.IN || direction == Direction.BOTH) {
-            //edges.addAll(getEdges(((BaseVertex)graph.graphVertices.get(this.getId())).inEdges, labels));
-            edges.addAll(getEdges(outEdges, labels));
+            edges.addAll(getEdges(graph.outEdgeSets.get(id), labels));
+        }
+        if (direction == Direction.OUT || direction == Direction.BOTH) {
+            edges.addAll(getEdges(graph.inEdgeSets.get(id), labels));
         }
         return edges;
     }
@@ -80,17 +78,30 @@ public class BaseVertex extends BaseElement implements Vertex {
         List<Vertex> vertices = new ArrayList<Vertex>();
 
         // get the edges
-        Iterable<Edge> edges = getEdges(direction, labels);
+        Iterable<Edge> edges = ((BaseVertex) this).getEdges(direction, labels);
         for (Edge e : edges) {
-            if (e.getVertex(Direction.IN) == (Vertex) this) {
+s("BaseVertex.getVertices : " + e);        	
+        	
+            if (direction == Direction.IN) {
                 vertices.add(e.getVertex(Direction.OUT));
-            } else {    
+            }
+            if (direction == Direction.OUT) {
                 vertices.add(e.getVertex(Direction.IN));
-            }    
+            }
+            if (direction == Direction.BOTH) {
+				if (e.getVertex(Direction.IN) == (Vertex) this) {
+					vertices.add(e.getVertex(Direction.OUT));
+				} else {
+					vertices.add(e.getVertex(Direction.IN));
+				}
+            }
         } 
         return vertices;
     }
 
+    void s(String s) {
+     System.out.println(s);
+    }
     
     @Override
     public VertexQuery query() {

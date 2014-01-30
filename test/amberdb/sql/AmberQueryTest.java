@@ -63,13 +63,13 @@ public class AmberQueryTest {
         AmberQuery q = graph.newQuery(heads);
 
         q.branch(Arrays.asList(new String[] {"partOf", "belongsTo"}),
-                Direction.BOTH);
+                Direction.IN);
         
         q.branch(Arrays.asList(new String[] {"isCopyOf", "belongsTo"}),
                 Direction.IN);
 
         q.branch(Arrays.asList(new String[] {"isFileOf", "belongsTo"}),
-                Direction.OUT);
+                Direction.IN);
 
         s(q.generateFullSubGraphQuery());
     }
@@ -82,11 +82,11 @@ public class AmberQueryTest {
         
         s("making books...");
         s("Book 1");
-        Object book1Id = makeBook("AA", 500, 10);
+        Object book1Id = makeBook("AA", 3, 1);
         s("Book 2");
-        Object book2Id = makeBook("BB", 1500, 10);
+        Object book2Id = makeBook("BB", 3, 1);
         s("Book 3");
-        Object book3Id = makeBook("CC", 1500, 10);
+        Object book3Id = makeBook("CC", 3, 1);
 
         s("commiting books to amber");
         graph.commit("bookMaker", "made books");
@@ -100,21 +100,27 @@ public class AmberQueryTest {
         s("Preparing query...");
         AmberQuery q = graph.newQuery(heads);
 
-        q.branch(Arrays.asList(new String[] {"hasPage"}),
-                Direction.OUT);
+        q.branch(Arrays.asList(new String[] {"isPageOf"}),
+                Direction.IN);
         
-        q.branch(Arrays.asList(new String[] {"hasCopy"}),
-                Direction.OUT);
+        q.branch(Arrays.asList(new String[] {"isCopyOf"}),
+                Direction.IN);
 
-        q.branch(Arrays.asList(new String[] {"hasFile"}),
-                Direction.OUT);
+//        q.branch(Arrays.asList(new String[] {"isFileOf"}),
+//                Direction.IN);
 
         s("Executing query");
-        Handle h = graph.dbi().open();
-        List<Vertex> results = q.execute();
-        h.close();
+//        List<Vertex> results = q.execute();
         
-        s("Done " + results.size());
+//        s("Done " + results.size());
+        
+        s("Getting book bits ...");
+        
+        Vertex book = graph.getVertex(book1Id);
+        for (Vertex v : book.getVertices(Direction.IN, "isPageOf")) {
+            s("page: " + v);
+        }
+        
     }
     
     
@@ -131,19 +137,21 @@ public class AmberQueryTest {
         for (int i=0; i<numPages; i++) {
             Vertex page = graph.addVertex(null);
             page.setProperty("type", "Page");
+            page.setProperty("number", i);
             addRandomProps(page, numProps);
             
             Vertex copy = graph.addVertex(null);
             copy.setProperty("type", "Copy");
             addRandomProps(copy, numProps);
 
-            Vertex file = graph.addVertex(null);
-            file.setProperty("type", "File");
-            addRandomProps(file, numProps);
+//            Vertex file = graph.addVertex(null);
+//            file.setProperty("type", "File");
+//            addRandomProps(file, numProps);
 
-            copy.addEdge("hasFile", file);
-            page.addEdge("hasCopy", copy);
-            book.addEdge("hasPage", page);
+//            file.addEdge("isFileOf", copy);
+            copy.addEdge("isCopyOf", page);
+            Edge e = page.addEdge("isPageOf", book);
+            e.setProperty("edge-order", 1000-i);
         }
         
         //graph.commit("bookMaker", "made book " + book.getId());

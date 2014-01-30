@@ -103,6 +103,9 @@ public class AmberDbTest {
             
             // now, can we retrieve the files ?
             Work book2 = db.findWork(bookId);
+            
+            s("Book is: " + book2);
+            
             Page p1 = book2.getPage(1);
             Copy c1 = p1.getCopy(CopyRole.MASTER_COPY);
             File f1 = c1.getFile();
@@ -120,18 +123,33 @@ public class AmberDbTest {
             Work book2 = db.findWork(bookId);
             System.out.println("**** Book: " + book2);
 
-            for (Edge e: book2.asVertex().getEdges(Direction.IN)) {
-            	System.out.println("sss "+e);
+            for (Page p: book2.getPages()) {
+            	System.out.println("sss ---"+p);
             }
             
             Page p1 = book2.getPage(1);
-            System.out.println("Page:khgkjhgkhgkjhgkjhg " + p1);
+            System.out.println("Page::::::::::::::::::::: " + p1);
+            
+            for (Copy c : p1.getCopies()) {
+//                System.out.println("Copy::::::::::::::::::::: " + c);
+                
+//                for (File f : c.getFiles()) {
+//                    System.out.println("File::::::::::::::::::::: " + f);
+//                }
+            }
             
             Copy c1 = p1.getCopy(CopyRole.MASTER_COPY);
+            
+            
+            
             File f1 = c1.getFile();
             BufferedReader br = new BufferedReader(new InputStreamReader(f1.openStream()));
             System.out.println(" ***** File still contains: " + br.readLine());
         }
         
+    }
+    
+    void s(String s) {
+    	System.out.println(s);
     }
 }

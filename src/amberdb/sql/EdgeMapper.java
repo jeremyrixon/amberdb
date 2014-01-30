@@ -31,14 +31,14 @@ public class EdgeMapper implements ResultSetMapper<AmberEdgeWithState> {
         AmberEdge edge = new AmberEdge(
                 rs.getLong("id"), 
                 rs.getString("label"),
-                in,
                 out,
+                in,
                 null,
                 graph,
                 rs.getLong("txn_start"),
                 rs.getLong("txn_end"),
                 rs.getInt("edge_order"));
-        
+System.out.println("e mapped : " + edge);        
         return new AmberEdgeWithState(edge, rs.getString("state"));
     }
 }

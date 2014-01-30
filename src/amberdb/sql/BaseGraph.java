@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Edge;
@@ -23,6 +24,8 @@ public class BaseGraph implements Graph, TransactionalGraph {
     Map<Object, Edge> graphEdges = new HashMap<Object, Edge>();
     Map<Object, Vertex> graphVertices = new HashMap<Object, Vertex>();
     
+    Map<Object, Set<Edge>> inEdgeSets = new HashMap<Object, Set<Edge>>();
+    Map<Object, Set<Edge>> outEdgeSets = new HashMap<Object, Set<Edge>>();
     
     // id generation handling - overridden in subclass AmberGraph
     class IdGeneratorImpl implements IdGenerator {
@@ -41,8 +44,8 @@ public class BaseGraph implements Graph, TransactionalGraph {
     
     // edge factory - overridden in subclass AmberGraph
     class BaseEdgeFactory implements EdgeFactory {
-        public Edge newEdge(Object id, String label, Vertex in, Vertex out, Map<String, Object> properties, Graph graph) {
-            return new BaseEdge((Long) id, label, (BaseVertex) in, (BaseVertex) out, properties, (BaseGraph) graph);
+        public Edge newEdge(Object id, String label, Vertex out, Vertex in, Map<String, Object> properties, Graph graph) {
+            return new BaseEdge((Long) id, label, (BaseVertex) out, (BaseVertex) in, properties, (BaseGraph) graph);
         } 
     }
     protected EdgeFactory edgeFactory = new BaseEdgeFactory();
@@ -73,7 +76,7 @@ public class BaseGraph implements Graph, TransactionalGraph {
         // argument guard
         if (label == null) throw new IllegalArgumentException("edge label cannot be null");
         Long newId = idGen.newId();
-        Edge edge = edgeFactory.newEdge(newId, label, (BaseVertex) in, (BaseVertex) out, null, this);
+        Edge edge = edgeFactory.newEdge(newId, label, (BaseVertex) out, (BaseVertex) in, null, this);
         graphEdges.put((Long) edge.getId(), edge);
         return edge;
     }
@@ -183,39 +186,39 @@ public class BaseGraph implements Graph, TransactionalGraph {
     
     @Override
     public void removeEdge(Edge e) {
-        BaseEdge ae = (BaseEdge) e;
+        BaseEdge be = (BaseEdge) e;
 
-        ae.inVertex.outEdges.remove(e);
-        ae.outVertex.inEdges.remove(e);
+        inEdgeSets.get(be.outVertex.getId()).remove(e);
+        outEdgeSets.get(be.inVertex.getId()).remove(e);
         
-        ae.inVertex = null;
-        ae.outVertex = null;
+        be.inVertex = null;
+        be.outVertex = null;
         graphEdges.remove(e.getId());
     }
 
     
     @Override
     public void removeVertex(Vertex v) {
-        BaseVertex av = (BaseVertex) v;
+        BaseVertex bv = (BaseVertex) v;
         
-        for (Edge e : av.inEdges) {
+        Set<Edge> inEdges = inEdgeSets.remove(bv.getId());
+        for (Edge e : inEdges) {
             BaseEdge ae = (BaseEdge) e;
-            ae.inVertex.outEdges.remove(e);
+            outEdgeSets.get(ae.inVertex.getId()).remove(e);
             ae.inVertex = null;
             ae.outVertex = null;
             graphEdges.remove(e.getId());
         }
         
-        for (Edge e : av.outEdges) {
+        Set<Edge> outEdges = outEdgeSets.remove(bv.getId());
+        for (Edge e : outEdges) {
             BaseEdge ae = (BaseEdge) e;
-            ae.outVertex.inEdges.remove(e);
+            inEdgeSets.get(ae.outVertex.getId()).remove(e);
             ae.inVertex = null;
             ae.outVertex = null;
             graphEdges.remove(e.getId());
         }
         
-        av.inEdges = null;
-        av.outEdges = null;
         graphVertices.remove(v.getId());
     }
 

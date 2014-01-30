@@ -12,11 +12,11 @@ public class AmberEdge extends BaseEdge {
     public static final String SORT_ORDER_PROPERTY_NAME = "edge-order";
     
     
-    public AmberEdge(Long id, String label, AmberVertex inVertex, 
-            AmberVertex outVertex, Map<String, Object> properties, 
+    public AmberEdge(Long id, String label, AmberVertex outVertex, 
+            AmberVertex inVertex, Map<String, Object> properties, 
             AmberGraph graph, Long txnStart, Long txnEnd, Integer order) {
         
-        super(id, label, (BaseVertex) inVertex, (BaseVertex) outVertex, properties, (BaseGraph) graph);
+        super(id, label, (BaseVertex) outVertex, (BaseVertex) inVertex, properties, (BaseGraph) graph);
         this.txnStart = txnStart;
         this.txnEnd = txnEnd;
         this.order = order;

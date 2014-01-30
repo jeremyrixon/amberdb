@@ -16,13 +16,13 @@ public class BaseEdge extends BaseElement implements Edge {
     protected BaseVertex outVertex;
     
     
-    public BaseEdge(Long id, String label, BaseVertex inVertex, BaseVertex outVertex, Map<String, Object> properties, BaseGraph graph) {
+    public BaseEdge(Long id, String label, BaseVertex outVertex, BaseVertex inVertex, Map<String, Object> properties, BaseGraph graph) {
         super(id, properties, graph);
         this.label = label;
         this.inVertex = inVertex;
         this.outVertex = outVertex;
-        inVertex.outEdges.add(this);
-        outVertex.inEdges.add(this);
+        graph.outEdgeSets.get(inVertex.getId()).add(this);
+        graph.inEdgeSets.get(outVertex.getId()).add(this);
     }
 
     

@@ -27,7 +27,7 @@ public class VertexMapper implements ResultSetMapper<AmberVertexWithState> {
                 graph,
                 rs.getLong("txn_start"),
                 rs.getLong("txn_end"));
-        
+System.out.println("v mapped : " + vertex);        
         return new AmberVertexWithState(vertex, rs.getString("state"));
     }
 }
