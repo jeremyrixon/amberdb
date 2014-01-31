@@ -219,7 +219,7 @@ public interface Copy extends Node {
         public Copy deriveImageCopy(Path tiffUncompressor, Path jp2Generator) throws IllegalStateException, IOException, InterruptedException {
 
             ImageFile tiffImage = this.getImageFile();
-            if (!tiffImage.getMimeType().equals("image/tiff")){
+            if (!tiffImage.getMimeType().equals("image/tiff")) {
                 throw new IllegalStateException(this.getWork().getObjId() + " master is not a tiff.  You may not generate a jpeg2000 from anything but a tiff");
             }
 
@@ -273,7 +273,7 @@ public interface Copy extends Node {
         private Path generateImage(BlobStore doss, Path tiffUncompressor, Path jp2Generator, Path stage, Long tiffBlobId) throws IOException, InterruptedException, NoSuchCopyException {
             
             if (tiffBlobId == null)
-                throw new NoSuchCopyException(this.getWork().getId(), CopyRole.MASTER_COPY);
+                throw new NoSuchCopyException(this.getWork().getId(), CopyRole.fromString(this.getCopyRole()));
 
             // prepare the files for conversion
             Path tiffPath = stage.resolve(tiffBlobId + ".tif");                                 // where to put the tif retrieved from the amber blob
