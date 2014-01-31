@@ -16,7 +16,7 @@ public interface AmberDaoMySql extends AmberDao {
             + "WHERE e.txn_end = 0 "
             + "AND e.id = se.id "
             + "AND se.s_id = @txn "
-            + "AND se.state <> 'NEW';\n"
+            + "AND se.state IN ('MOD','DEL');\n"
 
             // edge properties
             + "UPDATE property p, sess_edge se "
@@ -24,7 +24,7 @@ public interface AmberDaoMySql extends AmberDao {
             + "WHERE p.txn_end = 0 "
             + "AND p.id = se.id "
             + "AND se.s_id = @txn "
-            + "AND se.state <> 'NEW';\n"
+            + "AND se.state IN ('MOD','DEL');\n"
 
             // vertices
             + "UPDATE vertex v, sess_vertex sv "
@@ -32,7 +32,7 @@ public interface AmberDaoMySql extends AmberDao {
             + "WHERE v.txn_end = 0 "
             + "AND v.id = sv.id "
             + "AND sv.s_id = @txn "
-            + "AND sv.state <> 'NEW';\n"
+            + "AND sv.state IN ('MOD','DEL');\n"
 
             // vertex properties
             + "UPDATE property p, sess_vertex sv "
@@ -40,7 +40,7 @@ public interface AmberDaoMySql extends AmberDao {
             + "WHERE p.txn_end = 0 "
             + "AND p.id = sv.id "
             + "AND sv.s_id = @txn "
-            + "AND sv.state <> 'NEW';\n"
+            + "AND sv.state IN ('MOD','DEL');\n"
 
             // orphan edges
             + "UPDATE edge e, sess_vertex sv "

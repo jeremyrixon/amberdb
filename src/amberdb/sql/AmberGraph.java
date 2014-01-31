@@ -91,7 +91,7 @@ public class AmberGraph extends BaseGraph
             log.info("Amber database type is " + dbProduct);
         } catch (SQLException e) {
             log.info("could not determine the database type - assuming it is H2");
-            s(e.getMessage());
+            log.info(e.getMessage());
         }
 
         if (dbProduct.equals("MySQL")) {
@@ -145,7 +145,7 @@ public class AmberGraph extends BaseGraph
         return newId;
     }    
     
-    
+
     public void elementModified(Object element) {
         if (element instanceof Edge) {
             modifiedEdges.add((Edge) element);
@@ -236,15 +236,17 @@ public class AmberGraph extends BaseGraph
             if (newEdges.remove(e)) continue;
             edges.add(new AmberEdgeWithState((AmberEdge) e, "DEL"));
         }
-        for (Edge e : newEdges) {
-            modifiedEdges.remove(e);
+        
+        for (Edge e : graphEdges.values()) {
             AmberEdge ae = (AmberEdge) e;
-            edges.add(new AmberEdgeWithState(ae, "NEW"));
-            properties.add((Long) ae.getId(), ae.getProperties());
-        }
-        for (Edge e : modifiedEdges) {
-            AmberEdge ae = (AmberEdge) e;
-            edges.add(new AmberEdgeWithState(ae, "MOD"));
+            if (newEdges.contains(e)) {
+                modifiedEdges.remove(e); // a modified new edge is just a new edge
+                edges.add(new AmberEdgeWithState(ae, "NEW"));
+            } else if (modifiedEdges.contains(e)) {
+                edges.add(new AmberEdgeWithState(ae, "MOD"));
+            } else {
+                edges.add(new AmberEdgeWithState(ae, "AMB"));
+            }
             properties.add((Long) ae.getId(), ae.getProperties());
         }
     }
@@ -262,15 +264,17 @@ public class AmberGraph extends BaseGraph
             if (newVertices.remove(v)) continue;
             vertices.add(new AmberVertexWithState((AmberVertex) v, "DEL"));
         }
-        for (Vertex v : newVertices) {
-            modifiedVertices.remove(v);
+
+        for (Vertex v : graphVertices.values()) {
             AmberVertex av = (AmberVertex) v;
-            vertices.add(new AmberVertexWithState(av, "NEW"));
-            properties.add((Long) av.getId(), av.getProperties());
-        }
-        for (Vertex v : modifiedVertices) {
-            AmberVertex av = (AmberVertex) v;
-            vertices.add(new AmberVertexWithState(av, "MOD"));
+            if (newVertices.contains(v)) {
+                modifiedVertices.remove(v); // a modified new vertex is just a new vertex
+                vertices.add(new AmberVertexWithState(av, "NEW"));
+            } else if (modifiedVertices.contains(v)) {
+                vertices.add(new AmberVertexWithState(av, "MOD"));
+            } else {
+                vertices.add(new AmberVertexWithState(av, "AMB"));
+            }
             properties.add((Long) av.getId(), av.getProperties());
         }
     }
@@ -429,19 +433,16 @@ public class AmberGraph extends BaseGraph
         return getVertex(id, false);
     } 
     
-    void s(String s) {
-    	System.out.println(s);
-    }
     
     protected Vertex getVertex(Object id, boolean localOnly) {
         
         Vertex vertex = super.getVertex(id);
-        if (vertex != null) {s("* found local "+vertex); return vertex;}
+        if (vertex != null) return vertex;
         if (localOnly) return null;
         
         // super may have returned null because the id didn't parse
         if (parseId(id) == null) return null;
-        
+       
         Handle h = dbi.open();
         AmberVertexWithState vs = h.createQuery(
                 "SELECT id, txn_start, txn_end, 'AMB' state "
@@ -542,9 +543,6 @@ public class AmberGraph extends BaseGraph
      * Used by AmberVertex.
      */
     protected void getBranch(Long id, Direction direction, String[] labels) {
-    	
-    	s("branching ...");
-    	
         AmberQuery q = new AmberQuery(id, this);
         q.branch(Lists.newArrayList(labels), direction);
         q.execute();

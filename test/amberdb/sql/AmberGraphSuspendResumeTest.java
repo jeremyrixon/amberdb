@@ -152,27 +152,29 @@ public class AmberGraphSuspendResumeTest {
         e4.setProperty("array", new char[] {'1','a'});
         graph.commit("tester", "testModifyAndPersist");
         
-        graph.clear();
+        graph.clear(); // double clear :-)
         
         // get from persistent data store
+        s("id is:" + eId);
         Edge e5 = graph.getEdge(eId);
-        assertEquals(e5, e4);
-        
+
         s("note: we hung onto e4 after persisting so it is no longer up to date");
         s("e4: " + e4);
         s("e5: " + e5);
+      
+        assertEquals(e5, e4);
         
-        // delete an incident vertex from data store
-        Object remainingVertexId = e5.getVertex(Direction.OUT).getId();
-        Object removedVertexId = e5.getVertex(Direction.IN).getId();
-        e5.getVertex(Direction.IN).remove();
-        graph.commit("tester", "removeVertex");
-
-        // that should have deleted the edge as well, but the other vertex should remain
-        assertNull(graph.getEdge(eId));
-        assertNull(graph.getVertex(removedVertexId));
-        assertNotNull(graph.getVertex(remainingVertexId));
-        s("vertex remaining: " + graph.getVertex(remainingVertexId));
+//        // delete an incident vertex from data store
+//        Object remainingVertexId = e5.getVertex(Direction.OUT).getId();
+//        Object removedVertexId = e5.getVertex(Direction.IN).getId();
+//        e5.getVertex(Direction.IN).remove();
+//        graph.commit("tester", "removeVertex");
+//
+//        // that should have deleted the edge as well, but the other vertex should remain
+//        assertNull(graph.getEdge(eId));
+//        assertNull(graph.getVertex(removedVertexId));
+//        assertNotNull(graph.getVertex(remainingVertexId));
+//        s("vertex remaining: " + graph.getVertex(remainingVertexId));
     }
     
     @Ignore

@@ -18,7 +18,7 @@ public interface AmberDaoH2 extends AmberDao {
             + "  SELECT id "
             + "  FROM sess_edge "
             + "  WHERE s_id = @txn "
-            + "  AND state <> 'NEW');\n"
+            + "  AND state IN ('MOD','DEL'));\n"
 
             // edge properties
             + "UPDATE property p "
@@ -28,7 +28,7 @@ public interface AmberDaoH2 extends AmberDao {
             + "  SELECT id "
             + "  FROM sess_edge "
             + "  WHERE s_id = @txn "
-            + "  AND state <> 'NEW');\n"
+            + "  AND state IN ('MOD','DEL'));\n"
             
             // vertices
             + "UPDATE vertex v "
@@ -38,7 +38,7 @@ public interface AmberDaoH2 extends AmberDao {
             + "  SELECT id "
             + "  FROM sess_vertex "
             + "  WHERE s_id = @txn "
-            + "  AND state <> 'NEW');\n"
+            + "  AND state IN ('MOD','DEL'));\n"
 
             // vertex properties
             + "UPDATE property p "
@@ -48,7 +48,7 @@ public interface AmberDaoH2 extends AmberDao {
             + "  SELECT id "
             + "  FROM sess_vertex "
             + "  WHERE s_id = @txn "
-            + "  AND state <> 'NEW');\n"
+            + "  AND state IN ('MOD','DEL'));\n"
             
             // orphan edges
             + "UPDATE edge e "

@@ -22,4 +22,12 @@ public class AmberVertexBatch {
         txnEnd.add(vertex.txnEnd);
         state.add(statefulVertex.state);
     }
+    
+    public String contents() {
+        StringBuilder s = new StringBuilder();
+        for (int i=0; i < id.size(); i++) {
+            s.append("vertex:" + id.get(i) + " " + state.get(i) + "\n");
+        }
+        return s.toString();
+    }
 }

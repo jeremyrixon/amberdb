@@ -37,4 +37,15 @@ public class AmberEdgeBatch {
         order.add(edge.order);
         this.state.add(state);
     }
+    
+    
+    public String contents() {
+        StringBuilder s = new StringBuilder();
+        for (int i=0; i < id.size(); i++) {
+            s.append("edge:" + id.get(i) + " " + label.get(i) + " out:" 
+                    + vertexOut.get(i) + " in:" + vertexIn.get(i) + " " 
+                    + state.get(i) + "\n");
+        }
+        return s.toString();
+    }
 }

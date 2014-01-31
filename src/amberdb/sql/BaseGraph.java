@@ -289,6 +289,8 @@ public class BaseGraph implements Graph, TransactionalGraph {
     public void clear() {
         graphEdges.clear();
         graphVertices.clear();
+        inEdgeSets.clear();
+        outEdgeSets.clear();
     }
 }
 
