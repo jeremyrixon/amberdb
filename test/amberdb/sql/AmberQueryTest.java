@@ -79,14 +79,16 @@ public class AmberQueryTest {
     public void testExecuteQuery() throws Exception {
 
         // set up database
-        
+
+        graph.setLocalMode(true);    
+    
         s("making books...");
         s("Book 1");
-        Object book1Id = makeBook("AA", 3, 1);
+        Object book1Id = makeBook("AA", 500, 10);
         s("Book 2");
-        Object book2Id = makeBook("BB", 3, 1);
+        Object book2Id = makeBook("BB", 3000, 10);
         s("Book 3");
-        Object book3Id = makeBook("CC", 3, 1);
+        Object book3Id = makeBook("CC", 3000, 10);
 
         s("commiting books to amber");
         graph.commit("bookMaker", "made books");
@@ -106,21 +108,25 @@ public class AmberQueryTest {
         q.branch(Arrays.asList(new String[] {"isCopyOf"}),
                 Direction.IN);
 
-//        q.branch(Arrays.asList(new String[] {"isFileOf"}),
-//                Direction.IN);
+        q.branch(Arrays.asList(new String[] {"isFileOf"}),
+                Direction.IN);
 
         s("Executing query");
-//        List<Vertex> results = q.execute();
+        List<Vertex> results = q.execute();
         
-//        s("Done " + results.size());
+        s("Done " + results.size());
         
         s("Getting book bits ...");
         
         Vertex book = graph.getVertex(book1Id);
-        for (Vertex v : book.getVertices(Direction.IN, "isPageOf")) {
-            s("page: " + v);
-        }
         
+        List<Vertex> pages = (List<Vertex>) book.getVertices(Direction.IN, "isPageOf");
+        
+        s("Number of pages: " + pages.size());
+        
+        for (int i=0; i < 10; i++) {
+            s("Page " + pages.get(i));
+        }
     }
     
     

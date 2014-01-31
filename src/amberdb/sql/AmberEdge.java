@@ -2,7 +2,9 @@ package amberdb.sql;
 
 import java.util.Map;
 
-public class AmberEdge extends BaseEdge {
+
+@SuppressWarnings("rawtypes")
+public class AmberEdge extends BaseEdge implements Comparable {
 
     
     Long txnStart;
@@ -69,5 +71,14 @@ public class AmberEdge extends BaseEdge {
             return;
         }     
         super.setProperty(propertyName, value);
-    }     
+    }
+    
+    
+    @Override
+    public int compareTo(Object o) {
+        if (o instanceof AmberEdge) {
+            return order - ((AmberEdge) o).order;
+        }
+        return -1;
+    }
 }

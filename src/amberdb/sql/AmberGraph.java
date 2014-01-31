@@ -53,6 +53,26 @@ public class AmberGraph extends BaseGraph
     /** Identify this graph instance */
     private String user;
     
+    private boolean localMode = false;
+    /**
+     * Local mode puts the Amber Graph in a state where it will only query for
+     * elements in the current session ie: it will not look for elements in
+     * the Amber Graph's persistent datastore. This can speed up queries 
+     * significantly. When localMode is on, AmberQueries can still be used to 
+     * populate the local graph and suspend, resume and commit should also 
+     * work. 
+     * 
+     * @param localModeOn if true sets local mode to on, off if false.
+     */
+    public void setLocalMode(boolean localModeOn) {
+        localMode = localModeOn;
+    }
+    
+    
+    public boolean inLocalMode() {
+        return localMode;
+    }
+    
     
     /* 
      * Constructors
@@ -430,7 +450,7 @@ public class AmberGraph extends BaseGraph
     
     @Override
     public Vertex getVertex(Object id) {
-        return getVertex(id, false);
+        return getVertex(id, localMode);
     } 
     
     
@@ -467,7 +487,7 @@ public class AmberGraph extends BaseGraph
     
     @Override
     public Edge getEdge(Object id) {
-        return getEdge(id, false);
+        return getEdge(id, localMode);
     } 
     
     
@@ -535,7 +555,8 @@ public class AmberGraph extends BaseGraph
      * 
      * To avoid crashing a large amber system these method does not return 
      * all edges or vertices stored in a persistent amber data store, only
-     * the ones that have been referenced so far in a session.
+     * the ones that have been referenced so far in a session. Effectively
+     * localMode is always on for these queries.
      */
     
 

@@ -1,6 +1,7 @@
 package amberdb.sql;
 
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -33,15 +34,19 @@ public class AmberVertex extends BaseVertex {
     }
     
     
+    @SuppressWarnings("unchecked")
     public Iterable<Edge> getEdges(Direction direction, String... labels) {
         List<Edge> edges = (List<Edge>) super.getEdges(direction, labels);
+        List<AmberEdge> amberEdges = (List<AmberEdge>) (List<? extends BaseEdge>) edges;
+        Collections.sort(amberEdges);
 
         return edges;
     }
 
 
     public Iterable<Vertex> getVertices(Direction direction, String... labels) {
-        ((AmberGraph) graph).getBranch(this.id, direction, labels);
+        AmberGraph g = (AmberGraph) graph;
+        if (!g.inLocalMode()) g.getBranch(this.id, direction, labels);
         List<Vertex> vertices = (List<Vertex>) super.getVertices(direction, labels);
 
         return vertices;
