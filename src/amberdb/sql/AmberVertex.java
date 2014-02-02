@@ -36,6 +36,8 @@ public class AmberVertex extends BaseVertex {
     
     @SuppressWarnings("unchecked")
     public Iterable<Edge> getEdges(Direction direction, String... labels) {
+        AmberGraph g = (AmberGraph) graph;
+        if (!g.inLocalMode()) g.getBranch(this.id, direction, labels);
         List<Edge> edges = (List<Edge>) super.getEdges(direction, labels);
         List<AmberEdge> amberEdges = (List<AmberEdge>) (List<? extends BaseEdge>) edges;
         Collections.sort(amberEdges);
@@ -46,7 +48,6 @@ public class AmberVertex extends BaseVertex {
 
     public Iterable<Vertex> getVertices(Direction direction, String... labels) {
         AmberGraph g = (AmberGraph) graph;
-        if (!g.inLocalMode()) g.getBranch(this.id, direction, labels);
         List<Vertex> vertices = (List<Vertex>) super.getVertices(direction, labels);
 
         return vertices;
