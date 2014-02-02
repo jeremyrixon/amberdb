@@ -30,8 +30,8 @@ public class AmberEdgeBatch {
             vertexOut.add(null);
             vertexIn.add(null);
         } else {
-            vertexOut.add((Long) edge.outVertex.getId());
-            vertexIn.add((Long) edge.inVertex.getId());
+            vertexOut.add((Long) edge.outId);
+            vertexIn.add((Long) edge.inId);
         }
         label.add(edge.getLabel());
         order.add(edge.order);

@@ -4,6 +4,7 @@ package amberdb.sql;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,8 +25,9 @@ public class BaseGraph implements Graph, TransactionalGraph {
     Map<Object, Edge> graphEdges = new HashMap<Object, Edge>();
     Map<Object, Vertex> graphVertices = new HashMap<Object, Vertex>();
     
-    Map<Object, Set<Edge>> inEdgeSets = new HashMap<Object, Set<Edge>>();
-    Map<Object, Set<Edge>> outEdgeSets = new HashMap<Object, Set<Edge>>();
+public    Map<Object, Set<Edge>> inEdgeSets = new HashMap<Object, Set<Edge>>();
+public    Map<Object, Set<Edge>> outEdgeSets = new HashMap<Object, Set<Edge>>();
+
     
     // id generation handling - overridden in subclass AmberGraph
     class IdGeneratorImpl implements IdGenerator {
@@ -45,7 +47,7 @@ public class BaseGraph implements Graph, TransactionalGraph {
     // edge factory - overridden in subclass AmberGraph
     class BaseEdgeFactory implements EdgeFactory {
         public Edge newEdge(Object id, String label, Vertex out, Vertex in, Map<String, Object> properties, Graph graph) {
-            return new BaseEdge((Long) id, label, (BaseVertex) out, (BaseVertex) in, properties, (BaseGraph) graph);
+            return new BaseEdge((Long) id, label, (Long) out.getId(), (Long) in.getId(), properties, (BaseGraph) graph);
         } 
     }
     protected EdgeFactory edgeFactory = new BaseEdgeFactory();
@@ -76,9 +78,16 @@ public class BaseGraph implements Graph, TransactionalGraph {
         // argument guard
         if (label == null) throw new IllegalArgumentException("edge label cannot be null");
         Long newId = idGen.newId();
-        Edge edge = edgeFactory.newEdge(newId, label, (BaseVertex) out, (BaseVertex) in, null, this);
-        graphEdges.put((Long) edge.getId(), edge);
+        BaseEdge edge = (BaseEdge) edgeFactory.newEdge(newId, label, (BaseVertex) out, (BaseVertex) in, null, this);
+        addEdgeToGraph(edge);
         return edge;
+    }
+
+    
+    protected void addEdgeToGraph(BaseEdge e) {
+        graphEdges.put(e.getId(), e);
+        inEdgeSets.get(e.outId).add(e);
+        outEdgeSets.get(e.inId).add(e);
     }
 
     
@@ -86,10 +95,19 @@ public class BaseGraph implements Graph, TransactionalGraph {
     public Vertex addVertex(Object id) {
         long newId = idGen.newId();
         Vertex vertex = vertexFactory.newVertex(newId, null, this);
-        graphVertices.put((Long) vertex.getId(), vertex);
+        addVertexToGraph(vertex);
         return vertex;
     }
 
+
+    protected void addVertexToGraph(Vertex v) {
+        Long id = (Long) v.getId();
+        graphVertices.put(id, v);
+        
+        if (inEdgeSets.get(id) == null) inEdgeSets.put(id, new HashSet<Edge>());
+        if (outEdgeSets.get(id) == null) outEdgeSets.put(id, new HashSet<Edge>());
+    }
+    
     
     @Override
     public Edge getEdge (Object edgeId) {
@@ -188,11 +206,11 @@ public class BaseGraph implements Graph, TransactionalGraph {
     public void removeEdge(Edge e) {
         BaseEdge be = (BaseEdge) e;
 
-        inEdgeSets.get(be.outVertex.getId()).remove(e);
-        outEdgeSets.get(be.inVertex.getId()).remove(e);
+        inEdgeSets.get(be.outId).remove(e);
+        outEdgeSets.get(be.inId).remove(e);
         
-        be.inVertex = null;
-        be.outVertex = null;
+        be.inId = null;
+        be.outId = null;
         graphEdges.remove(e.getId());
     }
 
@@ -203,19 +221,19 @@ public class BaseGraph implements Graph, TransactionalGraph {
         
         Set<Edge> inEdges = inEdgeSets.remove(bv.getId());
         for (Edge e : inEdges) {
-            BaseEdge ae = (BaseEdge) e;
-            outEdgeSets.get(ae.inVertex.getId()).remove(e);
-            ae.inVertex = null;
-            ae.outVertex = null;
+            BaseEdge be = (BaseEdge) e;
+            outEdgeSets.get(be.inId).remove(e);
+            be.inId = null;
+            be.outId = null;
             graphEdges.remove(e.getId());
         }
         
         Set<Edge> outEdges = outEdgeSets.remove(bv.getId());
         for (Edge e : outEdges) {
-            BaseEdge ae = (BaseEdge) e;
-            inEdgeSets.get(ae.outVertex.getId()).remove(e);
-            ae.inVertex = null;
-            ae.outVertex = null;
+            BaseEdge be = (BaseEdge) e;
+            inEdgeSets.get(be.outId).remove(e);
+            be.inId = null;
+            be.outId = null;
             graphEdges.remove(e.getId());
         }
         

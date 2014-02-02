@@ -357,7 +357,7 @@ public class AmberGraph extends BaseGraph
                 continue;
             } 
             
-            graphVertices.put(vertex.getId(), vertex);
+            addVertexToGraph(vertex);
             vertex.replaceProperties(propertyMaps.get((Long) vertex.getId()));
             
             if (state.equals("NEW")) {
@@ -377,7 +377,7 @@ public class AmberGraph extends BaseGraph
                 continue;
             } 
             
-            graphEdges.put(edge.getId(), edge);
+            addEdgeToGraph(edge);
             edge.replaceProperties(propertyMaps.get((Long) edge.getId()));
             
             if (state.equals("NEW")) {
@@ -478,7 +478,7 @@ public class AmberGraph extends BaseGraph
 
         AmberVertex v = (AmberVertex) vertex;
         v.replaceProperties(getElementPropertyMap((Long) v.getId(), v.txnStart, h));
-        graphVertices.put(v.getId(), v);
+        addVertexToGraph(v);
         h.close();
         
         return vertex;
@@ -515,7 +515,7 @@ public class AmberGraph extends BaseGraph
         
         AmberEdge e = (AmberEdge) edge;
         e.replaceProperties(getElementPropertyMap((Long) e.getId(), e.txnStart, h));
-        graphEdges.put(e.getId(), e);
+        addEdgeToGraph(e);
         h.close();
 
         return e;

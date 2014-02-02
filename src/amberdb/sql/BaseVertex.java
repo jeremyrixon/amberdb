@@ -20,8 +20,7 @@ public class BaseVertex extends BaseElement implements Vertex {
     
     public BaseVertex(long id, Map<String, Object> properties, BaseGraph graph) {
         super(id, properties, graph);
-        graph.inEdgeSets.put(id, new HashSet<Edge>());
-        graph.outEdgeSets.put(id, new HashSet<Edge>());
+        //graph.addVertexToGraph(this);
     }
     
     

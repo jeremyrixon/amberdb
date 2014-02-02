@@ -18,7 +18,8 @@ public class AmberEdge extends BaseEdge implements Comparable {
             AmberVertex inVertex, Map<String, Object> properties, 
             AmberGraph graph, Long txnStart, Long txnEnd, Integer order) {
         
-        super(id, label, (BaseVertex) outVertex, (BaseVertex) inVertex, properties, (BaseGraph) graph);
+        super(id, label, (Long) outVertex.getId(), (Long) inVertex.getId(), 
+                properties, (BaseGraph) graph);
         this.txnStart = txnStart;
         this.txnEnd = txnEnd;
         this.order = order;

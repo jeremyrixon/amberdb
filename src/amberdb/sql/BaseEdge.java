@@ -12,17 +12,16 @@ public class BaseEdge extends BaseElement implements Edge {
 
     
     private String label;
-    protected BaseVertex inVertex;
-    protected BaseVertex outVertex;
+    protected Long inId;
+    protected Long outId;
     
     
-    public BaseEdge(Long id, String label, BaseVertex outVertex, BaseVertex inVertex, Map<String, Object> properties, BaseGraph graph) {
+    public BaseEdge(Long id, String label, Long outId, Long inId, Map<String, Object> properties, BaseGraph graph) {
         super(id, properties, graph);
         this.label = label;
-        this.inVertex = inVertex;
-        this.outVertex = outVertex;
-        graph.outEdgeSets.get(inVertex.getId()).add(this);
-        graph.inEdgeSets.get(outVertex.getId()).add(this);
+        this.inId = inId;
+        this.outId = outId;
+        //graph.addEdgeToGraph(this);
     }
 
     
@@ -51,9 +50,9 @@ public class BaseEdge extends BaseElement implements Edge {
             throw new IllegalArgumentException("Can only get a vertex from a single direction"); 
         }
         if (direction == Direction.IN) {
-            return (Vertex) inVertex;
+            return (Vertex) graph.graphVertices.get(inId);
         } 
-        return (Vertex) outVertex; // direction must be out
+        return (Vertex) graph.graphVertices.get(outId); // direction must be out
         // note: we should always be loading an edge's vertices
     }
 
@@ -72,8 +71,8 @@ public class BaseEdge extends BaseElement implements Edge {
         StringBuilder sb = new StringBuilder();
         sb.append("edge id:").append(id)
         .append(" label:").append(label)
-        .append(" out:").append(outVertex.getId())
-        .append(" in:").append(inVertex.getId());
+        .append(" out:").append(outId)
+        .append(" in:").append(inId);
         // properties
         sb.append(" {");
         if (properties != null && properties.size() > 0) {

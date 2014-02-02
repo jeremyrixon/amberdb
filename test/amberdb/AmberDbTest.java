@@ -124,17 +124,26 @@ public class AmberDbTest {
             System.out.println("**** Book: " + book2);
 
             for (Page p: book2.getPages()) {
-            	System.out.println("sss ---"+p);
+            	System.out.println("page ---"+p);
             }
             
             Page p1 = book2.getPage(1);
             System.out.println("Page::::::::::::::::::::: " + p1);
             
-            for (Copy c : p1.getCopies()) {} // WHY IS THIS REQUIRED ? BUG IN AMBER :-(
+            s("ot for 3 is :" + db.getAmberGraph().outEdgeSets.get(3L));
+            s("in for 3 is :" + db.getAmberGraph().inEdgeSets.get(3L));
+            
+            //for (Copy c : p1.getCopies()) {} // WHY IS THIS REQUIRED ? BUG IN AMBER :-(
+            s("========");
+            s("ot for 3 is :" + db.getAmberGraph().outEdgeSets.get(3L));
+            s("in for 3 is :" + db.getAmberGraph().inEdgeSets.get(3L));
+
+            for (Vertex cs : p1.asVertex().getVertices(Direction.IN, "isCopyOf")) {
+                s("Copy should be " + cs);
+            }
+            s("done....");
             
             Copy c1 = p1.getCopy(CopyRole.MASTER_COPY);
-            
-            
             
             File f1 = c1.getFile();
             BufferedReader br = new BufferedReader(new InputStreamReader(f1.openStream()));
