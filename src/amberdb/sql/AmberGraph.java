@@ -1,6 +1,7 @@
 package amberdb.sql;
 
 import java.lang.reflect.Field;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -157,8 +158,8 @@ public class AmberGraph implements Graph, TransactionalGraph {
 
         // set up required data access objects
         String dbProduct = "";
-        try {
-            dbProduct = ds.getConnection().getMetaData().getDatabaseProductName();
+        try (Connection conn = ds.getConnection()) {
+            dbProduct = conn.getMetaData().getDatabaseProductName();
             s("Persistent database is " + dbProduct);
         } catch (SQLException e) {
             s("could not determine the persistent database product - assuming it is H2");
