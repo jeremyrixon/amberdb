@@ -57,10 +57,10 @@ public class AmberGraph extends BaseGraph
     /**
      * Local mode puts the Amber Graph in a state where it will only query for
      * elements in the current session ie: it will not look for elements in
-     * the Amber Graph's persistent datastore. This can speed up queries 
+     * the Amber Graph's persistent data store. This can speed up queries 
      * significantly. When localMode is on, AmberQueries can still be used to 
      * populate the local graph and suspend, resume and commit should also 
-     * work. 
+     * work against the persistent data store. 
      * 
      * @param localModeOn if true sets local mode to on, off if false.
      */

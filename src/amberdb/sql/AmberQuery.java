@@ -73,8 +73,6 @@ public class AmberQuery {
                 + "step INT, "
                 + "vid BIGINT, "
                 + "eid BIGINT, "
-                + "ev_in BIGINT, "
-                + "ev_out BIGINT, "
                 + "label VARCHAR(100), "
                 + "edge_order BIGINT);\n");
         
@@ -82,16 +80,14 @@ public class AmberQuery {
                 + "step INT, "
                 + "vid BIGINT, "
                 + "eid BIGINT, "
-                + "ev_in BIGINT, "
-                + "ev_out BIGINT, "
                 + "label VARCHAR(100), "
                 + "edge_order BIGINT);\n");
         
         // inject head
         s.append(String.format(
 
-        "INSERT INTO v0 (step, vid, eid, ev_in, ev_out, label, edge_order) \n"
-        + "SELECT 0, id, 0, id, id, 'root', 0 \n"
+        "INSERT INTO v0 (step, vid, eid, label, edge_order) \n"
+        + "SELECT 0, id, 0, 'root', 0 \n"
         + "FROM vertex \n"
         + "WHERE id IN (%s) \n"
         + "AND txn_end = 0; \n",
@@ -110,8 +106,8 @@ public class AmberQuery {
 
             s.append(String.format(
 
-            "INSERT INTO %1$s (step, vid, eid, ev_in, ev_out, label, edge_order) \n"
-            + "SELECT %3$d, v.id, e.id, e.v_in, e.v_out, e.label, e.edge_order  \n"
+            "INSERT INTO %1$s (step, vid, eid, label, edge_order) \n"
+            + "SELECT %3$d, v.id, e.id, e.label, e.edge_order  \n"
             + "FROM vertex v, edge e, %2$s \n"
             + "WHERE e.txn_end = 0 \n"
             + " AND v.txn_end = 0 \n"
@@ -123,8 +119,8 @@ public class AmberQuery {
         }
 
         // result consolidation
-        s.append("INSERT INTO v0 (step, vid, eid, ev_in, ev_out, label, edge_order) "
-                + "SELECT step, vid, eid, ev_in, ev_out, label, edge_order FROM v1;\n");
+        s.append("INSERT INTO v0 (step, vid, eid, label, edge_order) "
+                + "SELECT step, vid, eid, label, edge_order FROM v1;\n");
         
         return s.toString();
         // Draw from v0 for results
@@ -252,7 +248,7 @@ public class AmberQuery {
     private void getEdges(Handle h , AmberGraph graph, Map<Long, Map<String, Object>> propMaps) {
         
         List<AmberEdgeWithState> wrappedEdges = h.createQuery(
-                "SELECT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order, 'AMB' state "
+                "SELECT e.id, e.txn_start, e.txn_end, e.label, e.edge_order, 'AMB' state "
                 + "FROM edge e, v0 "
                 + "WHERE e.id = v0.eid "
                 + "AND e.txn_end = 0")
