@@ -248,7 +248,7 @@ public class AmberQuery {
     private void getEdges(Handle h , AmberGraph graph, Map<Long, Map<String, Object>> propMaps) {
         
         List<AmberEdgeWithState> wrappedEdges = h.createQuery(
-                "SELECT e.id, e.txn_start, e.txn_end, e.label, e.edge_order, 'AMB' state "
+                "SELECT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order, 'AMB' state "
                 + "FROM edge e, v0 "
                 + "WHERE e.id = v0.eid "
                 + "AND e.txn_end = 0")
