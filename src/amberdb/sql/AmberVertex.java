@@ -47,7 +47,6 @@ public class AmberVertex extends BaseVertex {
 
 
     public Iterable<Vertex> getVertices(Direction direction, String... labels) {
-        AmberGraph g = (AmberGraph) graph;
         List<Vertex> vertices = (List<Vertex>) super.getVertices(direction, labels);
 
         return vertices;

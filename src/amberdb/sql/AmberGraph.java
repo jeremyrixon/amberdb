@@ -52,9 +52,6 @@ public class AmberGraph extends BaseGraph
     protected Set<Edge> modifiedEdges = new HashSet<Edge>();
     protected Set<Vertex> modifiedVertices = new HashSet<Vertex>();
     
-    /** Identify this graph instance */
-    private String user;
-    
     private boolean localMode = false;
     /**
      * Local mode puts the Amber Graph in a state where it will only query for
