@@ -1,6 +1,7 @@
 package amberdb.sql;
 
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
@@ -106,8 +107,8 @@ public class AmberGraph extends BaseGraph
     
     private AmberDao selectDao(DataSource dataSource) {
         String dbProduct = "";
-        try {
-            dbProduct = dataSource.getConnection().getMetaData().getDatabaseProductName();
+        try (Connection conn = dataSource.getConnection()) {
+            dbProduct = conn.getMetaData().getDatabaseProductName();
             log.info("Amber database type is " + dbProduct);
         } catch (SQLException e) {
             log.info("could not determine the database type - assuming it is H2");
