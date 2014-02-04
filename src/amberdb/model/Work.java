@@ -447,13 +447,13 @@ public interface Work extends Node {
             AmberVertex work = this.asAmberVertex();
             AmberGraph g = work.getAmberGraph();
             
-            AmberQuery query = g.newQuery(this.getId());
+            AmberQuery query = g.newQuery((Long) work.getId());
             query.branch(Lists.newArrayList(new String[] {"isPartOf"}), Direction.IN);
             query.branch(Lists.newArrayList(new String[] {"isCopyOf"}), Direction.IN);
             query.branch(Lists.newArrayList(new String[] {"isFileOf"}), Direction.IN);
             query.execute();
             
-            query = g.newQuery(this.getId());
+            query = g.newQuery((Long) work.getId());
             query.branch(Lists.newArrayList(new String[] {"existsOn"}), Direction.OUT);
             query.execute();
         }

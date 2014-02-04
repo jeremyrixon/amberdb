@@ -316,9 +316,12 @@ public class AmberGraph extends BaseGraph
     
     
     public void clear() {
-        
         super.clear();
-        
+        clearChangeSets();
+    }
+    
+    
+    private void clearChangeSets() {
         removedEdges.clear();
         removedVertices.clear();
 
@@ -437,7 +440,7 @@ public class AmberGraph extends BaseGraph
         
         dao.commit();
         
-        clear();
+        clearChangeSets();
 
         return txnId;
     }
