@@ -176,19 +176,19 @@ public class AmberQuery {
     
     public List<Vertex> execute() {
 
-        Handle h = graph.dbi().open();
+        List<Vertex> vertices;
+        try (Handle h = graph.dbi().open()) {
 
-        // run the generated query
-        h.begin();
-        h.createStatement(generateFullSubGraphQuery()).execute();
-        h.commit();
-        
-        // and reap the rewards
-        Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h);
-        List<Vertex> vertices = getVertices(h, graph, propMaps);
-        getEdges(h, graph, propMaps);
-        
-        h.close();
+            // run the generated query
+            h.begin();
+            h.createStatement(generateFullSubGraphQuery()).execute();
+            h.commit();
+
+            // and reap the rewards
+            Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h);
+            vertices = getVertices(h, graph, propMaps);
+            getEdges(h, graph, propMaps);
+        }
         
         return vertices;
     }

@@ -3,6 +3,7 @@ package amberdb.sql;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -400,26 +401,28 @@ public class AmberGraph extends BaseGraph
     }
     
     private List<AmberVertexWithState> resumeVertices(Long sessId) {
-        Handle h = dbi.open();
-        List<AmberVertexWithState> vertices = h.createQuery(
+        List<AmberVertexWithState> vertices = new ArrayList<AmberVertexWithState>();
+        try (Handle h = dbi.open()) {
+            vertices = h.createQuery(
                 "SELECT id, txn_start, txn_end, state " + 
                 "FROM sess_vertex " +
                 "WHERE s_id = :sessId")
                 .bind("sessId", sessId)
                 .map(new VertexMapper(this)).list();
-        h.close();
+        }
         return vertices;
     }
     
     private List<AmberEdgeWithState> resumeEdges(Long sessId) {
-        Handle h = dbi.open();
-        List<AmberEdgeWithState> edges = h.createQuery(
+        List<AmberEdgeWithState> edges = new ArrayList<AmberEdgeWithState>();
+        try (Handle h = dbi.open()) {
+            edges = h.createQuery(
                 "SELECT id, txn_start, txn_end, v_out, v_in, label, edge_order, state " + 
                 "FROM sess_edge " +
                    "WHERE s_id = :sessId")
                 .bind("sessId", sessId)
                 .map(new EdgeMapper(this, false)).list();
-        h.close();
+        }
         return edges;
     }
     
@@ -467,8 +470,9 @@ public class AmberGraph extends BaseGraph
         // super may have returned null because the id didn't parse
         if (parseId(id) == null) return null;
        
-        Handle h = dbi.open();
-        AmberVertexWithState vs = h.createQuery(
+        AmberVertexWithState vs;
+        try (Handle h = dbi.open()) {
+            vs = h.createQuery(
                 "SELECT id, txn_start, txn_end, 'AMB' state "
                 + "FROM vertex " 
                 + "WHERE id = :id "
@@ -476,14 +480,14 @@ public class AmberGraph extends BaseGraph
                 .bind("id", parseId(id))
                 .map(new VertexMapper(this)).first();
 
-        if (vs == null) return null;
-        vertex = vs.vertex;
-        if (removedVertices.contains(vertex)) return null;
+            if (vs == null) return null;
+            vertex = vs.vertex;
+            if (removedVertices.contains(vertex)) return null;
 
-        AmberVertex v = (AmberVertex) vertex;
-        v.replaceProperties(getElementPropertyMap((Long) v.getId(), v.txnStart, h));
-        addVertexToGraph(v);
-        h.close();
+            AmberVertex v = (AmberVertex) vertex;
+            v.replaceProperties(getElementPropertyMap((Long) v.getId(), v.txnStart, h));
+            addVertexToGraph(v);
+        }
         
         return vertex;
     } 
@@ -504,8 +508,9 @@ public class AmberGraph extends BaseGraph
         // super may have returned null because the id didn't parse
         if (parseId(id) == null) return null;
         
-        Handle h = dbi.open();
-        AmberEdgeWithState es = h.createQuery(
+        AmberEdge e;
+        try (Handle h = dbi.open()) {
+            AmberEdgeWithState es = h.createQuery(
                 "SELECT id, txn_start, txn_end, label, v_in, v_out, edge_order, 'AMB' state "
                 + "FROM edge " 
                 + "WHERE id = :id "
@@ -513,14 +518,14 @@ public class AmberGraph extends BaseGraph
                 .bind("id", parseId(id))
                 .map(new EdgeMapper(this, false)).first();
 
-        if (es == null) return null;
-        edge = es.edge;
-        if (removedEdges.contains(edge)) return null;
+            if (es == null) return null;
+            edge = es.edge;
+            if (removedEdges.contains(edge)) return null;
         
-        AmberEdge e = (AmberEdge) edge;
-        e.replaceProperties(getElementPropertyMap((Long) e.getId(), e.txnStart, h));
-        addEdgeToGraph(e);
-        h.close();
+            e = (AmberEdge) edge;
+            e.replaceProperties(getElementPropertyMap((Long) e.getId(), e.txnStart, h));
+            addEdgeToGraph(e);
+        }
 
         return e;
     } 
@@ -539,7 +544,6 @@ public class AmberGraph extends BaseGraph
                 .bind("id", elementId)
                 .bind("txnStart", txnStart)
                 .map(new PropertyMapper()).list();
-        h.close();
         if (propList == null || propList.size() == 0) return propMap;
         
         for (AmberProperty p : propList) {
