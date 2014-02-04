@@ -19,7 +19,7 @@ public class PropertyMapper implements ResultSetMapper<AmberProperty> {
         String name =rs.getString("name");
         DataType type = DataType.valueOf(rs.getString("type"));
         Blob b = rs.getBlob("value");
-        Object value = PropertyCodec.decode(b.getBytes(1, (int) b.length()), type);
+        Object value = AmberProperty.decode(b.getBytes(1, (int) b.length()), type);
 
         return new AmberProperty(id, name, value);
     }

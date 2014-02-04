@@ -49,6 +49,12 @@ public interface Copy extends Node {
     @Property("dcmCopyPid")
     public void setDcmCopyPid(String dcmCopyPid);
     
+    @Property("dcmDateCreated")
+    public Date getDcmDateCreated();
+    
+    @Property("dcmDateCreated")
+    public void setDcmDateCreated(Date dcmDateCreated);
+    
     @Property("dcmDateTimeCreated")
     public Date getDcmDateTimeCreated();
 
@@ -211,7 +217,12 @@ public interface Copy extends Node {
         
         @Override
         public Copy deriveImageCopy(Path tiffUncompressor, Path jp2Generator) throws IllegalStateException, IOException, InterruptedException {
-            
+
+            ImageFile tiffImage = this.getImageFile();
+            if (!tiffImage.getMimeType().equals("image/tiff")) {
+                throw new IllegalStateException(this.getWork().getObjId() + " master is not a tiff.  You may not generate a jpeg2000 from anything but a tiff");
+            }
+
             Path stage = null;
             try {
                 // create a temporary file processing location for deriving the jpeg2000 from the tiff
@@ -238,10 +249,9 @@ public interface Copy extends Node {
 
                     ImageFile acf = ac.getImageFile();
                     acf.setLocation(jp2ImgPath.toString());
-                    
+
                     // add image metadata based on the master image metadata
                     // this is used by some nla delivery systems eg: tarkine
-                    ImageFile tiffImage = this.getImageFile();
                     acf.setImageLength(tiffImage.getImageLength());
                     acf.setImageWidth(tiffImage.getImageWidth());
                     acf.setResolution(tiffImage.getResolution());
@@ -263,7 +273,7 @@ public interface Copy extends Node {
         private Path generateImage(BlobStore doss, Path tiffUncompressor, Path jp2Generator, Path stage, Long tiffBlobId) throws IOException, InterruptedException, NoSuchCopyException {
             
             if (tiffBlobId == null)
-                throw new NoSuchCopyException(this.getWork().getId(), CopyRole.MASTER_COPY);
+                throw new NoSuchCopyException(this.getWork().getId(), CopyRole.fromString(this.getCopyRole()));
 
             // prepare the files for conversion
             Path tiffPath = stage.resolve(tiffBlobId + ".tif");                                 // where to put the tif retrieved from the amber blob

@@ -8,12 +8,12 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import amberdb.InvalidSubtypeException;
 import amberdb.enums.CopyRole;
 import amberdb.enums.SubType;
 import amberdb.relation.IsCopyOf;
 import amberdb.relation.IsPartOf;
 import amberdb.sql.AmberGraph;
-import amberdb.sql.AmberQuery;
 import amberdb.sql.AmberVertex;
 
 import com.google.common.collect.Lists;
@@ -103,6 +103,12 @@ public interface Work extends Node {
     @Property("subType")
     public void setSubType(String subType);
     
+    @Property("issueDate")
+    public Date getIssueDate();
+    
+    @Property("issueDate")
+    public void setIssueDate(Date issueDate);
+        
     @Property("collection")
     public String getCollection();
 
@@ -128,10 +134,10 @@ public interface Work extends Node {
     public void setDigitalStatus(String digitalStatus);
     
     @Property("digitalStatusDate")
-    public String getDigitalStatusDate();
+    public Date getDigitalStatusDate();
 
     @Property("digitalStatusDate")
-    public void setDigitalStatusDate(String digitalStatusDate);
+    public void setDigitalStatusDate(Date digitalStatusDate);
     
     @Property("heading")
     public String getHeading();
@@ -319,7 +325,7 @@ public interface Work extends Node {
     public Work getLeaf(String subType, int position);
     
     @JavaHandler
-    public void loadPagedWork();
+    public void loadPagedWork() throws InvalidSubtypeException;
 
     @JavaHandler
     public List<Work> getPartsOf(List<String> subTypes);
@@ -385,7 +391,8 @@ public interface Work extends Node {
             if (position <= 0)
                 throw new IllegalArgumentException("Cannot get this page, invalid input position "
                         + position);
-            Iterable<Page> pages = getPages();
+
+            Iterable<Page> pages = this.getPages();
             if (pages == null || countParts() < position)
                 throw new IllegalArgumentException("Cannot get this page, page at position "
                         + position + " does not exist.");
@@ -442,20 +449,43 @@ public interface Work extends Node {
         /**
          * Loads all of a work into the session including Pages with their Copies and Files
          */
-        public void loadPagedWork() {
+        public void loadPagedWork() throws InvalidSubtypeException {
             
             AmberVertex work = this.asAmberVertex();
-            AmberGraph g = work.getAmberGraph();
+            AmberGraph g = work.getGraph();
             
-            AmberQuery query = g.newQuery((Long) work.getId());
-            query.branch(Lists.newArrayList(new String[] {"isPartOf"}), Direction.IN);
-            query.branch(Lists.newArrayList(new String[] {"isCopyOf"}), Direction.IN);
-            query.branch(Lists.newArrayList(new String[] {"isFileOf"}), Direction.IN);
-            query.execute();
+            // load all the work's parts
+            List<Vertex> parts = Lists.newArrayList(work.getVertices(Direction.IN, "isPartOf"));
+
+            // load any the other direct relations for the work
+            parts.addAll(Lists.newArrayList(work.getVertices(Direction.OUT, "existsOn")));
             
-            query = g.newQuery((Long) work.getId());
-            query.branch(Lists.newArrayList(new String[] {"existsOn"}), Direction.OUT);
-            query.execute();
+            // discard all but the pages
+            List<Long> pageIds = new ArrayList<Long>();
+            String missingSubtypes = "";
+            for (Vertex v : parts) {
+                if (v.getProperty("subType") == null)
+                    missingSubtypes += v.getId().toString() + " ";
+                else if (v.getProperty("subType").toString().equalsIgnoreCase(SubType.PAGE.code())) {
+                    pageIds.add((Long) v.getId());
+                }
+            }
+            
+            // cater for ingest error when ingested parts did not have subtype defined.
+            if (!missingSubtypes.isEmpty()) {
+                throw new InvalidSubtypeException("work item parts without the subtype property defined: " + missingSubtypes);
+            }
+            
+            // load the pages' copies
+            List<AmberVertex> copies = Lists.newArrayList(g.getVerticesByAdjacentVertexId(pageIds, Direction.IN, "isCopyOf"));
+            List<Long> copyIds = new ArrayList<Long>();
+            for (Vertex v : copies) {
+                    copyIds.add((Long) v.getId());
+            }
+            
+            // load the copies' files
+            Lists.newArrayList(g.getVerticesByAdjacentVertexId(copyIds, Direction.IN, "isFileOf"));
+
         }
         
         public List<Work> getPartsOf(List<String> subTypes) {

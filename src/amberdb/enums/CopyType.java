@@ -3,38 +3,35 @@ package amberdb.enums;
 import java.util.ArrayList;
 import java.util.List;
 
-public enum Form {
+public enum CopyType {
+    DIGITAL_COPY("d");
     
-    BOOK("Book"), 
-    JOURNAL("Journal"),
-    MULTIBOOK("Multi Volume Book");
-
     private String code;
-
-    private Form(String code) {
+    
+    private CopyType(String code) {
         this.code = code;
     }
-
-    public static Form fromString(String code) {
+    
+    public static CopyType fromString(String code) {
         if (code != null) {
-            for (Form e : Form.values()) {
-                if (code.equalsIgnoreCase(e.code)) {
-                    return e;
+            for (CopyType ct : CopyType.values()) {
+                if (code.equalsIgnoreCase(ct.code)) {
+                    return ct;
                 }
             }
         }
         return null;
     }
     
+    public String code() {
+        return code;
+    }
+    
     public static List<String> list() {
         List<String> list = new ArrayList<String>();
-        for (Form lu : Form.values()) {
+        for (CopyType lu : CopyType.values()) {
             list.add(lu.code());
         }
         return list;
-    }
-
-    public String code() {
-        return code;
     }
 }

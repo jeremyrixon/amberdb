@@ -22,7 +22,7 @@ public class AmberPropertyBatch {
             this.name.add(name);
             Object value = properties.get(name);
             this.type.add(DataType.forObject(value));
-            this.value.add(PropertyCodec.encode(value));
+            this.value.add(AmberProperty.encode(value));
         }
     }
 }
