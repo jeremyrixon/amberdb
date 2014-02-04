@@ -39,7 +39,7 @@ public class AmberVertex extends BaseVertex {
         AmberGraph g = (AmberGraph) graph;
         if (!g.inLocalMode()) g.getBranch(this.id, direction, labels);
         List<Edge> edges = (List<Edge>) super.getEdges(direction, labels);
-        List<AmberEdge> amberEdges = (List<AmberEdge>) (List<? extends BaseEdge>) edges;
+        List<AmberEdge> amberEdges = (List<AmberEdge>) (List<? extends Edge>) edges;
         Collections.sort(amberEdges);
 
         return edges;
