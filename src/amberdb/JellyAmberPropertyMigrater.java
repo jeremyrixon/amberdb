@@ -9,7 +9,8 @@ import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 
 import amberdb.sql.AmberGraph;
-import amberdb.sql.PropertyCodec;
+import amberdb.sql.AmberProperty;
+
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import com.tinkerpop.blueprints.Direction;
@@ -83,7 +84,7 @@ public class JellyAmberPropertyMigrater {
                     Object val = map.get(key);
                     String type = "STR";
                     if (val instanceof Integer) type = "INT";
-                    byte[] v = PropertyCodec.encode(val);
+                    byte[] v = AmberProperty.encode(val);
                     
                     h.createStatement("INSERT INTO property (id, txn_start, txn_end, type, name, value) VALUES (:id, 111, 0, :type, :name, :value)")
                         .bind("id", id)
