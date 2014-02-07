@@ -106,6 +106,34 @@ public class AmberGraphSuspendResumeTest {
 
     }
 
+    
+    @Test
+    public void testSuspendResume() throws Exception {
+        
+        // persist vertex
+        Vertex v = graph.addVertex(null);
+        v.setProperty("date", new Date());
+        Long vId = (Long) v.getId();
+        
+        Vertex v1 = graph.addVertex(null);
+        v1.setProperty("date", new Date());
+        Long v1Id = (Long) v1.getId();
+
+        Edge e = graph.addEdge(null, v, v1, "link");
+        
+        Long sessId = graph.suspend();
+        
+        AmberGraph graph1 = new AmberGraph(src);
+
+        graph1.resume(sessId);
+        
+        Vertex v2 = graph1.getVertex(vId);
+        s("resumed v :" + v2);
+        Vertex v3 = graph1.getVertex(v1Id);
+        s("resumed v1 :" + v3);
+    }
+    
+    
     @Test
     public void testPersistingEdge() throws Exception {
         

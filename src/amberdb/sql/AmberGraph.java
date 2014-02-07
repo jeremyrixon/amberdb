@@ -235,9 +235,13 @@ public class AmberGraph extends BaseGraph
         log.info("edges      in batch: " + e.id.size());
         log.info("properties in batch: " + p.id.size());
         
+        dao.begin();
+        
         dao.suspendEdges(sessId, e.id, e.txnStart, e.txnEnd, e.vertexOut, e.vertexIn, e.label, e.order, e.state);
         dao.suspendVertices(sessId, v.id, v.txnStart, v.txnEnd, v.state);
         dao.suspendProperties(sessId, p.id, p.name, p.type, p.value);
+        
+        dao.commit();
         
         return sessId;
     }

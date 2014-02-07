@@ -46,7 +46,6 @@ public class AmberSession implements AutoCloseable {
     private final FramedGraph<TransactionalGraph> graph;
     private final BlobStore blobStore;
     private final TempDirectory tempDir;
-    //private long sessionId;
 
     
     /**
@@ -61,7 +60,7 @@ public class AmberSession implements AutoCloseable {
         blobStore = openBlobStore(tempDir.getPath());
         
         // Graph
-        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:" + tempDir.getPath().resolve("graph"), "pers", "pers");
+        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:", "amb", "amb");
         AmberGraph amber = new AmberGraph(dataSource);
         graph = openGraph(amber);
     }
@@ -72,8 +71,8 @@ public class AmberSession implements AutoCloseable {
      */
     public AmberSession(Path dataPath, Long sessionId) throws IOException {
         
-        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:" + dataPath.resolve("graph"), "pers", "pers");
-        AmberGraph amber = init(dataSource, "pers", "pers", dataPath, sessionId);
+        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:" + dataPath.resolve("graph") + ";AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1;MVCC=TRUE;", "amb", "amb");
+        AmberGraph amber = init(dataSource, dataPath, sessionId);
         tempDir = null;
         
         // DOSS
@@ -86,8 +85,8 @@ public class AmberSession implements AutoCloseable {
     
     public AmberSession(Path dataPath) throws IOException {
         
-        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:" + dataPath.resolve("graph"), "pers", "pers");
-        AmberGraph amber = init(dataSource, "pers", "pers", dataPath, null);
+        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:" + dataPath.resolve("graph") + ";AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1;MVCC=TRUE;", "amb", "amb");
+        AmberGraph amber = init(dataSource, dataPath, null);
         tempDir = null;
         
         // DOSS
@@ -100,7 +99,7 @@ public class AmberSession implements AutoCloseable {
     
     public AmberSession(DataSource dataSource, Path dataPath, Long sessionId) {
     
-        AmberGraph amber = init(dataSource, "fish", "fish", dataPath, sessionId);
+        AmberGraph amber = init(dataSource, dataPath, sessionId);
         tempDir = null;
         
         // DOSS
@@ -111,7 +110,7 @@ public class AmberSession implements AutoCloseable {
     }
 
     
-    private AmberGraph init(DataSource dataSource, String user, String password, Path dataPath, Long sessionId) {
+    private AmberGraph init(DataSource dataSource, Path dataPath, Long sessionId) {
         try {
             Files.createDirectories(dataPath);
 

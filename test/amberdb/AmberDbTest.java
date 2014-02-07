@@ -133,6 +133,32 @@ public class AmberDbTest {
         }
         
     }
+ 
+    
+    @Test
+    public void testSuspendResume() throws IOException {
+        
+        AmberDb adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist","per","per"), folder.getRoot().toPath());
+        
+        Long sessId;
+        Long bookId;
+        try (AmberSession db = adb.begin()) {
+            Work book = db.addWork();
+            bookId = book.getId();
+            book.setTitle("Test book");
+            s("Book is: " + book);
+            sessId = db.suspend();
+        }
+
+        AmberDb adb2 = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist","per","per"), folder.getRoot().toPath());
+        try (AmberSession db = adb2.resume(sessId)) {
+            
+            // now, can we retrieve the files ?
+            Work book2 = db.findWork(bookId);
+            s("Book is now: " + book2);
+        }
+    }
+    
     
     void s(String s) {
     	System.out.println(s);

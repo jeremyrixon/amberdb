@@ -265,5 +265,19 @@ public interface AmberDao extends Transactional<AmberDao> {
 
 
     void close();
+
+
+    @SqlUpdate("SET @sessId = :sessId;\n" +
+    
+            "DELETE FROM sess_vertex " +
+            "WHERE s_id = @sessId;\n" +
+            
+            "DELETE FROM sess_edge " +
+            "WHERE s_id = @sessId;\n" +
+            
+            "DELETE FROM sess_property " +
+            "WHERE s_id = @sessId;\n")
+    void clearSession(
+            @Bind("sessId") Long sessId);
 }
 
