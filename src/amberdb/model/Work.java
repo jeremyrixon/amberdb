@@ -456,7 +456,7 @@ public interface Work extends Node {
             AmberGraph g = work.getAmberGraph();
             
             AmberQuery query = g.newQuery((Long) work.getId());
-            query.branch(Lists.newArrayList(new String[] {"isPartOf"}), Direction.IN);
+            query.branch(Lists.newArrayList(new String[] {"isPartOf"}), Direction.BOTH);
             query.branch(Lists.newArrayList(new String[] {"isCopyOf"}), Direction.IN);
             query.branch(Lists.newArrayList(new String[] {"isFileOf"}), Direction.IN);
             query.execute();

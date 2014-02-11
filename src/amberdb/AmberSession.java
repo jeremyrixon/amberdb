@@ -132,6 +132,11 @@ public class AmberSession implements AutoCloseable {
         return ((OwnedGraph) graph.getBaseGraph()).getAmberGraph();
     }
 
+
+    public void setLocalMode(boolean localModeOn) {
+        getAmberGraph().setLocalMode(localModeOn);
+    }
+    
     
     private BlobStore openBlobStore(Path root) {
         try {
