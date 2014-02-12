@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.Rule;
@@ -53,10 +54,12 @@ public class AmberDbTest {
     @Test
     public void testPersistence() throws IOException {
         Work w1, w2;
+        Long sessId;
         try (AmberSession db = new AmberSession(folder.getRoot().toPath())) {
             w1 = db.addWork();
+            sessId = db.suspend();
         }
-        try (AmberSession db = new AmberSession(folder.getRoot().toPath())) {
+        try (AmberSession db = new AmberSession(folder.getRoot().toPath(), sessId)) {
             assertNotNull(db.findWork(w1.getId()));
             w2 = db.addWork();
         }
@@ -100,24 +103,64 @@ public class AmberDbTest {
             
             // now, can we retrieve the files ?
             Work book2 = db.findWork(bookId);
+            
+            s("Book is: " + book2);
+            
             Page p1 = book2.getPage(1);
             Copy c1 = p1.getCopy(CopyRole.MASTER_COPY);
             File f1 = c1.getFile();
+            
             BufferedReader br = new BufferedReader(new InputStreamReader(f1.openStream()));
             System.out.println(" ***** File contains: " + br.readLine());
+            
+            db.commit();
         }
-        // exiting the try block should close and persist the session
-
         // next, persist the session (by closing it) open a new one and get the contents
+
         adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist","per","per"), folder.getRoot().toPath());
         try (AmberSession db = adb.begin()) {
+
             Work book2 = db.findWork(bookId);
+            s("Again Book is: " + book2);
+
+            
             Page p1 = book2.getPage(1);
             Copy c1 = p1.getCopy(CopyRole.MASTER_COPY);
             File f1 = c1.getFile();
+
             BufferedReader br = new BufferedReader(new InputStreamReader(f1.openStream()));
             System.out.println(" ***** File still contains: " + br.readLine());
         }
         
+    }
+ 
+    
+    @Test
+    public void testSuspendResume() throws IOException {
+        
+        AmberDb adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist","per","per"), folder.getRoot().toPath());
+        
+        Long sessId;
+        Long bookId;
+        try (AmberSession db = adb.begin()) {
+            Work book = db.addWork();
+            bookId = book.getId();
+            book.setTitle("Test book");
+            s("Book is: " + book);
+            sessId = db.suspend();
+        }
+
+        AmberDb adb2 = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist","per","per"), folder.getRoot().toPath());
+        try (AmberSession db = adb2.resume(sessId)) {
+            
+            // now, can we retrieve the files ?
+            Work book2 = db.findWork(bookId);
+            s("Book is now: " + book2);
+        }
+    }
+    
+    
+    void s(String s) {
+    	System.out.println(s);
     }
 }

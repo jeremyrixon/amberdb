@@ -1,8 +1,11 @@
 package amberdb.sql;
 
+
 public enum State {
 
+    
     NEW, MOD, DEL, AMB, BAD;
+    
     
     public static State forCode(String s) {
         if (s.equals(State.NEW.toString())) return State.NEW;

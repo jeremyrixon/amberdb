@@ -3,16 +3,14 @@ package amberdb;
 import java.util.List;
 import java.util.Map;
 
-import javax.sql.DataSource;
-
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
-import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 
 import amberdb.sql.AmberGraph;
 import amberdb.sql.AmberProperty;
+
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import com.tinkerpop.blueprints.Direction;
@@ -37,14 +35,12 @@ public class JellyAmberPropertyMigrater {
         
         //getPropertiesFromDescription(ds);
         
-        DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:mem:sess","sess","sess");
-        
-        testGraph(sessionDs, ds);
+        testGraph(ds);
         
     }
     
-    public static void testGraph(DataSource sess, MysqlDataSource pers) {
-        AmberGraph g = new AmberGraph(sess, pers);
+    public static void testGraph(MysqlDataSource pers) {
+        AmberGraph g = new AmberGraph(pers);
         
         Vertex v1 = g.getVertex(179722129L);
         s(showVertex(v1));
@@ -88,7 +84,7 @@ public class JellyAmberPropertyMigrater {
                     Object val = map.get(key);
                     String type = "STR";
                     if (val instanceof Integer) type = "INT";
-                    byte[] v = AmberProperty.encodeBlob(val);
+                    byte[] v = AmberProperty.encode(val);
                     
                     h.createStatement("INSERT INTO property (id, txn_start, txn_end, type, name, value) VALUES (:id, 111, 0, :type, :name, :value)")
                         .bind("id", id)

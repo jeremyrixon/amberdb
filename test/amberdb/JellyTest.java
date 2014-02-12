@@ -89,41 +89,41 @@ public class JellyTest {
     // @Test
     @Ignore
     public void testEncodeImageWidthAsInt() {
-        try {
-            MysqlDataSource mds = new MysqlDataSource();
-            mds.setURL(dbUrl);
-            mds.setUser(dbUser);
-            mds.setPassword(dbPassword);
-            
-            DBI dbi = new DBI(mds);
-            MigrationDao dao = dbi.open(MigrationDao.class);
-
-            long blinkyBillId = 179722129L;
-            List<AmberProperty> rs = dao.getPropertiesForWorkDetails(blinkyBillId, "imageWidth");
-            if (rs != null) {
-                for (AmberProperty p : rs) {
-                    System.out.println("id:" + p.getId() + ", name:" + p.getName() + ", type:" + p.getType() + ", value:" + p.getValue());
-                    Integer width = Integer.parseInt(p.getValue().toString());
-                    AmberProperty np = new AmberProperty(p.getId(), p.getName(), DataType.INT, width);
-                    dao.updProperty(np);
-                }
-            }
-            
-            List<AmberProperty> rs1 = dao.getPropertiesForWorkDetails(blinkyBillId, "imageLength");
-            if (rs != null) {
-                for (AmberProperty p : rs1) {
-                    System.out.println("id:" + p.getId() + ", name:" + p.getName() + ", type:" + p.getType() + ", value:" + p.getValue());
-                    Integer length = Integer.parseInt(p.getValue().toString());
-                    AmberProperty np = new AmberProperty(p.getId(), p.getName(), DataType.INT, length);
-                    dao.updProperty(np);
-                }
-            }  
-
-            dao.commit();
-            dbi.close(dao); 
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
+//        try {
+//            MysqlDataSource mds = new MysqlDataSource();
+//            mds.setURL(dbUrl);
+//            mds.setUser(dbUser);
+//            mds.setPassword(dbPassword);
+//            
+//            DBI dbi = new DBI(mds);
+//            MigrationDao dao = dbi.open(MigrationDao.class);
+//
+//            long blinkyBillId = 179722129L;
+//            List<AmberProperty> rs = dao.getPropertiesForWorkDetails(blinkyBillId, "imageWidth");
+//            if (rs != null) {
+//                for (AmberProperty p : rs) {
+//                    System.out.println("id:" + p.getId() + ", name:" + p.getName() + ", type:" + p.getType() + ", value:" + p.getValue());
+//                    Integer width = Integer.parseInt(p.getValue().toString());
+//                    AmberProperty np = new AmberProperty(p.getId(), p.getName(), DataType.INT, width);
+//                    dao.updProperty(np);
+//                }
+//            }
+//            
+//            List<AmberProperty> rs1 = dao.getPropertiesForWorkDetails(blinkyBillId, "imageLength");
+//            if (rs != null) {
+//                for (AmberProperty p : rs1) {
+//                    System.out.println("id:" + p.getId() + ", name:" + p.getName() + ", type:" + p.getType() + ", value:" + p.getValue());
+//                    Integer length = Integer.parseInt(p.getValue().toString());
+//                    AmberProperty np = new AmberProperty(p.getId(), p.getName(), DataType.INT, length);
+//                    dao.updProperty(np);
+//                }
+//            }  
+//
+//            dao.commit();
+//            dbi.close(dao); 
+//        } catch (Throwable e) {
+//            e.printStackTrace();
+//        }
     }
     
     // @Test
@@ -154,9 +154,9 @@ public class JellyTest {
             List<AmberProperty> rs = fromDao.getPropertiesForWorkDetails(blinkyBillId);
             if (rs != null) {
                 for (AmberProperty p : rs) {
-                    System.out.println("id:" + p.getId() + ", name:" + p.getName() + ", type:" + p.getType() + ", value:" + p.getValue());
-                    AmberProperty np = new AmberProperty(p.getId(), p.getName(), p.getType(), p.getValue());
-                    toDao.updProperty(np);
+//                    System.out.println("id:" + p.getId() + ", name:" + p.getName() + ", type:" + p.getType() + ", value:" + p.getValue());
+//                    AmberProperty np = new AmberProperty(p.getId(), p.getName(), p.getType(), p.getValue());
+//                    toDao.updProperty(np);
                 }
             }
             
@@ -200,10 +200,10 @@ public class JellyTest {
         List<AmberProperty> rs = dao.getPropertiesOfName("fileSize");
         if (rs != null) {
             for (AmberProperty p : rs) {
-                System.out.println("id:" + p.getId() + ", name:" + p.getName() + ", type:" + p.getType() + ", value:" + p.getValue());
-                Long width = Long.parseLong(p.getValue().toString());
-                AmberProperty np = new AmberProperty(p.getId(), p.getName(), DataType.LNG, width);
-                dao.updProperty(np);
+//                System.out.println("id:" + p.getId() + ", name:" + p.getName() + ", type:" + p.getType() + ", value:" + p.getValue());
+//                Long width = Long.parseLong(p.getValue().toString());
+//                AmberProperty np = new AmberProperty(p.getId(), p.getName(), DataType.LNG, width);
+//                dao.updProperty(np);
             }
         }
         dao.commit();

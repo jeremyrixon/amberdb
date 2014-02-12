@@ -55,7 +55,8 @@ class TempDirectory {
                 }
             });
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            // throw new RuntimeException(e);
+        	System.out.println("Warning : Could not delete existing tmp file : " + e.getMessage());
         }
     }
 

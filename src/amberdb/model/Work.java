@@ -14,6 +14,7 @@ import amberdb.enums.SubType;
 import amberdb.relation.IsCopyOf;
 import amberdb.relation.IsPartOf;
 import amberdb.sql.AmberGraph;
+import amberdb.sql.AmberQuery;
 import amberdb.sql.AmberVertex;
 
 import com.google.common.collect.Lists;
@@ -449,43 +450,20 @@ public interface Work extends Node {
         /**
          * Loads all of a work into the session including Pages with their Copies and Files
          */
-        public void loadPagedWork() throws InvalidSubtypeException {
+        public void loadPagedWork() {
             
             AmberVertex work = this.asAmberVertex();
-            AmberGraph g = work.getGraph();
+            AmberGraph g = work.getAmberGraph();
             
-            // load all the work's parts
-            List<Vertex> parts = Lists.newArrayList(work.getVertices(Direction.IN, "isPartOf"));
-
-            // load any the other direct relations for the work
-            parts.addAll(Lists.newArrayList(work.getVertices(Direction.OUT, "existsOn")));
+            AmberQuery query = g.newQuery((Long) work.getId());
+            query.branch(Lists.newArrayList(new String[] {"isPartOf"}), Direction.BOTH);
+            query.branch(Lists.newArrayList(new String[] {"isCopyOf"}), Direction.IN);
+            query.branch(Lists.newArrayList(new String[] {"isFileOf"}), Direction.IN);
+            query.execute();
             
-            // discard all but the pages
-            List<Long> pageIds = new ArrayList<Long>();
-            String missingSubtypes = "";
-            for (Vertex v : parts) {
-                if (v.getProperty("subType") == null)
-                    missingSubtypes += v.getId().toString() + " ";
-                else if (v.getProperty("subType").toString().equalsIgnoreCase(SubType.PAGE.code())) {
-                    pageIds.add((Long) v.getId());
-                }
-            }
-            
-            // cater for ingest error when ingested parts did not have subtype defined.
-            if (!missingSubtypes.isEmpty()) {
-                throw new InvalidSubtypeException("work item parts without the subtype property defined: " + missingSubtypes);
-            }
-            
-            // load the pages' copies
-            List<AmberVertex> copies = Lists.newArrayList(g.getVerticesByAdjacentVertexId(pageIds, Direction.IN, "isCopyOf"));
-            List<Long> copyIds = new ArrayList<Long>();
-            for (Vertex v : copies) {
-                    copyIds.add((Long) v.getId());
-            }
-            
-            // load the copies' files
-            Lists.newArrayList(g.getVerticesByAdjacentVertexId(copyIds, Direction.IN, "isFileOf"));
-
+            query = g.newQuery((Long) work.getId());
+            query.branch(Lists.newArrayList(new String[] {"existsOn"}), Direction.OUT);
+            query.execute();
         }
         
         public List<Work> getPartsOf(List<String> subTypes) {

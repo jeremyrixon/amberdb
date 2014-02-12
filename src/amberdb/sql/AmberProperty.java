@@ -1,55 +1,48 @@
 package amberdb.sql;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Date;
 
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.Serializable;
-import java.io.IOException;
 
 public class AmberProperty {
 
+    
     private long id;
     private String name; 
     private Object value;
-    private DataType type;
+    
     
     // session constructor
-    public AmberProperty(long id, String name, DataType type, Object value) {
+    public AmberProperty(long id, String name, Object value) {
         this.id = id;
         this.name = name;
-        this.type = type;
         this.value = value;
     } 
+    
     
     public long getId() {
         return id;
     }
     
+    
     public String getName() {
         return name;
     }
-    
-    public DataType getType() {
-        return type;
-    }
 
+    
     public Object getValue() {
         return value;
     }
     
-    public String toString() {
-        StringBuilder sb = new StringBuilder("property [")
-        .append("id:").append(id).append(", ").append(name)
-        .append(": ").append(value).append(']');
-        return sb.toString();
-    }
     
-    public static byte[] encodeBlob(Object value) {
+    public static byte[] encode(Object value) {
         if (value instanceof String) {
             return ((String) value).getBytes(Charset.forName("UTF-8"));
         } else if (value instanceof Integer) {
@@ -91,8 +84,9 @@ public class AmberProperty {
             throw new RuntimeException("Type not supported for encoding property: " + value.getClass());
         }
     }
+
     
-    public static Object decodeBlob(byte[] blob, DataType type) {
+    public static Object decode(byte[] blob, DataType type) {
 
         if (type == DataType.STR) return new String(blob, Charset.forName("UTF-8"));
 

@@ -44,13 +44,13 @@ public class AmberPropertyTest {
     
     @Test
     public void testEncodeDecodeAmberDataTypes() {
-        byte[] strVal = AmberProperty.encodeBlob(str);
-        byte[] numberVal = AmberProperty.encodeBlob(number);
-        byte[] lnumberVal = AmberProperty.encodeBlob(lnumber);
-        byte[] boolVal = AmberProperty.encodeBlob(bool);
-        byte[] fnumberVal = AmberProperty.encodeBlob(fnumber);
-        byte[] dnumberVal = AmberProperty.encodeBlob(dnumber);
-        byte[] dateVal = AmberProperty.encodeBlob(date);
+        byte[] strVal = AmberProperty.encode(str);
+        byte[] numberVal = AmberProperty.encode(number);
+        byte[] lnumberVal = AmberProperty.encode(lnumber);
+        byte[] boolVal = AmberProperty.encode(bool);
+        byte[] fnumberVal = AmberProperty.encode(fnumber);
+        byte[] dnumberVal = AmberProperty.encode(dnumber);
+        byte[] dateVal = AmberProperty.encode(date);
         
         assertNotNull(strVal);
         assertNotNull(numberVal);
@@ -60,13 +60,13 @@ public class AmberPropertyTest {
         assertNotNull(dnumberVal);
         assertNotNull(dateVal);
         
-        assertEquals(AmberProperty.decodeBlob(strVal, DataType.STR), str);
-        assertEquals(AmberProperty.decodeBlob(numberVal, DataType.INT), number);
-        assertEquals(AmberProperty.decodeBlob(lnumberVal, DataType.LNG), lnumber);
-        assertEquals(AmberProperty.decodeBlob(boolVal, DataType.BLN), bool);
-        assertEquals(AmberProperty.decodeBlob(fnumberVal, DataType.FLT), fnumber);
-        assertEquals(AmberProperty.decodeBlob(dnumberVal, DataType.DBL), dnumber);
-        assertEquals(AmberProperty.decodeBlob(dateVal, DataType.DTE), date);
+        assertEquals(AmberProperty.decode(strVal, DataType.STR), str);
+        assertEquals(AmberProperty.decode(numberVal, DataType.INT), number);
+        assertEquals(AmberProperty.decode(lnumberVal, DataType.LNG), lnumber);
+        assertEquals(AmberProperty.decode(boolVal, DataType.BLN), bool);
+        assertEquals(AmberProperty.decode(fnumberVal, DataType.FLT), fnumber);
+        assertEquals(AmberProperty.decode(dnumberVal, DataType.DBL), dnumber);
+        assertEquals(AmberProperty.decode(dateVal, DataType.DTE), date);
         
     }
 }
