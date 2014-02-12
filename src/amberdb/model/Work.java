@@ -249,7 +249,7 @@ public interface Work extends Node {
     public Iterable<Work> getLeafs(@GremlinParam("subTypes") List<String> subTypes);
     
     @GremlinGroovy("it.inE.has('label', 'isPartOf').outV.has('subType', subType)")
-    public Iterable<Section> getSections(@GremlinParam("subType") String subType);
+    public Iterable<Section> getSections(@GremlinParam("subType") SubType subType);
     
     // TODO: need to test later whether it has any existsOn outE(s)
     @GremlinGroovy("it")

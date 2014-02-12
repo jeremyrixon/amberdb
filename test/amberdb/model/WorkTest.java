@@ -120,7 +120,7 @@ public class WorkTest {
     @Ignore
     @Test
     public void testGetLeafsForBlinkyBillAssoication() {
-        Iterable<Section> sections = bookBlinkyBill.getSections(SubType.CHAPTER.code());
+        Iterable<Section> sections = bookBlinkyBill.getSections(SubType.CHAPTER);
         Section theNewArrival = null;
         for (Section section : sections) {
             if (section.getTitle().equalsIgnoreCase("The New Arrival")) 
