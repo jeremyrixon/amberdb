@@ -311,7 +311,8 @@ public interface Copy extends Node {
                     "Corder=RPCL",
                     "ORGgen_plt=yes",
                     "Cblk={32,32}",
-                    "num_threads 1",
+                    "-num_threads",
+                    "1",
                     "Cuse_sop=yes"};
 
             ProcessBuilder jp2Pb = new ProcessBuilder(convertCmd);
