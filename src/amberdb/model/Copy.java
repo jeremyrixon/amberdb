@@ -326,14 +326,15 @@ public interface Copy extends Node {
         }
         
         private long copyBlobToFile(Blob blob, Path destinationFile) throws IOException {
-            ReadableByteChannel channel = blob.openChannel();
-            FileChannel dest = FileChannel.open(
-                    destinationFile,
-                    StandardOpenOption.WRITE,
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.TRUNCATE_EXISTING);
-            long bytesTransferred = dest.transferFrom(channel, 0, Long.MAX_VALUE);
-            dest.close();
+            long bytesTransferred = 0;
+            try (ReadableByteChannel channel = blob.openChannel(); 
+                    FileChannel dest = FileChannel.open(
+                            destinationFile, 
+                            StandardOpenOption.WRITE, 
+                            StandardOpenOption.CREATE, 
+                            StandardOpenOption.TRUNCATE_EXISTING)) {
+                bytesTransferred = dest.transferFrom(channel, 0, Long.MAX_VALUE);
+            }
             return bytesTransferred;
         }
     }
