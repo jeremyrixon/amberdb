@@ -333,6 +333,7 @@ public interface Copy extends Node {
                     StandardOpenOption.CREATE,
                     StandardOpenOption.TRUNCATE_EXISTING);
             long bytesTransferred = dest.transferFrom(channel, 0, Long.MAX_VALUE);
+            dest.close();
             return bytesTransferred;
         }
     }
