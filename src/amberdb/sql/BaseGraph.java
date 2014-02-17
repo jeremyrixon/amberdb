@@ -25,8 +25,8 @@ public class BaseGraph implements Graph, TransactionalGraph {
     Map<Object, Edge> graphEdges = new HashMap<Object, Edge>();
     Map<Object, Vertex> graphVertices = new HashMap<Object, Vertex>();
     
-public    Map<Object, Set<Edge>> inEdgeSets = new HashMap<Object, Set<Edge>>();
-public    Map<Object, Set<Edge>> outEdgeSets = new HashMap<Object, Set<Edge>>();
+    protected Map<Object, Set<Edge>> inEdgeSets = new HashMap<Object, Set<Edge>>();
+    protected Map<Object, Set<Edge>> outEdgeSets = new HashMap<Object, Set<Edge>>();
 
     
     // id generation handling - overridden in subclass AmberGraph
