@@ -567,7 +567,7 @@ public class AmberGraph extends BaseGraph
      * the ones that have been referenced so far in a session. Effectively
      * localMode is always on for these queries.
      */
-    
+
 
     /**
      * Used by AmberVertex.
@@ -586,6 +586,13 @@ public class AmberGraph extends BaseGraph
 
     public AmberQuery newQuery(List<Long> ids) {
         return new AmberQuery(ids, this);
+    }
+    
+    
+    @Override
+    public void shutdown() {
+        dao.close();
+        super.shutdown();
     }
 }
 
