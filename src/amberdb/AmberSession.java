@@ -47,7 +47,7 @@ public class AmberSession implements AutoCloseable {
     private final BlobStore blobStore;
     private final TempDirectory tempDir;
 
-    
+
     /**
      * Constructs an in-memory AmberDb for testing with.
      */
@@ -159,6 +159,17 @@ public class AmberSession implements AutoCloseable {
         ((TransactionalGraph) graph).commit();
     }
 
+    
+    /**
+     * commit saves everything in the current session and records who did it and why with the transaction record.
+     * 
+     * @param who the username to associate with the transaction
+     * @param why the operation they were fulfilling by commiting the transaction
+     */
+    public void commit(String who, String why) {
+        getAmberGraph().commit(who, why);
+    }
+    
     
     /**
      * rollback rollback everything in the current transaction.
