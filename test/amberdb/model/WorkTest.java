@@ -73,7 +73,7 @@ public class WorkTest {
     @Ignore
     public void testGetLeafsForBlinkyBill() {
         resetTestData();
-        Iterable<Work> leafs = bookBlinkyBill.getLeafs(SubType.PAGE.code());
+        Iterable<Work> leafs = bookBlinkyBill.getLeafs(SubType.PAGE);
         System.out.println("List leafs for book blinky bill: ");
         int noOfPages = 0;
         for (Work leaf : leafs) {
@@ -184,15 +184,15 @@ public class WorkTest {
         int expectedNoOfPagesAftRemoval = 1;
         
         int actualNoOfPagesBfrRemoval = 0;
-        Iterable<Work> pagesBI = bookBlinkyBill.getLeafs(SubType.PAGE.code());
+        Iterable<Work> pagesBI = bookBlinkyBill.getLeafs(SubType.PAGE);
         for (Work page : pagesBI) {
             actualNoOfPagesBfrRemoval++;
         }
         assertEquals(expectedNoOfPagesBfrRemoval, actualNoOfPagesBfrRemoval);
-        bookBlinkyBill.removePart(bookBlinkyBill.getLeaf(SubType.PAGE.code(), 1));
+        bookBlinkyBill.removePart(bookBlinkyBill.getLeaf(SubType.PAGE, 1));
 
         int actualNoOfPagesAftRemoval = 0;
-        Iterable<Work> pagesAI = bookBlinkyBill.getLeafs(SubType.PAGE.code());
+        Iterable<Work> pagesAI = bookBlinkyBill.getLeafs(SubType.PAGE);
         for (Work page : pagesAI) {
             actualNoOfPagesAftRemoval++;
         }

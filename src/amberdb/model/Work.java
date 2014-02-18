@@ -242,13 +242,13 @@ public interface Work extends Node {
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public Iterable<Work> getChildren();
     
-    @GremlinGroovy("it.inE.has('label', 'isPartOf').outV.loop(3){true}{true}.has('subType', subType)")
-    public Iterable<Work> getLeafs(@GremlinParam("subType") String subType);
+    @GremlinGroovy("it.inE.has('label', 'isPartOf').outV.loop(3){true}{true}.has('subType', subType.code)")
+    public Iterable<Work> getLeafs(@GremlinParam("subType") SubType subType);
     
-    @GremlinGroovy("it.inE.has('label', 'isPartOf').outV.loop(3){true}{true}.has('subType', T.in, subTypes)")
+    @GremlinGroovy("it.inE.has('label', 'isPartOf').outV.loop(3){true}{true}.has('subType', Subtype.fromString(T).in, subTypes)")
     public Iterable<Work> getLeafs(@GremlinParam("subTypes") List<String> subTypes);
     
-    @GremlinGroovy("it.inE.has('label', 'isPartOf').outV.has('subType', subType)")
+    @GremlinGroovy("it.inE.has('label', 'isPartOf').outV.has('subType', subType.code)")
     public Iterable<Section> getSections(@GremlinParam("subType") SubType subType);
     
     // TODO: need to test later whether it has any existsOn outE(s)
@@ -323,7 +323,7 @@ public interface Work extends Node {
     public Page getPage(int position);
     
     @JavaHandler
-    public Work getLeaf(String subType, int position);
+    public Work getLeaf(SubType subType, int position);
     
     @JavaHandler
     public void loadPagedWork() throws InvalidSubtypeException;
@@ -411,7 +411,7 @@ public interface Work extends Node {
         }
                
         @Override
-        public Work getLeaf(String subType, int position) {
+        public Work getLeaf(SubType subType, int position) {
             if (position <= 0)
                 throw new IllegalArgumentException("Cannot get this page, invalid input position "
                         + position);
