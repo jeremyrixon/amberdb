@@ -152,6 +152,11 @@
       <artifactId>jackson-mapper-asl</artifactId>
       <version>1.9.13</version>
     </dependency>
+        <dependency>
+      <groupId>javax.persistence</groupId>
+      <artifactId>persistence-api</artifactId>
+      <version>1.0.2</version>
+    </dependency>
     <dependency>
       <groupId>com.tinkerpop</groupId>
       <artifactId>frames</artifactId>
