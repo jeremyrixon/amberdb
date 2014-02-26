@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -217,13 +218,32 @@ public interface Work extends Node {
      */
     @Property("otherNumbers")
     public String getOtherNumbers();
+    
 
+    /**
+     * This method handles the JSON deserialisation of the OtherNumbers Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public Map<String, String> getAllOtherNumbers() throws JsonParseException, JsonMappingException, IOException;
+    
     /**
      * This property is encoded as a JSON Hash - You probably want to use setAllOtherNumbers to set this property
      */
     @Property("otherNumbers")
     public void setOtherNumbers(String otherNumbers);
  
+    /**
+     * This method handles the JSON serialisation of the OtherNumbers Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public void setAllOtherNumbers(Map<String, String> otherNumbers) throws JsonParseException, JsonMappingException, IOException;
+    
     /**
      * Also known as localsystmno
      */
@@ -526,12 +546,16 @@ public interface Work extends Node {
         
         public Map<String,String> getAllOtherNumbers() throws JsonParseException, JsonMappingException, IOException {
             ObjectMapper mapper = new ObjectMapper();
+            String otherNumbers = getOtherNumbers();
+            if (otherNumbers == null || otherNumbers.isEmpty())
+                return new HashMap<String,String>();
             return mapper.readValue(getOtherNumbers(), new TypeReference<Map<String, String>>() { } );
+            
         }
         
         public void setAllOtherNumbers( Map<String,String>  otherNumbers) throws JsonParseException, JsonMappingException, IOException {
             ObjectMapper mapper = new ObjectMapper();
-            mapper.writeValueAsString(otherNumbers);
+            setOtherNumbers(mapper.writeValueAsString(otherNumbers));
         }
         
         

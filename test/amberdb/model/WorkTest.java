@@ -1,6 +1,6 @@
 package amberdb.model;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,6 +10,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -145,6 +149,28 @@ public class WorkTest {
         System.out.println("voyager id for blinky bill: " + bookBlinkyBill.getBibId().toString());
         // assertEquals(bookBlinkyBill.getBibId().getClass().getName(), "java.lang.String");
     }
+    
+
+    @Test
+    public void testGetSetAllOtherNumbers() throws IOException {
+        Map<String, String> otherNumbers = new HashMap<>();
+        otherNumbers.put("Voyager", "voyagerNumber");
+        otherNumbers.put("State Library of Victoria", "slvNumber");
+        otherNumbers.put("Jon's Cookbook", "1");
+        bookBlinkyBill.setAllOtherNumbers(otherNumbers);
+        ObjectMapper mapper = new ObjectMapper();
+        String otherNumbesrs = bookBlinkyBill.getOtherNumbers();
+        mapper.readValue(otherNumbesrs, new TypeReference<Map<String, String>>() { } );
+        otherNumbers = bookBlinkyBill.getAllOtherNumbers();
+        assertEquals(otherNumbers.size(), 3);
+        assertEquals(otherNumbers.get("State Library of Victoria"), "slvNumber");
+        otherNumbers.put("fruitNumber", "23");
+        bookBlinkyBill.setAllOtherNumbers(otherNumbers);
+        otherNumbers = bookBlinkyBill.getAllOtherNumbers();
+        assertEquals(otherNumbers.size(), 4);
+        assertEquals(otherNumbers.get("fruitNumber"), "23");
+    }
+
     
     @Test
     public void testDeattachPage() {
