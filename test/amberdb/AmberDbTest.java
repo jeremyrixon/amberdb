@@ -55,11 +55,11 @@ public class AmberDbTest {
     public void testPersistence() throws IOException {
         Work w1, w2;
         Long sessId;
-        try (AmberSession db = new AmberSession(folder.getRoot().toPath())) {
+        try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()))) {
             w1 = db.addWork();
             sessId = db.suspend();
         }
-        try (AmberSession db = new AmberSession(folder.getRoot().toPath(), sessId)) {
+        try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()), sessId)) {
             assertNotNull(db.findWork(w1.getId()));
             w2 = db.addWork();
         }
