@@ -7,6 +7,12 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 
 import amberdb.InvalidSubtypeException;
 import amberdb.enums.CopyRole;
@@ -206,12 +212,18 @@ public interface Work extends Node {
     @Property("firstPart")
     public void setFirstPart(String firstPart);
     
+    /**
+     * This property is encoded as a JSON Hash - You probably want to use getAllOtherNumbers to get this property
+     */
     @Property("otherNumbers")
-    public ArrayList<String> getOtherNumbers();
-    
+    public String getOtherNumbers();
+
+    /**
+     * This property is encoded as a JSON Hash - You probably want to use setAllOtherNumbers to set this property
+     */
     @Property("otherNumbers")
-    public void setOtherNumbers(ArrayList<String> otherNumbers);
-    
+    public void setOtherNumbers(String otherNumbers);
+ 
     /**
      * Also known as localsystmno
      */
@@ -511,5 +523,17 @@ public interface Work extends Node {
         public List<Work> getExistsOn(String subType) {
             return getExistsOn(Arrays.asList(new String[] {subType}));
         }
+        
+        public Map<String,String> getAllOtherNumbers() throws JsonParseException, JsonMappingException, IOException {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(getOtherNumbers(), new TypeReference<Map<String, String>>() { } );
+        }
+        
+        public void setAllOtherNumbers( Map<String,String>  otherNumbers) throws JsonParseException, JsonMappingException, IOException {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.writeValueAsString(otherNumbers);
+        }
+        
+        
     }
 }
