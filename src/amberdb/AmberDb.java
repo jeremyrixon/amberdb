@@ -36,7 +36,7 @@ public class AmberDb {
         }
     }
 
-    public static BlobStore openBlobStore(Path root) {
+    static BlobStore openBlobStore(Path root) {
         try {
             return LocalBlobStore.open(root);
         } catch (CorruptBlobStoreException e) {
