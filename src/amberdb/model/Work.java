@@ -206,6 +206,12 @@ public interface Work extends Node {
     @Property("firstPart")
     public void setFirstPart(String firstPart);
     
+    @Property("otherNumbers")
+    public ArrayList<String> getOtherNumbers();
+    
+    @Property("otherNumbers")
+    public void setOtherNumbers(ArrayList<String> otherNumbers);
+    
     /**
      * Also known as localsystmno
      */

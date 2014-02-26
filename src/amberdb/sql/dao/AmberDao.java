@@ -4,6 +4,7 @@ package amberdb.sql.dao;
 import java.util.List;
 
 import org.skife.jdbi.v2.sqlobject.Bind;
+import org.skife.jdbi.v2.sqlobject.CreateSqlObject;
 import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
@@ -12,6 +13,7 @@ import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
 
 import amberdb.sql.AmberProperty;
+import amberdb.sql.Lookups;
 import amberdb.sql.PropertyMapper;
 
 
@@ -106,6 +108,18 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "operation TEXT)")
     void createTransactionTable();
 
+    
+    /*
+     * Lookup table - stores lists of objects. for example types of tape
+     */
+    @SqlUpdate(
+            "CREATE TABLE IF NOT EXISTS list ("
+            + "name      VARCHAR(100), " 
+            + "value     VARCHAR(100), " 
+            + "deleted   VARCHAR(1) )")
+    void createListTable();
+
+    
     
     /*
      * Main table indexes - these require review as they might need indexes.
@@ -279,5 +293,9 @@ public interface AmberDao extends Transactional<AmberDao> {
             "WHERE s_id = @sessId;\n")
     void clearSession(
             @Bind("sessId") Long sessId);
+    
+    
+    @CreateSqlObject
+    public abstract Lookups lookups();
 }
 
