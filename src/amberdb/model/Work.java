@@ -245,6 +245,37 @@ public interface Work extends Node {
     public void setAllOtherNumbers(Map<String, String> otherNumbers) throws JsonParseException, JsonMappingException, IOException;
     
     /**
+     * This property is encoded as a JSON Array - You probably want to use getAliases to get this property
+     */
+    @Property("aliases")
+    public String getJSONAliases();
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use setAliases to set this property
+     */
+    @Property("aliases")
+    public void setJSONAliases(String aliases);
+    
+    /**
+     * This method handles the JSON serialisation of the OtherNumbers Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public void setAliases(List<String> aliases) throws JsonParseException, JsonMappingException, IOException;
+    
+    /**
+     * This method handles the JSON deserialisation of the OtherNumbers Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public List<String> getAliases() throws JsonParseException, JsonMappingException, IOException;
+
+    
+    /**
      * Also known as localsystmno
      */
     @Property("bibId")
@@ -557,7 +588,19 @@ public interface Work extends Node {
             ObjectMapper mapper = new ObjectMapper();
             setOtherNumbers(mapper.writeValueAsString(otherNumbers));
         }
+        public List<String> getAliases() throws JsonParseException, JsonMappingException, IOException {
+            ObjectMapper mapper = new ObjectMapper();
+            String otherNumbers = getOtherNumbers();
+            if (otherNumbers == null || otherNumbers.isEmpty())
+                return new ArrayList<String>();
+            return mapper.readValue(getOtherNumbers(), new TypeReference<List<String>>() { } );
+            
+        }
         
+        public void setAliases( List<String>  aliases) throws JsonParseException, JsonMappingException, IOException {
+            ObjectMapper mapper = new ObjectMapper();
+            setOtherNumbers(mapper.writeValueAsString(aliases));
+        }
         
     }
 }

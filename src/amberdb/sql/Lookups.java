@@ -23,7 +23,7 @@ public abstract class Lookups {
     public abstract List<ListLu> findListFor(@Bind("name") String name);
     
     @RegisterMapper(Lookups.ListLuMapper.class)
-    @SqlQuery("select * from list where name = :name")
+    @SqlQuery("select * from list where name = :name orderBy name")
     public abstract List<ListLu> findUnabridgedListFor(@Bind("name") String name);
     
     @RegisterMapper(Lookups.ListLuMapper.class)
