@@ -151,25 +151,6 @@ public class WorkTest {
     }
     
 
-    @Test
-    public void testGetSetAllOtherNumbers() throws IOException {
-        Map<String, String> otherNumbers = new HashMap<>();
-        otherNumbers.put("Voyager", "voyagerNumber");
-        otherNumbers.put("State Library of Victoria", "slvNumber");
-        otherNumbers.put("Jon's Cookbook", "1");
-        bookBlinkyBill.setAllOtherNumbers(otherNumbers);
-        ObjectMapper mapper = new ObjectMapper();
-        String otherNumbesrs = bookBlinkyBill.getOtherNumbers();
-        mapper.readValue(otherNumbesrs, new TypeReference<Map<String, String>>() { } );
-        otherNumbers = bookBlinkyBill.getAllOtherNumbers();
-        assertEquals(otherNumbers.size(), 3);
-        assertEquals(otherNumbers.get("State Library of Victoria"), "slvNumber");
-        otherNumbers.put("fruitNumber", "23");
-        bookBlinkyBill.setAllOtherNumbers(otherNumbers);
-        otherNumbers = bookBlinkyBill.getAllOtherNumbers();
-        assertEquals(otherNumbers.size(), 4);
-        assertEquals(otherNumbers.get("fruitNumber"), "23");
-    }
 
     
     @Test
