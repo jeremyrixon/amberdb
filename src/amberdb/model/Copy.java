@@ -100,12 +100,6 @@ public interface Copy extends Node {
 
     @Property("versionNumber")
     public void setVersionNumber(String versionNumber);
-        
-    @Property("otherNumber")
-    public String getOtherNumber();
-        
-    @Property("otherNumber")
-    public void setOtherNumber(String otherNumber);
 
     @Property("copyType")
     public String getCopyType();
@@ -148,6 +142,61 @@ public interface Copy extends Node {
 
     @Property("materialType")
     public void setMaterialType(String materialType);
+    
+    @Property("dateCreated")
+    public Date getDateCreated();
+
+    @Property("dateCreated")
+    public void setDateCreated(Date dateCreated);
+
+    @Property("condition")
+    public String getCondition();
+
+    @Property("carrier")
+    public void setCondition(String condition);
+    
+    @Property("exhibition")
+    public String getExhibition();
+
+    @Property("exhibition")
+    public void setExhibition(String exhibition);
+
+    @Property("commentsInternal")
+    public String getCommentsInternal();
+
+    @Property("commentsInternal")
+    public void setCommentsInternal(String commentsInternal);
+
+    @Property("commentsExternal")
+    public String getcommentsExternal();
+
+    @Property("commentsExternal")
+    public void setCommentsExternal(String commentsExternal);
+        
+    @Property("acquisitionStatus")
+    public String getAcquisitionStatus();
+
+    @Property("acquisitionStatus")
+    public void setAcquisitionStatus(String acquisitionStatus);
+
+    @Property("acquisitionCategory")
+    public String getAcquisitionCategory();
+
+    @Property("acquisitionCategory")
+    public void setAcquisitionCategory(String acquisitionCategory);
+
+    @Property("copyStatus")
+    public String getCopyStatus();
+
+    @Property("copyStatus")
+    public void setCopyStatus(String copyStatus);
+    
+    @Property("timedStatus")
+    public String getTimedStatus();
+
+    @Property("timedStatus")
+    public void setTimedStatus(String timedStatus);
+
 
     /**
      * This property is encoded as a JSON Hash - You probably want to use getAllOtherNumbers to get this property
@@ -348,7 +397,7 @@ public interface Copy extends Node {
             String otherNumbers = getOtherNumbers();
             if (otherNumbers == null || otherNumbers.isEmpty())
                 return new HashMap<String,String>();
-            return mapper.readValue(getOtherNumbers(), new TypeReference<Map<String, String>>() { } );
+            return mapper.readValue(otherNumbers, new TypeReference<Map<String, String>>() { } );
             
         }
         
@@ -358,16 +407,16 @@ public interface Copy extends Node {
         }
         public List<String> getAliases() throws JsonParseException, JsonMappingException, IOException {
             ObjectMapper mapper = new ObjectMapper();
-            String otherNumbers = getOtherNumbers();
-            if (otherNumbers == null || otherNumbers.isEmpty())
+            String aliases = getJSONAliases();
+            if (aliases == null || aliases.isEmpty())
                 return new ArrayList<String>();
-            return mapper.readValue(getOtherNumbers(), new TypeReference<List<String>>() { } );
+            return mapper.readValue(aliases, new TypeReference<List<String>>() { } );
             
         }
         
         public void setAliases( List<String>  aliases) throws JsonParseException, JsonMappingException, IOException {
             ObjectMapper mapper = new ObjectMapper();
-            setOtherNumbers(mapper.writeValueAsString(aliases));
+            setJSONAliases(mapper.writeValueAsString(aliases));
         }
         
         

@@ -5,7 +5,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -60,21 +62,42 @@ public class CopyTest {
     @Test
     public void testGetSetAllOtherNumbers() throws IOException {
         Copy copy = amberDb.addWork().addCopy();
-        Map<String, String> otherNumbers = new HashMap<>();
+        Map<String, String> otherNumbers = copy.getAllOtherNumbers();
+        assertEquals(0, otherNumbers.size());
         otherNumbers.put("Voyager", "voyagerNumber");
         otherNumbers.put("State Library of Victoria", "slvNumber");
         otherNumbers.put("Jon's Cookbook", "1");
         copy.setAllOtherNumbers(otherNumbers);
-        ObjectMapper mapper = new ObjectMapper();
-        String otherNumbesrs = copy.getOtherNumbers();
-        mapper.readValue(otherNumbesrs, new TypeReference<Map<String, String>>() { } );
         otherNumbers = copy.getAllOtherNumbers();
-        assertEquals(otherNumbers.size(), 3);
-        assertEquals(otherNumbers.get("State Library of Victoria"), "slvNumber");
+        assertEquals(3, otherNumbers.size());
+        assertEquals("slvNumber", otherNumbers.get("State Library of Victoria"));
         otherNumbers.put("fruitNumber", "23");
         copy.setAllOtherNumbers(otherNumbers);
         otherNumbers = copy.getAllOtherNumbers();
-        assertEquals(otherNumbers.size(), 4);
-        assertEquals(otherNumbers.get("fruitNumber"), "23");
+        assertEquals(4, otherNumbers.size());
+        assertEquals("23", otherNumbers.get("fruitNumber"));
     }
+    
+    @Test
+    public void testGetSetAlias() throws IOException {
+        Copy copy = amberDb.addWork().addCopy();
+        List<String> aliases = copy.getAliases();
+        assertEquals(0, aliases.size());
+        assertFalse(aliases.contains("testingc"));
+        aliases.add("testing");
+        aliases.add("testinga");
+        aliases.add("testingb");
+        aliases.add("testingc");
+        aliases.add("testingd");
+        copy.setAliases(aliases);
+        aliases = copy.getAliases();
+        assertEquals(5,aliases.size());
+        assertTrue(aliases.contains("testingc"));
+        aliases.add("octopus");
+        copy.setAliases(aliases);
+        aliases = copy.getAliases();
+        assertEquals(6, aliases.size());
+        assertTrue(aliases.contains("octopus"));
+    }
+
 }
