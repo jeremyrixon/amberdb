@@ -446,6 +446,10 @@ public interface Work extends Node {
                 return (AmberVertex) this.asVertex();
             }
         }
+
+        public AmberGraph getAmberGraph() {
+            return this.asAmberVertex().getAmberGraph();
+        }
         
         /**
          * Loads all of a work into the session including Pages with their Copies and Files
