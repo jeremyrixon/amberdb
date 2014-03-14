@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.skife.jdbi.v2.Handle;
 
+import com.googlecode.flyway.core.util.logging.Log;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 
@@ -256,6 +257,9 @@ public class AmberQuery {
         // add them to the graph
         for (AmberEdgeWithState wrapper : wrappedEdges) {
 
+            if (wrapper == null) { // if either vertex doesn't exist 
+                continue;
+            }
             AmberEdge edge = wrapper.edge; 
 
             if (graph.removedEdges.contains(edge) || graph.modifiedEdges.contains(edge)) {
