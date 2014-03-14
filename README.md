@@ -39,5 +39,5 @@ Remote JDBC:
 ```
 
 
-###Latest AmberDb snapshot version : 1.1.90-SNAPSHOT
+###Latest AmberDb snapshot version : 1.1.91-SNAPSHOT
 
