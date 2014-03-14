@@ -563,13 +563,28 @@ public class AmberGraph extends BaseGraph
      *    Iterable<Vertex> getVertices()
      *    Iterable<Vertex> getVertices(String key, Object value)
      * 
-     * To avoid crashing a large amber system these method does not return 
-     * all edges or vertices stored in a persistent amber data store, only
-     * the ones that have been referenced so far in a session. Effectively
-     * localMode is always on for these queries.
+     * To avoid crashing a large amber system these methods limit the number
+     * of elements returned from persistent storage (currently 10000).
      */
+    
+    @Override
+    public Iterable<Vertex> getVertices() {
+        if (!localMode) {  
+            new AmberVertexPropertyQuery(this).execute();
+        }
+        return super.getVertices();
+    }
+    
+    
+    @Override
+    public Iterable<Vertex> getVertices(String key, Object value) {
+        if (!localMode) { 
+            new AmberVertexPropertyQuery(key, value, this).execute(); 
+        }
+        return super.getVertices(key, value); 
+    }
 
-
+    
     /**
      * Used by AmberVertex.
      */

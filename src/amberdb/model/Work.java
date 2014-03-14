@@ -347,6 +347,9 @@ public interface Work extends Node {
 
     @JavaHandler
     public List<Work> getExistsOn(String subType);
+    
+    @JavaHandler
+    public AmberGraph getAmberGraph();
 
     
     abstract class Impl implements JavaHandlerContext<Vertex>, Work {
@@ -453,6 +456,10 @@ public interface Work extends Node {
             } else {
                 return (AmberVertex) this.asVertex();
             }
+        }
+
+        public AmberGraph getAmberGraph() {
+            return this.asAmberVertex().getAmberGraph();
         }
         
         /**

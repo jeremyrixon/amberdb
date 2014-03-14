@@ -47,9 +47,9 @@ public class AmberSession implements AutoCloseable {
     private final BlobStore blobStore;
     private final TempDirectory tempDir;
 
-    
+
     /**
-     * Constructs an in-memory AmberDb for testing with.
+     * Constructs an in-memory AmberDb for testing with. Also creates a BlobStore in a temp dir 
      */
     public AmberSession() {
     
@@ -57,7 +57,7 @@ public class AmberSession implements AutoCloseable {
         tempDir.deleteOnExit();
         
         // DOSS
-        blobStore = openBlobStore(tempDir.getPath());
+        blobStore = AmberDb.openBlobStore(tempDir.getPath());
         
         // Graph
         DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:", "amb", "amb");
@@ -69,50 +69,49 @@ public class AmberSession implements AutoCloseable {
     /**
      * Constructs an AmberDb stored on the local filesystem.
      */
-    public AmberSession(Path dataPath, Long sessionId) throws IOException {
+    public AmberSession(BlobStore blobStore, Long sessionId) throws IOException {
         
-        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:" + dataPath.resolve("graph") + ";AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1;MVCC=TRUE;", "amb", "amb");
-        AmberGraph amber = init(dataSource, dataPath, sessionId);
+        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:graph;DB_CLOSE_DELAY=-1;MVCC=TRUE;", "amb", "amb");
+        AmberGraph amber = init(dataSource, sessionId);
         tempDir = null;
         
         // DOSS
-        blobStore = openBlobStore(dataPath);
+        this.blobStore = blobStore;
 
         // Graph
         graph = openGraph(amber);
     }
 
     
-    public AmberSession(Path dataPath) throws IOException {
+    public AmberSession(BlobStore blobStore) throws IOException {
         
-        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:" + dataPath.resolve("graph") + ";AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1;MVCC=TRUE;", "amb", "amb");
-        AmberGraph amber = init(dataSource, dataPath, null);
+        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:graph;DB_CLOSE_DELAY=-1;MVCC=TRUE;", "amb", "amb");
+        AmberGraph amber = init(dataSource, null);
         tempDir = null;
         
         // DOSS
-        blobStore = openBlobStore(dataPath);
+        this.blobStore = blobStore;
 
         // Graph
         graph = openGraph(amber);
     }
 
     
-    public AmberSession(DataSource dataSource, Path dataPath, Long sessionId) {
+    public AmberSession(DataSource dataSource, BlobStore blobStore, Long sessionId) {
     
-        AmberGraph amber = init(dataSource, dataPath, sessionId);
+        AmberGraph amber = init(dataSource, sessionId);
         tempDir = null;
         
         // DOSS
-        blobStore = openBlobStore(dataPath);
+        this.blobStore = blobStore;
 
         // Graph
         graph = openGraph(amber);     
     }
 
     
-    private AmberGraph init(DataSource dataSource, Path dataPath, Long sessionId) {
+    private AmberGraph init(DataSource dataSource, Long sessionId) {
         try {
-            Files.createDirectories(dataPath);
 
             DriverManager.registerDriver(new Driver());
 
@@ -122,7 +121,7 @@ public class AmberSession implements AutoCloseable {
             
             return amber;
             
-        } catch (IOException | SQLException e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }        
     }
@@ -138,20 +137,6 @@ public class AmberSession implements AutoCloseable {
     }
     
     
-    private BlobStore openBlobStore(Path root) {
-        try {
-            return LocalBlobStore.open(root);
-        } catch (CorruptBlobStoreException e) {
-            try {
-                LocalBlobStore.init(root);
-            } catch (IOException e2) {
-                throw new RuntimeException("Unable to initialize blobstore: " + e2.getMessage(), e2);
-            }
-            return LocalBlobStore.open(root);
-        }
-    }
-
-    
     /**
      * commit saves everything in the current transaction.
      */
@@ -159,6 +144,17 @@ public class AmberSession implements AutoCloseable {
         ((TransactionalGraph) graph).commit();
     }
 
+    
+    /**
+     * commit saves everything in the current session and records who did it and why with the transaction record.
+     * 
+     * @param who the username to associate with the transaction
+     * @param why the operation they were fulfilling by commiting the transaction
+     */
+    public void commit(String who, String why) {
+        getAmberGraph().commit(who, why);
+    }
+    
     
     /**
      * rollback rollback everything in the current transaction.
