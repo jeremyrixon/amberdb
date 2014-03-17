@@ -21,7 +21,6 @@ public class BaseEdge extends BaseElement implements Edge {
         this.label = label;
         this.inId = inId;
         this.outId = outId;
-        //graph.addEdgeToGraph(this);
     }
 
     

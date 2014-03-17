@@ -186,7 +186,7 @@ public interface File extends Node {
 
         @Override
         public void putLegacyDoss(Path dossPath) throws IOException {
-                try (LocalBlobStore.Tx tx = (LocalBlobStore.Tx) ((LocalBlobStore) getBlobStore()).begin()) {
+            try (LocalBlobStore.Tx tx = (LocalBlobStore.Tx) ((LocalBlobStore) getBlobStore()).begin()) {
                 Long blobId = tx.putLegacy(dossPath);
                 setBlobId(blobId);
                 tx.commit();
