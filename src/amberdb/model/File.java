@@ -115,6 +115,9 @@ public interface File extends Node {
     
     @Property("dcmCopyPid")
     public void setDcmCopyPid(String dcmCopyPid);
+    
+
+    
 
     @Adjacency(label = IsFileOf.label)
     public Copy getCopy();

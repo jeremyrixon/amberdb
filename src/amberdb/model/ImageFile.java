@@ -95,4 +95,16 @@ public interface ImageFile extends File {
     
     @Property("location")
     public void setLocation(String location);
+    
+    @Property("colourProfile")
+    public String getColourProfile();    
+    
+    @Property("colourProfile")
+    public void setColourProfile(String colourProfile);
+
+    @Property("cpLocation")
+    public String getCpLocation();    
+    
+    @Property("cpLocation")
+    public void setCpLocation(String cpLocation);
 }
