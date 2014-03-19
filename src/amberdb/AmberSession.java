@@ -414,7 +414,9 @@ public class AmberSession implements AutoCloseable {
             Vertex v = history.getLastVertex(id);
 
             // cast to the the type we want
-            switch ((String) v.getProperty("type")) {
+            String vType = (String) v.getProperty("type");
+            if (vType == null) vType="";
+            switch (vType) {
             
             case "File":
             case "ImageFile":
