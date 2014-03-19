@@ -1,6 +1,6 @@
 package amberdb.model;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,6 +10,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -145,6 +149,9 @@ public class WorkTest {
         System.out.println("voyager id for blinky bill: " + bookBlinkyBill.getBibId().toString());
         // assertEquals(bookBlinkyBill.getBibId().getClass().getName(), "java.lang.String");
     }
+    
+
+
     
     @Test
     public void testDeattachPage() {

@@ -6,7 +6,16 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 
 import amberdb.AmberSession;
 import amberdb.NoSuchCopyException;
@@ -91,12 +100,6 @@ public interface Copy extends Node {
 
     @Property("versionNumber")
     public void setVersionNumber(String versionNumber);
-        
-    @Property("otherNumber")
-    public String getOtherNumber();
-        
-    @Property("otherNumber")
-    public void setOtherNumber(String otherNumber);
 
     @Property("copyType")
     public String getCopyType();
@@ -139,7 +142,125 @@ public interface Copy extends Node {
 
     @Property("materialType")
     public void setMaterialType(String materialType);
+    
+    @Property("dateCreated")
+    public Date getDateCreated();
 
+    @Property("dateCreated")
+    public void setDateCreated(Date dateCreated);
+
+    @Property("condition")
+    public String getCondition();
+
+    @Property("carrier")
+    public void setCondition(String condition);
+    
+    @Property("exhibition")
+    public String getExhibition();
+
+    @Property("exhibition")
+    public void setExhibition(String exhibition);
+
+    @Property("commentsInternal")
+    public String getCommentsInternal();
+
+    @Property("commentsInternal")
+    public void setCommentsInternal(String commentsInternal);
+
+    @Property("commentsExternal")
+    public String getcommentsExternal();
+
+    @Property("commentsExternal")
+    public void setCommentsExternal(String commentsExternal);
+        
+    @Property("acquisitionStatus")
+    public String getAcquisitionStatus();
+
+    @Property("acquisitionStatus")
+    public void setAcquisitionStatus(String acquisitionStatus);
+
+    @Property("acquisitionCategory")
+    public String getAcquisitionCategory();
+
+    @Property("acquisitionCategory")
+    public void setAcquisitionCategory(String acquisitionCategory);
+
+    @Property("copyStatus")
+    public String getCopyStatus();
+
+    @Property("copyStatus")
+    public void setCopyStatus(String copyStatus);
+    
+    @Property("timedStatus")
+    public String getTimedStatus();
+
+    @Property("timedStatus")
+    public void setTimedStatus(String timedStatus);
+
+
+    /**
+     * This property is encoded as a JSON Hash - You probably want to use getAllOtherNumbers to get this property
+     */
+    @Property("otherNumbers")
+    public String getOtherNumbers();
+    
+
+    /**
+     * This method handles the JSON deserialisation of the OtherNumbers Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public Map<String, String> getAllOtherNumbers() throws JsonParseException, JsonMappingException, IOException;
+    
+    /**
+     * This property is encoded as a JSON Hash - You probably want to use setAllOtherNumbers to set this property
+     */
+    @Property("otherNumbers")
+    public void setOtherNumbers(String otherNumbers);
+ 
+    /**
+     * This method handles the JSON serialisation of the OtherNumbers Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public void setAllOtherNumbers(Map<String, String> otherNumbers) throws JsonParseException, JsonMappingException, IOException;
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use getAliases to get this property
+     */
+    @Property("aliases")
+    public String getJSONAliases();
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use setAliases to set this property
+     */
+    @Property("aliases")
+    public void setJSONAliases(String aliases);
+    
+    /**
+     * This method handles the JSON serialisation of the OtherNumbers Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public void setAliases(List<String> aliases) throws JsonParseException, JsonMappingException, IOException;
+    
+    /**
+     * This method handles the JSON deserialisation of the OtherNumbers Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public List<String> getAliases() throws JsonParseException, JsonMappingException, IOException;
+
+    
+    
     /**
      * The source copy which this copy was derived from. Null if this copy is
      * original or the source copy is unknown.
@@ -269,6 +390,35 @@ public interface Copy extends Node {
                 stage.toFile().delete();
             }
         }
+        
+        
+        public Map<String,String> getAllOtherNumbers() throws JsonParseException, JsonMappingException, IOException {
+            ObjectMapper mapper = new ObjectMapper();
+            String otherNumbers = getOtherNumbers();
+            if (otherNumbers == null || otherNumbers.isEmpty())
+                return new HashMap<String,String>();
+            return mapper.readValue(otherNumbers, new TypeReference<Map<String, String>>() { } );
+            
+        }
+        
+        public void setAllOtherNumbers( Map<String,String>  otherNumbers) throws JsonParseException, JsonMappingException, IOException {
+            ObjectMapper mapper = new ObjectMapper();
+            setOtherNumbers(mapper.writeValueAsString(otherNumbers));
+        }
+        public List<String> getAliases() throws JsonParseException, JsonMappingException, IOException {
+            ObjectMapper mapper = new ObjectMapper();
+            String aliases = getJSONAliases();
+            if (aliases == null || aliases.isEmpty())
+                return new ArrayList<String>();
+            return mapper.readValue(aliases, new TypeReference<List<String>>() { } );
+            
+        }
+        
+        public void setAliases( List<String>  aliases) throws JsonParseException, JsonMappingException, IOException {
+            ObjectMapper mapper = new ObjectMapper();
+            setJSONAliases(mapper.writeValueAsString(aliases));
+        }
+        
         
         private Path generateImage(BlobStore doss, Path tiffUncompressor, Path jp2Generator, Path stage, Long tiffBlobId) throws IOException, InterruptedException, NoSuchCopyException {
             

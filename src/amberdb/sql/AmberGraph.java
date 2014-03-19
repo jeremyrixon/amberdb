@@ -143,6 +143,7 @@ public class AmberGraph extends BaseGraph
         
         dao.createIdGeneratorTable();
         dao.createTransactionTable();
+        dao.createListTable();
         
         newId(); // seed generator with id > 0
     }
