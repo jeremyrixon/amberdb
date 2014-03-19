@@ -1,6 +1,11 @@
 package amberdb.model;
 
+import java.util.Date;
+
+import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.frames.Property;
+import com.tinkerpop.frames.modules.javahandler.JavaHandler;
+import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
 @TypeValue("ImageFile")
@@ -28,25 +33,25 @@ public interface ImageFile extends File {
      * In pixels
      */
     @Property("imageWidth")
-    public int getImageWidth();
+    public Integer getImageWidth();
     
     /**
      * In pixels
      */
     @Property("imageWidth")
-    public void setImageWidth(int imageWidth);
+    public void setImageWidth(Integer imageWidth);
             
     /**
      * In pixels
      */
     @Property("imageLength")
-    public int getImageLength();
+    public Integer getImageLength();
     
     /**
      * In pixels
      */
     @Property("imageLength")
-    public void setImageLength(int imageLength);    
+    public void setImageLength(Integer imageLength);    
     
     @Property("manufacturerMake")
     public String getManufacturerMake();
@@ -67,10 +72,10 @@ public interface ImageFile extends File {
     public void setManufacturerSerialNumber(String manufacturerSerialNumber);
     
     @Property("applicationDateCreated")
-    public String getApplicationDateCreated();
+    public Date getApplicationDateCreated();
         
     @Property("applicationDateCreated")
-    public void setApplicationDateCreated(String applicationDateCreated);
+    public void setApplicationDateCreated(Date applicationDateCreated);
     
     @Property("application")
     public String getApplication();
@@ -79,10 +84,10 @@ public interface ImageFile extends File {
     public void setApplication(String application);
     
     @Property("dateDigitised")
-    public String getDateDigitised();
+    public Date getDateDigitised();
         
     @Property("dateDigitised")
-    public void setDateDigitised(String dateDigitised);
+    public void setDateDigitised(Date dateDigitised);
     
     @Property("bitDepth")
     public String getBitDepth();

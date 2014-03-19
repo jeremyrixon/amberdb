@@ -281,11 +281,17 @@ public interface Copy extends Node {
     public ImageFile getImageFile();
 
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
+    public SoundFile getSoundFile();
+    
+    @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     public File addFile();
     
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     public ImageFile addImageFile();
 
+    @Adjacency(label = IsFileOf.label, direction = Direction.IN)
+    public SoundFile addSoundFile();
+    
     @JavaHandler
     File addFile(Path source, String mimeType) throws IOException;
 
