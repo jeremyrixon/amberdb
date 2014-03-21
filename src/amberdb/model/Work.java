@@ -304,6 +304,364 @@ public interface Work extends Node {
     @Property("genre")
     public void setGenre(String genre);
 
+    @Property("publicationCategory")
+    public String getPublicationCategory();
+
+    @Property("publicationCategory")
+    public void setPublicationCategory(String publicationCategory);
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use getSeries to get this property
+     */
+    @Property("series")
+    public String getJSONSeries();
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use setSeries to set this property
+     */
+    @Property("series")
+    public void setJSONSeries(String series);
+    
+    /**
+     * This method handles the JSON serialisation of the series Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public void setSeries(List<String> series) throws JsonParseException, JsonMappingException, IOException;
+    
+    /**
+     * This method handles the JSON deserialisation of the series Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public List<String> getSeries() throws JsonParseException, JsonMappingException, IOException;
+
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use getClassification to get this property
+     */
+    @Property("classification")
+    public String getJSONClassification();
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use setClassification to set this property
+     */
+    @Property("classification")
+    public void setJSONClassification(String classification);
+    
+    /**
+     * This method handles the JSON serialisation of the classification Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public void setClassification(List<String> classification) throws JsonParseException, JsonMappingException, IOException;
+    
+    /**
+     * This method handles the JSON deserialisation of the classification Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public List<String> getClassification() throws JsonParseException, JsonMappingException, IOException;
+
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use getContributor to get this property
+     */
+    @Property("contributor")
+    public String getJSONContributor();
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use setContributor to set this property
+     */
+    @Property("contributor")
+    public void setJSONContributor(String contributor);
+    
+    /**
+     * This method handles the JSON serialisation of the contributor Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public void setContributor(List<String> contributor) throws JsonParseException, JsonMappingException, IOException;
+    
+    /**
+     * This method handles the JSON deserialisation of the contributor Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public List<String> getContributor() throws JsonParseException, JsonMappingException, IOException;
+
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use getCoverage to get this property
+     */
+    @Property("coverage")
+    public String getJSONCoverage();
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use setCoverage to set this property
+     */
+    @Property("coverage")
+    public void setJSONCoverage(String coverage);
+    
+    /**
+     * This method handles the JSON serialisation of the coverage Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public void setCoverage(List<String> coverage) throws JsonParseException, JsonMappingException, IOException;
+    
+    /**
+     * This method handles the JSON deserialisation of the coverage Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public List<String> getCoverage() throws JsonParseException, JsonMappingException, IOException;
+
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use getOccupation to get this property
+     */
+    @Property("occupation")
+    public String getJSONOccupation();
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use setOccupation to set this property
+     */
+    @Property("occupation")
+    public void setJSONOccupation(String occupation);
+    
+    /**
+     * This method handles the JSON serialisation of the occupation Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public void setOccupation(List<String> occupation) throws JsonParseException, JsonMappingException, IOException;
+    
+    /**
+     * This method handles the JSON deserialisation of the occupation Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public List<String> getOccupation() throws JsonParseException, JsonMappingException, IOException;
+
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use getOtherTitle to get this property
+     */
+    @Property("otherTitle")
+    public String getJSONOtherTitle();
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use setOtherTitle to set this property
+     */
+    @Property("otherTitle")
+    public void setJSONOtherTitle(String otherTitle);
+    
+    /**
+     * This method handles the JSON serialisation of the otherTitle Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public void setOtherTitle(List<String> otherTitle) throws JsonParseException, JsonMappingException, IOException;
+    
+    /**
+     * This method handles the JSON deserialisation of the otherTitle Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public List<String> getOtherTitle() throws JsonParseException, JsonMappingException, IOException;
+
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use getStandardId to get this property
+     */
+    @Property("standardId")
+    public String getJSONStandardId();
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use setStandardId to set this property
+     */
+    @Property("standardId")
+    public void setJSONStandardId(String standardId);
+    
+    /**
+     * This method handles the JSON serialisation of the standardId Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public void setStandardId(List<String> standardId) throws JsonParseException, JsonMappingException, IOException;
+    
+    /**
+     * This method handles the JSON deserialisation of the standardId Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public List<String> getStandardId() throws JsonParseException, JsonMappingException, IOException;
+
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use getSubject to get this property
+     */
+    @Property("subject")
+    public String getJSONSubject();
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use setSubject to set this property
+     */
+    @Property("subject")
+    public void setJSONSubject(String subject);
+    
+    /**
+     * This method handles the JSON serialisation of the subject Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public void setSubject(List<String> subject) throws JsonParseException, JsonMappingException, IOException;
+    
+    /**
+     * This method handles the JSON deserialisation of the subject Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public List<String> getSubject() throws JsonParseException, JsonMappingException, IOException;
+
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use getScaleEtc to get this property
+     */
+    @Property("scaleEtc")
+    public String getJSONScaleEtc();
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use setScaleEtc to set this property
+     */
+    @Property("scaleEtc")
+    public void setJSONScaleEtc(String scaleEtc);
+    
+    /**
+     * This method handles the JSON serialisation of the scaleEtc Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public void setScaleEtc(List<String> scaleEtc) throws JsonParseException, JsonMappingException, IOException;
+    
+    /**
+     * This method handles the JSON deserialisation of the scaleEtc Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public List<String> getScaleEtc() throws JsonParseException, JsonMappingException, IOException;
+
+    @Property("west")
+    public String getWest();
+
+    @Property("west")
+    public void setWest(String west);
+
+    @Property("east")
+    public String getEast();
+
+    @Property("east")
+    public void setEast(String east);
+
+    @Property("north")
+    public String getNorth();
+
+    @Property("north")
+    public void setNorth(String north);
+
+    @Property("south")
+    public String getSouth();
+
+    @Property("south")
+    public void setSouth(String south);
+
+    @Property("tilePosition")
+    public String getTilePosition();
+
+    @Property("tilePosition")
+    public void setTilePosition(String tilePosition);
+
+    @Property("workPid")
+    public String getWorkPid();
+
+    @Property("workPid")
+    public void setWorkPid(String workPid);
+
+    @Property("internalComments")
+    public String getInternalComments();
+
+    @Property("internalComments")
+    public void setInternalComments(String internalComments);
+
+    @Property("externalCommonts")
+    public String getExternalCommonts();
+
+    @Property("externalCommonts")
+    public void setExternalCommonts(String externalCommonts);
+
+    @Property("accessRestrictions")
+    public String getAccessRestrictions();
+
+    @Property("accessRestrictions")
+    public void setAccessRestrictions(String accessRestrictions);
+
+    @Property("constraint")
+    public String getConstraint();
+
+    @Property("constraint")
+    public void setConstraint(String constraint);
+
+    @Property("callNo")
+    public String getCallNo();
+
+    @Property("callNo")
+    public void setCallNo(String callNo);
+
+    @Property("rights")
+    public String getRights();
+
+    @Property("rights")
+    public void setRights(String rights);
+
+
+    
     /**
      * Also known as localsystmno
      */
@@ -444,6 +802,9 @@ public interface Work extends Node {
     public AmberGraph getAmberGraph();
 
     abstract class Impl implements JavaHandlerContext<Vertex>, Work {
+        
+        
+        
 
         @Override
         public Page addPage(Path sourceFile, String mimeType) throws IOException {
@@ -615,6 +976,100 @@ public interface Work extends Node {
         public List<Work> getExistsOn(String subType) {
             return getExistsOn(Arrays.asList(new String[] { subType }));
         }
+        
+        @Override
+        public List<String> getSeries() throws JsonParseException, JsonMappingException, IOException {
+            return deserialiseJSONString(getJSONSeries());
+        }
+        
+        @Override
+        public void setSeries( List<String>  series) throws JsonParseException, JsonMappingException, IOException {
+            setJSONSeries(serialiseToJSON(series));
+        }
+        @Override
+        public List<String> getClassification() throws JsonParseException, JsonMappingException, IOException {
+            return deserialiseJSONString(getJSONClassification());
+        }
+        
+        @Override
+        public void setClassification( List<String>  classification) throws JsonParseException, JsonMappingException, IOException {
+            setJSONClassification(serialiseToJSON(classification));
+        }
+        @Override
+        public List<String> getContributor() throws JsonParseException, JsonMappingException, IOException {
+            return deserialiseJSONString(getJSONContributor());
+        }
+        
+        @Override
+        public void setContributor( List<String>  contributor) throws JsonParseException, JsonMappingException, IOException {
+            setJSONContributor(serialiseToJSON(contributor));
+        }
+        @Override
+        public List<String> getCoverage() throws JsonParseException, JsonMappingException, IOException {
+            return deserialiseJSONString(getJSONCoverage());
+        }
+        
+        @Override
+        public void setCoverage( List<String>  coverage) throws JsonParseException, JsonMappingException, IOException {
+            setJSONCoverage(serialiseToJSON(coverage));
+        }
+        @Override
+        public List<String> getOccupation() throws JsonParseException, JsonMappingException, IOException {
+            return deserialiseJSONString(getJSONOccupation());
+        }
+        
+        @Override
+        public void setOccupation( List<String>  occupation) throws JsonParseException, JsonMappingException, IOException {
+            setJSONOccupation(serialiseToJSON(occupation));
+        }
+        @Override
+        public List<String> getOtherTitle() throws JsonParseException, JsonMappingException, IOException {
+            return deserialiseJSONString(getJSONOtherTitle());
+        }
+        
+        @Override
+        public void setOtherTitle( List<String>  otherTitle) throws JsonParseException, JsonMappingException, IOException {
+            setJSONOtherTitle(serialiseToJSON(otherTitle));
+        }
+        @Override
+        public List<String> getStandardId() throws JsonParseException, JsonMappingException, IOException {
+            return deserialiseJSONString(getJSONStandardId());
+        }
+        
+        @Override
+        public void setStandardId( List<String>  standardId) throws JsonParseException, JsonMappingException, IOException {
+            setJSONStandardId(serialiseToJSON(standardId));
+        }
+        @Override
+        public List<String> getSubject() throws JsonParseException, JsonMappingException, IOException {
+            return deserialiseJSONString(getJSONSubject());
+        }
+        
+        @Override
+        public void setSubject( List<String>  subject) throws JsonParseException, JsonMappingException, IOException {
+            setJSONSubject(serialiseToJSON(subject));
+        }
+        @Override
+        public List<String> getScaleEtc() throws JsonParseException, JsonMappingException, IOException {
+            return deserialiseJSONString(getJSONScaleEtc());
+        }
+        
+        @Override
+        public void setScaleEtc( List<String>  scaleEtc) throws JsonParseException, JsonMappingException, IOException {
+            setJSONScaleEtc(serialiseToJSON(scaleEtc));
+        }
+        private List<String> deserialiseJSONString(String json) throws JsonParseException, JsonMappingException, IOException {
+            ObjectMapper mapper = new ObjectMapper();
+            if (json == null || json.isEmpty())
+                return new ArrayList<String>();
+            return mapper.readValue(json, new TypeReference<List<String>>() { } );            
+        }
+        
+        private String serialiseToJSON( List<String>  list) throws JsonParseException, JsonMappingException, IOException {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.writeValueAsString(list);
+        }
+        
 
     }
 }
