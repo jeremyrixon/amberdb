@@ -25,6 +25,7 @@ import amberdb.model.File;
 import amberdb.model.ImageFile;
 import amberdb.model.Page;
 import amberdb.model.Section;
+import amberdb.model.SoundFile;
 import amberdb.model.Work;
 import amberdb.sql.AmberGraph;
 import amberdb.sql.AmberHistory;
@@ -186,6 +187,7 @@ public class AmberSession implements AutoCloseable {
             .withClass(Copy.class)
             .withClass(File.class)
             .withClass(ImageFile.class)
+            .withClass(SoundFile.class)
             .withClass(Page.class)
             .withClass(Section.class)
             .withClass(Work.class).build()).create(g);

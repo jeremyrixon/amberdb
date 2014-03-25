@@ -9,6 +9,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -277,15 +278,21 @@ public interface Copy extends Node {
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     public File getFile();
     
-    @Adjacency(label = IsFileOf.label, direction = Direction.IN)
+    @JavaHandler
     public ImageFile getImageFile();
 
+    @JavaHandler
+    public SoundFile getSoundFile();
+    
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     public File addFile();
     
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     public ImageFile addImageFile();
 
+    @Adjacency(label = IsFileOf.label, direction = Direction.IN)
+    public SoundFile addSoundFile();
+    
     @JavaHandler
     File addFile(Path source, String mimeType) throws IOException;
 
@@ -487,5 +494,37 @@ public interface Copy extends Node {
             }
             return bytesTransferred;
         }
+
+        @Override
+        public ImageFile getImageFile() {
+            Iterable<File> files = this.getFiles();
+            if (files != null) {
+                Iterator<File> it = files.iterator();
+                while (it.hasNext()) {
+                    File next = it.next();
+                    if (next.getType().equals("ImageFile")) {
+                        return (ImageFile) next;
+                    }
+                }
+            }
+            return null;
+        }
+        
+        @Override
+        public SoundFile getSoundFile() {
+            Iterable<File> files = this.getFiles();
+            if (files != null) {
+                Iterator<File> it = files.iterator();
+                while (it.hasNext()) {
+                    File next = it.next();
+                    if (next.getType().equals("SoundFile")) {
+                        return (SoundFile) next;
+                    }
+                }
+            }
+            return null;
+        }
+        
+        
     }
 }
