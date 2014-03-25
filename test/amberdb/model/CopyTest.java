@@ -104,7 +104,9 @@ public class CopyTest {
     @Test
     public void testGetFiles() throws IOException {
         Copy copy = amberDb.addWork().addCopy();
+        assertEquals(null, copy.getImageFile());
         ImageFile imageFile = copy.addImageFile();
+        assertEquals(null, copy.getSoundFile());
         SoundFile soundFile = copy.addSoundFile();
         imageFile.setDevice("frog");
         soundFile.setBitrate("amsterdam");
