@@ -5,13 +5,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -119,6 +118,15 @@ public class CopyTest {
     }
     
     
+    
+    @Test
+    public void testDateProperties() throws IOException, ParseException {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        Date date = dateFormat.parse("12/12/1987");
+        Copy copy = amberDb.addWork().addCopy();
+        copy.setDateCreated(date);
+        assertEquals(date, copy.getDateCreated());
+    }
     
     
 
