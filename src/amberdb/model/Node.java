@@ -57,6 +57,9 @@ public interface Node extends VertexFrame {
     @Property("notes")
     public void setNotes(String notes);
     
+    @Property("type")
+    public String getType();
+    
 	@JavaHandler
 	abstract public long getId();
 	
