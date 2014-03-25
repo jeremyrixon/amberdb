@@ -1,6 +1,14 @@
 package amberdb.model;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 
 import amberdb.PIUtil;
 
@@ -65,6 +73,49 @@ public interface Node extends VertexFrame {
 	
 	@JavaHandler
 	abstract public String getObjId();
+	
+    /**
+     * This property is encoded as a JSON Array - You probably want to use getAliases to get this property
+     */
+    @Property("aliases")
+    public String getJSONAliases();
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use setAliases to set this property
+     */
+    @Property("aliases")
+    public void setJSONAliases(String aliases);
+    
+    /**
+     * This method handles the JSON serialisation of the OtherNumbers Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public void setAliases(List<String> aliases) throws JsonParseException, JsonMappingException, IOException;
+    
+    /**
+     * This method handles the JSON deserialisation of the OtherNumbers Property
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     */
+    @JavaHandler
+    public List<String> getAliases() throws JsonParseException, JsonMappingException, IOException;
+
+    @Property("commentsInternal")
+    public String getCommentsInternal();
+
+    @Property("commentsInternal")
+    public void setCommentsInternal(String commentsInternal);
+
+    @Property("commentsExternal")
+    public String getcommentsExternal();
+
+    @Property("commentsExternal")
+    public void setCommentsExternal(String commentsExternal);
+        
     
     abstract class Impl implements JavaHandlerContext<Vertex>, Node {
 
@@ -85,5 +136,23 @@ public interface Node extends VertexFrame {
 		public String getObjId() {
 		    return PIUtil.format(getId());
 		}
+	     
+        @Override
+        public List<String> getAliases() throws JsonParseException, JsonMappingException, IOException {
+            ObjectMapper mapper = new ObjectMapper();
+            String aliases = getJSONAliases();
+            if (aliases == null || aliases.isEmpty())
+                return new ArrayList<String>();
+            return mapper.readValue(aliases, new TypeReference<List<String>>() { } );
+            
+        }
+        
+        @Override
+        public void setAliases( List<String>  aliases) throws JsonParseException, JsonMappingException, IOException {
+            ObjectMapper mapper = new ObjectMapper();
+            setJSONAliases(mapper.writeValueAsString(aliases));
+        }
+        
+        
     }
 }
