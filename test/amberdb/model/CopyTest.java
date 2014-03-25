@@ -99,5 +99,25 @@ public class CopyTest {
         assertEquals(6, aliases.size());
         assertTrue(aliases.contains("octopus"));
     }
+    
+    
+    @Test
+    public void testGetFiles() throws IOException {
+        Copy copy = amberDb.addWork().addCopy();
+        ImageFile imageFile = copy.addImageFile();
+        SoundFile soundFile = copy.addSoundFile();
+        imageFile.setDevice("frog");
+        soundFile.setBitrate("amsterdam");
+        ImageFile otherImageFile = copy.getImageFile();
+        SoundFile otherSoundFile = copy.getSoundFile();
+        assertEquals("ImageFile", otherImageFile.getType());
+        assertEquals("frog", otherImageFile.getDevice());
+        assertEquals("SoundFile", otherSoundFile.getType());
+        assertEquals("amsterdam", otherSoundFile.getBitrate());
+    }
+    
+    
+    
+    
 
 }
