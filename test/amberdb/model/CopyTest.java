@@ -128,6 +128,17 @@ public class CopyTest {
         assertEquals(date, copy.getDateCreated());
     }
     
+    @Test
+    public void testIntegerProperties() throws IOException {
+        Copy copy = amberDb.addWork().addCopy();
+        ImageFile imageFile = copy.addImageFile();
+        imageFile.setImageLength(null);
+        assertEquals(null, imageFile.getImageLength());
+        imageFile.setImageLength(200);
+        assertEquals((Integer)200, imageFile.getImageLength());
+    }
+
+    
     
 
 }
