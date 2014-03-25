@@ -5,13 +5,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -99,5 +98,47 @@ public class CopyTest {
         assertEquals(6, aliases.size());
         assertTrue(aliases.contains("octopus"));
     }
+    
+    
+    @Test
+    public void testGetFiles() throws IOException {
+        Copy copy = amberDb.addWork().addCopy();
+        assertEquals(null, copy.getImageFile());
+        ImageFile imageFile = copy.addImageFile();
+        assertEquals(null, copy.getSoundFile());
+        SoundFile soundFile = copy.addSoundFile();
+        imageFile.setDevice("frog");
+        soundFile.setBitrate("amsterdam");
+        ImageFile otherImageFile = copy.getImageFile();
+        SoundFile otherSoundFile = copy.getSoundFile();
+        assertEquals("ImageFile", otherImageFile.getType());
+        assertEquals("frog", otherImageFile.getDevice());
+        assertEquals("SoundFile", otherSoundFile.getType());
+        assertEquals("amsterdam", otherSoundFile.getBitrate());
+    }
+    
+    
+    
+    @Test
+    public void testDateProperties() throws IOException, ParseException {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        Date date = dateFormat.parse("12/12/1987");
+        Copy copy = amberDb.addWork().addCopy();
+        copy.setDateCreated(date);
+        assertEquals(date, copy.getDateCreated());
+    }
+    
+    @Test
+    public void testIntegerProperties() throws IOException {
+        Copy copy = amberDb.addWork().addCopy();
+        ImageFile imageFile = copy.addImageFile();
+        imageFile.setImageLength(null);
+        assertEquals(null, imageFile.getImageLength());
+        imageFile.setImageLength(200);
+        assertEquals((Integer)200, imageFile.getImageLength());
+    }
+
+    
+    
 
 }
