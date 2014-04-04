@@ -821,3 +821,9 @@ insert into list (name, value) values
 ('bibLevel','Set'),
 ('bibLevel','Item'),
 ('bibLevel','Part');
+
+insert into list (name, value) values
+('digitalStatus','Captured'),
+('digitalStatus','Not Captured'),
+('digitalStatus','Partially Captured'),
+('digitalStatus','Preserved analogue');
