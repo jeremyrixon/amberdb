@@ -30,12 +30,14 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.wrappers.wrapped.WrappedVertex;
 import com.tinkerpop.frames.Adjacency;
+import com.tinkerpop.frames.Incidence;
 import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.annotations.gremlin.GremlinGroovy;
 import com.tinkerpop.frames.annotations.gremlin.GremlinParam;
 import com.tinkerpop.frames.modules.javahandler.JavaHandler;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
+import com.tinkerpop.frames.structures.FramedEdgeIterable;
 
 /**
  * Any logical work that is collected or created by the library such as a book,
@@ -694,7 +696,16 @@ public interface Work extends Node {
 
     @Adjacency(label = IsPartOf.label)
     public Work getParent();
-
+    
+    @Incidence(label = IsPartOf.label, direction = Direction.OUT)
+    public Iterable<IsPartOf> getParentEdges();
+    
+    @JavaHandler
+    public IsPartOf getParentEdge();
+    
+    @JavaHandler
+    public void setOrder(int position);
+    
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public Iterable<Work> getChildren();
 
@@ -976,6 +987,20 @@ public interface Work extends Node {
         public List<Work> getExistsOn(String subType) {
             return getExistsOn(Arrays.asList(new String[] { subType }));
         }
+        
+        
+        @Override
+        public void setOrder(int position) {
+            getParentEdges().iterator().next().setRelOrder(position);
+        }
+        
+        @Override
+        public IsPartOf getParentEdge() {
+           Iterator<IsPartOf> iterator = getParentEdges().iterator();
+           return (iterator != null && iterator.hasNext())? iterator.next() : null;
+        }
+        
+        
         
         @Override
         public List<String> getSeries() throws JsonParseException, JsonMappingException, IOException {
