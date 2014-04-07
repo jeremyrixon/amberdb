@@ -991,7 +991,7 @@ public interface Work extends Node {
         
         @Override
         public void setOrder(int position) {
-            getParentEdges().iterator().next().setRelOrder(position);
+            getParentEdge().setRelOrder(position);
         }
         
         @Override

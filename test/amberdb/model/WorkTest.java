@@ -1,6 +1,7 @@
 package amberdb.model;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -151,7 +152,17 @@ public class WorkTest {
     }
     
 
-
+    
+    @Test
+    public void testGetSetParentEdges() throws IOException {
+        try (AmberSession amberDb = new AmberSession()){           
+            Work work = amberDb.addWork();
+            Work parentWork = amberDb.addWork();
+            parentWork.addChild(work);
+            assertTrue(null == parentWork.getParentEdge());
+            assertEquals(parentWork, work.getParentEdge().getSource());            
+        }
+    }
     
     @Test
     public void testDeattachPage() {
