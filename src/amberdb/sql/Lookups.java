@@ -30,6 +30,9 @@ public abstract class Lookups {
     @SqlQuery("update list set deleted = 'y' where name = :name and value = :value" )
     public abstract List<ListLu> removeListItem(@Bind("name") String name,@Bind("value") String value );
     
+    @SqlQuery("select distinct name from list order by name")
+    public abstract List<String> findListNames();
+    
     public static class ListLuMapper implements ResultSetMapper<ListLu> {
         public ListLu map(int index, ResultSet r, StatementContext ctx) throws SQLException {
             return new ListLu(r.getString("name"), r.getString("value"));

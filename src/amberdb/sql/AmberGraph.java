@@ -585,6 +585,9 @@ public class AmberGraph extends BaseGraph
         return super.getVertices(key, value); 
     }
 
+    public Lookups getLookups() {
+        return dbi.onDemand(Lookups.class);
+    }
     
     /**
      * Used by AmberVertex.
