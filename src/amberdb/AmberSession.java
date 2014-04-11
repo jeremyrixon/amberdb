@@ -251,6 +251,40 @@ public class AmberSession implements AutoCloseable {
      * within the session.
      * @param work
      */
+    public void deleteWork(final Work work) {
+        work.getParent().removePart(work);
+        Iterable<Copy> copies = work.getCopies();
+        if (copies != null) {
+            for (Copy copy : copies) {
+                deleteCopy(copy);
+            }
+            graph.removeVertex(work.asVertex());
+        }
+    }
+
+    
+    /**
+     * Noting deletion of all the vertices representing the work, its copies, and its copy files
+     * within the session.
+     * @param work
+     */
+    public void deleteCopy(final Copy copy) {
+        Work work = copy.getWork();
+        File file = copy.getFile();
+        if (file != null) {
+            copy.removeFile(file);
+            graph.removeVertex(file.asVertex());
+        }
+        work.removeCopy(copy);
+        graph.removeVertex(copy.asVertex());
+    }
+
+    
+    /**
+     * Noting deletion of all the vertices representing the work, its copies, and its copy files
+     * within the session.
+     * @param work
+     */
     public void deletePage(final Page page) {
         page.getParent().removePart(page);
         Iterable<Copy> copies = page.getCopies();
@@ -266,8 +300,9 @@ public class AmberSession implements AutoCloseable {
             }
             graph.removeVertex(page.asVertex());
         }
-    }
-
+    }    
+    
+    
     static void s(String s) {
         System.out.println(s);
     }

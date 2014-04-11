@@ -227,7 +227,7 @@ public class WorkTest {
         AmberSession db = new AmberSession();
         setTestDataInH2(db);
         
-        Page work = workTitlePage;
+        Work work = bookBlinkyBill;
         long workVertexId = work.getId();
         assertEquals(workVertexId, work.asVertex().getId());
         List<Long> copyVertexIds = new ArrayList<Long>();
@@ -244,7 +244,42 @@ public class WorkTest {
             assertEquals(copy.getId(), copy.asVertex().getId());
         }
         
-        db.deletePage(work);
+        db.deleteWork(work);
+        for (Copy copy : copies) {
+            try {
+                //make sure all Copies are deleted
+                db.getAmberGraph().getVertex(copy.asVertex().getId());
+                assert(false);
+            } catch ( NoSuchObjectException e) {
+                assert(true);
+            }
+        }
+        db.findWork(workVertexId);
+    }
+    
+    @Test(expected = NoSuchObjectException.class)
+    public void testDeletePage() {  
+        AmberSession db = new AmberSession();
+        setTestDataInH2(db);
+        
+        Page page = workTitlePage;
+        long workVertexId = page.getId();
+        assertEquals(workVertexId, page.asVertex().getId());
+        List<Long> copyVertexIds = new ArrayList<Long>();
+        List<Long> fileVertexIds = new ArrayList<Long>();
+        Iterable<Copy> copies = page.getCopies();
+        for (Copy copy : copies) {
+            File file = copy.getFile();
+            copyVertexIds.add(copy.getId());
+            
+            if (file != null) {
+                fileVertexIds.add(file.getId());
+                assertEquals(file.getId(), file.asVertex().getId());
+            }
+            assertEquals(copy.getId(), copy.asVertex().getId());
+        }
+        
+        db.deletePage(page);
         db.findWork(workVertexId);
     }
     
