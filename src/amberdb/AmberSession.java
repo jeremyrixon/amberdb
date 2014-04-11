@@ -252,7 +252,10 @@ public class AmberSession implements AutoCloseable {
      * @param work
      */
     public void deleteWork(final Work work) {
-        work.getParent().removePart(work);
+        Work parent = work.getParent();
+        if (parent != null) {
+            parent.removePart(work);
+        }
         Iterable<Copy> copies = work.getCopies();
         if (copies != null) {
             for (Copy copy : copies) {
@@ -275,7 +278,9 @@ public class AmberSession implements AutoCloseable {
             copy.removeFile(file);
             graph.removeVertex(file.asVertex());
         }
-        work.removeCopy(copy);
+        if (work != null) {
+            work.removeCopy(copy);
+        }
         graph.removeVertex(copy.asVertex());
     }
 
