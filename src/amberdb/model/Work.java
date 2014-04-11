@@ -742,7 +742,7 @@ public interface Work extends Node {
 
     /**
      * This method detatches the page from this work, but the page continues to
-     * exist as an orphan. Use the deletePage method in AmberSessoin to actually
+     * exist as an orphan. Use the deletePage method in AmberSession to actually
      * delete the page with copies and files from the graph.
      * 
      * @param page
