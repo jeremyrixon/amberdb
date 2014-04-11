@@ -68,23 +68,23 @@ public interface Node extends VertexFrame {
     @Property("type")
     public String getType();
     
-	@JavaHandler
-	abstract public long getId();
-	
-	@JavaHandler
-	abstract public String getObjId();
-	
+  @JavaHandler
+  abstract public long getId();
+  
+  @JavaHandler
+  abstract public String getObjId();
+  
     /**
-     * This property is encoded as a JSON Array - You probably want to use getAliases to get this property
+     * This property is encoded as a JSON Array - You probably want to use getAlias to get this property
      */
     @Property("aliases")
-    public String getJSONAliases();
+    public String getJSONAlias();
     
     /**
-     * This property is encoded as a JSON Array - You probably want to use setAliases to set this property
+     * This property is encoded as a JSON Array - You probably want to use setAlias to set this property
      */
     @Property("aliases")
-    public void setJSONAliases(String aliases);
+    public void setJSONAlias(String aliases);
     
     /**
      * This method handles the JSON serialisation of the OtherNumbers Property
@@ -93,7 +93,7 @@ public interface Node extends VertexFrame {
      * @throws JsonParseException 
      */
     @JavaHandler
-    public void setAliases(List<String> aliases) throws JsonParseException, JsonMappingException, IOException;
+    public void setAlias(List<String> aliases) throws JsonParseException, JsonMappingException, IOException;
     
     /**
      * This method handles the JSON deserialisation of the OtherNumbers Property
@@ -102,7 +102,7 @@ public interface Node extends VertexFrame {
      * @throws JsonParseException 
      */
     @JavaHandler
-    public List<String> getAliases() throws JsonParseException, JsonMappingException, IOException;
+    public List<String> getAlias() throws JsonParseException, JsonMappingException, IOException;
 
     @Property("commentsInternal")
     public String getCommentsInternal();
@@ -119,28 +119,28 @@ public interface Node extends VertexFrame {
     
     abstract class Impl implements JavaHandlerContext<Vertex>, Node {
 
-		@Override
-		public long getId() {
-			return toLong(asVertex().getId());
-		}
-		
-		public long toLong(Object x) {
-			// tingergraph converts ids to strings
-			if (x instanceof String) {
-				return Long.parseLong((String) x);
-			}
-			return (long)x; 
-		}
-		
-		@Override
-		public String getObjId() {
-		    return PIUtil.format(getId());
-		}
-	     
+    @Override
+    public long getId() {
+      return toLong(asVertex().getId());
+    }
+    
+    public long toLong(Object x) {
+      // tingergraph converts ids to strings
+      if (x instanceof String) {
+        return Long.parseLong((String) x);
+      }
+      return (long)x; 
+    }
+    
+    @Override
+    public String getObjId() {
+        return PIUtil.format(getId());
+    }
+       
         @Override
-        public List<String> getAliases() throws JsonParseException, JsonMappingException, IOException {
+        public List<String> getAlias() throws JsonParseException, JsonMappingException, IOException {
             ObjectMapper mapper = new ObjectMapper();
-            String aliases = getJSONAliases();
+            String aliases = getJSONAlias();
             if (aliases == null || aliases.isEmpty())
                 return new ArrayList<String>();
             return mapper.readValue(aliases, new TypeReference<List<String>>() { } );
@@ -148,9 +148,9 @@ public interface Node extends VertexFrame {
         }
         
         @Override
-        public void setAliases( List<String>  aliases) throws JsonParseException, JsonMappingException, IOException {
+        public void setAlias( List<String>  aliases) throws JsonParseException, JsonMappingException, IOException {
             ObjectMapper mapper = new ObjectMapper();
-            setJSONAliases(mapper.writeValueAsString(aliases));
+            setJSONAlias(mapper.writeValueAsString(aliases));
         }
         
         

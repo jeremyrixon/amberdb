@@ -80,7 +80,7 @@ public class CopyTest {
     @Test
     public void testGetSetAlias() throws IOException {
         Copy copy = amberDb.addWork().addCopy();
-        List<String> aliases = copy.getAliases();
+        List<String> aliases = copy.getAlias();
         assertEquals(0, aliases.size());
         assertFalse(aliases.contains("testingc"));
         aliases.add("testing");
@@ -88,13 +88,13 @@ public class CopyTest {
         aliases.add("testingb");
         aliases.add("testingc");
         aliases.add("testingd");
-        copy.setAliases(aliases);
-        aliases = copy.getAliases();
+        copy.setAlias(aliases);
+        aliases = copy.getAlias();
         assertEquals(5,aliases.size());
         assertTrue(aliases.contains("testingc"));
         aliases.add("octopus");
-        copy.setAliases(aliases);
-        aliases = copy.getAliases();
+        copy.setAlias(aliases);
+        aliases = copy.getAlias();
         assertEquals(6, aliases.size());
         assertTrue(aliases.contains("octopus"));
     }
