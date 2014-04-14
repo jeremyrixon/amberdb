@@ -65,7 +65,6 @@ public class AmberQuery {
 
         int step = 0;
         
-        // StringBuilder s = new StringBuilder();
         List<String> s = new ArrayList<>();
         s.add("DROP TABLE IF EXISTS v0;");
         s.add("DROP TABLE IF EXISTS v1;");
