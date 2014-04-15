@@ -71,7 +71,8 @@ public class AmberQueryTest {
         q.branch(Arrays.asList(new String[] {"isFileOf", "belongsTo"}),
                 Direction.IN);
 
-        s(q.generateFullSubGraphQuery());
+        for (String stmt : q.generateFullSubGraphQuery())
+            s(stmt);
     }
  
     
