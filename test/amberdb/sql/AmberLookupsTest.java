@@ -2,6 +2,7 @@ package amberdb.sql;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,6 +14,7 @@ import java.util.regex.Pattern;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Ignore;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -53,7 +55,7 @@ public class AmberLookupsTest {
     public void teardown() {
     }
 
-    @Test
+    @Ignore
     public void testLookups() throws IOException {
         Path listSeedsFile = Paths.get("/Users/szhou/git/amberdb-170414/test_data/listSeeds.txt");
         Path materialTypeSeedsFile = Paths.get("/Users/szhou/git/amberdb-170414/test_data/materialTypeSeeds.txt");
@@ -118,7 +120,7 @@ public class AmberLookupsTest {
     private List<List<String>> parseLookupData(Path dataFile, String fldsPattern, int fldsTotal) throws IOException {
         List<List<String>> lookupData = new ArrayList<>();
 
-        List<String> lines = Files.readAllLines(dataFile);
+        List<String> lines = Files.readAllLines(dataFile, Charset.forName("utf8"));
         Pattern pattern = Pattern.compile(fldsPattern);
         for (String line : lines) {
             Matcher matcher = pattern.matcher(line);
