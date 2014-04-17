@@ -91,7 +91,7 @@ public abstract class Lookups {
     protected List<List<String>> parseLookupData(Path dataFile, String fldsPattern, int fldsTotal) throws IOException {
         List<List<String>> lookupData = new ArrayList<>();
 
-        List<String> lines = Files.readAllLines(dataFile);
+        List<String> lines = Files.readAllLines(dataFile, Charset.forName("utf8"));
         Pattern pattern = Pattern.compile(fldsPattern);
         for (String line : lines) {
             Matcher matcher = pattern.matcher(line);
