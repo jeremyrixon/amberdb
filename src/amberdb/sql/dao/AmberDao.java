@@ -119,7 +119,62 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "deleted   VARCHAR(1) )")
     void createListTable();
 
+    /*
+     * Tools Lookup table - stores tools related reference data
+     * 
+     * TODOS: put indexes on the lookups table
+     */
+    @SqlUpdate(
+            "CREATE TABLE IF NOT EXISTS lookups ("
+            + "id        int(11), "
+            + "name      varchar(50), "
+            + "lbl       varchar(255), "
+            + "code      varchar(50), "
+            + "attribute varchar(255), "
+            + "value     varchar(4000), "
+            + "deleted   varchar(1) default 'N' )")
+    void createToolsLookupTable();
+    
+    /*
+     * Tools Many-To-Many association with multiple material types and software/device category
+     * 
+     * TODOS: put indexes on the maps table
+     */
+    @SqlUpdate(
+            "CREATE TABLE IF NOT EXISTS maps("
+            + "id        int(11), "
+            + "parent_id int(11), "        
+            + "deleted   varchar(1) default 'N' )")
+    void createToolsMapsTable();   
+    
+    @SqlUpdate(
+            "CREATE INDEX lookups_id_idx "
+            + "ON lookups(id, deleted)")
+    void createLookupsIdIndex();
+    
+    @SqlUpdate(
+            "CREATE INDEX lookups_name_idx "
+            + "ON lookups(name, deleted)")
+    void createLookupsNameIndex();
+    
+    @SqlUpdate(
+            "CREATE INDEX lookups_name_attribute_idx "
+            + "ON lookups(name, attribute, deleted)")
+    void createLookupsNameAttributeIndex();
+    
+    @SqlUpdate(
+            "CREATE INDEX maps_id_idx "
+            + "ON maps(id, deleted)")
+    void createMapsIdIndex();
+    
+    @SqlUpdate(
+            "CREATE INDEX maps_parent_id_idx "
+            + "ON maps(parent_id, deleted)")
+    void createMapsParentIdIndex();
 
+    /*
+     * General lookups
+     */
     @SqlUpdate(
       "INSERT INTO list (name, value) VALUES"
       + "('materialType', 'Image'), "
@@ -985,6 +1040,136 @@ public interface AmberDao extends Transactional<AmberDao> {
     )
     void seedListTable();
     
+    /*
+     * tools name attributes definition
+     */
+    @SqlUpdate(
+            "INSERT INTO lookups(id, name, attribute, value) VALUES"
+            + "(1,'tools','name', 'UMAX PowerLook 2100XL'), "
+            + "(2,'tools','name','Scanview ScanMate F6'), "
+            + "(3,'tools','name','AGFA Arcus II'), "
+            + "(4,'tools','name','AGFA DuoScan T2000XL + FotoLook'), "
+            + "(5,'tools','name','Nikon Super CoolScan 4000ED'), "
+            + "(6,'tools','name','PhaseOne Phase FX'), "
+            + "(7,'tools','name','Sinar Macroscan'), "
+            + "(8,'tools','name','Nikon D1'), "
+            + "(9,'tools','name','Canon 20D'), "
+            + "(10,'tools','name','Kodak ProBack') "
+            )
+    void seedToolsLookupsNameAttribute();
+    
+    /*
+     * tools resolution attributes definitions
+     */
+    @SqlUpdate(
+            "INSERT INTO lookups(id, name, attribute, value) VALUES"
+            + "(1,'tools','resolution',''),"
+            + "(2,'tools','resolution',''),"
+            + "(3,'tools','resolution',''),"
+            + "(4,'tools','resolution',''),"
+            + "(5,'tools','resolution',''),"
+            + "(6,'tools','resolution',''),"
+            + "(7,'tools','resolution',''),"
+            + "(8,'tools','resolution',''),"
+            + "(9,'tools','resolution',''),"
+            + "(10,'tools','resolution','')"
+            )
+    void seedToolsLookupsResolutionAttribute();
+    
+    /*
+     * tools serial number attributes definitions
+     */
+    @SqlUpdate(
+            "INSERT INTO lookups(id, name, attribute, value) VALUES"
+            + "(1,'tools','serialNumber',' R04/19825 and N04/83 of file NLA/15811 relate.'),"
+            + "(2,'tools','serialNumber',''),"
+            + "(3,'tools','serialNumber',''),"
+            + "(4,'tools','serialNumber',''),"
+            + "(5,'tools','serialNumber',''),"
+            + "(6,'tools','serialNumber',''),"
+            + "(7,'tools','serialNumber',''),"
+            + "(8,'tools','serialNumber',''),"
+            + "(9,'tools','serialNumber',''),"
+            + "(10,'tools','serialNumber','')")
+            void seedToolsLookupsSerialAttribute();
+ 
+    /*
+     * tools notes attribute definitions
+     */
+    @SqlUpdate(
+            "INSERT INTO lookups(id, name, attribute, value) VALUES"
+            + "(1,'tools','notes','Used MagicScan software for image capture. NLA  asset 26105 written off and disposed of in 2003/4 FY due to breakdown. TRIM folios R04/14022'),"
+            + "(2,'tools','notes',''),"
+            + "(3,'tools','notes',''),"
+            + "(4,'tools','notes',''),"
+            + "(5,'tools','notes',''),"
+            + "(6,'tools','notes',''),"
+            + "(7,'tools','notes',''),"
+            + "(8,'tools','notes',''),"
+            + "(9,'tools','notes',''),"
+            + "(10,'tools','notes','')" 
+            )
+    void seedToolsLookupsNotesAttribute();
+
+    @SqlUpdate(
+            "INSERT INTO lookups(id, name, value) VALUES"
+                    + "(451, 'toolType', 'Transmission scanner'),"
+                    + "(452, 'toolType', 'Reflective scanner')"
+              )
+    void seedToolTypesLookups();
+    
+    @SqlUpdate(
+            "INSERT INTO lookups(id, name, code, value) VALUES"
+            + "(499, 'toolCategory', 'd', 'Device'),"
+            + "(500, 'toolCategory', 's', 'Software')"        
+            )
+    void seedToolCategoriesLookups();
+    
+    @SqlUpdate(
+            "INSERT INTO lookups(id, name, value) VALUES"
+            + "(501, 'materialType', 'Image'),"
+            + "(502, 'materialType', 'Sound'),"
+            + "(503, 'materialType', 'Text')"
+            )
+    void seedMaterialTypesLookups();
+    
+    @SqlUpdate(
+            "INSERT INTO maps(id, parent_id) VALUES"
+            + "(1,null),"
+            + "(2,459),"
+            + "(3,459),"
+            + "(4,459),"
+            + "(5,459),"
+            + "(6,459),"
+            + "(7,459),"
+            + "(8,459),"
+            + "(9,459),"
+            + "(10,459)"
+            )
+     void seedToolTypesMaps();
+    
+    @SqlUpdate(
+            "INSERT INTO maps(id, parent_id) VALUES"
+            + "(451, 499),"
+            + "(452, 499),"
+            + "(453, 499),"
+            + "(454, 499),"
+            + "(455, 500),"
+            + "(456, 500)"
+            )
+    void seedToolCategoriesMaps();
+    
+    @SqlUpdate(
+            "INSERT INTO maps(id, parent_id) VALUES"
+            + "(451, 501),"
+            + "(452, 501),"
+            + "(453, 501),"
+            + "(454, 501),"
+            + "(455, 501),"
+            + "(456, 501)"
+            )
+     void seedToolMaterialTypesMaps();
+
     
     /*
      * Main table indexes - these require review as they might need indexes.

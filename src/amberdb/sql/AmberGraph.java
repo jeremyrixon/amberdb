@@ -146,6 +146,23 @@ public class AmberGraph extends BaseGraph
         dao.createListTable();
         dao.seedListTable();
         
+        dao.createToolsLookupTable();
+        dao.createToolsMapsTable();
+        dao.createLookupsIdIndex();
+        dao.createLookupsNameIndex();
+        dao.createLookupsNameAttributeIndex();
+        dao.createMapsIdIndex();
+        dao.createMapsParentIdIndex();
+        dao.seedToolsLookupsNameAttribute();
+        dao.seedToolsLookupsResolutionAttribute();
+        dao.seedToolsLookupsSerialAttribute();
+        dao.seedToolsLookupsNotesAttribute();
+        dao.seedToolTypesLookups();
+        dao.seedToolCategoriesLookups();
+        dao.seedMaterialTypesLookups();
+        dao.seedToolTypesMaps();
+        dao.seedToolMaterialTypesMaps();
+        
         newId(); // seed generator with id > 0
     }
 
