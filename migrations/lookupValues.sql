@@ -724,15 +724,15 @@ insert into list (name, value) values
 ('soundField', 'Mono');
 
 insert into list (name, value) values
-('collection','Australian'),
-('collection','Manuscript'),
-('collection','Map'),
-('collection','Music'),
-('collection','Picture'),
-('collection','General'),
-('collection','Oral history and folklore'),
-('collection','Internal photograph'),
-('collection','Conservation');
+('collection', 'nla.aus'),
+('collection', 'nla.ms'),
+('collection', 'nla.map'),
+('collection', 'nla.mus'),
+('collection', 'nla.pic'),
+('collection', 'nla.gen'),
+('collection', 'nla.oh'),
+('collection', 'nla.int'),
+('collection', 'nla.con');
 
 insert into list (name, value) values
 ('subUnitType','Additional Material'),
