@@ -76,9 +76,6 @@ public abstract class Lookups extends Tools {
     @SqlQuery("select max(id) + 1 from lookups")
     public abstract Long nextLookupId();
     
-    @SqlQuery("select max(id) + 1 from maps")
-    public abstract Long nextLookupMapId();
-    
     @SqlUpdate("INSERT INTO lookups (id, name, lbl, code, attribute, value, deleted) VALUES"
             + "(:id, :name, :lbl, :code, :attribute, :value, :deleted)")
     public abstract void addLookupData(@Bind("id") Long id,
