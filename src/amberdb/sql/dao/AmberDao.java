@@ -1136,20 +1136,21 @@ public interface AmberDao extends Transactional<AmberDao> {
     @SqlUpdate(
             "INSERT INTO maps(id, parent_id) VALUES"
             + "(1,null),"
-            + "(2,459),"
-            + "(3,459),"
-            + "(4,459),"
-            + "(5,459),"
-            + "(6,459),"
-            + "(7,459),"
-            + "(8,459),"
-            + "(9,459),"
-            + "(10,459)"
+            + "(2,451),"
+            + "(3,451),"
+            + "(4,451),"
+            + "(5,451),"
+            + "(6,452),"
+            + "(7,452),"
+            + "(8,452),"
+            + "(9,452),"
+            + "(10,452)"
             )
      void seedToolTypesMaps();
     
     @SqlUpdate(
             "INSERT INTO maps(id, parent_id) VALUES"
+            + "(9, 499),"
             + "(451, 499),"
             + "(452, 499),"
             + "(453, 499),"
@@ -1161,6 +1162,7 @@ public interface AmberDao extends Transactional<AmberDao> {
     
     @SqlUpdate(
             "INSERT INTO maps(id, parent_id) VALUES"
+            + "(9, 501),"
             + "(451, 501),"
             + "(452, 501),"
             + "(453, 501),"

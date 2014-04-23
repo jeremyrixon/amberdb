@@ -1,144 +1,165 @@
 package amberdb.sql;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
+import static org.junit.Assert.*;
+
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Ignore;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
+import amberdb.AmberSession;
+import amberdb.lookup.ListLu;
+import amberdb.lookup.ToolsLu;
 
 public class AmberLookupsTest {
-    private static final String listFldsPattern = "\\s*(\".*\"),\\s*(\".*\")"; // flds
-                                                                               // pattern:
-                                                                               // "name",
-                                                                               // "value"
-    private static final String mapsFldsPattern = "\\s*(\".*\"),\\s*(\".*\")"; // flds
-                                                                               // pattern:
-                                                                               // "id",
-                                                                               // "parent_id"
-    private static final String singleValueLookupFldsPattern = "\\s*(\".*\"),\\s*(\".*\"),\\s*(\".*\")"; // flds
-                                                                                                         // pattern:
-                                                                                                         // "id",
-                                                                                                         // "name",
-                                                                                                         // "value"
-    private static final String singleValueWithCodeLookupFldsPattern = "\\s*(\".*\"),\\s*(\".*\"),\\s*(\".*\"),\\s*(\".*\")"; // flds
-                                                                                                                              // pattern:
-                                                                                                                              // "id",
-                                                                                                                              // "name",
-                                                                                                                              // "code",
-                                                                                                                              // "value"
-    private static final String lookupWithAttributesFldsPattern = "\\s*(\".*\"),\\s*(\".*\"),\\s*(\".*\"),\\s*(\".*\")"; // flds
-                                                                                                                         // pattern:
-                                                                                                                         // "id",
-                                                                                                                         // "name",
-                                                                                                                         // "attribute",
-                                                                                                                         // "value"
-    public AmberGraph graph;
-
+    private AmberSession session;
+    private LookupsMock lookups;
+    
     @Before
-    public void setup() throws MalformedURLException, IOException {
-
+    public void setup() {
+        session = new AmberSession();
+        lookups = session.getAmberGraph().dbi().onDemand(LookupsMock.class);
     }
 
     @After
     public void teardown() {
+        session = null;
     }
 
-    @Ignore
-    public void testLookups() throws IOException {
-        Path listSeedsFile = Paths.get("/Users/szhou/git/amberdb-170414/test_data/listSeeds.txt");
-        Path materialTypeSeedsFile = Paths.get("/Users/szhou/git/amberdb-170414/test_data/materialTypeSeeds.txt");
-        Path toolCategoryMapSeedsFile = Paths.get("/Users/szhou/git/amberdb-170414/test_data/toolCategoryMapSeeds.txt");
-        Path toolCategorySeedsFile = Paths.get("/Users/szhou/git/amberdb-170414/test_data/toolCategorySeeds.txt");
-        Path toolSeedsFile = Paths.get("/Users/szhou/git/amberdb-170414/test_data/toolSeeds.txt");
-        Path toolTypeMapSeedsFile = Paths.get("/Users/szhou/git/amberdb-170414/test_data/toolTypeMapSeeds.txt");
-        Path toolTypeMaterialTypeSeedsFile = Paths
-                .get("/Users/szhou/git/amberdb-170414/test_data/toolTypeMaterialTypeSeeds.txt");
-        Path toolTypeSeedsFile = Paths.get("/Users/szhou/git/amberdb-170414/test_data/toolTypeSeeds.txt");
-        // String listFldsPattern = "\\s*(\".*\"),\\s*(\".*\")";
-        List<List<String>> nameValueLookups = parseLookupData(listSeedsFile, listFldsPattern, 2);
-        String listData = new com.fasterxml.jackson.databind.ObjectMapper().writerWithDefaultPrettyPrinter()
-                .writeValueAsString(nameValueLookups);
-        System.out.println("lookup data is : ");
-        System.out.println(listData);
-
-        List<List<String>> materialTypeLookups = parseLookupData(materialTypeSeedsFile, singleValueLookupFldsPattern, 3);
-        String materialTypeData = new com.fasterxml.jackson.databind.ObjectMapper().writerWithDefaultPrettyPrinter()
-                .writeValueAsString(materialTypeLookups);
-        System.out.println("materialType data is : ");
-        System.out.println(materialTypeData);
-
-        List<List<String>> toolCategoryLookups = parseLookupData(toolCategorySeedsFile,
-                singleValueWithCodeLookupFldsPattern, 4);
-        String toolCategoryData = new com.fasterxml.jackson.databind.ObjectMapper().writerWithDefaultPrettyPrinter()
-                .writeValueAsString(toolCategoryLookups);
-        System.out.println("tool category data is : ");
-        System.out.println(toolCategoryData);
-
-        List<List<String>> toolSeedsLookups = parseLookupData(toolSeedsFile, lookupWithAttributesFldsPattern, 4);
-        String toolsData = new com.fasterxml.jackson.databind.ObjectMapper().writerWithDefaultPrettyPrinter()
-                .writeValueAsString(toolSeedsLookups);
-        System.out.println("tools data is : ");
-        System.out.println(toolsData);
-
-        List<List<String>> toolTypeLookups = parseLookupData(toolTypeSeedsFile, singleValueLookupFldsPattern, 3);
-        String toolTypesData = new com.fasterxml.jackson.databind.ObjectMapper().writerWithDefaultPrettyPrinter()
-                .writeValueAsString(toolTypeLookups);
-        System.out.println("tool type data is : ");
-        System.out.println(toolTypesData);
-
-        List<List<String>> toolCategoryMap = parseLookupData(toolCategoryMapSeedsFile, mapsFldsPattern, 2);
-        String toolCategoryMapData = new com.fasterxml.jackson.databind.ObjectMapper().writerWithDefaultPrettyPrinter()
-                .writeValueAsString(toolCategoryMap);
-        System.out.println("tool category map data is : ");
-        System.out.println(toolCategoryMapData);
-
-        List<List<String>> toolTypeMaterialTypeMap = parseLookupData(toolTypeMaterialTypeSeedsFile, mapsFldsPattern, 2);
-        String toolTypeMaterialTypeData = new com.fasterxml.jackson.databind.ObjectMapper()
-                .writerWithDefaultPrettyPrinter().writeValueAsString(toolTypeMaterialTypeMap);
-        System.out.println("tool type material type map data is : ");
-        System.out.println(toolTypeMaterialTypeData);
-
-        List<List<String>> toolTypeMap = parseLookupData(toolTypeMapSeedsFile, listFldsPattern, 2);
-        String toolTypeMapData = new com.fasterxml.jackson.databind.ObjectMapper().writerWithDefaultPrettyPrinter()
-                .writeValueAsString(toolTypeMap);
-        System.out.println("tool type map data is : ");
-        System.out.println(toolTypeMapData);
-    }
-
-    private List<List<String>> parseLookupData(Path dataFile, String fldsPattern, int fldsTotal) throws IOException {
-        List<List<String>> lookupData = new ArrayList<>();
-
-        List<String> lines = Files.readAllLines(dataFile, Charset.forName("utf8"));
-        Pattern pattern = Pattern.compile(fldsPattern);
-        for (String line : lines) {
-            Matcher matcher = pattern.matcher(line);
-            List<String> flds = new ArrayList<>();
-            if (matcher.matches()) {
-                for (int i = 1; i <= fldsTotal; i++) {
-                    String fld = matcher.group(i).replace("\"", "");
-                    flds.add(fld);
-                }
-                lookupData.add(flds);
-            }
-        }
-        return lookupData;
+    @Test
+    public void testFindListForPublicationCategory() {
+        List<ListLu> publicationCategory = lookups.findListFor("publicationCategory");
+        assertNotNull(publicationCategory);
+        assert(publicationCategory.size() == 9);
+        assert(publicationCategory.get(0).getValue().equals("Commercial"));
     }
     
-    private void printLookupData(List<List<String>> lookupData) throws JsonProcessingException {
-        String lookupDataJson = new com.fasterxml.jackson.databind.ObjectMapper().writerWithDefaultPrettyPrinter()
-                .writeValueAsString(lookupData);
-        System.out.println(lookupDataJson);
+    @Test
+    public void testFindActiveDevices() {
+        List<ToolsLu> devices = lookups.findActiveToolsFor("toolCategory", "Device");
+        assertNotNull(devices);
+        assertEquals(devices.size(), 10);
+    }
+    
+    @Test
+    public void testFindActiveScanners() {
+        List<ToolsLu> scanners = lookups.findActiveToolsFor("toolType", "scanner");
+        assertNotNull(scanners);
+        System.out.println("devices size " + scanners.size());
+        assertEquals(scanners.size(), 6);
+    }
+    
+    @Test
+    public void testFindActiveToolsForNikonInInitialSeeds() {
+        List<ToolsLu> nikonEntries = lookups.findActiveToolsFor("name", "Nikon");
+        assertNotNull(nikonEntries);
+        assert(nikonEntries.size() == 2);
+    }
+    
+    @Test
+    public void testFindToolsEverRecordedForNikonInInitialSeeds() {
+        List<ToolsLu> nikonEntries = lookups.findToolsEverRecordedFor("name", "Nikon");
+        assertNotNull(nikonEntries);
+        assert(nikonEntries.size() == 2);
+    }
+    
+    @Test
+    public void testFindActiveToolCannon20D() {
+        long id = 9L;
+        ToolsLu cannon20D = lookups.findActiveTool(id);
+        assert(cannon20D.getName().equals("Canon 20D"));
+    }
+    
+    @Test(expected = RuntimeException.class)
+    public void testExceptionForNonExistentTool() {
+        Long id = 0L;
+        lookups.findActiveTool(id);
+    }
+    
+    @Test
+    public void testUpdateToolCannon20DResolution() {
+        long id = 9L;
+        String lbl = "Cannon 20D";
+        String code = "null";
+        ToolsLu cannon20D = lookups.findActiveTool(id);
+        assert(cannon20D.getName().equals("Canon 20D"));
+        assert(cannon20D.getResolution().equals(""));
+        lookups.updateLookupData(id, 
+                                 "tools", 
+                                 lbl, code, "resolution", "", "3504x2336");
+        ToolsLu updedCannon = lookups.findActiveTool(id);
+        assert(updedCannon.getName().equals("Canon 20D"));
+        assert(updedCannon.getResolution().equals("3504x2336"));
+    }
+    
+    @Test
+    public void testUpdateToolCannon20DToolType() {
+        long canonId = 9L;        
+        long oldToolTypeId = 452L;
+        long newToolTypeId = 451L;
+        assert(lookups.hasAssociation(canonId, oldToolTypeId));
+        lookups.updateLookupDataMap(canonId, oldToolTypeId, newToolTypeId, "N");
+        assert(lookups.hasAssociation(canonId, newToolTypeId));
+    }
+    
+    @Test
+    public void testUpdateToolCannon20DMaterialType() {
+        long canonId = 9L;        
+        long oldMaterialId = 501L;
+        long newMaterialId = 502L;
+        assert(lookups.hasAssociation(canonId, oldMaterialId));
+        lookups.updateLookupDataMap(canonId, oldMaterialId, newMaterialId, "N");
+        assert(lookups.hasAssociation(canonId, newMaterialId));
+    }
+    
+    @Test
+    public void testUpdateToolCannon20DToolCategory() {
+        long canonId = 9L;        
+        long deviceId = 499L;
+        long softwareId = 500L;
+        assert(lookups.hasAssociation(canonId, deviceId));
+        lookups.updateLookupDataMap(canonId, deviceId, softwareId, "N");
+        assert(lookups.hasAssociation(canonId, softwareId));
+    }
+    
+    @Test
+    public void testUpdateCarrierOnlineToBornDigital() {
+        assert(activeLookupsInclude("carrier", "Online"));
+        assertFalse(activeLookupsInclude("carrier", "Born Digital"));
+        lookups.updateListData("carrier", "Online", "Born Digital");
+        assertFalse(activeLookupsInclude("carrier", "Online"));
+        assert(activeLookupsInclude("carrier", "Born Digital"));
+    }
+    
+    private boolean activeLookupsInclude(String name, String value) {
+        List<ListLu> values = lookups.findListFor(name);
+        if (values == null || values.isEmpty()) return false;
+        for (ListLu luValue : values) {
+            if (luValue.getValue().equals(value))
+                return true;
+        }
+        return false;
+    }
+
+    @Test
+    public void testAddCarrierWireless() {
+        assertFalse(activeLookupsInclude("carrier", "wireless"));
+        lookups.addListData("carrier", "wireless");
+        assert(activeLookupsInclude("carrier", "wireless"));
+    }
+    
+    @Test
+    public void testAddSoftwareAdobeIllustrator() {
+        long id = lookups.nextLookupId();
+        lookups.addLookupData(id, "tools", "", "", "name", "Adobe Illustrator CC", "N");
+        lookups.addLookupData(id, "tools", "", "", "resolution", "", "N");
+        lookups.addLookupData(id, "tools", "", "", "serialNumber", "11-220-284", "N");
+        lookups.addLookupData(id, "tools", "", "", "notes", "Use to create clip art", "N");
+        
+        ToolsLu ai = lookups.findActiveTool(id);
+        assert(ai.getName().equals("Adobe Illustrator CC"));
+        assert(ai.getResolution().equals(""));
+        assert(ai.getSerialNumber().equals("11-220-284"));
+        assert(ai.getNotes().equals("Use to create clip art"));
     }
 }

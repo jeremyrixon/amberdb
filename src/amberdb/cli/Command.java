@@ -14,6 +14,7 @@ abstract class Command {
             new CmdEdit(),
             new CmdHelp(),
             new CmdInfo(),
+            new CmdLoadLookups()
     };
 
     final String name, descrption, parameters;

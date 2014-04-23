@@ -21,9 +21,11 @@ public class ToolsLu {
     String toolType;
     @Column
     String toolCategory;
+    @Column
+    boolean deleted;
     
-    public ToolsLu(Long id, String name, String resolution, String serialNumber,
-                   String notes, String materialType, String toolType, String toolCategory) {
+    public ToolsLu(Long id, String name, String resolution, String serialNumber, String notes,
+                   String materialType, String toolType, String toolCategory, String deleted) {
         this.id = id;
         this.name = name;
         this.resolution = resolution;
@@ -32,6 +34,7 @@ public class ToolsLu {
         this.materialType = materialType;
         this.toolType = toolType;
         this.toolCategory = toolCategory;
+        this.deleted = (deleted == null)? false : deleted.equalsIgnoreCase("Y");
     }
 
     public Long getId() {
@@ -96,5 +99,13 @@ public class ToolsLu {
 
     public void setToolCategory(String toolCategory) {
         this.toolCategory = toolCategory;
-    }  
+    } 
+    
+    public boolean getDeleted() {
+        return deleted;
+    }
+    
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
 }
