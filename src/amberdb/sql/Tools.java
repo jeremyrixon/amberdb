@@ -34,35 +34,36 @@ public abstract class Tools {
     
     @RegisterMapper(Tools.ToolsLuMapper.class)
     @SqlQuery(
-            "select s.id, n.name, r.resolution, s.serialNumber, t.notes, tt.toolType, tt.materialType, toolCategory "
+            "select s.id, n.name, r.resolution, s.serialNumber, t.notes, tt.toolType, tt.materialType, toolCategory, n.deleted "
                     + "from "
                     + "(select id, "
-                    + "       convert(value using utf8) as name "
+                    + "        value as name, "
+                    + "        deleted "
                     + "from lookups "
                     + "where name = 'tools' "
                     + "and attribute = 'name' "
                     + "and deleted = :deleted) n, "
                     + "(select id, "
-                    + "       convert(value using utf8) as resolution "
+                    + "        value as resolution "
                     + "from lookups "
                     + "where name = 'tools' "
                     + "and attribute = 'resolution' "
                     + "and deleted = :deleted) r, "
                     + "(select id, "
-                    + "       convert(value using utf8) as serialNumber "
+                    + "        value as serialNumber "
                     + "from lookups "
                     + "where name = 'tools' "
                     + "and attribute = 'serialNumber' "
                     + "and deleted = :deleted) s, "
                     + "(select id, "
-                    + "       convert(value using utf8) as notes "
+                    + "        value as notes "
                     + "from lookups "
                     + "where name = 'tools' "
                     + "and attribute = 'notes' "
                     + "and deleted = :deleted) t, "
                     + "(select t.id, "
-                    + "        convert(t.value using utf8) as toolType, "
-                    + "        convert(m.value using utf8) as materialType "
+                    + "        t.value as toolType, "
+                    + "        m.value as materialType "
                     + " from lookups t, lookups m, maps mp1 "
                     + " where t.name = 'toolType' "
                     + " and t.deleted = :deleted "
@@ -72,7 +73,7 @@ public abstract class Tools {
                     + " and mp1.parent_id = m.id "
                     + " and mp1.deleted = :deleted) tt, "
                     + "(select distinct mp2.id, "
-                    + "        convert(t1.value using utf8) as toolCategory "
+                    + "        t1.value as toolCategory "
                     + " from lookups t1, maps mp2 "
                     + " where t1.name = 'toolCategory' "
                     + " and t1.deleted = :deleted "
@@ -111,8 +112,12 @@ public abstract class Tools {
     
     public List<ToolsLu> findAllDeletedTools() {
         List<ToolsLu> deletedTools = findTools("Y");
-        if (deletedTools == null) return new ArrayList<>();
-        return deletedTools;
+        List<ToolsLu> latestDeletedTools = findTools("D");
+        if (deletedTools == null && latestDeletedTools == null) return new ArrayList<>();
+        List<ToolsLu> allDeletedTools = new ArrayList<>();
+        if (latestDeletedTools != null) allDeletedTools.addAll(latestDeletedTools);
+        if (deletedTools != null) allDeletedTools.addAll(deletedTools);
+        return allDeletedTools;
     }
     
     public static class ToolsLuMapper implements ResultSetMapper<ToolsLu> {
@@ -167,6 +172,22 @@ public abstract class Tools {
         return toolsFor;
     }
     
+    public List<ToolsLu> findActiveSoftware() {
+        return findActiveToolsFor("toolCategory", "software");
+    }
+    
+    public List<ToolsLu> findSoftwareEverRecorded() {
+        return findToolsEverRecordedFor("toolCategory", "software");
+    }
+    
+    public List<ToolsLu> findActiveDevices() {
+        return findActiveToolsFor("toolCategory", "device");
+    }
+    
+    public List<ToolsLu> findDevicesEverRecorded() {
+        return findToolsEverRecordedFor("toolCategory", "device");
+    }
+     
     private void filterRow(String filterFldName, String filterFldValue, List<ToolsLu> activeToolsFor, ToolsLu tool) {
         if (filterFldName.equalsIgnoreCase("name") && tool.getName().toUpperCase().contains(filterFldValue.toUpperCase()))
             activeToolsFor.add(tool);

@@ -34,7 +34,7 @@ public class ToolsLu {
         this.materialType = materialType;
         this.toolType = toolType;
         this.toolCategory = toolCategory;
-        this.deleted = (deleted == null)? false : deleted.equalsIgnoreCase("Y");
+        this.deleted = (deleted == null)? false : (deleted.equalsIgnoreCase("Y") || deleted.equalsIgnoreCase("D"));
     }
 
     public Long getId() {

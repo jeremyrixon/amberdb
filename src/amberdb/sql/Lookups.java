@@ -39,10 +39,6 @@ public abstract class Lookups extends Tools {
     @SqlQuery("select * from list where name = :name orderBy name, value")
     public abstract List<ListLu> findUnabridgedListFor(@Bind("name") String name);
     
-    @RegisterMapper(Lookups.ListLuMapper.class)
-    @SqlQuery("update list set deleted = 'y' where name = :name and value = :value order by value" )
-    public abstract List<ListLu> removeListItem(@Bind("name") String name,@Bind("value") String value );
-    
     @SqlQuery("select distinct name from list order by name")
     public abstract List<String> findListNames();
     
@@ -57,6 +53,7 @@ public abstract class Lookups extends Tools {
     public abstract void addListData(@Bind("name") String name,
                                      @Bind("value") String value);
     
+    // TODO: change this to indicate the latest deleted as D?
     @SqlUpdate("UPDATE list SET deleted = 'Y' WHERE name = :name and value = :value")
     public abstract void deleteListData(@Bind("name") String name,
                                         @Bind("value") String value);
@@ -86,13 +83,18 @@ public abstract class Lookups extends Tools {
                                               @Bind("value") String value,
                                               @Bind("deleted") String deleted);
     
-    @SqlUpdate("UPDATE lookups SET deleted = 'Y' "
+    @SqlUpdate("UPDATE lookups SET deleted = 'D' "
             + "WHERE id = :id and name = :name and value = :value and code is null and attribute is null")
     public abstract void deleteLookupData(@Bind("id") Long id,
                                               @Bind("name") String name,
                                               @Bind("value") String value);
     
     @SqlUpdate("UPDATE lookups SET deleted = 'Y' "
+            + "WHERE id = :id and name = :name and code is null and attribute is null and deleted = 'D'")
+    public abstract void superceedLatestDeletedLookupData(@Bind("id") Long id,
+                                                          @Bind("name") String name);
+    
+    @SqlUpdate("UPDATE lookups SET deleted = 'D' "
             + "WHERE id = :id and name = :name and value = :value and code = :code and attribute is null")
     public abstract void deleteLookupData(@Bind("id") Long id,
                                               @Bind("name") String name,
@@ -100,21 +102,39 @@ public abstract class Lookups extends Tools {
                                               @Bind("value") String value);
     
     @SqlUpdate("UPDATE lookups SET deleted = 'Y' "
+            + "WHERE id = :id and name = :name and code = :code and attribute is null and deleted = 'D'")
+    public abstract void superceedLatestDeletedLookupData(@Bind("id") Long id,
+                                                          @Bind("name") String name,
+                                                          @Bind("code") String code);
+    
+    @SqlUpdate("UPDATE lookups SET deleted = 'D' "
             + "WHERE id = :id and name = :name and value = :value and attribute = :attribute and code is null")
     public abstract void deleteLookupDataAttribute(@Bind("id") Long id,
                                               @Bind("name") String name,
                                               @Bind("attribute") String attribute,
                                               @Bind("value") String value);
     
+    @SqlUpdate("UPDATE lookups SET deleted = 'Y' "
+            + "WHERE id = :id and name = :name and code is null and attribute = :attribute and deleted = 'D'")
+    public abstract void superceedLatestDeletedLookupDataAttribute(@Bind("id") Long id,
+                                                                   @Bind("name") String name,
+                                                                   @Bind("attribute") String attribute);
+    
     // TODO: maybe code and lbl should be an attribute for the tool lookup as well later?
     public void updateLookupData(Long id, String name, String lbl, String code, String attribute, String oldValue, String newValue) {
         addLookupData(id, name, lbl, code, attribute, newValue, "N");
-        if ((code == null || code.isEmpty()) && (attribute == null || attribute.isEmpty()))
+        if ((code == null || code.isEmpty()) && (attribute == null || attribute.isEmpty())) {
+            superceedLatestDeletedLookupData(id, name);
             deleteLookupData(id, name, oldValue);
-        else if (attribute == null || attribute.isEmpty())
+        }
+        else if (attribute == null || attribute.isEmpty()) {
+            superceedLatestDeletedLookupData(id, name, code);
             deleteLookupData(id, name, code, oldValue);
-        else if (code == null || code.isEmpty())
+        }
+        else if (code == null || code.isEmpty()) {
+            superceedLatestDeletedLookupDataAttribute(id, name, attribute);
             deleteLookupDataAttribute(id, name, attribute, oldValue);
+        }
     }
     
     @SqlUpdate("INSERT INTO maps (id, parent_id, deleted) VALUES"
@@ -123,12 +143,29 @@ public abstract class Lookups extends Tools {
                                           @Bind("parentId") Long parentId,
                                           @Bind("deleted") String deleted);
     
-    @SqlUpdate("UPDATE maps SET deleted = 'Y' WHERE id = :id and parent_id = :parentId")
+    @SqlUpdate("UPDATE maps SET deleted = 'D' WHERE id = :id and parent_id = :parentId")
     public abstract void deleteLookupDataMap(@Bind("id") Long id,
                                              @Bind("parentId") Long parentId);
     
+    @SqlQuery("SELECT distinct l.id from lookups l, lookups l2, maps m " 
+            + "WHERE l2.id = :parentId and l.name = l2.name and l.id = m.parent_id and m.id = :id and m.deleted = 'D'")
+    public abstract List<Long> selectSuperceededLastestDeletedParentIdInMap(@Bind("id") Long id,
+                                                                            @Bind("parentId") Long parentId);
+    
+    @SqlUpdate("UPDATE maps SET deleted = 'Y' "
+            + "WHERE id = :id and parent_id = :parentId and deleted = 'D'")
+    public abstract void superceedLatestDeletedLookupDataMap(@Bind("id") Long id,
+                                                             @Bind("parentId") Long parentId);
+    
+    
     public void updateLookupDataMap(Long id, Long oldParentId, Long newParentId, String deleted) {
         addLookupDataMap(id, newParentId, "N");
+        List<Long> latestParentIds = selectSuperceededLastestDeletedParentIdInMap(id, oldParentId);
+        if (latestParentIds != null) {
+            for (Long parentId : latestParentIds) {
+                superceedLatestDeletedLookupDataMap(id, parentId);
+            }
+        }
         deleteLookupDataMap(id, oldParentId);
     }
     
