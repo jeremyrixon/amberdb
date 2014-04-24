@@ -40,7 +40,7 @@ public class AmberGraph extends BaseGraph
     public static final DataSource DEFAULT_DATASOURCE = 
             JdbcConnectionPool.create("jdbc:h2:mem:persist","pers","pers");
 
-    private DBI dbi;
+    protected DBI dbi;
     private AmberDao dao;
 
     protected Set<Edge> removedEdges = new HashSet<Edge>();
@@ -144,7 +144,25 @@ public class AmberGraph extends BaseGraph
         dao.createIdGeneratorTable();
         dao.createTransactionTable();
         dao.createListTable();
-        dao.seedListTable();
+        
+        dao.seedListTable();        
+        dao.createToolsLookupTable();
+        dao.createToolsMapsTable();
+        dao.createLookupsIdIndex();
+        dao.createLookupsNameIndex();
+        dao.createLookupsNameAttributeIndex();
+        dao.createMapsIdIndex();
+        dao.createMapsParentIdIndex();
+        dao.seedToolsLookupsNameAttribute();
+        dao.seedToolsLookupsResolutionAttribute();
+        dao.seedToolsLookupsSerialAttribute();
+        dao.seedToolsLookupsNotesAttribute();
+        dao.seedToolTypesLookups();
+        dao.seedToolCategoriesLookups();
+        dao.seedMaterialTypesLookups();
+        dao.seedToolTypesMaps();
+        dao.seedToolCategoriesMaps();
+        dao.seedToolMaterialTypesMaps();
         
         newId(); // seed generator with id > 0
     }
