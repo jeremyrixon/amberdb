@@ -36,15 +36,64 @@ public abstract class Lookups extends Tools {
     public abstract List<ListLu> findListFor(@Bind("name") String name);
     
     @RegisterMapper(Lookups.ListLuMapper.class)
-    @SqlQuery("select * from list where name = :name orderBy name, value")
+    @SqlQuery("select * from list where name = :name order by name, value")
     public abstract List<ListLu> findUnabridgedListFor(@Bind("name") String name);
     
     @SqlQuery("select distinct name from list order by name")
     public abstract List<String> findListNames();
     
+    @RegisterMapper(Lookups.LookupLuMapper.class)
+    @SqlQuery("select id, name, value, code, deleted from lookups where name = :name and deleted = :deleted order by name, value")
+    public abstract List<ListLu> findLookupsFor(@Bind("name") String name, @Bind("deleted") String deleted);
+    
+    public List<ListLu> findActiveLookupsFor(String name) {
+        List<ListLu> activeLookups = findLookupsFor(name, "N");
+        if (activeLookups == null) return new ArrayList<>();
+        return activeLookups;
+    }
+    
+    public List<ListLu> findLatestDeletedLookupsFor(String name) {
+        List<ListLu> latestDeleted = findLookupsFor(name, "D");
+        if (latestDeleted == null) return new ArrayList<>();
+        return latestDeleted;
+    }
+    
+    public List<ListLu> findAllDeletedLookupsFor(String name) {
+        List<ListLu> deletedLookups = findLookupsFor(name, "Y");
+        List<ListLu> latestDeleted = findLookupsFor(name, "D");
+        if (deletedLookups == null && latestDeleted == null) return new ArrayList<>();
+        List<ListLu> allDeletedLookups = new ArrayList<>();
+        if (latestDeleted != null) allDeletedLookups.addAll(latestDeleted);
+        if (deletedLookups != null) allDeletedLookups.addAll(deletedLookups);
+        return allDeletedLookups;
+    }
+    
+    public List<ListLu> findAllLookupsEverRecordedFor(String name) {
+        List<ListLu> lookups = new ArrayList<>();
+        lookups.addAll(findActiveLookupsFor(name));
+        lookups.addAll(findAllDeletedLookupsFor(name));
+        return lookups;
+    }
+    
+    public ListLu findLookup(long id, String name) {
+        List<ListLu> lookups = findAllLookupsEverRecordedFor(name);
+        for (ListLu lookup : lookups) {
+            if (lookup.getId() != null && lookup.getId() == id) {
+                return lookup;
+            }
+        }
+        throw new RuntimeException("Lookup of id " + id + " is not found.");
+    }
+    
     public static class ListLuMapper implements ResultSetMapper<ListLu> {
         public ListLu map(int index, ResultSet r, StatementContext ctx) throws SQLException {
             return new ListLu(r.getString("name"), r.getString("value"));
+        }
+    }
+    
+    public static class LookupLuMapper implements ResultSetMapper<ListLu> {
+        public ListLu map(int index, ResultSet r, StatementContext ctx) throws SQLException {
+            return new ListLu(r.getLong("id"), r.getString("name"), r.getString("value"), r.getString("code"), r.getString("deleted"));
         }
     }
     
