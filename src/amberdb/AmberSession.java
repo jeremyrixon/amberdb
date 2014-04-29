@@ -261,8 +261,8 @@ public class AmberSession implements AutoCloseable {
             for (Copy copy : copies) {
                 deleteCopy(copy);
             }
-            graph.removeVertex(work.asVertex());
         }
+        graph.removeVertex(work.asVertex());
     }
 
     
