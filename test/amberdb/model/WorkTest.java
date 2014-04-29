@@ -249,11 +249,14 @@ public class WorkTest {
             try {
                 //make sure all Copies are deleted
                 db.getAmberGraph().getVertex(copy.asVertex().getId());
+                /* never reached */
                 assert(false);
             } catch ( NoSuchObjectException e) {
-                assert(true);
+                assert(true); 
             }
         }
+
+        /* expects a NoSuchObjectException */
         db.findWork(workVertexId);
     }
     
