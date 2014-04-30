@@ -98,7 +98,7 @@ public class AmberLookupsTest {
         long oldToolTypeId = 452L;
         long newToolTypeId = 451L;
         assert(lookups.hasAssociation(canonId, oldToolTypeId));
-        lookups.updateLookupDataMap(canonId, oldToolTypeId, newToolTypeId, "N");
+        lookups.updateLookupDataMap(canonId, oldToolTypeId, newToolTypeId);
         assert(lookups.hasAssociation(canonId, newToolTypeId));
     }
     
@@ -108,7 +108,7 @@ public class AmberLookupsTest {
         long oldMaterialId = 501L;
         long newMaterialId = 502L;
         assert(lookups.hasAssociation(canonId, oldMaterialId));
-        lookups.updateLookupDataMap(canonId, oldMaterialId, newMaterialId, "N");
+        lookups.updateLookupDataMap(canonId, oldMaterialId, newMaterialId);
         assert(lookups.hasAssociation(canonId, newMaterialId));
     }
     
@@ -118,7 +118,7 @@ public class AmberLookupsTest {
         long deviceId = 499L;
         long softwareId = 500L;
         assert(lookups.hasAssociation(canonId, deviceId));
-        lookups.updateLookupDataMap(canonId, deviceId, softwareId, "N");
+        lookups.updateLookupDataMap(canonId, deviceId, softwareId);
         assert(lookups.hasAssociation(canonId, softwareId));
     }
     

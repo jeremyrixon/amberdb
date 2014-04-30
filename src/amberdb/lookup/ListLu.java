@@ -24,8 +24,11 @@ public class ListLu {
     public ListLu(Long id, String name, String value, String code, String deleted) {
         this.id = id;
         this.name = name;
-        this.value = value;
-        this.code = code;
+        this.value = value;   
+        if (code == null) 
+            this.code = this.value;
+        else
+            this.code = code;
         this.deleted = deleted;
     }
     

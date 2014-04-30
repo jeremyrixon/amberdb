@@ -46,6 +46,24 @@ public abstract class Lookups extends Tools {
     @SqlQuery("select id, name, value, code, deleted from lookups where name = :name and deleted = :deleted order by name, value")
     public abstract List<ListLu> findLookupsFor(@Bind("name") String name, @Bind("deleted") String deleted);
     
+    @RegisterMapper(Lookups.ListLuMapper.class)
+    @SqlQuery("select id, name, value, code, deleted from lookups where name = :name and (code = :code or value = :code) and (deleted is null or deleted = 'N') order by value")
+    public abstract List<ListLu> findActiveLookup(@Bind("name") String name, @Bind("code") String code);
+    
+    @RegisterMapper(Lookups.ListLuMapper.class)
+    @SqlQuery("select id, name, value, code, deleted from lookups where name = :name and (code = :code or value = :code) and (deleted = 'D' or deleted = 'Y') order by deleted, value")
+    public abstract List<ListLu> findDeletedLookup(@Bind("name")String name, @Bind("code") String code);
+    
+    public ListLu findLookup(String name, String code) {
+        List<ListLu> activeLookups = findActiveLookup(name, code);
+        if (activeLookups != null && activeLookups.size() > 0)
+            return activeLookups.get(0);
+        List<ListLu> deletedLookups = findDeletedLookup(name, code);
+        if (deletedLookups != null && deletedLookups.size() > 0)
+            return deletedLookups.get(0);
+        return null;
+    }
+    
     public List<ListLu> findActiveLookupsFor(String name) {
         List<ListLu> activeLookups = findLookupsFor(name, "N");
         if (activeLookups == null) return new ArrayList<>();
@@ -93,7 +111,15 @@ public abstract class Lookups extends Tools {
     
     public static class LookupLuMapper implements ResultSetMapper<ListLu> {
         public ListLu map(int index, ResultSet r, StatementContext ctx) throws SQLException {
-            return new ListLu(r.getLong("id"), r.getString("name"), r.getString("value"), r.getString("code"), r.getString("deleted"));
+            String code = r.getString("code");
+            if (code == null || code.isEmpty()) {
+                String name = r.getString("name");
+                if (name != null && name.equals("tools"))
+                    code = r.getString("id");
+                else
+                    code = r.getString("value");
+            }
+            return new ListLu(r.getLong("id"), r.getString("name"), r.getString("value"), code, r.getString("deleted"));
         }
     }
     
@@ -207,7 +233,7 @@ public abstract class Lookups extends Tools {
                                                              @Bind("parentId") Long parentId);
     
     
-    public void updateLookupDataMap(Long id, Long oldParentId, Long newParentId, String deleted) {
+    public void updateLookupDataMap(Long id, Long oldParentId, Long newParentId) {
         addLookupDataMap(id, newParentId, "N");
         List<Long> latestParentIds = selectSuperceededLastestDeletedParentIdInMap(id, oldParentId);
         if (latestParentIds != null) {
