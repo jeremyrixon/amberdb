@@ -229,7 +229,7 @@ public class WorkTest {
         
         Work work = bookBlinkyBill;
         long workVertexId = work.getId();
-        assertEquals(workVertexId, work.asVertex().getId());
+
         List<Long> copyVertexIds = new ArrayList<Long>();
         List<Long> fileVertexIds = new ArrayList<Long>();
         Iterable<Copy> copies = work.getCopies();
@@ -245,15 +245,33 @@ public class WorkTest {
         }
         
         db.deleteWork(work);
+
+        //make sure all copies records were deleted
         for (Copy copy : copies) {
             try {
-                //make sure all Copies are deleted
                 db.getAmberGraph().getVertex(copy.asVertex().getId());
+                /* never reached - exception should be raised... */
                 assert(false);
             } catch ( NoSuchObjectException e) {
-                assert(true);
+                assert(true); 
             }
         }
+
+        /* expects a NoSuchObjectException */
+        db.findWork(workVertexId);
+    }
+
+    @Test(expected = NoSuchObjectException.class)
+    public void testDeleteWorkWithNoCopies() {
+        AmberSession db = new AmberSession();
+        setTestDataInH2(db);
+
+        Work work = bookBlinkyBill;
+        long workVertexId = work.getId();
+
+        db.deleteWork(work);
+
+        /* expects a NoSuchObjectException */
         db.findWork(workVertexId);
     }
     
