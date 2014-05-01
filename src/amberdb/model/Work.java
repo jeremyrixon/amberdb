@@ -626,18 +626,6 @@ public interface Work extends Node {
     @Property("workPid")
     public void setWorkPid(String workPid);
 
-    @Property("internalComments")
-    public String getInternalComments();
-
-    @Property("internalComments")
-    public void setInternalComments(String internalComments);
-
-    @Property("externalCommonts")
-    public String getExternalCommonts();
-
-    @Property("externalCommonts")
-    public void setExternalCommonts(String externalCommonts);
-
     @Property("accessRestrictions")
     public String getAccessRestrictions();
 

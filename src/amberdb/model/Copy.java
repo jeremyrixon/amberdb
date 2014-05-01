@@ -186,12 +186,6 @@ public interface Copy extends Node {
     @Property("timedStatus")
     public void setTimedStatus(String timedStatus);
 
-    @Property("internalComments")
-    public String getInternalComments();
-
-    @Property("internalComments")
-    public void setInternalComments(String internalComments);
-
 
     /**
      * This property is encoded as a JSON Hash - You probably want to use getAllOtherNumbers to get this property
