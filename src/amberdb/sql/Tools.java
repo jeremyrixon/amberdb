@@ -20,7 +20,6 @@ public abstract class Tools {
             + "(:id, :name, :lbl, :code, :attribute, :value, :deleted)")
     public abstract void seedToolsLookupTable(@Bind("id") List<Long> id,
                                               @Bind("name") List<String> name,
-                                              @Bind("lbl") List<String> lbl,
                                               @Bind("code") List<String> code,
                                               @Bind("attribute") List<String> attribute,
                                               @Bind("value") List<String> value,
@@ -34,7 +33,7 @@ public abstract class Tools {
     
     @RegisterMapper(Tools.ToolsLuMapper.class)
     @SqlQuery(
-            "select s.id, n.name, r.resolution, s.serialNumber, t.notes, tt.toolType, tt.materialType, toolCategory, n.deleted "
+            "select s.id, n.name, r.resolution, s.serialNumber, t.notes, tt.id as toolTypeId, tt.toolType, tt.materialType, toolCategory, commitTime, commitUser, n.deleted "
                     + "from "
                     + "(select id, "
                     + "        value as name, "
@@ -61,6 +60,18 @@ public abstract class Tools {
                     + "where name = 'tools' "
                     + "and attribute = 'notes' "
                     + "and deleted = :deleted) t, "
+                    + "(select id, "
+                    + "        value as commitTime "
+                    + "from lookups "
+                    + "where name = 'tools' "
+                    + "and attribute = 'commitTime' "
+                    + "and deleted = :deleted) ct, "
+                    + "(select id, "
+                    + "        value as commitUser "
+                    + "from lookups "
+                    + "where name = 'tools' "
+                    + "and attribute = 'commitUser' "
+                    + "and deleted = :deleted) cu, "
                     + "(select t.id, "
                     + "        t.value as toolType, "
                     + "        m.value as materialType "
@@ -83,10 +94,13 @@ public abstract class Tools {
                     + "where n.id = r.id "
                     + "and r.id = s.id "
                     + "and s.id = t.id "
+                    + "and s.id = ct.id "
+                    + "and s.id = cu.id "
                     + "and s.id = mp.id "
                     + "and tt.id = tt1.id "
                     + "and mp.parent_id = tt.id "
                     + "and mp.deleted = :deleted "
+                    + "order by n.name "
             )
     public abstract List<ToolsLu> findTools(@Bind("deleted") String deleted);   
 
@@ -122,14 +136,25 @@ public abstract class Tools {
     
     public static class ToolsLuMapper implements ResultSetMapper<ToolsLu> {
         public ToolsLu map(int index, ResultSet r, StatementContext ctx) throws SQLException {
+            Long commitTime = null;
+            if (r.getString("commitTime") != null && !r.getString("commitTime").isEmpty()) {
+                try {
+                    commitTime = Long.parseLong(r.getString("commitTime"));        
+                } catch (java.lang.NumberFormatException e) {
+                    commitTime = null;
+                }
+            }
             return new ToolsLu(r.getLong("id"),
                     r.getString("name"),
                     r.getString("resolution"),
                     r.getString("serialNumber"),
                     r.getString("notes"),
                     r.getString("materialType"),
+                    r.getLong("toolTypeId"),
                     r.getString("toolType"),
                     r.getString("toolCategory"),
+                    commitTime,
+                    r.getString("commitUser"),
                     r.getString("deleted"));
         }
     }

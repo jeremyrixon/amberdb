@@ -1,5 +1,8 @@
 package amberdb.lookup;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 
@@ -10,6 +13,8 @@ public class ToolsLu {
     @Column
     String name;
     @Column
+    String code;
+    @Column
     String resolution;
     @Column
     String serialNumber;
@@ -17,23 +22,34 @@ public class ToolsLu {
     String notes;
     @Column
     String materialType;
+    @Column 
+    Long toolTypeId;
     @Column
     String toolType;
     @Column
     String toolCategory;
     @Column
+    Long commitTime;
+    @Column
+    String commitUser;
+    @Column
     boolean deleted;
     
     public ToolsLu(Long id, String name, String resolution, String serialNumber, String notes,
-                   String materialType, String toolType, String toolCategory, String deleted) {
+                   String materialType, Long toolTypeId, String toolType, String toolCategory, 
+                   Long commitTime, String commitUser, String deleted) {
         this.id = id;
+        this.code = id.toString();
         this.name = name;
         this.resolution = resolution;
         this.serialNumber = serialNumber;
         this.notes = notes;
         this.materialType = materialType;
+        this.toolTypeId = toolTypeId;
         this.toolType = toolType;
         this.toolCategory = toolCategory;
+        this.commitTime = commitTime;
+        this.commitUser = commitUser;
         this.deleted = (deleted == null)? false : (deleted.equalsIgnoreCase("Y") || deleted.equalsIgnoreCase("D"));
     }
 
@@ -45,6 +61,14 @@ public class ToolsLu {
         this.id = id;
     }
 
+    public Long getToolTypeId() {
+        return toolTypeId;
+    }
+    
+    public void setToolTypeId(Long toolTypeId) {
+        this.toolTypeId = toolTypeId;
+    }
+    
     public String getName() {
         return name;
     }
@@ -100,6 +124,19 @@ public class ToolsLu {
     public void setToolCategory(String toolCategory) {
         this.toolCategory = toolCategory;
     } 
+    
+    public Long getCommitTime() {
+        return commitTime;
+    }
+    
+    public String getFormatedCommitTime(String fmt) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat(fmt);
+        return dateFormat.format(new Date(getCommitTime())); 
+    }
+    
+    public String getCommitUser() {
+        return commitUser;
+    }
     
     public boolean getDeleted() {
         return deleted;

@@ -1,6 +1,7 @@
 package amberdb.sql;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,80 +22,110 @@ public abstract class LookupsMock extends Lookups {
                     " R04/19825 and N04/83 of file NLA/15811 relate.",
                     "Used MagicScan software for image capture. NLA  asset 26105 written off and disposed of in 2003/4 FY due to breakdown. TRIM folios R04/14022",
                     "Image",
+                    451L,
                     "Transmission scanner",
                     "Device",
+                    new Date().getTime(),
+                    "apastro",
                     deleted);
             
             ToolsLu scanView = new ToolsLu(2L, "Scanview ScanMate F6", "", 
                     "",
                     "",
                     "Image",
+                    451L,
                     "Transmission scanner",
                     "Device",
+                    new Date().getTime(),
+                    "apastro",
                     deleted);
             
             ToolsLu agfaArcus = new ToolsLu(3L, "AGFA Arcus II", "", 
                     "",
                     "",
                     "Image",
+                    451L,
                     "Transmission scanner",
                     "Device",
+                    new Date().getTime(),
+                    "apastro",
                     deleted);
             
             ToolsLu agfaDuoScan = new ToolsLu(4L, "AGFA DuoScan T2000XL + FotoLook", "", 
                     "",
                     "",
                     "Image",
+                    451L,
                     "Transmission scanner",
                     "Device",
+                    new Date().getTime(),
+                    "apastro",
                     deleted);
             
             ToolsLu nikonSuper = new ToolsLu(5L, "Nikon Super CoolScan 4000ED", "", 
                     "",
                     "",
                     "Image",
+                    451L,
                     "Camera",
                     "Device",
+                    new Date().getTime(),
+                    "apastro",
                     deleted);
             
             ToolsLu phaseOne = new ToolsLu(6L, "PhaseOne Phase FX", "", 
                     "",
                     "",
                     "Image",
+                    451L,
                     "Transmission scanner",
                     "Device",
+                    new Date().getTime(),
+                    "apastro",
                     deleted);
             
             ToolsLu sinar = new ToolsLu(7L, "Sinar Macroscan", "", 
                     "",
                     "",
                     "Image",
+                    451L,
                     "Transmission scanner",
                     "Device",
+                    new Date().getTime(),
+                    "apastro",
                     deleted);
             
             ToolsLu nikonD1 = new ToolsLu(8L, "Nikon D1", "", 
                     "",
                     "",
                     "Image",
+                    451L,
                     "Camera",
                     "Device",
+                    new Date().getTime(),
+                    "apastro",
                     deleted);
             
             ToolsLu canon20D = new ToolsLu(9L, "Canon 20D", "", 
                     "",
                     "",
                     "Image",
+                    451L,
                     "Camera",
                     "Device",
+                    new Date().getTime(),
+                    "apastro",
                     deleted);
             
             ToolsLu kodak = new ToolsLu(10L, "Kodak ProBack", "", 
                     "",
                     "",
                     "Image",
+                    451L,
                     "Camera",
                     "Device",
+                    new Date().getTime(),
+                    "apastro",
                     deleted);
             tools.add(umax);
             tools.add(scanView);
@@ -133,7 +164,7 @@ public abstract class LookupsMock extends Lookups {
         
         if (name.equals("tools")) {
             if (toolsHash.get(id) == null) {
-                newTool = new ToolsLu(id, "", "", "", "", "", "", "", deleted);
+                newTool = new ToolsLu(id, "", "", "", "", "", 0L, "", "", new Date().getTime(), "apastro", deleted);
                 toolsHash.put(id, newTool);
                 tools = findAllActiveTools();
                 tools.add(newTool);
