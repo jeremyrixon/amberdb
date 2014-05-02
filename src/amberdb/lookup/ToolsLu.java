@@ -1,5 +1,6 @@
 package amberdb.lookup;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -126,6 +127,11 @@ public class ToolsLu {
     
     public Long getCommitTime() {
         return commitTime;
+    }
+    
+    public String getFormatedCommitTime(String fmt) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat(fmt);
+        return dateFormat.format(new Date(getCommitTime())); 
     }
     
     public String getCommitUser() {

@@ -108,17 +108,6 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "operation TEXT)")
     void createTransactionTable();
 
-    
-    /*
-     * Lookup table - stores lists of objects. for example types of tape
-     */
-    @SqlUpdate(
-            "CREATE TABLE IF NOT EXISTS list ("
-            + "name      VARCHAR(100), " 
-            + "value     VARCHAR(100), " 
-            + "deleted   VARCHAR(1) )")
-    void createListTable();
-
     /*
      * Tools Lookup table - stores tools related reference data
      * 
@@ -128,12 +117,11 @@ public interface AmberDao extends Transactional<AmberDao> {
             "CREATE TABLE IF NOT EXISTS lookups ("
             + "id        int(11), "
             + "name      varchar(50), "
-            + "lbl       varchar(255), "
             + "code      varchar(50), "
             + "attribute varchar(255), "
             + "value     varchar(4000), "
             + "deleted   varchar(1) default 'N' )")
-    void createToolsLookupTable();
+    void createLookupTable();
     
     /*
      * Tools Many-To-Many association with multiple material types and software/device category
@@ -176,10 +164,7 @@ public interface AmberDao extends Transactional<AmberDao> {
      * General lookups
      */
     @SqlUpdate(
-      "INSERT INTO list (name, value) VALUES"
-      + "('materialType', 'Image'), "
-      + "('materialType', 'Sound'),"
-      + "('materialType', 'Text' ),"
+      "INSERT INTO lookups (name, value) VALUES"
       + "('copyType', 'Physical'),"
       + "('copyType', 'Digitised'),"
       + "('copyType', 'Born Digital'),"
@@ -1038,7 +1023,7 @@ public interface AmberDao extends Transactional<AmberDao> {
       + "('digitalStatus','Partially Captured'),"
       + "('digitalStatus','Preserved analogue')"
     )
-    void seedListTable();
+    void seedKeyValueList();
     
     /*
      * tools name attributes definition

@@ -25,14 +25,6 @@ public class AmberLookupsTest {
     public void teardown() {
         session = null;
     }
-
-    @Test
-    public void testFindListForPublicationCategory() {
-        List<ListLu> publicationCategory = lookups.findListFor("publicationCategory");
-        assertNotNull(publicationCategory);
-        assert(publicationCategory.size() == 9);
-        assert(publicationCategory.get(0).getValue().equals("Commercial"));
-    }
     
     @Test
     public void testFindActiveDevices() {
@@ -86,7 +78,7 @@ public class AmberLookupsTest {
         assert(cannon20D.getResolution().equals(""));
         lookups.updateLookupData(id, 
                                  "tools", 
-                                 lbl, code, "resolution", "", "3504x2336");
+                                 lbl, "resolution", "", "3504x2336");
         ToolsLu updedCannon = lookups.findActiveTool(id);
         assert(updedCannon.getName().equals("Canon 20D"));
         assert(updedCannon.getResolution().equals("3504x2336"));
@@ -126,13 +118,15 @@ public class AmberLookupsTest {
     public void testUpdateCarrierOnlineToBornDigital() {
         assert(activeLookupsInclude("carrier", "Online"));
         assertFalse(activeLookupsInclude("carrier", "Born Digital"));
-        lookups.updateListData("carrier", "Online", "Born Digital");
-        assertFalse(activeLookupsInclude("carrier", "Online"));
-        assert(activeLookupsInclude("carrier", "Born Digital"));
+        
+        ListLu imageMT = lookups.findLookup("materialType", "Text");
+        lookups.updateLookupData(imageMT.getId(), imageMT.getName(), imageMT.getValue(), "Ocr Text");
+        assertFalse(activeLookupsInclude("materialType", "Text"));
+        assert(activeLookupsInclude("materialType", "Ocr Text"));
     }
     
     private boolean activeLookupsInclude(String name, String value) {
-        List<ListLu> values = lookups.findListFor(name);
+        List<ListLu> values = lookups.findActiveLookupsFor(name);
         if (values == null || values.isEmpty()) return false;
         for (ListLu luValue : values) {
             if (luValue.getValue().equals(value))
@@ -143,9 +137,9 @@ public class AmberLookupsTest {
 
     @Test
     public void testAddCarrierWireless() {
-        assertFalse(activeLookupsInclude("carrier", "wireless"));
-        lookups.addListData("carrier", "wireless");
-        assert(activeLookupsInclude("carrier", "wireless"));
+        assertFalse(activeLookupsInclude("materialType", "wireless"));
+        lookups.addLookupData(lookups.nextLookupId(), "materialType", "wireless");
+        assert(activeLookupsInclude("materialType", "wireless"));
     }
     
     @Test

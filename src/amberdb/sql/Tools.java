@@ -20,7 +20,6 @@ public abstract class Tools {
             + "(:id, :name, :lbl, :code, :attribute, :value, :deleted)")
     public abstract void seedToolsLookupTable(@Bind("id") List<Long> id,
                                               @Bind("name") List<String> name,
-                                              @Bind("lbl") List<String> lbl,
                                               @Bind("code") List<String> code,
                                               @Bind("attribute") List<String> attribute,
                                               @Bind("value") List<String> value,
@@ -101,6 +100,7 @@ public abstract class Tools {
                     + "and tt.id = tt1.id "
                     + "and mp.parent_id = tt.id "
                     + "and mp.deleted = :deleted "
+                    + "order by n.name "
             )
     public abstract List<ToolsLu> findTools(@Bind("deleted") String deleted);   
 
@@ -137,8 +137,12 @@ public abstract class Tools {
     public static class ToolsLuMapper implements ResultSetMapper<ToolsLu> {
         public ToolsLu map(int index, ResultSet r, StatementContext ctx) throws SQLException {
             Long commitTime = null;
-            if (r.getString("commitTime") != null && r.getString("commitTime").isEmpty()) {
-                    commitTime = Long.parseLong(r.getString("commitTime"));                
+            if (r.getString("commitTime") != null && !r.getString("commitTime").isEmpty()) {
+                try {
+                    commitTime = Long.parseLong(r.getString("commitTime"));        
+                } catch (java.lang.NumberFormatException e) {
+                    commitTime = null;
+                }
             }
             return new ToolsLu(r.getLong("id"),
                     r.getString("name"),

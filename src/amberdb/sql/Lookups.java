@@ -9,48 +9,33 @@ import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
-
 import java.util.Properties;
 
 import amberdb.lookup.ListLu;
+import amberdb.lookup.ToolsLu;
 
-public abstract class Lookups extends Tools {
-    @RegisterMapper(Lookups.ListLuMapper.class)
-    @SqlQuery("select * from list order by name, value")
-    public abstract List<ListLu> findAllLists();
-
-    @RegisterMapper(Lookups.ListLuMapper.class)
-    @SqlQuery("select * from list where name = :name and deleted is null order by name, value")
-    public abstract List<ListLu> findListFor(@Bind("name") String name);
-    
-    @RegisterMapper(Lookups.ListLuMapper.class)
-    @SqlQuery("select * from list where name = :name order by name, value")
-    public abstract List<ListLu> findUnabridgedListFor(@Bind("name") String name);
-    
-    @SqlQuery("select distinct name from list order by name")
-    public abstract List<String> findListNames();
-    
+public abstract class Lookups extends Tools {    
     @RegisterMapper(Lookups.LookupLuMapper.class)
     @SqlQuery("select id, name, value, code, deleted from lookups where name = :name and deleted = :deleted order by name, value")
     public abstract List<ListLu> findLookupsFor(@Bind("name") String name, @Bind("deleted") String deleted);
     
-    @RegisterMapper(Lookups.ListLuMapper.class)
+    @RegisterMapper(Lookups.LookupLuMapper.class)
     @SqlQuery("select id, name, value, code, deleted from lookups where name = :name and (code = :code or value = :code) and (deleted is null or deleted = 'N') order by value")
     public abstract List<ListLu> findActiveLookup(@Bind("name") String name, @Bind("code") String code);
     
-    @RegisterMapper(Lookups.ListLuMapper.class)
+    @RegisterMapper(Lookups.LookupLuMapper.class)
     @SqlQuery("select id, name, value, code, deleted from lookups where name = :name and (code = :code or value = :code) and (deleted = 'D' or deleted = 'Y') order by deleted, value")
     public abstract List<ListLu> findDeletedLookup(@Bind("name")String name, @Bind("code") String code);
     
@@ -103,12 +88,6 @@ public abstract class Lookups extends Tools {
         throw new RuntimeException("Lookup of id " + id + " is not found.");
     }
     
-    public static class ListLuMapper implements ResultSetMapper<ListLu> {
-        public ListLu map(int index, ResultSet r, StatementContext ctx) throws SQLException {
-            return new ListLu(r.getString("name"), r.getString("value"));
-        }
-    }
-    
     public static class LookupLuMapper implements ResultSetMapper<ListLu> {
         public ListLu map(int index, ResultSet r, StatementContext ctx) throws SQLException {
             String code = r.getString("code");
@@ -122,31 +101,20 @@ public abstract class Lookups extends Tools {
             return new ListLu(r.getLong("id"), r.getString("name"), r.getString("value"), code, r.getString("deleted"));
         }
     }
-    
-    @SqlUpdate("INSERT INTO list (name, value) VALUES"
-            + "(:name,:value)")
-    public abstract void addListData(@Bind("name") String name,
-                                     @Bind("value") String value);
-    
-    // TODO: change this to indicate the latest deleted as D?
-    @SqlUpdate("UPDATE list SET deleted = 'Y' WHERE name = :name and value = :value")
-    public abstract void deleteListData(@Bind("name") String name,
-                                        @Bind("value") String value);
-    
-    @SqlUpdate("INSERT INTO list (name, value) VALUES"
-            + "(:name,:value,:deleted)")
-    public abstract void seedListData(@Bind("name") List<String> name, 
-                                      @Bind("value") List<String> value,
-                                      @Bind("deleted") List<String> deleted);
         
-        
-    public void updateListData(String name, String oldValue, String newValue) {
-        addListData(name, newValue);
-        deleteListData(name, oldValue);
-    }
-    
     @SqlQuery("select max(id) + 1 from lookups")
     public abstract Long nextLookupId();
+    
+    @SqlUpdate("INSERT INTO lookups (id, name, code, value, deleted) VALUES"
+            + "(:id, :name, :code, :value, 'N')")
+    protected abstract void addLookupData(@Bind("id") Long id,
+                                              @Bind("name") String name,
+                                              @Bind("code") String code,
+                                              @Bind("value") String value);
+    
+    public void addLookupData(Long id, String name, String value) {
+        addLookupData(id, name, value, value);
+    }
     
     @SqlUpdate("INSERT INTO lookups (id, name, lbl, code, attribute, value, deleted) VALUES"
             + "(:id, :name, :lbl, :code, :attribute, :value, :deleted)")
@@ -159,56 +127,54 @@ public abstract class Lookups extends Tools {
                                               @Bind("deleted") String deleted);
     
     @SqlUpdate("UPDATE lookups SET deleted = 'D' "
-            + "WHERE id = :id and name = :name and value = :value and code is null and attribute is null")
-    public abstract void deleteLookupData(@Bind("id") Long id,
-                                              @Bind("name") String name,
-                                              @Bind("value") String value);
-    
-    @SqlUpdate("UPDATE lookups SET deleted = 'Y' "
-            + "WHERE id = :id and name = :name and code is null and attribute is null and deleted = 'D'")
-    public abstract void superceedLatestDeletedLookupData(@Bind("id") Long id,
-                                                          @Bind("name") String name);
-    
-    @SqlUpdate("UPDATE lookups SET deleted = 'D' "
-            + "WHERE id = :id and name = :name and value = :value and code = :code and attribute is null")
+            + "WHERE id = :id and name = :name and value = :value and (code is null or code = :code) and attribute is null")
     public abstract void deleteLookupData(@Bind("id") Long id,
                                               @Bind("name") String name,
                                               @Bind("code") String code,
                                               @Bind("value") String value);
     
     @SqlUpdate("UPDATE lookups SET deleted = 'Y' "
-            + "WHERE id = :id and name = :name and code = :code and attribute is null and deleted = 'D'")
+            + "WHERE id = :id and name = :name and (code = :code or value = :code) and attribute is null and deleted = 'D'")
     public abstract void superceedLatestDeletedLookupData(@Bind("id") Long id,
                                                           @Bind("name") String name,
                                                           @Bind("code") String code);
     
     @SqlUpdate("UPDATE lookups SET deleted = 'D' "
-            + "WHERE id = :id and name = :name and value = :value and attribute = :attribute and code is null")
+            + "WHERE id = :id and name = :name and value = :value and attribute = :attribute")
     public abstract void deleteLookupDataAttribute(@Bind("id") Long id,
                                               @Bind("name") String name,
                                               @Bind("attribute") String attribute,
                                               @Bind("value") String value);
     
     @SqlUpdate("UPDATE lookups SET deleted = 'Y' "
-            + "WHERE id = :id and name = :name and code is null and attribute = :attribute and deleted = 'D'")
+            + "WHERE id = :id and name = :name and attribute = :attribute and deleted = 'D'")
     public abstract void superceedLatestDeletedLookupDataAttribute(@Bind("id") Long id,
                                                                    @Bind("name") String name,
                                                                    @Bind("attribute") String attribute);
     
-    // TODO: maybe code and lbl should be an attribute for the tool lookup as well later?
-    public void updateLookupData(Long id, String name, String lbl, String code, String attribute, String oldValue, String newValue) {
-        addLookupData(id, name, lbl, code, attribute, newValue, "N");
-        if ((code == null || code.isEmpty()) && (attribute == null || attribute.isEmpty())) {
-            superceedLatestDeletedLookupData(id, name);
-            deleteLookupData(id, name, oldValue);
+    public void updateLookupData(Long id, String name, String oldValue, String newValue) {
+        if (!newValue.equals(oldValue)) {
+            ListLu lu = findLookup(id, name);
+            String luCode = (lu != null && lu.getId() != null) ? lu.getCode() : newValue;
+            superceedLatestDeletedLookupData(id, name, luCode);
+            deleteLookupData(id, name, luCode, oldValue);
+            addLookupData(id, name, luCode, newValue);
         }
-        else if (attribute == null || attribute.isEmpty()) {
-            superceedLatestDeletedLookupData(id, name, code);
-            deleteLookupData(id, name, code, oldValue);
-        }
-        else if (code == null || code.isEmpty()) {
-            superceedLatestDeletedLookupDataAttribute(id, name, attribute);
-            deleteLookupDataAttribute(id, name, attribute, oldValue);
+    }
+    
+    public void updateLookupData(Long id, String name, String lbl, String attribute, String oldValue, String newValue) {
+        if (!newValue.equals(oldValue)) {
+            ListLu lu = findLookup(id, name);
+            String luCode = (lu != null && lu.getId() != null) ? lu.getCode() : newValue;
+
+            if (attribute == null || attribute.isEmpty()) {
+                superceedLatestDeletedLookupData(id, name, luCode);
+                deleteLookupData(id, name, luCode, oldValue);
+            } else {
+                superceedLatestDeletedLookupDataAttribute(id, name, attribute);
+                deleteLookupDataAttribute(id, name, attribute, oldValue);
+            }
+            addLookupData(id, name, lbl, luCode, attribute, newValue, "N");
         }
     }
     
@@ -234,35 +200,30 @@ public abstract class Lookups extends Tools {
     
     
     public void updateLookupDataMap(Long id, Long oldParentId, Long newParentId) {
-        addLookupDataMap(id, newParentId, "N");
-        List<Long> latestParentIds = selectSuperceededLastestDeletedParentIdInMap(id, oldParentId);
-        if (latestParentIds != null) {
-            for (Long parentId : latestParentIds) {
-                superceedLatestDeletedLookupDataMap(id, parentId);
+        if (oldParentId != newParentId) {
+            List<Long> latestParentIds = selectSuperceededLastestDeletedParentIdInMap(id, oldParentId);
+            if (latestParentIds != null) {
+                for (Long parentId : latestParentIds) {
+                    superceedLatestDeletedLookupDataMap(id, parentId);
+                }
             }
+            deleteLookupDataMap(id, oldParentId);
+            addLookupDataMap(id, newParentId, "N");
         }
-        deleteLookupDataMap(id, oldParentId);
     }
     
     public void seedInitialLookups() throws IOException {
-        List<Path> listPaths = getLookupFilePaths("amberdb.list.", ".file");
-        for (Path listPath : listPaths) {
-            Map<String,List<String>> listData = parseLookupData(listPath);
-            if (!listData.isEmpty())
-                seedListData(listData.get("name"), listData.get("value"), listData.get("deleted"));
-        }
         List<Path> lookupPaths = getLookupFilePaths("amberdb.lookups.", ".file");
         for (Path lookupPath : lookupPaths) {
             Map<String,List<String>> lookupData = parseLookupData(lookupPath);
             if (!lookupData.isEmpty()) {
                 List<Long> ids = parseLong(lookupData.get("id"));
                 List<String> names = padStringArry(lookupData.get("name"), ids.size());
-                List<String> lbls = padStringArry(lookupData.get("lbl"), ids.size());
                 List<String> codes = padStringArry(lookupData.get("code"), ids.size());
                 List<String> attributes = padStringArry(lookupData.get("attribute"), ids.size());
                 List<String> values = padStringArry(lookupData.get("value"), ids.size());
                 List<String> deleted = padStringArry(lookupData.get("deleted"), ids.size());
-                seedToolsLookupTable(ids, names, lbls, codes, attributes, values, deleted);
+                seedToolsLookupTable(ids, names, codes, attributes, values, deleted);
             }
         }
         List<Path> lookupAssocPaths = getLookupFilePaths("amberdb.maps.", ".file");
@@ -273,6 +234,29 @@ public abstract class Lookups extends Tools {
                         parseLong(lookupAssocData.get("parentId")), 
                         lookupAssocData.get("deleted"));
         }
+    }
+    
+    public ToolsLu newTool(String currentUser) {
+            Long newToolId = nextLookupId();
+            addLookupData(newToolId, "tools", null, "" + newToolId, "name", "", "N");
+            addLookupData(newToolId, "tools", null, "" + newToolId, "resolution", "", "N");
+            addLookupData(newToolId, "tools", null, "" + newToolId, "notes", "" + "", "N");
+            addLookupData(newToolId, "tools", null, "" + newToolId, "serialNumber", "", "N");
+            addLookupData(newToolId, "tools", null, "" + newToolId, "commitTime", "" + new Date().getTime(), "N");
+            addLookupData(newToolId, "tools", null, "" + newToolId, "commitUser", currentUser, "N");
+            addLookupDataMap(newToolId, 456L, "N");
+            return findTool(newToolId);
+    }
+    
+    public void updTool(long id, String name, String resolution, String notes, String serialNumber, long tooltypeId, String currentUser) {
+            ToolsLu tool = findTool(id);
+            updateLookupData(id, "tools", null, "name", tool.getName(), name);
+            updateLookupData(id, "tools", null, "resolution", tool.getResolution(), resolution);
+            updateLookupData(id, "tools", null, "notes", tool.getNotes(), notes);
+            updateLookupData(id, "tools", null, "serialNumber", tool.getSerialNumber(), serialNumber); 
+            updateLookupData(id, "tools", null, "commitTime", "" + tool.getCommitTime(), "" + new Date().getTime());
+            updateLookupData(id, "tools", null, "commitUser", tool.getCommitUser(), currentUser);
+            updateLookupDataMap(id, tool.getToolTypeId(), tooltypeId);  
     }
     
     protected List<String> padStringArry(List<String> strArry, int length) {
