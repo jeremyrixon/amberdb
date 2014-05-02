@@ -115,7 +115,7 @@ public class AmberLookupsTest {
     }
     
     @Test
-    public void testUpdateCarrierOnlineToBornDigital() {
+    public void testUpdateMaterialTypeTextToOcrText() {
         assert(activeLookupsInclude("carrier", "Online"));
         assertFalse(activeLookupsInclude("carrier", "Born Digital"));
         
@@ -136,7 +136,7 @@ public class AmberLookupsTest {
     }
 
     @Test
-    public void testAddCarrierWireless() {
+    public void testAddMaterialTypeWireless() {
         assertFalse(activeLookupsInclude("materialType", "wireless"));
         lookups.addLookupData(lookups.nextLookupId(), "materialType", "wireless");
         assert(activeLookupsInclude("materialType", "wireless"));

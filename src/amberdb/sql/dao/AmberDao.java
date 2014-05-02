@@ -110,8 +110,6 @@ public interface AmberDao extends Transactional<AmberDao> {
 
     /*
      * Tools Lookup table - stores tools related reference data
-     * 
-     * TODOS: put indexes on the lookups table
      */
     @SqlUpdate(
             "CREATE TABLE IF NOT EXISTS lookups ("
@@ -124,9 +122,26 @@ public interface AmberDao extends Transactional<AmberDao> {
     void createLookupTable();
     
     /*
-     * Tools Many-To-Many association with multiple material types and software/device category
-     * 
-     * TODOS: put indexes on the maps table
+     * TODOS: put indexes on the tools table
+     */
+    @SqlUpdate(
+            "CREATE TABLE IF NOT EXISTS tools ("
+            + "id          int(11), "
+            + "name        varchar(255), "
+            + "resolution  varchar(255), "
+            + "notes       varchar(4000), "
+            + "serialNumber varchar(255), "
+            + "toolTypeId int(11)," 
+            + "toolCategoryId int(11), "
+            + "materialTypeId int(11)"
+            + "commitTime  int(11), "
+            + "commitUser  varchar(50), "
+            + "deleted   varchar(1) default 'N' )")
+    void createToolTable();
+
+    
+    /*
+     * Stores mapping between different lookup types.
      */
     @SqlUpdate(
             "CREATE TABLE IF NOT EXISTS maps("
