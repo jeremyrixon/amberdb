@@ -111,7 +111,7 @@ public interface Node extends VertexFrame {
     public void setCommentsInternal(String commentsInternal);
 
     @Property("commentsExternal")
-    public String getcommentsExternal();
+    public String getCommentsExternal();
 
     @Property("commentsExternal")
     public void setCommentsExternal(String commentsExternal);
