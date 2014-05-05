@@ -21,9 +21,11 @@ public abstract class LookupsMock extends Lookups {
             ToolsLu umax = new ToolsLu(1L, "UMAX PowerLook 2100XL", "", 
                     " R04/19825 and N04/83 of file NLA/15811 relate.",
                     "Used MagicScan software for image capture. NLA  asset 26105 written off and disposed of in 2003/4 FY due to breakdown. TRIM folios R04/14022",
+                    501L,
                     "Image",
                     451L,
                     "Transmission scanner",
+                    499L,
                     "Device",
                     new Date().getTime(),
                     "apastro",
@@ -32,9 +34,11 @@ public abstract class LookupsMock extends Lookups {
             ToolsLu scanView = new ToolsLu(2L, "Scanview ScanMate F6", "", 
                     "",
                     "",
+                    501L,
                     "Image",
                     451L,
                     "Transmission scanner",
+                    499L,
                     "Device",
                     new Date().getTime(),
                     "apastro",
@@ -43,9 +47,11 @@ public abstract class LookupsMock extends Lookups {
             ToolsLu agfaArcus = new ToolsLu(3L, "AGFA Arcus II", "", 
                     "",
                     "",
+                    501L,
                     "Image",
                     451L,
                     "Transmission scanner",
+                    499L,
                     "Device",
                     new Date().getTime(),
                     "apastro",
@@ -54,9 +60,11 @@ public abstract class LookupsMock extends Lookups {
             ToolsLu agfaDuoScan = new ToolsLu(4L, "AGFA DuoScan T2000XL + FotoLook", "", 
                     "",
                     "",
+                    501L,
                     "Image",
                     451L,
                     "Transmission scanner",
+                    499L,
                     "Device",
                     new Date().getTime(),
                     "apastro",
@@ -65,9 +73,11 @@ public abstract class LookupsMock extends Lookups {
             ToolsLu nikonSuper = new ToolsLu(5L, "Nikon Super CoolScan 4000ED", "", 
                     "",
                     "",
+                    501L,
                     "Image",
                     451L,
                     "Camera",
+                    499L,
                     "Device",
                     new Date().getTime(),
                     "apastro",
@@ -76,9 +86,11 @@ public abstract class LookupsMock extends Lookups {
             ToolsLu phaseOne = new ToolsLu(6L, "PhaseOne Phase FX", "", 
                     "",
                     "",
+                    501L,
                     "Image",
                     451L,
                     "Transmission scanner",
+                    499L,
                     "Device",
                     new Date().getTime(),
                     "apastro",
@@ -87,9 +99,11 @@ public abstract class LookupsMock extends Lookups {
             ToolsLu sinar = new ToolsLu(7L, "Sinar Macroscan", "", 
                     "",
                     "",
+                    501L,
                     "Image",
                     451L,
                     "Transmission scanner",
+                    499L,
                     "Device",
                     new Date().getTime(),
                     "apastro",
@@ -98,9 +112,11 @@ public abstract class LookupsMock extends Lookups {
             ToolsLu nikonD1 = new ToolsLu(8L, "Nikon D1", "", 
                     "",
                     "",
+                    501L,
                     "Image",
                     451L,
                     "Camera",
+                    499L,
                     "Device",
                     new Date().getTime(),
                     "apastro",
@@ -109,9 +125,11 @@ public abstract class LookupsMock extends Lookups {
             ToolsLu canon20D = new ToolsLu(9L, "Canon 20D", "", 
                     "",
                     "",
+                    501L,
                     "Image",
                     451L,
                     "Camera",
+                    499L,
                     "Device",
                     new Date().getTime(),
                     "apastro",
@@ -120,9 +138,11 @@ public abstract class LookupsMock extends Lookups {
             ToolsLu kodak = new ToolsLu(10L, "Kodak ProBack", "", 
                     "",
                     "",
+                    501L,
                     "Image",
                     451L,
                     "Camera",
+                    499L,
                     "Device",
                     new Date().getTime(),
                     "apastro",
@@ -150,37 +170,5 @@ public abstract class LookupsMock extends Lookups {
             return tools;
         }
         return null;
-    }
-    
-    @Override
-    public void addLookupData(Long id,
-            String name,
-            String lbl,
-            String code,
-            String attribute,
-            String value,
-            String deleted) {
-        ToolsLu newTool;
-        
-        if (name.equals("tools")) {
-            if (toolsHash.get(id) == null) {
-                newTool = new ToolsLu(id, "", "", "", "", "", 0L, "", "", new Date().getTime(), "apastro", deleted);
-                toolsHash.put(id, newTool);
-                tools = findAllActiveTools();
-                tools.add(newTool);
-            } else {
-                newTool = toolsHash.get(id);
-            }
-
-            if (attribute.equals("name")) {
-                newTool.setName(value);
-            } else if (attribute.equals("resolution")) {
-                newTool.setResolution(value);
-            } else if (attribute.equals("serialNumber")) {
-                newTool.setSerialNumber(value);
-            } else if (attribute.equals("notes")) {
-                newTool.setNotes(value);
-            } 
-        }
     }
 }

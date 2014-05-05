@@ -3,8 +3,8 @@ package amberdb.sql;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
@@ -15,22 +15,7 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 import amberdb.lookup.ToolsLu;
 
-public abstract class Tools {    
-    @SqlUpdate("INSERT INTO lookups (id, name, lbl, code, attribute, value, deleted) VALUES"
-            + "(:id, :name, :lbl, :code, :attribute, :value, :deleted)")
-    public abstract void seedToolsLookupTable(@Bind("id") List<Long> id,
-                                              @Bind("name") List<String> name,
-                                              @Bind("code") List<String> code,
-                                              @Bind("attribute") List<String> attribute,
-                                              @Bind("value") List<String> value,
-                                              @Bind("deleted") List<String> deleted);
-        
-    @SqlUpdate("INSERT INTO maps (id, parent_id, deleted) VALUES"
-            + "(:id,:parentId,:deleted)")
-    public abstract void seedToolsMapsTable(@Bind("id") List<Long> id,
-                                            @Bind("parentId") List<Long> parentId,
-                                            @Bind("deleted") List<String> deleted);
-    
+public abstract class Tools {            
     @RegisterMapper(Tools.ToolsLuMapper.class)
     @SqlQuery(
             "select t.*, tl.value as toolType, tcl.value as toolCategory, mtl.value as materialType "
@@ -40,13 +25,6 @@ public abstract class Tools {
             + "and t.materialTypeId = mtl.id "
             + "order by t.name ")
     public abstract List<ToolsLu> findTools(@Bind("deleted") String deleted);   
-
-    @SqlQuery("select count(id) from maps where id = :toolId and parent_id = :mapToId")
-    public abstract int findAssociation(@Bind("toolId") Long toolId, @Bind("mapToId") Long mapToId);
-
-    public boolean hasAssociation(Long toolId, Long mapToId) {
-        return findAssociation(toolId, mapToId) > 0;
-    }
     
     public List<ToolsLu> findAllToolsEverRecorded() {
         List<ToolsLu> allTools = new ArrayList<>();
@@ -86,9 +64,11 @@ public abstract class Tools {
                     r.getString("resolution"),
                     r.getString("serialNumber"),
                     r.getString("notes"),
+                    r.getLong("materialTypeId"),
                     r.getString("materialType"),
                     r.getLong("toolTypeId"),
                     r.getString("toolType"),
+                    r.getLong("toolCategoryId"),
                     r.getString("toolCategory"),
                     commitTime,
                     r.getString("commitUser"),
@@ -118,7 +98,7 @@ public abstract class Tools {
         List<ToolsLu> tools = findAllActiveTools();
         List<ToolsLu> activeToolsFor = new ArrayList<>();
         for (ToolsLu tool : tools) {
-            if (!tool.getDeleted()) { 
+            if (!tool.isDeleted()) { 
                 filterRow(filterFldName, filterFldValue, activeToolsFor, tool);  
             }
         }
@@ -166,4 +146,62 @@ public abstract class Tools {
         else if (filterFldName.equalsIgnoreCase("toolCategory") && tool.getToolCategory().toUpperCase().contains(filterFldValue.toUpperCase()))
             activeToolsFor.add(tool);
     }    
+    
+    public ToolsLu newTool(String commitUser) {
+        Long id = nextToolId();
+        System.out.println("id is " + id);
+        if (id == null) id = 0L;
+        return new ToolsLu(id, commitUser);
+    }
+    
+    // this can be used to seed the initial table
+    public void addTool(ToolsLu toolsLu) {
+        System.out.println("toolsLu.id: " + toolsLu.getId());
+        System.out.println("toolsLu.name: " + toolsLu.getName());
+        System.out.println("toolsLu.resolution: " + toolsLu.getResolution());
+        System.out.println("toolsLu.notes: " + toolsLu.getNotes());
+        System.out.println("toolsLu.serialNumber: " + toolsLu.getSerialNumber());
+        System.out.println("toolsLu.tooltypeid: " + toolsLu.getToolTypeId());
+        System.out.println("toolsLu.toolcatid: " + toolsLu.getToolCategoryId());
+        System.out.println("toolsLu.mattypeid: " + toolsLu.getMaterialTypeId());
+        System.out.println("toolsLu.user: " + toolsLu.getCommitUser());
+        System.out.println("toolsLu.time: " + new Date().getTime());
+        insertTool(toolsLu.getId(), toolsLu.getName(), toolsLu.getResolution(), toolsLu.getNotes(), toolsLu.getSerialNumber(), toolsLu.getToolTypeId(),
+                toolsLu.getToolCategoryId(), toolsLu.getMaterialTypeId(), toolsLu.getCommitUser(), new Date().getTime());
+    }
+    
+    public void deleteTool(Long id) {
+        // archive previously deleted tool entry
+        archiveDeletedTool(id);
+        
+        // mark the current tool entry deleted.
+        // Note: this is so that if a tool entry is marked as deleted,
+        // all the dlir app records referencing the tool entry
+        // can still display the referenced tool.
+        markToolDeleted(id);
+    }
+    
+    public void updTool(ToolsLu toolsLu) {
+        deleteTool(toolsLu.getId());
+        insertTool(toolsLu.getId(), toolsLu.getName(), toolsLu.getResolution(), toolsLu.getNotes(), toolsLu.getSerialNumber(), toolsLu.getToolTypeId(),
+                toolsLu.getToolCategoryId(), toolsLu.getMaterialTypeId(), toolsLu.getCommitUser(), new Date().getTime());
+    }
+
+    @SqlQuery("select max(id) + 1 from tools;")
+    public abstract Long nextToolId();
+    
+    @SqlUpdate("INSERT INTO tools(id, name, resolution, notes, serialNumber, toolTypeId, toolCategoryId, materialTypeId, commitUser, commitTime) VALUES"
+            + "(:id, :name, :resolution, :notes, :serialNumber, :toolTypeId, :toolCategoryId, :materialTypeId, :commitUser, :commitTime)")
+    protected abstract void insertTool(@Bind("id") Long id, @Bind("name") String name,
+            @Bind("resolution") String resolution, @Bind("notes") String notes,
+            @Bind("serialNumber") String serialNumber, @Bind("toolTypeId") Long toolTypeId,
+            @Bind("toolCategoryId") Long toolCategoryId, @Bind("materialTypeId") Long materialTypeId,
+            @Bind("commitUser") String commitUser, @Bind("commitTime") Long commitTime);
+    
+    @SqlUpdate("UPDATE tools SET deleted = 'D' where id = :id and deleted = 'N'")
+    protected abstract void markToolDeleted(@Bind("id") Long id);
+    
+    @SqlUpdate("UPDATE tools SET deleted = 'Y' where id = :id and deleted = 'D'")
+    protected abstract void archiveDeletedTool(@Bind("id") Long id);
 }
+
