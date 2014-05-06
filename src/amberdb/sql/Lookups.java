@@ -24,7 +24,7 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 import java.util.Properties;
 
-public abstract class Lookups extends Tools {    
+public abstract class Lookups extends Tools {        
     @RegisterMapper(Lookups.ListLuMapper.class)
     @SqlQuery("select id, name, value, code, deleted from lookups where name = :name and deleted = :deleted order by name, value")
     public abstract List<ListLu> findLookupsFor(@Bind("name") String name, @Bind("deleted") String deleted);
@@ -36,6 +36,18 @@ public abstract class Lookups extends Tools {
     @RegisterMapper(Lookups.ListLuMapper.class)
     @SqlQuery("select id, name, value, code, deleted from lookups where name = :name and (code = :code or value = :code) and (deleted = 'D' or deleted = 'Y') order by deleted, value")
     public abstract List<ListLu> findDeletedLookup(@Bind("name")String name, @Bind("code") String code);
+    
+    /*
+    public List<ListLu> filterLookups(String lookupType, List<ListLu> lookups) {
+        List<ListLu> filteredLookups = new ArrayList<>();
+        for (ListLu lu : lookups) {
+            if (lu.getName().equalsIgnoreCase(lookupType)) {
+                filteredLookups.add(lu);
+            }
+        }
+        return filteredLookups;
+    }
+    */
     
     public ListLu findLookup(String name, String code) {
         List<ListLu> activeLookups = findActiveLookup(name, code);
@@ -113,6 +125,14 @@ public abstract class Lookups extends Tools {
     }
     
     public void updateLookup(ListLu lu) {
+        // check the list lu is in the database with its id, otherwise, throw an exception.
+        String LuNotFoundErr = "Fail to update lookup (" + lu.name + ", " + lu.code + "," + lu.value + "), can not find this entry in the database.";
+        if (lu.getId() == null)
+            throw new IllegalArgumentException(LuNotFoundErr);
+        ListLu persistedLu = findLookup(lu.getId(), lu.getName());
+        if (persistedLu == null)
+            throw new IllegalArgumentException(LuNotFoundErr);
+        
         deleteLookup(lu);
         String code = (lu.getCode() == null || lu.getCode().isEmpty())? lu.getValue() : lu.getCode();
         addLookupData(lu.getId(), lu.getName(), code, lu.getValue());

@@ -98,22 +98,12 @@ public abstract class Tools {
     
     public List<ToolsLu> findActiveToolsFor(String filterFldName, String filterFldValue) {
         List<ToolsLu> tools = findAllActiveTools();
-        List<ToolsLu> activeToolsFor = new ArrayList<>();
-        for (ToolsLu tool : tools) {
-            if (!tool.isDeleted()) { 
-                filterRow(filterFldName, filterFldValue, activeToolsFor, tool);  
-            }
-        }
-        return activeToolsFor;
+        return filterTools(filterFldName, filterFldValue, tools);
     }
     
     public List<ToolsLu> findToolsEverRecordedFor(String filterFldName, String filterFldValue) {
         List<ToolsLu> tools = findAllToolsEverRecorded();
-        List<ToolsLu> toolsFor = new ArrayList<>();
-        for (ToolsLu tool : tools) {
-                filterRow(filterFldName, filterFldValue, toolsFor, tool);  
-        }
-        return toolsFor;
+        return filterTools(filterFldName, filterFldValue, tools);
     }
     
     public List<ToolsLu> findActiveSoftware() {
@@ -132,6 +122,14 @@ public abstract class Tools {
         return findToolsEverRecordedFor("toolCategory", "device");
     }
      
+    private List<ToolsLu> filterTools(String filterFldName, String filterFldValue, List<ToolsLu> tools) {
+        List<ToolsLu> filteredTools = new ArrayList<>();
+        for (ToolsLu tool : tools) {
+                filterRow(filterFldName, filterFldValue, filteredTools, tool);  
+        }
+        return filteredTools;
+    }
+    
     private void filterRow(String filterFldName, String filterFldValue, List<ToolsLu> activeToolsFor, ToolsLu tool) {
         if (filterFldName.equalsIgnoreCase("name") && tool.getName().toUpperCase().contains(filterFldValue.toUpperCase()))
             activeToolsFor.add(tool);
@@ -168,6 +166,14 @@ public abstract class Tools {
     }
     
     public void updTool(ToolsLu toolsLu) {
+        // check the toolsLu is in the database with its id, otherwise, throw an exception.
+        String LuNotFoundErr = "Fail to update tool " + toolsLu.name + ", can not find this entry in the database.";
+        if (toolsLu.getId() == null)
+            throw new IllegalArgumentException(LuNotFoundErr);
+        ToolsLu persistedTool = findTool(toolsLu.getId());
+        if (persistedTool == null)
+            throw new IllegalArgumentException(LuNotFoundErr);
+        
         deleteTool(toolsLu);
         insertTool(toolsLu.getId(), toolsLu.getName(), toolsLu.getResolution(), toolsLu.getNotes(), toolsLu.getSerialNumber(), toolsLu.getToolTypeId(),
                 toolsLu.getToolCategoryId(), toolsLu.getMaterialTypeId(), toolsLu.getCommitUser(), new Date().getTime());

@@ -151,6 +151,10 @@ public class ToolsLu {
         return commitUser;
     }
     
+    public void setCommitUser(String commitUser) {
+        this.commitUser = commitUser;
+    }
+    
     public boolean isDeleted() {
         return deleted;
     }
