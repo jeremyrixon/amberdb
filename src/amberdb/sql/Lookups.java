@@ -9,7 +9,6 @@ import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,20 +21,18 @@ import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 import java.util.Properties;
-
 import amberdb.lookup.ListLu;
-import amberdb.lookup.ToolsLu;
 
 public abstract class Lookups extends Tools {    
-    @RegisterMapper(Lookups.LookupLuMapper.class)
+    @RegisterMapper(Lookups.ListLuMapper.class)
     @SqlQuery("select id, name, value, code, deleted from lookups where name = :name and deleted = :deleted order by name, value")
     public abstract List<ListLu> findLookupsFor(@Bind("name") String name, @Bind("deleted") String deleted);
     
-    @RegisterMapper(Lookups.LookupLuMapper.class)
+    @RegisterMapper(Lookups.ListLuMapper.class)
     @SqlQuery("select id, name, value, code, deleted from lookups where name = :name and (code = :code or value = :code) and (deleted is null or deleted = 'N') order by value")
     public abstract List<ListLu> findActiveLookup(@Bind("name") String name, @Bind("code") String code);
     
-    @RegisterMapper(Lookups.LookupLuMapper.class)
+    @RegisterMapper(Lookups.ListLuMapper.class)
     @SqlQuery("select id, name, value, code, deleted from lookups where name = :name and (code = :code or value = :code) and (deleted = 'D' or deleted = 'Y') order by deleted, value")
     public abstract List<ListLu> findDeletedLookup(@Bind("name")String name, @Bind("code") String code);
     
@@ -88,7 +85,7 @@ public abstract class Lookups extends Tools {
         throw new RuntimeException("Lookup of id " + id + " is not found.");
     }
     
-    public static class LookupLuMapper implements ResultSetMapper<ListLu> {
+    public static class ListLuMapper implements ResultSetMapper<ListLu> {
         public ListLu map(int index, ResultSet r, StatementContext ctx) throws SQLException {
             String code = r.getString("code");
             if (code == null || code.isEmpty()) {
@@ -101,9 +98,31 @@ public abstract class Lookups extends Tools {
             return new ListLu(r.getLong("id"), r.getString("name"), r.getString("value"), code, r.getString("deleted"));
         }
     }
-        
+    
+    public ListLu newLookup() {
+        Long id = nextLookupId();
+        if (id == null) id = 1L;
+        return new ListLu(id);
+    }
+    
+    public void addLookupData(ListLu lu) {
+        String code = (lu.getCode() == null || lu.getCode().isEmpty())? lu.getValue() : lu.getCode();
+        addLookupData(lu.getId(), lu.getName(), code, lu.getValue());
+    }
+    
+    public void deleteLookup(ListLu lu) {
+        archiveDeletedLookup(lu.getId(), lu.getName(), lu.getCode());
+        markLookupDeleted(lu.getId(), lu.getName(), lu.getCode());
+    }
+    
+    public void updateLookup(ListLu lu) {
+        deleteLookup(lu);
+        String code = (lu.getCode() == null || lu.getCode().isEmpty())? lu.getValue() : lu.getCode();
+        addLookupData(lu.getId(), lu.getName(), code, lu.getValue());
+    }
+    
     @SqlQuery("select max(id) + 1 from lookups")
-    public abstract Long nextLookupId();
+    protected abstract Long nextLookupId();
     
     @SqlUpdate("INSERT INTO lookups (id, name, code, value, deleted) VALUES"
             + "(:id, :name, :code, :value, 'N')")
@@ -112,32 +131,17 @@ public abstract class Lookups extends Tools {
                                               @Bind("code") String code,
                                               @Bind("value") String value);
     
-    public void addLookupData(Long id, String name, String value) {
-        addLookupData(id, name, value, value);
-    }
-    
     @SqlUpdate("UPDATE lookups SET deleted = 'D' "
-            + "WHERE id = :id and name = :name and value = :value and (code is null or code = :code)")
-    public abstract void markLookupDeleted(@Bind("id") Long id,
+            + "WHERE id = :id and name = :name and (code is null or code = :code) and deleted = 'N'")
+    protected abstract void markLookupDeleted(@Bind("id") Long id,
                                               @Bind("name") String name,
-                                              @Bind("code") String code,
-                                              @Bind("value") String value);
+                                              @Bind("code") String code);
     
     @SqlUpdate("UPDATE lookups SET deleted = 'Y' "
             + "WHERE id = :id and name = :name and (code = :code or value = :code) and deleted = 'D'")
     protected abstract void archiveDeletedLookup(@Bind("id") Long id,
                                                           @Bind("name") String name,
                                                           @Bind("code") String code);
-    
-    public void updateLookupData(Long id, String name, String oldValue, String newValue) {
-        if (!newValue.equals(oldValue)) {
-            ListLu lu = findLookup(id, name);
-            String luCode = (lu != null && lu.getId() != null) ? lu.getCode() : newValue;
-            archiveDeletedLookup(id, name, luCode);
-            markLookupDeleted(id, name, luCode, oldValue);
-            addLookupData(id, name, luCode, newValue);
-        }
-    }
     
     @SqlUpdate("INSERT INTO lookups (id, name, code, value, deleted) VALUES"
             + "(:id, :name, :code, :value, :deleted)")

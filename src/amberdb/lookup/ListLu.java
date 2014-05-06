@@ -16,6 +16,10 @@ public class ListLu {
     @Column
     String deleted;
 
+    public ListLu(Long id) {
+        this.id = id;
+    }
+    
     public ListLu(String name, String value) {
         this.name = name;
         this.value = value;
@@ -58,10 +62,6 @@ public class ListLu {
     
     public Long getId() {
         return id;
-    }
-    
-    public void setId(Long id) {
-        this.id = id;
     }
     
     public String getCode() {

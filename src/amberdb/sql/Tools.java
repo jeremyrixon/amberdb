@@ -18,11 +18,14 @@ import amberdb.lookup.ToolsLu;
 public abstract class Tools {            
     @RegisterMapper(Tools.ToolsLuMapper.class)
     @SqlQuery(
-            "select t.*, tl.value as toolType, tcl.value as toolCategory, mtl.value as materialType "
-            + "from tools t, lookups tl, lookups tcl, lookups mtl "
-            + "where t.toolTypeId = tl.id "
-            + "and t.toolCategoryId = tcl.id "
-            + "and t.materialTypeId = mtl.id "
+            "select distinct t.*, tl.value as toolType, tcl.value as toolCategory, mtl.value as materialType "
+            + "from tools t left join (select id, value from lookups where deleted = 'N') tl " 
+            + "on t.toolTypeId = tl.id "        
+            + "left join  (select id, value from lookups where deleted = 'N') tcl "
+            + "on t.toolCategoryId = tcl.id "
+            + "left join  (select id, value from lookups where deleted = 'N') mtl "
+            + "on t.materialTypeId = mtl.id "
+            + "where t.deleted = :deleted "
             + "order by t.name ")
     public abstract List<ToolsLu> findTools(@Bind("deleted") String deleted);   
     
@@ -149,46 +152,35 @@ public abstract class Tools {
     
     public ToolsLu newTool(String commitUser) {
         Long id = nextToolId();
-        System.out.println("id is " + id);
-        if (id == null) id = 0L;
+        if (id == null) id = 1L;
         return new ToolsLu(id, commitUser);
     }
     
     // this can be used to seed the initial table
     public void addTool(ToolsLu toolsLu) {
-        System.out.println("toolsLu.id: " + toolsLu.getId());
-        System.out.println("toolsLu.name: " + toolsLu.getName());
-        System.out.println("toolsLu.resolution: " + toolsLu.getResolution());
-        System.out.println("toolsLu.notes: " + toolsLu.getNotes());
-        System.out.println("toolsLu.serialNumber: " + toolsLu.getSerialNumber());
-        System.out.println("toolsLu.tooltypeid: " + toolsLu.getToolTypeId());
-        System.out.println("toolsLu.toolcatid: " + toolsLu.getToolCategoryId());
-        System.out.println("toolsLu.mattypeid: " + toolsLu.getMaterialTypeId());
-        System.out.println("toolsLu.user: " + toolsLu.getCommitUser());
-        System.out.println("toolsLu.time: " + new Date().getTime());
         insertTool(toolsLu.getId(), toolsLu.getName(), toolsLu.getResolution(), toolsLu.getNotes(), toolsLu.getSerialNumber(), toolsLu.getToolTypeId(),
                 toolsLu.getToolCategoryId(), toolsLu.getMaterialTypeId(), toolsLu.getCommitUser(), new Date().getTime());
     }
     
-    public void deleteTool(Long id) {
+    public void deleteTool(ToolsLu toolsLu) {
         // archive previously deleted tool entry
-        archiveDeletedTool(id);
+        archiveDeletedTool(toolsLu.getId());
         
         // mark the current tool entry deleted.
         // Note: this is so that if a tool entry is marked as deleted,
         // all the dlir app records referencing the tool entry
         // can still display the referenced tool.
-        markToolDeleted(id);
+        markToolDeleted(toolsLu.getId());
     }
     
     public void updTool(ToolsLu toolsLu) {
-        deleteTool(toolsLu.getId());
+        deleteTool(toolsLu);
         insertTool(toolsLu.getId(), toolsLu.getName(), toolsLu.getResolution(), toolsLu.getNotes(), toolsLu.getSerialNumber(), toolsLu.getToolTypeId(),
                 toolsLu.getToolCategoryId(), toolsLu.getMaterialTypeId(), toolsLu.getCommitUser(), new Date().getTime());
     }
 
     @SqlQuery("select max(id) + 1 from tools;")
-    public abstract Long nextToolId();
+    protected abstract Long nextToolId();
     
     @SqlUpdate("INSERT INTO tools(id, name, resolution, notes, serialNumber, toolTypeId, toolCategoryId, materialTypeId, commitUser, commitTime) VALUES"
             + "(:id, :name, :resolution, :notes, :serialNumber, :toolTypeId, :toolCategoryId, :materialTypeId, :commitUser, :commitTime)")
