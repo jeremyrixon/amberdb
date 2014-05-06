@@ -20,8 +20,9 @@ import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
+
+
 import java.util.Properties;
-import amberdb.lookup.ListLu;
 
 public abstract class Lookups extends Tools {    
     @RegisterMapper(Lookups.ListLuMapper.class)
@@ -99,15 +100,11 @@ public abstract class Lookups extends Tools {
         }
     }
     
-    public ListLu newLookup() {
+    public void addLookupData(ListLu lu) {
         Long id = nextLookupId();
         if (id == null) id = 1L;
-        return new ListLu(id);
-    }
-    
-    public void addLookupData(ListLu lu) {
         String code = (lu.getCode() == null || lu.getCode().isEmpty())? lu.getValue() : lu.getCode();
-        addLookupData(lu.getId(), lu.getName(), code, lu.getValue());
+        addLookupData(id, lu.getName(), code, lu.getValue());
     }
     
     public void deleteLookup(ListLu lu) {

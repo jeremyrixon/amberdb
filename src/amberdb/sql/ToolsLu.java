@@ -1,4 +1,4 @@
-package amberdb.lookup;
+package amberdb.sql;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -39,13 +39,12 @@ public class ToolsLu {
     @Column
     boolean deleted;
     
-    public ToolsLu(Long id, String commitUser) {
-        this.id = id;
+    public ToolsLu(String commitUser) {
         this.commitUser = commitUser;
         deleted = false;
     }
     
-    public ToolsLu(Long id, String name, String resolution, String serialNumber, String notes,
+    protected ToolsLu(Long id, String name, String resolution, String serialNumber, String notes,
                    Long materialTypeId, String materialType, 
                    Long toolTypeId, String toolType, 
                    Long toolCategoryId, String toolCategory, 

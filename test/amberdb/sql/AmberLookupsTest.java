@@ -7,8 +7,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import amberdb.AmberSession;
-import amberdb.lookup.ListLu;
-import amberdb.lookup.ToolsLu;
 
 public class AmberLookupsTest {
     private AmberSession session;
@@ -148,22 +146,22 @@ public class AmberLookupsTest {
     @Test
     public void testAddMaterialTypeWireless() {
         assertFalse(activeLookupsInclude("materialType", "wireless"));
-        ListLu wireless = lookups.newLookup();
-        wireless.setName("materialType");
-        wireless.setValue("wireless");
+        ListLu wireless = new ListLu("materialType", "wireless");
         lookups.addLookupData(wireless);
         assert(activeLookupsInclude("materialType", "wireless"));
     }
     
     @Test
     public void testAddSoftwareAdobeIllustrator() {
-        ToolsLu ai = lookups.newTool("apaterso");
+        ToolsLu ai = new ToolsLu("apaterso");
         ai.setName("Adobe Illustrator CC");
         ai.setSerialNumber("11-220-284");
         ai.setNotes("Use to create clip art");
         lookups.addTool(ai);
 
-        ToolsLu newAI = lookups.findActiveTool(ai.getId());
+        
+        List<ToolsLu> ais = lookups.findActiveToolsFor("name", ai.getName());
+        ToolsLu newAI = ais.get(0);
         assert(newAI.getName().equals("Adobe Illustrator CC"));
         assert(newAI.getSerialNumber().equals("11-220-284"));
         assert(newAI.getNotes().equals("Use to create clip art"));

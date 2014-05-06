@@ -1,4 +1,4 @@
-package amberdb.lookup;
+package amberdb.sql;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -15,17 +15,14 @@ public class ListLu {
     String code;
     @Column
     String deleted;
-
-    public ListLu(Long id) {
-        this.id = id;
-    }
     
     public ListLu(String name, String value) {
         this.name = name;
         this.value = value;
+        this.deleted = "N";
     }
 
-    public ListLu(Long id, String name, String value, String code, String deleted) {
+    protected ListLu(Long id, String name, String value, String code, String deleted) {
         this.id = id;
         this.name = name;
         this.value = value;   

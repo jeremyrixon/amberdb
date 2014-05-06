@@ -13,7 +13,6 @@ import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
-import amberdb.lookup.ToolsLu;
 
 public abstract class Tools {            
     @RegisterMapper(Tools.ToolsLuMapper.class)
@@ -150,15 +149,10 @@ public abstract class Tools {
             activeToolsFor.add(tool);
     }    
     
-    public ToolsLu newTool(String commitUser) {
+    public void addTool(ToolsLu toolsLu) {
         Long id = nextToolId();
         if (id == null) id = 1L;
-        return new ToolsLu(id, commitUser);
-    }
-    
-    // this can be used to seed the initial table
-    public void addTool(ToolsLu toolsLu) {
-        insertTool(toolsLu.getId(), toolsLu.getName(), toolsLu.getResolution(), toolsLu.getNotes(), toolsLu.getSerialNumber(), toolsLu.getToolTypeId(),
+        insertTool(id, toolsLu.getName(), toolsLu.getResolution(), toolsLu.getNotes(), toolsLu.getSerialNumber(), toolsLu.getToolTypeId(),
                 toolsLu.getToolCategoryId(), toolsLu.getMaterialTypeId(), toolsLu.getCommitUser(), new Date().getTime());
     }
     
