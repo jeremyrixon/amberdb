@@ -37,18 +37,6 @@ public abstract class Lookups extends Tools {
     @SqlQuery("select id, name, value, code, deleted from lookups where name = :name and (code = :code or value = :code) and (deleted = 'D' or deleted = 'Y') order by deleted, value")
     public abstract List<ListLu> findDeletedLookup(@Bind("name")String name, @Bind("code") String code);
     
-    /*
-    public List<ListLu> filterLookups(String lookupType, List<ListLu> lookups) {
-        List<ListLu> filteredLookups = new ArrayList<>();
-        for (ListLu lu : lookups) {
-            if (lu.getName().equalsIgnoreCase(lookupType)) {
-                filteredLookups.add(lu);
-            }
-        }
-        return filteredLookups;
-    }
-    */
-    
     public ListLu findLookup(String name, String code) {
         List<ListLu> activeLookups = findActiveLookup(name, code);
         if (activeLookups != null && activeLookups.size() > 0)
@@ -113,9 +101,14 @@ public abstract class Lookups extends Tools {
     }
     
     public void addLookupData(ListLu lu) {
+        // Validate that name, code combination does not already exist and is active.
+        String code = (lu.getCode() == null || lu.getCode().isEmpty())? lu.getValue() : lu.getCode();
+        ListLu _lu = findLookup(lu.getName(), code);
+        if (_lu != null && !_lu.isDeleted())
+            throw new IllegalArgumentException("The lookup entry: (" + lu.getName() + ", " + code + ") already exist.");
+        
         Long id = nextLookupId();
         if (id == null) id = 1L;
-        String code = (lu.getCode() == null || lu.getCode().isEmpty())? lu.getValue() : lu.getCode();
         addLookupData(id, lu.getName(), code, lu.getValue());
     }
     

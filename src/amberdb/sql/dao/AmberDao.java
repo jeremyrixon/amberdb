@@ -116,7 +116,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "id        int(11), "
             + "name      varchar(50), "
             + "code      varchar(255), "
-            + "value     varchar(4000), "
+            + "value     varchar(255), "
             + "deleted   varchar(1) default 'N' )")
     void createLookupTable();
     
@@ -185,6 +185,9 @@ public interface AmberDao extends Transactional<AmberDao> {
      */
     @SqlUpdate(
       "INSERT INTO lookups (name, code) VALUES"
+      + "('accessCondition', 'open'),"
+      + "('accessCondition', 'restricted'),"        
+      + "('accessCondition', 'closed'),"
       + "('copyType', 'Physical'),"
       + "('copyType', 'Digitised'),"
       + "('copyType', 'Born Digital'),"
