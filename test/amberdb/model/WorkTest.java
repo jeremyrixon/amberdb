@@ -1,7 +1,6 @@
 package amberdb.model;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -222,6 +221,30 @@ public class WorkTest {
         workTitlePage.setSubUnitType("Title Page");
     }
     
+    @Test
+    public void testCountCopies() {
+        AmberSession db = new AmberSession();
+        setTestDataInH2(db);
+        
+        Work work = bookBlinkyBill;
+        Page page = workTitlePage;
+        
+        /* parent work has no copies */
+        assertEquals(work.countCopies(), 0);
+
+        int counter = 0;
+        Iterable<Copy> pageCopies = page.getCopies();
+        for (Copy copy : pageCopies) {
+            counter++;
+        }
+        /* we count it the same way the Work class does */
+        assertEquals(page.countCopies(), counter);
+
+        /* Check page _has_ copies. 
+           (otherwise this test is a waste of time that proves nothing */
+        assertNotEquals(page.countCopies(), 0);
+    }
+
     @Test(expected = NoSuchObjectException.class)
     public void testDeleteWork() {
         AmberSession db = new AmberSession();
@@ -279,7 +302,7 @@ public class WorkTest {
     public void testDeletePage() {  
         AmberSession db = new AmberSession();
         setTestDataInH2(db);
-        
+       
         Page page = workTitlePage;
         long workVertexId = page.getId();
         assertEquals(workVertexId, page.asVertex().getId());

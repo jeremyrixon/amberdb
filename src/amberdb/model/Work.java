@@ -766,6 +766,9 @@ public interface Work extends Node {
     @JavaHandler
     public int countParts();
 
+    @JavaHandler
+    public int countCopies();
+
     /**
      * This method detaches the part from this work, but the part continues to
      * exist as an orphan. Use the deletePart method to actually delete the part
@@ -890,6 +893,14 @@ public interface Work extends Node {
                     return leaf;
             }
             return null;
+        }
+
+        /**
+         * Count the number of copies this work has.
+         */
+        @Override
+        public int countCopies() {
+            return Lists.newArrayList(this.getCopies()).size();
         }
 
         @Override
