@@ -61,22 +61,22 @@ public class AmberQuery {
     }
     
     // note: still need to add edge-order
-    protected List<String> generateFullSubGraphQuery() {
+    protected String generateFullSubGraphQuery() {
 
         int step = 0;
         
-        List<String> s = new ArrayList<>();
-        s.add("DROP TABLE IF EXISTS v0;");
-        s.add("DROP TABLE IF EXISTS v1;");
+        StringBuilder s = new StringBuilder();
+        s.append("DROP TABLE IF EXISTS v0;\n");
+        s.append("DROP TABLE IF EXISTS v1;\n");
         
-        s.add("CREATE TEMPORARY TABLE v0 ("
+        s.append("CREATE TEMPORARY TABLE v0 ("
                 + "step INT, "
                 + "vid BIGINT, "
                 + "eid BIGINT, "
                 + "label VARCHAR(100), "
                 + "edge_order BIGINT);\n");
         
-        s.add("CREATE TEMPORARY TABLE v1 ("
+        s.append("CREATE TEMPORARY TABLE v1 ("
                 + "step INT, "
                 + "vid BIGINT, "
                 + "eid BIGINT, "
@@ -84,7 +84,7 @@ public class AmberQuery {
                 + "edge_order BIGINT);\n");
         
         // inject head
-        s.add(String.format(
+        s.append(String.format(
 
         "INSERT INTO v0 (step, vid, eid, label, edge_order) \n"
         + "SELECT 0, id, 0, 'root', 0 \n"
@@ -104,7 +104,7 @@ public class AmberQuery {
             String labelsClause = generatelabelsClause(qc.labels);
             String directionClause = generateDirClause(qc.direction, thatTable);
 
-            s.add(String.format(
+            s.append(String.format(
 
             "INSERT INTO %1$s (step, vid, eid, label, edge_order) \n"
             + "SELECT %3$d, v.id, e.id, e.label, e.edge_order  \n"
@@ -119,10 +119,10 @@ public class AmberQuery {
         }
 
         // result consolidation
-        s.add("INSERT INTO v0 (step, vid, eid, label, edge_order) "
+        s.append("INSERT INTO v0 (step, vid, eid, label, edge_order) "
                 + "SELECT step, vid, eid, label, edge_order FROM v1;\n");
         
-        return s;
+        return s.toString();
         // Draw from v0 for results
     }
 
@@ -181,9 +181,7 @@ public class AmberQuery {
 
             // run the generated query
             h.begin();
-            for (String stmt : generateFullSubGraphQuery()) {
-                h.createStatement(stmt).execute();
-            }
+            h.createStatement(generateFullSubGraphQuery()).execute();
             h.commit();
 
             // and reap the rewards
