@@ -115,15 +115,12 @@ public interface File extends Node {
     
     @Property("dcmCopyPid")
     public void setDcmCopyPid(String dcmCopyPid);
-    
-
-    
-
+   
     @Adjacency(label = IsFileOf.label)
     public Copy getCopy();
 
     @JavaHandler
-    public long getSize();
+    public long getSize() throws NoSuchBlobException, IOException;
 
     @JavaHandler
     public SeekableByteChannel openChannel() throws IOException;
@@ -146,21 +143,16 @@ public interface File extends Node {
             return AmberSession.ownerOf(g()).getBlobStore();
         }
 
-        private Blob getBlob() throws IOException, NoSuchBlobException {
-            // TODO: find a better solution for this
-            if (getBlobId() == null) return null;
+        private Blob getBlob() throws NoSuchBlobException, IOException {
+            if (getBlobId() == null) {
+                throw new NoSuchBlobException();
+            }
             return getBlobStore().get(getBlobId());
         }
 
         @Override
-        public long getSize() {
-            // TODO: find a better solution for this
-            try {
-                if (getBlob() == null) return 0L;
-                return getBlob().size();
-            } catch (Exception e) {
-                return getFileSize();
-            }
+        public long getSize() throws NoSuchBlobException, IOException {
+            return getBlob().size();
         }
 
         @Override
