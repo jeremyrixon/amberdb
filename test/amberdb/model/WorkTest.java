@@ -226,45 +226,6 @@ public class WorkTest {
     public void testDeleteWork() {
         AmberSession db = new AmberSession();
         setTestDataInH2(db);
-        
-        Work work = bookBlinkyBill;
-        long workVertexId = work.getId();
-
-        List<Long> copyVertexIds = new ArrayList<Long>();
-        List<Long> fileVertexIds = new ArrayList<Long>();
-        Iterable<Copy> copies = work.getCopies();
-        for (Copy copy : copies) {
-            File file = copy.getFile();
-            copyVertexIds.add(copy.getId());
-            
-            if (file != null) {
-                fileVertexIds.add(file.getId());
-                assertEquals(file.getId(), file.asVertex().getId());
-            }
-            assertEquals(copy.getId(), copy.asVertex().getId());
-        }
-        
-        db.deleteWork(work);
-
-        //make sure all copies records were deleted
-        for (Copy copy : copies) {
-            try {
-                db.getAmberGraph().getVertex(copy.asVertex().getId());
-                /* never reached - exception should be raised... */
-                assert(false);
-            } catch ( NoSuchObjectException e) {
-                assert(true); 
-            }
-        }
-
-        /* expects a NoSuchObjectException */
-        db.findWork(workVertexId);
-    }
-
-    @Test(expected = NoSuchObjectException.class)
-    public void testDeleteWorkWithNoCopies() {
-        AmberSession db = new AmberSession();
-        setTestDataInH2(db);
 
         Work work = bookBlinkyBill;
         long workVertexId = work.getId();
