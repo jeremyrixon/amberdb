@@ -147,14 +147,14 @@ public abstract class Tools {
             activeToolsFor.add(tool);
     }    
     
-    public void addTool(ToolsLu toolsLu) {
+    public synchronized void addTool(ToolsLu toolsLu) {
         Long id = nextToolId();
         if (id == null) id = 1L;
         insertTool(id, toolsLu.getName(), toolsLu.getResolution(), toolsLu.getNotes(), toolsLu.getSerialNumber(), toolsLu.getToolTypeId(),
                 toolsLu.getToolCategoryId(), toolsLu.getMaterialTypeId(), toolsLu.getCommitUser(), new Date().getTime());
     }
     
-    public void deleteTool(ToolsLu toolsLu) {
+    public synchronized void deleteTool(ToolsLu toolsLu) {
         // archive previously deleted tool entry
         archiveDeletedTool(toolsLu.getId());
         
@@ -165,7 +165,7 @@ public abstract class Tools {
         markToolDeleted(toolsLu.getId());
     }
     
-    public void updTool(ToolsLu toolsLu) {
+    public synchronized void updTool(ToolsLu toolsLu) {
         // check the toolsLu is in the database with its id, otherwise, throw an exception.
         String LuNotFoundErr = "Fail to update tool " + toolsLu.name + ", can not find this entry in the database.";
         if (toolsLu.getId() == null)

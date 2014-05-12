@@ -120,7 +120,7 @@ public abstract class Lookups extends Tools {
         }
     }
     
-    public void addLookupData(ListLu lu) {
+    public synchronized void addLookupData(ListLu lu) {
         // Validate that name, code combination does not already exist and is active.
         String code = (lu.getCode() == null || lu.getCode().isEmpty())? lu.getValue() : lu.getCode();
         ListLu _lu = findLookup(lu.getName(), code);
@@ -132,12 +132,12 @@ public abstract class Lookups extends Tools {
         addLookupData(id, lu.getName(), code, lu.getValue());
     }
     
-    public void deleteLookup(ListLu lu) {
+    public synchronized void deleteLookup(ListLu lu) {
         archiveDeletedLookup(lu.getId(), lu.getName(), lu.getCode());
         markLookupDeleted(lu.getId(), lu.getName(), lu.getCode());
     }
     
-    public void updateLookup(ListLu lu) {
+    public synchronized void updateLookup(ListLu lu) {
         // check the list lu is in the database with its id, otherwise, throw an exception.
         String LuNotFoundErr = "Fail to update lookup (" + lu.name + ", " + lu.code + "," + lu.value + "), can not find this entry in the database.";
         if (lu.getId() == null)
@@ -175,13 +175,13 @@ public abstract class Lookups extends Tools {
     
     @SqlUpdate("INSERT INTO lookups (id, name, code, value, deleted) VALUES"
             + "(:id, :name, :code, :value, :deleted)")
-    public abstract void seedLookupTable(@Bind("id") List<Long> id,
+    protected abstract void seedLookupTable(@Bind("id") List<Long> id,
                                               @Bind("name") List<String> name,
                                               @Bind("code") List<String> code,
                                               @Bind("value") List<String> value,
                                               @Bind("deleted") List<String> deleted);
     
-    public void seedInitialLookups() throws IOException {
+    public synchronized void seedInitialLookups() throws IOException {
         List<Path> lookupPaths = getLookupFilePaths("amberdb.lookups.", ".file");
         for (Path lookupPath : lookupPaths) {
             Map<String,List<String>> lookupData = parseLookupData(lookupPath);
