@@ -149,10 +149,23 @@ public interface File extends Node {
             }
             return getBlobStore().get(getBlobId());
         }
-
+        
+        /**
+         * Return the size of the blob. If an exception occurs try and 
+         * return the fileSize property. If that fails, return 0L.
+         */
         @Override
-        public long getSize() throws NoSuchBlobException, IOException {
-            return getBlob().size();
+        public long getSize() {
+            try {
+                return getBlob().size();
+            } catch (NoSuchBlobException | IOException e) {
+                // As a last resort see if the file has a size property to return
+                try {
+                    return getFileSize();
+                } catch (Exception ex) {
+                    return 0L;
+                }
+            }
         }
 
         @Override
