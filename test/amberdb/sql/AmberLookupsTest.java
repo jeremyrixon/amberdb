@@ -147,7 +147,7 @@ public class AmberLookupsTest {
     public void testAddMaterialTypeWireless() {
         assertFalse(activeLookupsInclude("materialType", "wireless"));
         ListLu wireless = new ListLu("materialType", "wireless");
-        lookups.addLookupData(wireless);
+        lookups.addLookup(wireless);
         assert(activeLookupsInclude("materialType", "wireless"));
     }
     

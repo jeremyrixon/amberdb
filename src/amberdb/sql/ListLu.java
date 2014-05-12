@@ -19,6 +19,7 @@ public class ListLu {
     public ListLu(String name, String value) {
         this.name = name;
         this.value = value;
+        this.code = value;
         this.deleted = "N";
     }
 
@@ -71,5 +72,9 @@ public class ListLu {
     
     public boolean isDeleted() {
         return (deleted != null && (deleted.equalsIgnoreCase("Y") || deleted.equalsIgnoreCase("D")));
+    }
+    
+    public boolean isReadOnly() {
+        return (deleted != null && deleted.equalsIgnoreCase("R"));
     }
 }

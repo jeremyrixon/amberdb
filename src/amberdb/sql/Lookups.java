@@ -37,7 +37,7 @@ public abstract class Lookups extends Tools {
     public abstract List<ListLu> findLookupsFor(@Bind("name") String name, @Bind("deleted") String deleted);
     
     @RegisterMapper(Lookups.ListLuMapper.class)
-    @SqlQuery("select id, name, value, code, deleted from lookups where name = :name and (code = :code or value = :code) and (deleted is null or deleted = 'N') order by value")
+    @SqlQuery("select id, name, value, code, deleted from lookups where name = :name and (code = :code or value = :code) and (deleted is null or deleted = 'N' or deleted = 'R') order by value")
     public abstract List<ListLu> findActiveLookup(@Bind("name") String name, @Bind("code") String code);
     
     @RegisterMapper(Lookups.ListLuMapper.class)
@@ -120,7 +120,7 @@ public abstract class Lookups extends Tools {
         }
     }
     
-    public synchronized void addLookupData(ListLu lu) {
+    public synchronized void addLookup(ListLu lu) {
         // Validate that name, code combination does not already exist and is active.
         String code = (lu.getCode() == null || lu.getCode().isEmpty())? lu.getValue() : lu.getCode();
         ListLu _lu = findLookup(lu.getName(), code);
@@ -140,14 +140,12 @@ public abstract class Lookups extends Tools {
     public synchronized void updateLookup(ListLu lu) {
         // check the list lu is in the database with its id, otherwise, throw an exception.
         String LuNotFoundErr = "Fail to update lookup (" + lu.name + ", " + lu.code + "," + lu.value + "), can not find this entry in the database.";
-        if (lu.getId() == null)
-            throw new IllegalArgumentException(LuNotFoundErr);
-        ListLu persistedLu = findLookup(lu.getId(), lu.getName());
+        String code = (lu.getCode() == null || lu.getCode().isEmpty())? lu.getValue() : lu.getCode();
+        ListLu persistedLu = findLookup(lu.getName(), code);
         if (persistedLu == null)
             throw new IllegalArgumentException(LuNotFoundErr);
         
         deleteLookup(lu);
-        String code = (lu.getCode() == null || lu.getCode().isEmpty())? lu.getValue() : lu.getCode();
         addLookupData(lu.getId(), lu.getName(), code, lu.getValue());
     }
     
