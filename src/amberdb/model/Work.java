@@ -626,12 +626,6 @@ public interface Work extends Node {
     @Property("workPid")
     public void setWorkPid(String workPid);
 
-    @Property("accessRestrictions")
-    public String getAccessRestrictions();
-
-    @Property("accessRestrictions")
-    public void setAccessRestrictions(String accessRestrictions);
-
     @Property("constraint")
     public String getConstraint();
 
