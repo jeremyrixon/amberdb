@@ -1,4 +1,4 @@
-package amberdb.lookup;
+package amberdb.sql;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -21,11 +21,15 @@ public class ToolsLu {
     @Column
     String notes;
     @Column
+    Long materialTypeId;
+    @Column
     String materialType;
     @Column 
     Long toolTypeId;
     @Column
     String toolType;
+    @Column
+    Long toolCategoryId;
     @Column
     String toolCategory;
     @Column
@@ -35,8 +39,15 @@ public class ToolsLu {
     @Column
     boolean deleted;
     
-    public ToolsLu(Long id, String name, String resolution, String serialNumber, String notes,
-                   String materialType, Long toolTypeId, String toolType, String toolCategory, 
+    public ToolsLu(String commitUser) {
+        this.commitUser = commitUser;
+        deleted = false;
+    }
+    
+    protected ToolsLu(Long id, String name, String resolution, String serialNumber, String notes,
+                   Long materialTypeId, String materialType, 
+                   Long toolTypeId, String toolType, 
+                   Long toolCategoryId, String toolCategory, 
                    Long commitTime, String commitUser, String deleted) {
         this.id = id;
         this.code = id.toString();
@@ -44,9 +55,11 @@ public class ToolsLu {
         this.resolution = resolution;
         this.serialNumber = serialNumber;
         this.notes = notes;
+        this.materialTypeId = materialTypeId;
         this.materialType = materialType;
         this.toolTypeId = toolTypeId;
         this.toolType = toolType;
+        this.toolCategoryId = toolCategoryId;
         this.toolCategory = toolCategory;
         this.commitTime = commitTime;
         this.commitUser = commitUser;
@@ -57,10 +70,6 @@ public class ToolsLu {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public Long getToolTypeId() {
         return toolTypeId;
     }
@@ -69,10 +78,26 @@ public class ToolsLu {
         this.toolTypeId = toolTypeId;
     }
     
+    public Long getMaterialTypeId() {
+        return materialTypeId;
+    }
+    
+    public void setMaterialTypeId(Long materialTypeId) {
+        this.materialTypeId = materialTypeId;
+    }
+    
+    public Long getToolCategoryId() {
+        return toolCategoryId;
+    }
+    
+    public void setToolCategoryId(Long toolCategoryId) {
+        this.toolCategoryId = toolCategoryId;
+    }
+    
     public String getName() {
         return name;
     }
-
+    
     public void setName(String name) {
         this.name = name;
     }
@@ -80,7 +105,7 @@ public class ToolsLu {
     public String getResolution() {
         return resolution;
     }
-
+    
     public void setResolution(String resolution) {
         this.resolution = resolution;
     }
@@ -88,7 +113,7 @@ public class ToolsLu {
     public String getSerialNumber() {
         return serialNumber;
     }
-
+    
     public void setSerialNumber(String serialNumber) {
         this.serialNumber = serialNumber;
     }
@@ -96,7 +121,7 @@ public class ToolsLu {
     public String getNotes() {
         return notes;
     }
-
+    
     public void setNotes(String notes) {
         this.notes = notes;
     }
@@ -105,25 +130,13 @@ public class ToolsLu {
         return materialType;
     }
 
-    public void setMaterialType(String materialType) {
-        this.materialType = materialType;
-    }
-
     public String getToolType() {
         return toolType;
     }
-
-    public void setToolType(String toolType) {
-        this.toolType = toolType;
-    }
-
+    
     public String getToolCategory() {
         return toolCategory;
     }
-
-    public void setToolCategory(String toolCategory) {
-        this.toolCategory = toolCategory;
-    } 
     
     public Long getCommitTime() {
         return commitTime;
@@ -138,12 +151,8 @@ public class ToolsLu {
         return commitUser;
     }
     
-    public boolean getDeleted() {
-        return deleted;
-    }
-    
-    public void setDeleted(boolean deleted) {
-        this.deleted = deleted;
+    public void setCommitUser(String commitUser) {
+        this.commitUser = commitUser;
     }
     
     public boolean isDeleted() {
