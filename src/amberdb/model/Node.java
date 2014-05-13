@@ -21,19 +21,38 @@ import com.tinkerpop.frames.modules.typedgraph.TypeField;
 
 @TypeField("type")
 public interface Node extends VertexFrame {
+    
     /**
-     * get the access conditions
-     * @return the access conditions, e.g. restricted, unrestricted.
+     * Access Conditions determine whether or not something can be 
+     * displayed to the public. Also known as Public Availability
+     * Values: Restricted, Unrestricted, Internal access only
      */
     @Property("accessConditions")
     public String getAccessConditions();
 
     /**
-     * set the access conditions. e.g. restricted and unrestricted
-     * @param accessConditions
+     * Access Conditions determine whether or not something can be 
+     * displayed to the public. Also known as Public Availability
+     * Values: Restricted, Unrestricted, Internal access only
      */
     @Property("accessConditions")
     public void setAccessConditions(String accessConditions);
+    
+    /**
+     * Internal Access Conditions reflect display and access 
+     * for internal content management applications.
+     * Values: open, restricted, closed
+     */
+    @Property("internalAccessConditions")
+    public String getInternalAccessConditions();
+    
+    /**
+    * Internal Access Conditions reflect display and access      
+    * for internal content management applications.
+    * Values: open, restricted, closed
+    */
+    @Property("internalAccessConditions")
+    public void setInternalAccessConditions(String internalAccessConditions);
     
     /**
      * get the expiry date of the access conditions.
