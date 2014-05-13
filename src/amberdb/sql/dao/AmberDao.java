@@ -185,9 +185,12 @@ public interface AmberDao extends Transactional<AmberDao> {
      */
     @SqlUpdate(
       "INSERT INTO lookups (name, code) VALUES"
-      + "('accessCondition', 'open'),"
-      + "('accessCondition', 'restricted'),"        
-      + "('accessCondition', 'closed'),"
+      + "('accessCondition', 'Restricted'),"
+      + "('accessCondition', 'Unrestricted'),"        
+      + "('accessCondition', 'Internal access only'),"
+      + "('internalAccessCondition', 'Open'),"
+      + "('internalAccessCondition', 'Restricted'),"        
+      + "('internalAccessCondition', 'Closed'),"
       + "('copyType', 'Physical'),"
       + "('copyType', 'Digitised'),"
       + "('copyType', 'Born Digital'),"

@@ -28,6 +28,20 @@ public abstract class Tools {
             + "order by t.name ")
     public abstract List<ToolsLu> findTools(@Bind("deleted") String deleted);   
     
+    @RegisterMapper(Tools.ToolsLuMapper.class)
+    @SqlQuery(
+            "select distinct t.*, tl.value as toolType, tcl.value as toolCategory, mtl.value as materialType "
+            + "from tools t left join (select id, value from lookups where deleted = 'N') tl " 
+            + "on t.toolTypeId = tl.id "        
+            + "left join  (select id, value from lookups where deleted = 'N') tcl "
+            + "on t.toolCategoryId = tcl.id "
+            + "left join  (select id, value from lookups where deleted = 'N') mtl "
+            + "on t.materialTypeId = mtl.id "
+            + "where (t.deleted = :deleted "
+            + "or t.id = :inclId) "
+            + "order by t.name ")
+    public abstract List<ToolsLu> findTools(@Bind("deleted") String deleted, @Bind("inclId") Long inclId);   
+    
     public List<ToolsLu> findAllToolsEverRecorded() {
         List<ToolsLu> allTools = new ArrayList<>();
         allTools.addAll(findAllActiveTools());
@@ -101,6 +115,12 @@ public abstract class Tools {
         return filterTools(filterFldName, filterFldValue, tools);
     }
     
+    public List<ToolsLu> findActiveToolsFor(String filterFldName, String filterFldValue, Long includeId) {
+        List<ToolsLu> tools = findTools("N", includeId);
+        if (tools == null) tools = new ArrayList<>();
+        return filterTools(filterFldName, filterFldValue, tools);
+    }
+    
     public List<ToolsLu> findToolsEverRecordedFor(String filterFldName, String filterFldValue) {
         List<ToolsLu> tools = findAllToolsEverRecorded();
         return filterTools(filterFldName, filterFldValue, tools);
@@ -110,12 +130,20 @@ public abstract class Tools {
         return findActiveToolsFor("toolCategory", "software");
     }
     
+    public List<ToolsLu> findActiveSoftware(Long includeId) {
+        return findActiveToolsFor("toolCategory", "software", includeId);
+    }
+    
     public List<ToolsLu> findSoftwareEverRecorded() {
         return findToolsEverRecordedFor("toolCategory", "software");
     }
     
     public List<ToolsLu> findActiveDevices() {
         return findActiveToolsFor("toolCategory", "device");
+    }
+    
+    public List<ToolsLu> findActiveDevices(Long includeId) {
+        return findActiveToolsFor("toolCategory", "device", includeId);
     }
     
     public List<ToolsLu> findDevicesEverRecorded() {

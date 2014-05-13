@@ -67,9 +67,25 @@ public abstract class Lookups extends Tools {
         return null;
     }
     
+    /*
+     * Find a list of active values in the named lookups for reference when creating a new record
+     */
     public List<ListLu> findActiveLookupsFor(String name) {
         List<ListLu> activeLookups = findLookupsFor(name, "N");
         if (activeLookups == null) return new ArrayList<>();
+        return activeLookups;
+    }
+    
+    /*
+     * Find a list of active values and current referenced value (ie. inclCode) in the named lookups for reference when updating a record.
+     * The inclCode is catering for reference to an suppressed lookup entry. 
+     */
+    public List<ListLu> findActiveLookupsFor(String name, String inclCode) {
+        List<ListLu> lookupWithCode = findActiveLookup(name, inclCode);
+        List<ListLu> activeLookups = findActiveLookupsFor(name);
+        if (lookupWithCode == null || lookupWithCode.isEmpty()) {
+            activeLookups.add(new ListLu(name, inclCode));
+        }
         return activeLookups;
     }
     
