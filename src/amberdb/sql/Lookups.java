@@ -29,8 +29,13 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 import java.util.Properties;
 
 public abstract class Lookups extends Tools { 
-    @SqlQuery("select distinct name from lookups where deleted = :deleted order by name")
-    public abstract List<String> findLookupNames(@Bind("deleted") String deleted);
+    @RegisterMapper(Lookups.ListLuMapper.class)
+    @SqlQuery("select distinct id, name, value, code, deleted from lookups where deleted = 'N' or deleted is null order by name, code")
+    public abstract List<ListLu> findActiveLookups();
+    
+    @RegisterMapper(Lookups.ListLuMapper.class)
+    @SqlQuery("select distinct id, name, value, code, deleted from lookups where deleted = 'D' or deleted = 'Y' order by deleted, name, code")
+    public abstract List<ListLu> findDeletedLookups();
     
     @RegisterMapper(Lookups.ListLuMapper.class)
     @SqlQuery("select id, name, value, code, deleted from lookups where name = :name and deleted = :deleted order by name, value")
@@ -43,20 +48,7 @@ public abstract class Lookups extends Tools {
     @RegisterMapper(Lookups.ListLuMapper.class)
     @SqlQuery("select id, name, value, code, deleted from lookups where name = :name and (code = :code or value = :code) and (deleted = 'D' or deleted = 'Y') order by deleted, value")
     public abstract List<ListLu> findDeletedLookup(@Bind("name")String name, @Bind("code") String code);
-    
-    public List<String> findActiveLookupNames() {
-        String deleted = "N";
-        return findLookupNames(deleted);
-    }
-    
-    public List<String> findDeletedLookupNames() {
-        String deleted = "D";
-        SortedSet<String> deletedLookups = new TreeSet<String>(findLookupNames(deleted));
-        deleted = "Y";
-        deletedLookups.addAll(findLookupNames(deleted));
-        return Collections.list((Enumeration<String>) deletedLookups.iterator());
-    }
-    
+        
     public ListLu findLookup(String name, String code) {
         List<ListLu> activeLookups = findActiveLookup(name, code);
         if (activeLookups != null && activeLookups.size() > 0)
