@@ -137,7 +137,7 @@ public class AmberLookupsTest {
         List<ListLu> values = lookups.findActiveLookupsFor(name);
         if (values == null || values.isEmpty()) return false;
         for (ListLu luValue : values) {
-            if (luValue.getValue().equals(value))
+            if (luValue.getValue() != null && luValue.getValue().equals(value))
                 return true;
         }
         return false;
