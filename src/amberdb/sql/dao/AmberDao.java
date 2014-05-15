@@ -1086,7 +1086,8 @@ public interface AmberDao extends Transactional<AmberDao> {
             "INSERT INTO lookups(id, name, code, value) VALUES"
             + "(501, 'materialType', 'Image', 'Image'),"
             + "(502, 'materialType', 'Sound', 'Sound'),"
-            + "(503, 'materialType', 'Text', 'Text')"
+            + "(503, 'materialType', 'Text', 'Text'),"
+            + "(504, 'materialType', 'Moving Image', 'Moving Image')"
             )
     void seedMaterialTypesLookups();
 
