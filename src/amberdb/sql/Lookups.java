@@ -128,7 +128,7 @@ public abstract class Lookups extends Tools {
         }
     }
     
-    public synchronized void addLookup(ListLu lu) {
+    public void addLookup(ListLu lu) {
         // Validate that name, code combination does not already exist and is active.
         String code = (lu.getCode() == null || lu.getCode().isEmpty())? lu.getValue() : lu.getCode();
         ListLu _lu = findLookup(lu.getName(), code);
@@ -151,6 +151,14 @@ public abstract class Lookups extends Tools {
         updLookupData(lu.getName(), code, lu.getValue());
     }
     
+    public synchronized void deleteLookup(Long id) {
+        deleteLookupData(id);
+    }
+    
+    public synchronized void undeleteLookup(Long id) {
+        undeleteLookupData(id);
+    }
+    
     @SqlQuery("select max(id) + 1 from lookups")
     protected abstract Long nextLookupId();
     
@@ -169,10 +177,10 @@ public abstract class Lookups extends Tools {
                                           @Bind("value") String value);
     
     @SqlUpdate("UPDATE lookups SET deleted = 'D' WHERE id = :id")
-    public abstract void deleteLookup(@Bind("id") Long id);
+    public abstract void deleteLookupData(@Bind("id") Long id);
     
     @SqlUpdate("UPDATE lookups SET deleted = 'N' WHERE id = :id")
-    public abstract void undeleteLookup(@Bind("id") Long id);
+    public abstract void undeleteLookupData(@Bind("id") Long id);
     
     @SqlUpdate("INSERT INTO lookups (id, name, code, value, deleted) VALUES"
             + "(:id, :name, :code, :value, :deleted)")
