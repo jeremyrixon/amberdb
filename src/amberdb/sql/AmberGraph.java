@@ -155,6 +155,7 @@ public class AmberGraph extends BaseGraph
         dao.createToolsToolCategoryIdIndex();
         dao.createToolsMaterialTypeIdIndex();
         dao.seedKeyCodeList(); 
+        dao.seedCollectionList();
         dao.seedValuesForKeyList();
         dao.seedToolsList();
         dao.seedToolTypesLookups();
