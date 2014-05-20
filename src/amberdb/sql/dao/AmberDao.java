@@ -184,7 +184,7 @@ public interface AmberDao extends Transactional<AmberDao> {
      * General lookups
      */
     @SqlUpdate(
-      "INSERT INTO lookups (name, value) VALUES"
+      "INSERT INTO lookups (name, code) VALUES"
       + "('accessCondition', 'Restricted'),"
       + "('accessCondition', 'Unrestricted'),"        
       + "('accessCondition', 'Internal access only'),"
@@ -879,15 +879,6 @@ public interface AmberDao extends Transactional<AmberDao> {
       + "('samplingRate', '192000'),"
       + "('soundField', 'Stereo'),"
       + "('soundField', 'Mono'),"
-      + "('collection','nla.aus'),"
-      + "('collection','nla.ms'),"
-      + "('collection','nla.map'),"
-      + "('collection','nla.mus'),"
-      + "('collection','nla.pic'),"
-      + "('collection','nla.gen'),"
-      + "('collection','nla.oh'),"
-      + "('collection','nla.int'),"
-      + "('collection','nla.con'),"
       + "('subUnitType','Additional Material'),"
       + "('subUnitType','Attachment'),"
       + "('subUnitType','Bibliography'),"
@@ -1055,7 +1046,19 @@ public interface AmberDao extends Transactional<AmberDao> {
     )
     void seedKeyCodeList();
     
-    @SqlUpdate("UPDATE lookups SET VALUE = CODE")
+    @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
+    + "('collection','nla.aus', 'Australian'),"
+    + "('collection','nla.ms', 'Manuscript'),"
+    + "('collection','nla.map', 'Map'),"
+    + "('collection','nla.mus', 'Music'),"
+    + "('collection','nla.pic', 'Picture'),"
+    + "('collection','nla.gen', 'General'),"
+    + "('collection','nla.oh', 'Oral history and folklore'),"
+    + "('collection','nla.int', 'Internal photograph'),"
+    + "('collection','nla.con', 'Conservation')")
+    void seedCollectionList();
+    
+    @SqlUpdate("UPDATE lookups SET VALUE = CODE WHERE value is null")
     void seedValuesForKeyList();
     
     @SqlUpdate("INSERT INTO tools(id, name, resolution, notes, serialNumber, toolTypeId, toolCategoryId, materialTypeId) VALUES"
@@ -1068,14 +1071,16 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "(7,'Sinar Macroscan', null, null, null, 451, 499, 501), "
             + "(8,'Nikon D1', null, null, null, 451, 499, 501), "
             + "(9,'Canon 20D', null, null, null, 451, 499, 501), "
-            + "(10,'Kodak ProBack', null, null, null, 451, 499, 501) "
+            + "(10,'Kodak ProBack', null, null, null, 451, 499, 501), "
+            + "(11,'Adobe', null, null, null, 453, 500, 501)"
             )
     void seedToolsList();
     
     @SqlUpdate(
             "INSERT INTO lookups(id, name, code, value) VALUES"
                     + "(451, 'toolType', 'Transmission scanner', 'Transmission scanner'),"
-                    + "(452, 'toolType', 'Reflective scanner', 'Reflective scanner')"
+                    + "(452, 'toolType', 'Reflective scanner', 'Reflective scanner'),"
+                    + "(453, 'toolType', 'Word processing', 'Word Processing')"
               )
     void seedToolTypesLookups();
     
