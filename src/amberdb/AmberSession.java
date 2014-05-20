@@ -3,15 +3,12 @@ package amberdb;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.sql.DataSource;
 
@@ -19,6 +16,7 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.h2.Driver;
 import org.h2.jdbcx.JdbcConnectionPool;
+import org.skife.jdbi.v2.DBI;
 
 import amberdb.model.Copy;
 import amberdb.model.File;
@@ -27,9 +25,10 @@ import amberdb.model.Page;
 import amberdb.model.Section;
 import amberdb.model.SoundFile;
 import amberdb.model.Work;
-import amberdb.sql.AmberGraph;
-import amberdb.sql.AmberHistory;
-import amberdb.sql.AmberVertex;
+import amberdb.sql.Lookups;
+import amberdb.sql.LookupsSchema;
+import amberdb.graph.AmberGraph;
+import amberdb.graph.AmberHistory;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Graph;
@@ -45,8 +44,6 @@ import com.tinkerpop.frames.modules.javahandler.JavaHandlerModule;
 import com.tinkerpop.frames.modules.typedgraph.TypedGraphModuleBuilder;
 
 import doss.BlobStore;
-import doss.CorruptBlobStoreException;
-import doss.local.LocalBlobStore;
 
 
 public class AmberSession implements AutoCloseable {
@@ -55,7 +52,7 @@ public class AmberSession implements AutoCloseable {
     private final FramedGraph<TransactionalGraph> graph;
     private final BlobStore blobStore;
     private final TempDirectory tempDir;
-
+    private DBI lookupsDbi;
 
     /**
      * Constructs an in-memory AmberDb for testing with. Also creates a BlobStore in a temp dir 
@@ -70,7 +67,7 @@ public class AmberSession implements AutoCloseable {
         
         // Graph
         DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:", "amb", "amb");
-        AmberGraph amber = new AmberGraph(dataSource);
+        AmberGraph amber = init(dataSource, null);
         graph = openGraph(amber);
     }
 
@@ -123,7 +120,14 @@ public class AmberSession implements AutoCloseable {
         try {
 
             DriverManager.registerDriver(new Driver());
-
+            // NLA specific lookup table config
+            lookupsDbi = new DBI(dataSource);
+            LookupsSchema luSchema = lookupsDbi.onDemand(LookupsSchema.class);
+            if (!luSchema.schemaTablesExist()) {
+                // maybe log something
+                luSchema.createLookupsSchema();
+            }
+            
             // Graph
             AmberGraph amber = new AmberGraph(dataSource);
             if (sessionId != null) amber.resume(sessionId);
@@ -134,13 +138,18 @@ public class AmberSession implements AutoCloseable {
             throw new RuntimeException(e);
         }        
     }
-
+    
     
     public AmberGraph getAmberGraph() {
         return ((OwnedGraph) graph.getBaseGraph()).getAmberGraph();
     }
 
 
+    public Lookups getLookups() {
+        return lookupsDbi.onDemand(Lookups.class);
+    }
+    
+    
     public void setLocalMode(boolean localModeOn) {
         getAmberGraph().setLocalMode(localModeOn);
     }

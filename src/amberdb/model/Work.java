@@ -5,10 +5,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -20,9 +18,9 @@ import amberdb.enums.CopyRole;
 import amberdb.enums.SubType;
 import amberdb.relation.IsCopyOf;
 import amberdb.relation.IsPartOf;
-import amberdb.sql.AmberGraph;
-import amberdb.sql.AmberQuery;
-import amberdb.sql.AmberVertex;
+import amberdb.graph.AmberGraph;
+import amberdb.graph.AmberQuery;
+import amberdb.graph.AmberVertex;
 
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
@@ -37,7 +35,7 @@ import com.tinkerpop.frames.annotations.gremlin.GremlinParam;
 import com.tinkerpop.frames.modules.javahandler.JavaHandler;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
-import com.tinkerpop.frames.structures.FramedEdgeIterable;
+
 
 /**
  * Any logical work that is collected or created by the library such as a book,

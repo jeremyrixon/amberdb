@@ -8,13 +8,15 @@ import java.util.List;
 
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
+import org.skife.jdbi.v2.sqlobject.CreateSqlObject;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 
-public abstract class Tools {            
+public abstract class Tools {   
+
     @RegisterMapper(Tools.ToolsLuMapper.class)
     @SqlQuery(
             "select distinct t.*, tl.value as toolType, tcl.value as toolCategory, mtl.value as materialType "
@@ -223,5 +225,9 @@ public abstract class Tools {
     
     @SqlUpdate("UPDATE tools SET deleted = 'Y' where id = :id and deleted = 'D'")
     protected abstract void archiveDeletedTool(@Bind("id") Long id);
+
+    @CreateSqlObject
+    public abstract Lookups lookups();
+    
 }
 

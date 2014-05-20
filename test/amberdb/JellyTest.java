@@ -25,8 +25,7 @@ import amberdb.model.Copy;
 import amberdb.model.File;
 import amberdb.model.Page;
 import amberdb.model.Work;
-import amberdb.sql.AmberProperty;
-import amberdb.sql.DataType;
+import amberdb.graph.AmberProperty;
 import amberdb.sql.dao.MigrationDao;
 
 public class JellyTest {

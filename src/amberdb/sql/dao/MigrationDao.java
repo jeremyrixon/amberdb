@@ -8,8 +8,8 @@ import org.skife.jdbi.v2.sqlobject.SqlQuery;
 //import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
-import amberdb.sql.PropertyMapper;
-import amberdb.sql.AmberProperty;
+import amberdb.graph.PropertyMapper;
+import amberdb.graph.AmberProperty;
 
 
 public interface MigrationDao extends Transactional<MigrationDao> {

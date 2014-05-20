@@ -9,12 +9,8 @@ import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,6 +25,7 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 import java.util.Properties;
 
 public abstract class Lookups extends Tools { 
+    
     @RegisterMapper(Lookups.ListLuMapper.class)
     @SqlQuery("select distinct id, name, value, code, deleted from lookups where deleted = 'N' or deleted is null order by name, code")
     public abstract List<ListLu> findActiveLookups();
@@ -48,7 +45,11 @@ public abstract class Lookups extends Tools {
     @RegisterMapper(Lookups.ListLuMapper.class)
     @SqlQuery("select id, name, value, code, deleted from lookups where name = :name and (code = :code or value = :code) and (deleted = 'D' or deleted = 'Y') order by deleted, value")
     public abstract List<ListLu> findDeletedLookup(@Bind("name")String name, @Bind("code") String code);
-        
+
+    @RegisterMapper(Lookups.ListLuMapper.class)
+    @SqlQuery("select id, name, value, code, deleted from lookups where id = :id")
+    public abstract ListLu findLookup(@Bind("id")Long id);
+    
     public ListLu findLookup(String name, String code) {
         List<ListLu> activeLookups = findActiveLookup(name, code);
         if (activeLookups != null && activeLookups.size() > 0)
@@ -277,5 +278,4 @@ public abstract class Lookups extends Tools {
         out.write("\n".getBytes());
         out.flush();
     }
-
 }

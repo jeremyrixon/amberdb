@@ -8,8 +8,8 @@ import org.codehaus.jackson.type.TypeReference;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 
-import amberdb.sql.AmberGraph;
-import amberdb.sql.AmberProperty;
+import amberdb.graph.AmberGraph;
+import amberdb.graph.AmberProperty;
 
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
