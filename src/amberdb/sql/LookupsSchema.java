@@ -985,26 +985,26 @@ public abstract class LookupsSchema {
     public abstract void seedToolsList();
     
     @SqlUpdate(
-            "INSERT INTO lookups(id, name, code, value) VALUES"
-                    + "(451, 'toolType', 'Transmission scanner', 'Transmission scanner'),"
-                    + "(452, 'toolType', 'Reflective scanner', 'Reflective scanner'),"
-                    + "(453, 'toolType', 'Word processing', 'Word Processing')"
+            "INSERT INTO lookups(name, code, value) VALUES"
+                    + "('toolType', 'Transmission scanner', 'Transmission scanner'),"
+                    + "('toolType', 'Reflective scanner', 'Reflective scanner'),"
+                    + "('toolType', 'Word processing', 'Word Processing')"
               )
     public abstract void seedToolTypesLookups();
     
     @SqlUpdate(
-            "INSERT INTO lookups(id, name, code, value) VALUES"
-            + "(499, 'toolCategory', 'd', 'Device'),"
-            + "(500, 'toolCategory', 's', 'Software')"        
+            "INSERT INTO lookups(name, code, value) VALUES"
+            + "('toolCategory', 'd', 'Device'),"
+            + "('toolCategory', 's', 'Software')"        
             )
     public abstract void seedToolCategoriesLookups();
     
     @SqlUpdate(
-            "INSERT INTO lookups(id, name, code, value) VALUES"
-            + "(501, 'materialType', 'Image', 'Image'),"
-            + "(502, 'materialType', 'Sound', 'Sound'),"
-            + "(503, 'materialType', 'Text', 'Text'),"
-            + "(504, 'materialType', 'Moving Image', 'Moving Image')"
+            "INSERT INTO lookups(name, code, value) VALUES"
+            + "('materialType', 'Image', 'Image'),"
+            + "('materialType', 'Sound', 'Sound'),"
+            + "('materialType', 'Text', 'Text'),"
+            + "('materialType', 'Moving Image', 'Moving Image')"
             )
     public abstract void seedMaterialTypesLookups();
     
