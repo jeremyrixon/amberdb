@@ -3,157 +3,164 @@ package amberdb.sql;
 import static org.junit.Assert.*;
 
 import java.util.List;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import amberdb.AmberSession;
-import amberdb.lookup.ListLu;
-import amberdb.lookup.ToolsLu;
 
 public class AmberLookupsTest {
     private AmberSession session;
-    private LookupsMock lookups;
-    
+    private Lookups lookups;
+
     @Before
     public void setup() {
         session = new AmberSession();
-        lookups = session.getAmberGraph().dbi().onDemand(LookupsMock.class);
+        lookups = session.getAmberGraph().dbi().onDemand(Lookups.class);
     }
 
     @After
     public void teardown() {
         session = null;
     }
-    
+
     @Test
     public void testFindActiveDevices() {
         List<ToolsLu> devices = lookups.findActiveToolsFor("toolCategory", "Device");
         assertNotNull(devices);
         assertEquals(devices.size(), 10);
     }
-    
+
     @Test
     public void testFindActiveScanners() {
         List<ToolsLu> scanners = lookups.findActiveToolsFor("toolType", "scanner");
         assertNotNull(scanners);
         System.out.println("devices size " + scanners.size());
-        assertEquals(scanners.size(), 6);
+        assertEquals(scanners.size(), 10);
     }
-    
+
     @Test
     public void testFindActiveToolsForNikonInInitialSeeds() {
         List<ToolsLu> nikonEntries = lookups.findActiveToolsFor("name", "Nikon");
         assertNotNull(nikonEntries);
-        assert(nikonEntries.size() == 2);
+        assert (nikonEntries.size() == 2);
     }
-    
+
     @Test
     public void testFindToolsEverRecordedForNikonInInitialSeeds() {
         List<ToolsLu> nikonEntries = lookups.findToolsEverRecordedFor("name", "Nikon");
         assertNotNull(nikonEntries);
-        assert(nikonEntries.size() == 2);
+        assert (nikonEntries.size() == 2);
     }
-    
+
     @Test
     public void testFindActiveToolCannon20D() {
         long id = 9L;
         ToolsLu cannon20D = lookups.findActiveTool(id);
-        assert(cannon20D.getName().equals("Canon 20D"));
+        assert (cannon20D.getName().equals("Canon 20D"));
     }
-    
+
     @Test(expected = RuntimeException.class)
     public void testExceptionForNonExistentTool() {
         Long id = 0L;
         lookups.findActiveTool(id);
     }
-    
+
     @Test
     public void testUpdateToolCannon20DResolution() {
         long id = 9L;
-        String lbl = "Cannon 20D";
-        String code = "null";
         ToolsLu cannon20D = lookups.findActiveTool(id);
-        assert(cannon20D.getName().equals("Canon 20D"));
-        assert(cannon20D.getResolution().equals(""));
-        lookups.updateLookupData(id, 
-                                 "tools", 
-                                 lbl, "resolution", "", "3504x2336");
+        assert (cannon20D.getName().equals("Canon 20D"));
+        assertNull(cannon20D.getResolution());
+        cannon20D.setResolution("3504x2336");
+        lookups.updTool(cannon20D);
+        session.commit();
         ToolsLu updedCannon = lookups.findActiveTool(id);
-        assert(updedCannon.getName().equals("Canon 20D"));
-        assert(updedCannon.getResolution().equals("3504x2336"));
+        assert (updedCannon.getName().equals("Canon 20D"));
+        assert (updedCannon.getResolution().equals("3504x2336"));
     }
-    
+
     @Test
     public void testUpdateToolCannon20DToolType() {
-        long canonId = 9L;        
-        long oldToolTypeId = 452L;
-        long newToolTypeId = 451L;
-        assert(lookups.hasAssociation(canonId, oldToolTypeId));
-        lookups.updateLookupDataMap(canonId, oldToolTypeId, newToolTypeId);
-        assert(lookups.hasAssociation(canonId, newToolTypeId));
+        long canonId = 9L;
+        long oldToolTypeId = 451L;
+        long newToolTypeId = 452L;
+
+        ToolsLu canon = lookups.findTool(canonId);
+        assertEquals(oldToolTypeId, canon.getToolTypeId().longValue());
+        canon.setToolTypeId(newToolTypeId);
+        lookups.updTool(canon);
+        ToolsLu newCanon = lookups.findTool(canonId);
+        assertEquals(newToolTypeId, newCanon.getToolTypeId().longValue());
     }
-    
+
     @Test
     public void testUpdateToolCannon20DMaterialType() {
-        long canonId = 9L;        
+        long canonId = 9L;
         long oldMaterialId = 501L;
         long newMaterialId = 502L;
-        assert(lookups.hasAssociation(canonId, oldMaterialId));
-        lookups.updateLookupDataMap(canonId, oldMaterialId, newMaterialId);
-        assert(lookups.hasAssociation(canonId, newMaterialId));
+
+        ToolsLu canon = lookups.findTool(canonId);
+        assert (canon.getMaterialTypeId() == oldMaterialId);
+        canon.setMaterialTypeId(newMaterialId);
+        lookups.updTool(canon);
+        ToolsLu newCanon = lookups.findTool(canonId);
+        assert (newCanon.getMaterialTypeId() == newMaterialId);
     }
-    
+
     @Test
     public void testUpdateToolCannon20DToolCategory() {
-        long canonId = 9L;        
+        long canonId = 9L;
         long deviceId = 499L;
         long softwareId = 500L;
-        assert(lookups.hasAssociation(canonId, deviceId));
-        lookups.updateLookupDataMap(canonId, deviceId, softwareId);
-        assert(lookups.hasAssociation(canonId, softwareId));
+
+        ToolsLu canon = lookups.findTool(canonId);
+        assert (canon.getToolCategoryId() == deviceId);
+        canon.setToolCategoryId(softwareId);
+        lookups.updTool(canon);
+        ToolsLu newCanon = lookups.findTool(canonId);
+        assert (newCanon.getToolCategoryId() == softwareId);
     }
-    
+
     @Test
-    public void testUpdateCarrierOnlineToBornDigital() {
-        assert(activeLookupsInclude("carrier", "Online"));
-        assertFalse(activeLookupsInclude("carrier", "Born Digital"));
-        
+    public void testUpdateMaterialTypeTextToOcrText() {
         ListLu imageMT = lookups.findLookup("materialType", "Text");
-        lookups.updateLookupData(imageMT.getId(), imageMT.getName(), imageMT.getValue(), "Ocr Text");
+        imageMT.setValue("Ocr Text");
+        lookups.updateLookup(imageMT);
         assertFalse(activeLookupsInclude("materialType", "Text"));
-        assert(activeLookupsInclude("materialType", "Ocr Text"));
+        assert (activeLookupsInclude("materialType", "Ocr Text"));
     }
-    
+
     private boolean activeLookupsInclude(String name, String value) {
         List<ListLu> values = lookups.findActiveLookupsFor(name);
-        if (values == null || values.isEmpty()) return false;
+        if (values == null || values.isEmpty())
+            return false;
         for (ListLu luValue : values) {
-            if (luValue.getValue().equals(value))
+            if (luValue.getValue() != null && luValue.getValue().equals(value))
                 return true;
         }
         return false;
     }
 
     @Test
-    public void testAddCarrierWireless() {
+    public void testAddMaterialTypeWireless() {
         assertFalse(activeLookupsInclude("materialType", "wireless"));
-        lookups.addLookupData(lookups.nextLookupId(), "materialType", "wireless");
-        assert(activeLookupsInclude("materialType", "wireless"));
+        ListLu wireless = new ListLu("materialType", "wireless");
+        lookups.addLookup(wireless);
+        assert (activeLookupsInclude("materialType", "wireless"));
     }
-    
+
     @Test
     public void testAddSoftwareAdobeIllustrator() {
-        long id = lookups.nextLookupId();
-        lookups.addLookupData(id, "tools", "", "", "name", "Adobe Illustrator CC", "N");
-        lookups.addLookupData(id, "tools", "", "", "resolution", "", "N");
-        lookups.addLookupData(id, "tools", "", "", "serialNumber", "11-220-284", "N");
-        lookups.addLookupData(id, "tools", "", "", "notes", "Use to create clip art", "N");
-        
-        ToolsLu ai = lookups.findActiveTool(id);
-        assert(ai.getName().equals("Adobe Illustrator CC"));
-        assert(ai.getResolution().equals(""));
-        assert(ai.getSerialNumber().equals("11-220-284"));
-        assert(ai.getNotes().equals("Use to create clip art"));
+        ToolsLu ai = new ToolsLu("apaterso");
+        ai.setName("Adobe Illustrator CC");
+        ai.setSerialNumber("11-220-284");
+        ai.setNotes("Use to create clip art");
+        lookups.addTool(ai);
+
+        List<ToolsLu> ais = lookups.findActiveToolsFor("name", ai.getName());
+        ToolsLu newAI = ais.get(0);
+        assert (newAI.getName().equals("Adobe Illustrator CC"));
+        assert (newAI.getSerialNumber().equals("11-220-284"));
+        assert (newAI.getNotes().equals("Use to create clip art"));
     }
 }

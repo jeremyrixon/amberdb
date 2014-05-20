@@ -3,113 +3,46 @@ package amberdb.sql;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
+import org.skife.jdbi.v2.sqlobject.CreateSqlObject;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
-import amberdb.lookup.ToolsLu;
 
-public abstract class Tools {    
-    @SqlUpdate("INSERT INTO lookups (id, name, lbl, code, attribute, value, deleted) VALUES"
-            + "(:id, :name, :lbl, :code, :attribute, :value, :deleted)")
-    public abstract void seedToolsLookupTable(@Bind("id") List<Long> id,
-                                              @Bind("name") List<String> name,
-                                              @Bind("code") List<String> code,
-                                              @Bind("attribute") List<String> attribute,
-                                              @Bind("value") List<String> value,
-                                              @Bind("deleted") List<String> deleted);
-        
-    @SqlUpdate("INSERT INTO maps (id, parent_id, deleted) VALUES"
-            + "(:id,:parentId,:deleted)")
-    public abstract void seedToolsMapsTable(@Bind("id") List<Long> id,
-                                            @Bind("parentId") List<Long> parentId,
-                                            @Bind("deleted") List<String> deleted);
+public abstract class Tools {   
+
+    @RegisterMapper(Tools.ToolsLuMapper.class)
+    @SqlQuery(
+            "select distinct t.*, tl.value as toolType, tcl.value as toolCategory, mtl.value as materialType "
+            + "from tools t left join (select id, value from lookups where deleted = 'N') tl " 
+            + "on t.toolTypeId = tl.id "        
+            + "left join  (select id, value from lookups where deleted = 'N') tcl "
+            + "on t.toolCategoryId = tcl.id "
+            + "left join  (select id, value from lookups where deleted = 'N') mtl "
+            + "on t.materialTypeId = mtl.id "
+            + "where t.deleted = :deleted "
+            + "order by t.name ")
+    public abstract List<ToolsLu> findTools(@Bind("deleted") String deleted);   
     
     @RegisterMapper(Tools.ToolsLuMapper.class)
     @SqlQuery(
-            "select s.id, n.name, r.resolution, s.serialNumber, t.notes, tt.id as toolTypeId, tt.toolType, tt.materialType, toolCategory, commitTime, commitUser, n.deleted "
-                    + "from "
-                    + "(select id, "
-                    + "        value as name, "
-                    + "        deleted "
-                    + "from lookups "
-                    + "where name = 'tools' "
-                    + "and attribute = 'name' "
-                    + "and deleted = :deleted) n, "
-                    + "(select id, "
-                    + "        value as resolution "
-                    + "from lookups "
-                    + "where name = 'tools' "
-                    + "and attribute = 'resolution' "
-                    + "and deleted = :deleted) r, "
-                    + "(select id, "
-                    + "        value as serialNumber "
-                    + "from lookups "
-                    + "where name = 'tools' "
-                    + "and attribute = 'serialNumber' "
-                    + "and deleted = :deleted) s, "
-                    + "(select id, "
-                    + "        value as notes "
-                    + "from lookups "
-                    + "where name = 'tools' "
-                    + "and attribute = 'notes' "
-                    + "and deleted = :deleted) t, "
-                    + "(select id, "
-                    + "        value as commitTime "
-                    + "from lookups "
-                    + "where name = 'tools' "
-                    + "and attribute = 'commitTime' "
-                    + "and deleted = :deleted) ct, "
-                    + "(select id, "
-                    + "        value as commitUser "
-                    + "from lookups "
-                    + "where name = 'tools' "
-                    + "and attribute = 'commitUser' "
-                    + "and deleted = :deleted) cu, "
-                    + "(select t.id, "
-                    + "        t.value as toolType, "
-                    + "        m.value as materialType "
-                    + " from lookups t, lookups m, maps mp1 "
-                    + " where t.name = 'toolType' "
-                    + " and t.deleted = :deleted "
-                    + " and m.name = 'materialType' "
-                    + " and m.deleted = :deleted "
-                    + " and t.id = mp1.id "
-                    + " and mp1.parent_id = m.id "
-                    + " and mp1.deleted = :deleted) tt, "
-                    + "(select distinct mp2.id, "
-                    + "        t1.value as toolCategory "
-                    + " from lookups t1, maps mp2 "
-                    + " where t1.name = 'toolCategory' "
-                    + " and t1.deleted = :deleted "
-                    + " and mp2.parent_id = t1.id "
-                    + " and mp2.deleted = :deleted) tt1, "
-                    + "maps mp "
-                    + "where n.id = r.id "
-                    + "and r.id = s.id "
-                    + "and s.id = t.id "
-                    + "and s.id = ct.id "
-                    + "and s.id = cu.id "
-                    + "and s.id = mp.id "
-                    + "and tt.id = tt1.id "
-                    + "and mp.parent_id = tt.id "
-                    + "and mp.deleted = :deleted "
-                    + "order by n.name "
-            )
-    public abstract List<ToolsLu> findTools(@Bind("deleted") String deleted);   
-
-    @SqlQuery("select count(id) from maps where id = :toolId and parent_id = :mapToId")
-    public abstract int findAssociation(@Bind("toolId") Long toolId, @Bind("mapToId") Long mapToId);
-
-    public boolean hasAssociation(Long toolId, Long mapToId) {
-        return findAssociation(toolId, mapToId) > 0;
-    }
+            "select distinct t.*, tl.value as toolType, tcl.value as toolCategory, mtl.value as materialType "
+            + "from tools t left join (select id, value from lookups where deleted = 'N') tl " 
+            + "on t.toolTypeId = tl.id "        
+            + "left join  (select id, value from lookups where deleted = 'N') tcl "
+            + "on t.toolCategoryId = tcl.id "
+            + "left join  (select id, value from lookups where deleted = 'N') mtl "
+            + "on t.materialTypeId = mtl.id "
+            + "where (t.deleted = :deleted "
+            + "or t.id = :inclId) "
+            + "order by t.name ")
+    public abstract List<ToolsLu> findTools(@Bind("deleted") String deleted, @Bind("inclId") Long inclId);   
     
     public List<ToolsLu> findAllToolsEverRecorded() {
         List<ToolsLu> allTools = new ArrayList<>();
@@ -149,9 +82,11 @@ public abstract class Tools {
                     r.getString("resolution"),
                     r.getString("serialNumber"),
                     r.getString("notes"),
+                    r.getLong("materialTypeId"),
                     r.getString("materialType"),
                     r.getLong("toolTypeId"),
                     r.getString("toolType"),
+                    r.getLong("toolCategoryId"),
                     r.getString("toolCategory"),
                     commitTime,
                     r.getString("commitUser"),
@@ -179,26 +114,26 @@ public abstract class Tools {
     
     public List<ToolsLu> findActiveToolsFor(String filterFldName, String filterFldValue) {
         List<ToolsLu> tools = findAllActiveTools();
-        List<ToolsLu> activeToolsFor = new ArrayList<>();
-        for (ToolsLu tool : tools) {
-            if (!tool.getDeleted()) { 
-                filterRow(filterFldName, filterFldValue, activeToolsFor, tool);  
-            }
-        }
-        return activeToolsFor;
+        return filterTools(filterFldName, filterFldValue, tools);
+    }
+    
+    public List<ToolsLu> findActiveToolsFor(String filterFldName, String filterFldValue, Long includeId) {
+        List<ToolsLu> tools = findTools("N", includeId);
+        if (tools == null) tools = new ArrayList<>();
+        return filterTools(filterFldName, filterFldValue, tools);
     }
     
     public List<ToolsLu> findToolsEverRecordedFor(String filterFldName, String filterFldValue) {
         List<ToolsLu> tools = findAllToolsEverRecorded();
-        List<ToolsLu> toolsFor = new ArrayList<>();
-        for (ToolsLu tool : tools) {
-                filterRow(filterFldName, filterFldValue, toolsFor, tool);  
-        }
-        return toolsFor;
+        return filterTools(filterFldName, filterFldValue, tools);
     }
     
     public List<ToolsLu> findActiveSoftware() {
         return findActiveToolsFor("toolCategory", "software");
+    }
+    
+    public List<ToolsLu> findActiveSoftware(Long includeId) {
+        return findActiveToolsFor("toolCategory", "software", includeId);
     }
     
     public List<ToolsLu> findSoftwareEverRecorded() {
@@ -209,10 +144,22 @@ public abstract class Tools {
         return findActiveToolsFor("toolCategory", "device");
     }
     
+    public List<ToolsLu> findActiveDevices(Long includeId) {
+        return findActiveToolsFor("toolCategory", "device", includeId);
+    }
+    
     public List<ToolsLu> findDevicesEverRecorded() {
         return findToolsEverRecordedFor("toolCategory", "device");
     }
      
+    private List<ToolsLu> filterTools(String filterFldName, String filterFldValue, List<ToolsLu> tools) {
+        List<ToolsLu> filteredTools = new ArrayList<>();
+        for (ToolsLu tool : tools) {
+                filterRow(filterFldName, filterFldValue, filteredTools, tool);  
+        }
+        return filteredTools;
+    }
+    
     private void filterRow(String filterFldName, String filterFldValue, List<ToolsLu> activeToolsFor, ToolsLu tool) {
         if (filterFldName.equalsIgnoreCase("name") && tool.getName().toUpperCase().contains(filterFldValue.toUpperCase()))
             activeToolsFor.add(tool);
@@ -229,4 +176,54 @@ public abstract class Tools {
         else if (filterFldName.equalsIgnoreCase("toolCategory") && tool.getToolCategory().toUpperCase().contains(filterFldValue.toUpperCase()))
             activeToolsFor.add(tool);
     }    
+    
+    public synchronized void addTool(ToolsLu toolsLu) {
+        Long id = nextToolId();
+        if (id == null) id = 1L;
+        insertTool(id, toolsLu.getName(), toolsLu.getResolution(), toolsLu.getNotes(), toolsLu.getSerialNumber(), toolsLu.getToolTypeId(),
+                toolsLu.getToolCategoryId(), toolsLu.getMaterialTypeId(), toolsLu.getCommitUser(), new Date().getTime());
+    }
+    
+    public synchronized void deleteTool(ToolsLu toolsLu) {
+        // archive previously deleted tool entry
+        archiveDeletedTool(toolsLu.getId());
+        
+        // mark the current tool entry deleted.
+        // Note: this is so that if a tool entry is marked as deleted,
+        // all the dlir app records referencing the tool entry
+        // can still display the referenced tool.
+        markToolDeleted(toolsLu.getId());
+    }
+    
+    public synchronized void updTool(ToolsLu toolsLu) {
+        // check the toolsLu is in the database with its id, otherwise, throw an exception.
+        String LuNotFoundErr = "Fail to update tool " + toolsLu.name + ", can not find this entry in the database.";
+        if (toolsLu.getId() == null)
+            throw new IllegalArgumentException(LuNotFoundErr);
+        ToolsLu persistedTool = findTool(toolsLu.getId());
+        if (persistedTool == null)
+            throw new IllegalArgumentException(LuNotFoundErr);
+        
+        deleteTool(toolsLu);
+        insertTool(toolsLu.getId(), toolsLu.getName(), toolsLu.getResolution(), toolsLu.getNotes(), toolsLu.getSerialNumber(), toolsLu.getToolTypeId(),
+                toolsLu.getToolCategoryId(), toolsLu.getMaterialTypeId(), toolsLu.getCommitUser(), new Date().getTime());
+    }
+
+    @SqlQuery("select max(id) + 1 from tools;")
+    protected abstract Long nextToolId();
+    
+    @SqlUpdate("INSERT INTO tools(id, name, resolution, notes, serialNumber, toolTypeId, toolCategoryId, materialTypeId, commitUser, commitTime) VALUES"
+            + "(:id, :name, :resolution, :notes, :serialNumber, :toolTypeId, :toolCategoryId, :materialTypeId, :commitUser, :commitTime)")
+    protected abstract void insertTool(@Bind("id") Long id, @Bind("name") String name,
+            @Bind("resolution") String resolution, @Bind("notes") String notes,
+            @Bind("serialNumber") String serialNumber, @Bind("toolTypeId") Long toolTypeId,
+            @Bind("toolCategoryId") Long toolCategoryId, @Bind("materialTypeId") Long materialTypeId,
+            @Bind("commitUser") String commitUser, @Bind("commitTime") Long commitTime);
+    
+    @SqlUpdate("UPDATE tools SET deleted = 'D' where id = :id and deleted = 'N'")
+    protected abstract void markToolDeleted(@Bind("id") Long id);
+    
+    @SqlUpdate("UPDATE tools SET deleted = 'Y' where id = :id and deleted = 'D'")
+    protected abstract void archiveDeletedTool(@Bind("id") Long id);
 }
+

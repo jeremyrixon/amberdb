@@ -1,7 +1,6 @@
 package amberdb.model;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -222,47 +221,32 @@ public class WorkTest {
         workTitlePage.setSubUnitType("Title Page");
     }
     
-    @Test(expected = NoSuchObjectException.class)
-    public void testDeleteWork() {
+    @Test
+    public void testCountCopies() {
         AmberSession db = new AmberSession();
         setTestDataInH2(db);
         
         Work work = bookBlinkyBill;
-        long workVertexId = work.getId();
-
-        List<Long> copyVertexIds = new ArrayList<Long>();
-        List<Long> fileVertexIds = new ArrayList<Long>();
-        Iterable<Copy> copies = work.getCopies();
-        for (Copy copy : copies) {
-            File file = copy.getFile();
-            copyVertexIds.add(copy.getId());
-            
-            if (file != null) {
-                fileVertexIds.add(file.getId());
-                assertEquals(file.getId(), file.asVertex().getId());
-            }
-            assertEquals(copy.getId(), copy.asVertex().getId());
-        }
+        Page page = workTitlePage;
         
-        db.deleteWork(work);
+        /* parent work has no copies */
+        assertEquals(work.countCopies(), 0);
 
-        //make sure all copies records were deleted
-        for (Copy copy : copies) {
-            try {
-                db.getAmberGraph().getVertex(copy.asVertex().getId());
-                /* never reached - exception should be raised... */
-                assert(false);
-            } catch ( NoSuchObjectException e) {
-                assert(true); 
-            }
+        int counter = 0;
+        Iterable<Copy> pageCopies = page.getCopies();
+        for (Copy copy : pageCopies) {
+            counter++;
         }
+        /* we count it the same way the Work class does */
+        assertEquals(page.countCopies(), counter);
 
-        /* expects a NoSuchObjectException */
-        db.findWork(workVertexId);
+        /* Check page _has_ copies. 
+           (otherwise this test is a waste of time that proves nothing */
+        assertNotEquals(page.countCopies(), 0);
     }
 
     @Test(expected = NoSuchObjectException.class)
-    public void testDeleteWorkWithNoCopies() {
+    public void testDeleteWork() {
         AmberSession db = new AmberSession();
         setTestDataInH2(db);
 
@@ -279,7 +263,7 @@ public class WorkTest {
     public void testDeletePage() {  
         AmberSession db = new AmberSession();
         setTestDataInH2(db);
-        
+       
         Page page = workTitlePage;
         long workVertexId = page.getId();
         assertEquals(workVertexId, page.asVertex().getId());

@@ -33,11 +33,11 @@ public class CmdLoadLookups extends Command {
             ds.setPassword(dbPasswd);
             
             try (AmberSession db = new AmberDb(ds, Paths.get(rootPath)).begin()) {
-                db.getAmberGraph().getLookups().seedInitialLookups();
+                db.getLookups().seedInitialLookups();
             }
         } else {
             try (AmberSession db = new AmberSession()) {
-                db.getAmberGraph().getLookups().seedInitialLookups();
+                db.getLookups().seedInitialLookups();
             }
         }
     }

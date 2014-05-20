@@ -5,10 +5,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -20,9 +18,9 @@ import amberdb.enums.CopyRole;
 import amberdb.enums.SubType;
 import amberdb.relation.IsCopyOf;
 import amberdb.relation.IsPartOf;
-import amberdb.sql.AmberGraph;
-import amberdb.sql.AmberQuery;
-import amberdb.sql.AmberVertex;
+import amberdb.graph.AmberGraph;
+import amberdb.graph.AmberQuery;
+import amberdb.graph.AmberVertex;
 
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
@@ -37,7 +35,7 @@ import com.tinkerpop.frames.annotations.gremlin.GremlinParam;
 import com.tinkerpop.frames.modules.javahandler.JavaHandler;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
-import com.tinkerpop.frames.structures.FramedEdgeIterable;
+
 
 /**
  * Any logical work that is collected or created by the library such as a book,
@@ -311,6 +309,12 @@ public interface Work extends Node {
 
     @Property("publicationCategory")
     public void setPublicationCategory(String publicationCategory);
+    
+    @Property("localSystemno")
+    public String getLocalSystemno();
+    
+    @Property("localSystemno")
+    public void setLocalSystemno(String localSystemno);
     
     /**
      * This property is encoded as a JSON Array - You probably want to use getSeries to get this property
@@ -626,12 +630,6 @@ public interface Work extends Node {
     @Property("workPid")
     public void setWorkPid(String workPid);
 
-    @Property("accessRestrictions")
-    public String getAccessRestrictions();
-
-    @Property("accessRestrictions")
-    public void setAccessRestrictions(String accessRestrictions);
-
     @Property("constraint")
     public String getConstraint();
 
@@ -766,6 +764,9 @@ public interface Work extends Node {
     @JavaHandler
     public int countParts();
 
+    @JavaHandler
+    public int countCopies();
+
     /**
      * This method detaches the part from this work, but the part continues to
      * exist as an orphan. Use the deletePart method to actually delete the part
@@ -890,6 +891,14 @@ public interface Work extends Node {
                     return leaf;
             }
             return null;
+        }
+
+        /**
+         * Count the number of copies this work has.
+         */
+        @Override
+        public int countCopies() {
+            return Lists.newArrayList(this.getCopies()).size();
         }
 
         @Override
