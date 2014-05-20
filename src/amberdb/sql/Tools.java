@@ -225,9 +225,5 @@ public abstract class Tools {
     
     @SqlUpdate("UPDATE tools SET deleted = 'Y' where id = :id and deleted = 'D'")
     protected abstract void archiveDeletedTool(@Bind("id") Long id);
-
-    @CreateSqlObject
-    public abstract Lookups lookups();
-    
 }
 

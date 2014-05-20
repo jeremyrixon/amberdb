@@ -4,13 +4,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.Map.Entry;
 
 import javax.sql.DataSource;
 
@@ -24,12 +19,10 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import org.junit.rules.TemporaryFolder;
-import org.skife.jdbi.v2.Handle;
 
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberQuery;
 
-import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;

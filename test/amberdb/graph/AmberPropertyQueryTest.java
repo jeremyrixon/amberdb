@@ -6,9 +6,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 import javax.sql.DataSource;
 
@@ -25,8 +23,6 @@ import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberProperty;
 import amberdb.graph.AmberVertexPropertyQuery;
 
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 
 

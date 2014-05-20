@@ -2,9 +2,6 @@ package amberdb.graph;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -18,11 +15,6 @@ import static org.junit.Assert.*;
 import org.junit.rules.TemporaryFolder;
 
 import amberdb.graph.AmberGraph;
-
-import com.google.common.collect.Lists;
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Vertex;
 
 
 public class AmberGraphPersistenceTest {

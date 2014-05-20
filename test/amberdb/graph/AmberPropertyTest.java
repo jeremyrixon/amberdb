@@ -15,6 +15,7 @@ import amberdb.graph.AmberProperty;
 import amberdb.graph.DataType;
 
 public class AmberPropertyTest {
+
     private static String str;
     private static Integer number;
     private static Long lnumber;
@@ -22,7 +23,6 @@ public class AmberPropertyTest {
     private static Float fnumber;
     private static Double dnumber;
     private static Date date;
-    private static List<String> list;
     
     @BeforeClass
     public static void setup() {
@@ -41,8 +41,6 @@ public class AmberPropertyTest {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        
-        list = new ArrayList<String>();
     }
     
     @Test

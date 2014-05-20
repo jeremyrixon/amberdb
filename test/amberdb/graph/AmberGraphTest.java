@@ -10,8 +10,6 @@ import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.After;
 import org.junit.Before;
 
-import amberdb.graph.AmberGraph;
-
 import com.tinkerpop.blueprints.EdgeTestSuite;
 import com.tinkerpop.blueprints.GraphTestSuite;
 import com.tinkerpop.blueprints.Graph;

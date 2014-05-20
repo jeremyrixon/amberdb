@@ -7,8 +7,6 @@ import java.net.MalformedURLException;
 import org.junit.After;
 import org.junit.Before;
 
-import amberdb.graph.BaseGraph;
-
 import com.tinkerpop.blueprints.EdgeTestSuite;
 import com.tinkerpop.blueprints.GraphTestSuite;
 import com.tinkerpop.blueprints.Graph;
