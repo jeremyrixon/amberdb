@@ -1,6 +1,10 @@
 package amberdb.sql;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 
@@ -1008,6 +1012,24 @@ public abstract class LookupsSchema {
             )
     public abstract void seedMaterialTypesLookups();
     
+    @SqlUpdate("UPDATE tools SET toolTypeId = :toolTypeId where id > 0 and id < 11")
+    public abstract void updateToolTypeForToolsGroup1(@Bind("toolTypeId")Long toolTypeId);
+
+    @SqlUpdate("UPDATE tools SET toolTypeId = :toolTypeId where id = 11")
+    public abstract void updateToolTypeForToolsGroup2(@Bind("toolTypeId")Long toolTypeId);
+
+    @SqlUpdate("UPDATE tools SET toolCategoryId = :toolCategoryId where id > 0 and id < 11")
+    public abstract void updateToolCategoryForToolsGroup1(@Bind("toolCategoryId")Long toolCategoryId);
+
+    @SqlUpdate("UPDATE tools SET toolCategoryId = :toolCategoryId where id = 11")
+    public abstract void updateToolCategoryForToolsGroup2(@Bind("toolCategoryId")Long toolCategoryId);
+
+    @SqlUpdate("UPDATE tools SET materialTypeId = :materialTypeId where id > 0 and id < 11")
+    public abstract void updateMaterialTypeForToolsGroup1(@Bind("materialTypeId")Long materialTypeId);
+
+    @SqlUpdate("UPDATE tools SET materialTypeId = :materialTypeId where id = 11")
+    public abstract void updateMaterialTypeForToolsGroup2(@Bind("materialTypeId")Long materialTypeId);
+    
     public void createLookupsSchema() {
         createLookupTable();
         createLookupsIdIndex();
@@ -1027,6 +1049,37 @@ public abstract class LookupsSchema {
         seedToolTypesLookups();
         seedToolCategoriesLookups();
         seedMaterialTypesLookups();
+    }
+    
+    public void setupToolsAssociations(List<ListLu> lookups) {
+        List<ListLu> toolTypes = filterLookups("toolType", lookups);
+        List<ListLu> toolCategories = filterLookups("toolCategory", lookups);
+        List<ListLu> materialTypes = filterLookups("materialType", lookups);
+        updateToolTypeForToolsGroup1(getId(toolTypes, "Transmission Scanner"));
+        updateToolTypeForToolsGroup2(getId(toolTypes, "Word processing"));
+        updateToolCategoryForToolsGroup1(getId(toolCategories, "d"));
+        updateToolCategoryForToolsGroup2(getId(toolCategories, "s"));
+        updateMaterialTypeForToolsGroup1(getId(materialTypes, "Image"));
+        updateMaterialTypeForToolsGroup2(getId(materialTypes, "Text"));
+    }
+    
+    protected List<ListLu> filterLookups(String name, List<ListLu> lookups) {
+        List<ListLu> filteredLookup = new ArrayList<>();
+        for (ListLu entry : lookups) {
+            if (entry.getName().equals(name)) {
+                filteredLookup.add(entry);
+            }
+        }
+        return filteredLookup;
+    }
+    
+    protected Long getId(List<ListLu> list, String lbl) {
+        if (list == null) return null;
+        for (ListLu entry : list) {
+             if (lbl.equalsIgnoreCase(entry.getCode()))
+                 return (Long) entry.getId();
+        }
+        return null;
     }
     
     @SqlQuery(
