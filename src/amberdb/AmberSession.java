@@ -25,6 +25,7 @@ import amberdb.model.Page;
 import amberdb.model.Section;
 import amberdb.model.SoundFile;
 import amberdb.model.Work;
+import amberdb.sql.ListLu;
 import amberdb.sql.Lookups;
 import amberdb.sql.LookupsSchema;
 import amberdb.graph.AmberGraph;
@@ -126,6 +127,8 @@ public class AmberSession implements AutoCloseable {
             if (!luSchema.schemaTablesExist()) {
                 // maybe log something
                 luSchema.createLookupsSchema();
+                List<ListLu> list = getLookups().findActiveLookups();
+                luSchema.setupToolsAssociations(list);
             }
             
             // Graph
