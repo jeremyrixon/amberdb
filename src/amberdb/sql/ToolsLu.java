@@ -158,4 +158,13 @@ public class ToolsLu {
     public boolean isDeleted() {
         return deleted;
     }
+    
+    public boolean isEmptyRecord() {
+        return (isEmpty(name) && isEmpty(resolution) && isEmpty(serialNumber) && isEmpty(notes)
+                && isEmpty(toolType) && isEmpty(toolCategory) && isEmpty(materialType));
+    }
+    
+    private boolean isEmpty(String str) {
+        return (str == null || str.isEmpty());
+    }
 }
