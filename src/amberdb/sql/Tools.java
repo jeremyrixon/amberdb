@@ -161,38 +161,57 @@ public abstract class Tools {
     }
     
     private void filterRow(String filterFldName, String filterFldValue, List<ToolsLu> activeToolsFor, ToolsLu tool) {
-        if (filterFldName.equalsIgnoreCase("name") && tool.getName().toUpperCase().contains(filterFldValue.toUpperCase()))
+        // The following assignments are to cater for user trying to add a new tool, 
+        // but doesn't go through with it, which will leave a blank record in the db
+        // currently.
+        String toolName = (tool.getName() == null)?"":tool.getName();
+        String toolType = (tool.getToolType() == null)?"":tool.getToolType();
+        String resolution = (tool.getResolution() == null)?"":tool.getResolution();
+        String serialNumber = (tool.getSerialNumber() == null)?"":tool.getSerialNumber();
+        String notes = (tool.getNotes() == null)?"":tool.getNotes();
+        String materialType = (tool.getMaterialType() == null)?"":tool.getMaterialType();
+        String toolCategory = (tool.getToolCategory() == null)?"":tool.getToolCategory();
+        
+        if (filterFldName.equalsIgnoreCase("name") && toolName.toUpperCase().contains(filterFldValue.toUpperCase()))
             activeToolsFor.add(tool);
-        else if (filterFldName.equalsIgnoreCase("toolType") && tool.getToolType().toUpperCase().contains(filterFldValue.toUpperCase()))
+        else if (filterFldName.equalsIgnoreCase("toolType") && toolType.toUpperCase().contains(filterFldValue.toUpperCase()))
             activeToolsFor.add(tool);
-        else if (filterFldName.equalsIgnoreCase("resolution") && tool.getResolution().toUpperCase().contains(filterFldValue.toUpperCase()))
+        else if (filterFldName.equalsIgnoreCase("resolution") && resolution.toUpperCase().contains(filterFldValue.toUpperCase()))
             activeToolsFor.add(tool);
-        else if (filterFldName.equalsIgnoreCase("serialNumber") && tool.getSerialNumber().toUpperCase().contains(filterFldValue.toUpperCase()))
+        else if (filterFldName.equalsIgnoreCase("serialNumber") && serialNumber.toUpperCase().contains(filterFldValue.toUpperCase()))
             activeToolsFor.add(tool);
-        else if (filterFldName.equalsIgnoreCase("notes") && tool.getNotes().toUpperCase().contains(filterFldValue.toUpperCase()))
+        else if (filterFldName.equalsIgnoreCase("notes") && notes.toUpperCase().contains(filterFldValue.toUpperCase()))
             activeToolsFor.add(tool);
-        else if (filterFldName.equalsIgnoreCase("materialType") && tool.getMaterialType().toUpperCase().contains(filterFldValue.toUpperCase()))
+        else if (filterFldName.equalsIgnoreCase("materialType") && materialType.toUpperCase().contains(filterFldValue.toUpperCase()))
             activeToolsFor.add(tool);
-        else if (filterFldName.equalsIgnoreCase("toolCategory") && tool.getToolCategory().toUpperCase().contains(filterFldValue.toUpperCase()))
+        else if (filterFldName.equalsIgnoreCase("toolCategory") && toolCategory.toUpperCase().contains(filterFldValue.toUpperCase()))
             activeToolsFor.add(tool);
     }    
     
-    public synchronized void addTool(ToolsLu toolsLu) {
+    public synchronized Long addTool(ToolsLu toolsLu) {
         Long id = nextToolId();
         if (id == null) id = 1L;
         insertTool(id, toolsLu.getName(), toolsLu.getResolution(), toolsLu.getNotes(), toolsLu.getSerialNumber(), toolsLu.getToolTypeId(),
                 toolsLu.getToolCategoryId(), toolsLu.getMaterialTypeId(), toolsLu.getCommitUser(), new Date().getTime());
+        return id;
     }
     
-    public synchronized void deleteTool(ToolsLu toolsLu) {
+    public synchronized void deleteTool(Long id) {
         // archive previously deleted tool entry
-        archiveDeletedTool(toolsLu.getId());
+        archiveDeletedTool(id);
         
         // mark the current tool entry deleted.
         // Note: this is so that if a tool entry is marked as deleted,
         // all the dlir app records referencing the tool entry
         // can still display the referenced tool.
-        markToolDeleted(toolsLu.getId());
+        markToolDeleted(id);
+    }
+    
+    public synchronized void undeleteTool(Long id) {
+        ToolsLu tool = findTool(id);
+        if (tool.isDeleted()) {
+          markToolUnDeleted(id);  
+        } 
     }
     
     public synchronized void updTool(ToolsLu toolsLu) {
@@ -204,7 +223,11 @@ public abstract class Tools {
         if (persistedTool == null)
             throw new IllegalArgumentException(LuNotFoundErr);
         
-        deleteTool(toolsLu);
+        if (persistedTool.isEmptyRecord()) {
+            deleteEmptyToolRecord(toolsLu.getId());
+        } else {
+            deleteTool(toolsLu.getId());
+        }
         insertTool(toolsLu.getId(), toolsLu.getName(), toolsLu.getResolution(), toolsLu.getNotes(), toolsLu.getSerialNumber(), toolsLu.getToolTypeId(),
                 toolsLu.getToolCategoryId(), toolsLu.getMaterialTypeId(), toolsLu.getCommitUser(), new Date().getTime());
     }
@@ -220,10 +243,16 @@ public abstract class Tools {
             @Bind("toolCategoryId") Long toolCategoryId, @Bind("materialTypeId") Long materialTypeId,
             @Bind("commitUser") String commitUser, @Bind("commitTime") Long commitTime);
     
+    @SqlUpdate("DELETE FROM tools where id = :id and deleted = 'N'")
+    protected abstract void deleteEmptyToolRecord(@Bind("id") Long id);
+    
     @SqlUpdate("UPDATE tools SET deleted = 'D' where id = :id and deleted = 'N'")
     protected abstract void markToolDeleted(@Bind("id") Long id);
     
     @SqlUpdate("UPDATE tools SET deleted = 'Y' where id = :id and deleted = 'D'")
     protected abstract void archiveDeletedTool(@Bind("id") Long id);
+    
+    @SqlUpdate("UPDATE tools SET deleted = 'N' where id = :id and deleted = 'D'")
+    protected abstract void markToolUnDeleted(@Bind("id") Long id);
 }
 
