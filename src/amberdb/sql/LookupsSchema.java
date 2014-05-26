@@ -830,6 +830,7 @@ public abstract class LookupsSchema {
       + "('form','Other - General'),"
       + "('form','Internal photograph'),"
       + "('form','Conservation'),"
+      + "('form','Digital Publication'),"
       + "('bibLevel','Set'),"
       + "('bibLevel','Item'),"
       + "('bibLevel','Part'),"
