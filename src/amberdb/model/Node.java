@@ -135,9 +135,12 @@ public interface Node extends VertexFrame {
     @Property("commentsExternal")
     public void setCommentsExternal(String commentsExternal);
         
+    @JavaHandler
+    public ObjectMapper getObjectMapper();
     
     abstract class Impl implements JavaHandlerContext<Vertex>, Node {
-
+    static ObjectMapper mapper = new ObjectMapper();
+    
     @Override
     public long getId() {
       return toLong(asVertex().getId());
@@ -155,10 +158,14 @@ public interface Node extends VertexFrame {
     public String getObjId() {
         return PIUtil.format(getId());
     }
+    
+        @Override
+        public ObjectMapper getObjectMapper() {
+            return mapper;
+        }
        
         @Override
         public List<String> getAlias() throws JsonParseException, JsonMappingException, IOException {
-            ObjectMapper mapper = new ObjectMapper();
             String alias = getJSONAlias();
             if (alias == null || alias.isEmpty())
                 return new ArrayList<String>();
@@ -168,7 +175,6 @@ public interface Node extends VertexFrame {
         
         @Override
         public void setAlias( List<String>  alias) throws JsonParseException, JsonMappingException, IOException {
-            ObjectMapper mapper = new ObjectMapper();
             setJSONAlias(mapper.writeValueAsString(alias));
         }
         

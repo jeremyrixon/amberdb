@@ -277,7 +277,8 @@ public interface Copy extends Node {
 
 
     abstract class Impl implements JavaHandlerContext<Vertex>, Copy {
-
+        static ObjectMapper mapper = new ObjectMapper();
+        
         @Override
         public File addFile(Path source, String mimeType) throws IOException {
            return addFile(Writables.wrap(source), mimeType);             
@@ -292,7 +293,13 @@ public interface Copy extends Node {
 
         @Override
         public File addFile(Writable contents, String mimeType) throws IOException {
-            File file = (mimeType.startsWith("image"))? addImageFile() : addFile();
+            File file;
+            if (mimeType.startsWith("image")) {
+                file = addImageFile();
+                this.setMaterialType("Image");
+            } else {
+                file = addFile();
+            }
             storeFile(file, contents, mimeType);
             return file;
         }
@@ -365,7 +372,7 @@ public interface Copy extends Node {
         
         @Override
         public Map<String,String> getAllOtherNumbers() throws JsonParseException, JsonMappingException, IOException {
-            ObjectMapper mapper = new ObjectMapper();
+
             String otherNumbers = getOtherNumbers();
             if (otherNumbers == null || otherNumbers.isEmpty())
                 return new HashMap<String,String>();
@@ -375,7 +382,7 @@ public interface Copy extends Node {
         
         @Override
         public void setAllOtherNumbers( Map<String,String>  otherNumbers) throws JsonParseException, JsonMappingException, IOException {
-            ObjectMapper mapper = new ObjectMapper();
+
             setOtherNumbers(mapper.writeValueAsString(otherNumbers));
         }
    

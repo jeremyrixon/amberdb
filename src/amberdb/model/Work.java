@@ -801,10 +801,8 @@ public interface Work extends Node {
     @JavaHandler
     public AmberGraph getAmberGraph();
 
-    abstract class Impl implements JavaHandlerContext<Vertex>, Work {
-        
-        
-        
+    abstract class Impl implements JavaHandlerContext<Vertex>, Work {       
+        static ObjectMapper mapper = new ObjectMapper();     
 
         @Override
         public Page addPage(Path sourceFile, String mimeType) throws IOException {
@@ -1081,14 +1079,14 @@ public interface Work extends Node {
             setJSONScaleEtc(serialiseToJSON(scaleEtc));
         }
         private List<String> deserialiseJSONString(String json) throws JsonParseException, JsonMappingException, IOException {
-            ObjectMapper mapper = new ObjectMapper();
+            
             if (json == null || json.isEmpty())
                 return new ArrayList<String>();
             return mapper.readValue(json, new TypeReference<List<String>>() { } );            
         }
         
         private String serialiseToJSON( List<String>  list) throws JsonParseException, JsonMappingException, IOException {
-            ObjectMapper mapper = new ObjectMapper();
+            
             return mapper.writeValueAsString(list);
         }
         
