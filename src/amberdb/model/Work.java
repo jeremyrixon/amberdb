@@ -310,12 +310,6 @@ public interface Work extends Node {
     @Property("publicationCategory")
     public void setPublicationCategory(String publicationCategory);
     
-    @Property("localSystemno")
-    public String getLocalSystemno();
-    
-    @Property("localSystemno")
-    public void setLocalSystemno(String localSystemno);
-    
     /**
      * This property is encoded as a JSON Array - You probably want to use getSeries to get this property
      */
@@ -798,9 +792,6 @@ public interface Work extends Node {
     @JavaHandler
     public List<Work> getExistsOn(String subType);
 
-    @JavaHandler
-    public AmberGraph getAmberGraph();
-
     abstract class Impl implements JavaHandlerContext<Vertex>, Work {       
         static ObjectMapper mapper = new ObjectMapper();     
 
@@ -915,10 +906,6 @@ public interface Work extends Node {
             } else {
                 return (AmberVertex) this.asVertex();
             }
-        }
-
-        public AmberGraph getAmberGraph() {
-            return this.asAmberVertex().getAmberGraph();
         }
 
         /**

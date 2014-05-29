@@ -11,8 +11,12 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
 import amberdb.PIUtil;
+import amberdb.graph.AmberGraph;
+import amberdb.graph.AmberTransaction;
+import amberdb.graph.AmberVertex;
 
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.util.wrappers.wrapped.WrappedVertex;
 import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.VertexFrame;
 import com.tinkerpop.frames.modules.javahandler.JavaHandler;
@@ -123,6 +127,12 @@ public interface Node extends VertexFrame {
     @JavaHandler
     public List<String> getAlias() throws JsonParseException, JsonMappingException, IOException;
 
+    @Property("localSystemNumber")
+    public String getLocalSystemNumber();
+
+    @Property("localSystemNumber")
+    public void setLocalSystemNumber(String localSystemNumber);
+    
     @Property("commentsInternal")
     public String getCommentsInternal();
 
@@ -136,10 +146,31 @@ public interface Node extends VertexFrame {
     public void setCommentsExternal(String commentsExternal);
         
     @JavaHandler
-    public ObjectMapper getObjectMapper();
+    public AmberGraph getAmberGraph();
+    
+    @JavaHandler
+    public AmberTransaction getAmberTransaction();
     
     abstract class Impl implements JavaHandlerContext<Vertex>, Node {
     static ObjectMapper mapper = new ObjectMapper();
+    
+    @Override
+    public AmberGraph getAmberGraph() {
+        return this.asAmberVertex().getAmberGraph();
+    }
+    
+    private AmberVertex asAmberVertex() {
+        if (this.asVertex() instanceof WrappedVertex) {
+            return (AmberVertex) ((WrappedVertex) this.asVertex()).getBaseVertex();
+        } else {
+            return (AmberVertex) this.asVertex();
+        }
+    }
+    
+    @Override
+    public AmberTransaction getAmberTransaction() {
+        return new AmberTransaction(getAmberGraph());
+    }
     
     @Override
     public long getId() {
@@ -158,11 +189,6 @@ public interface Node extends VertexFrame {
     public String getObjId() {
         return PIUtil.format(getId());
     }
-    
-        @Override
-        public ObjectMapper getObjectMapper() {
-            return mapper;
-        }
        
         @Override
         public List<String> getAlias() throws JsonParseException, JsonMappingException, IOException {
