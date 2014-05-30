@@ -611,5 +611,34 @@ public class AmberGraph extends BaseGraph
         dao.close();
         super.shutdown();
     }
+    
+    
+    public List<AmberTransaction> getTransactionsByVertexId(Long id) {
+        return dao.getTransactionsByVertexId(id); 
+    }
+
+
+    public List<AmberTransaction> getTransactionsByEdgeId(Long id) {
+        return dao.getTransactionsByEdgeId(id); 
+    }
+    
+    
+    public List<AmberVertex> getVerticesByTransactionsId(Long id) {
+        List<AmberVertex> vertices = new ArrayList<>();
+        for (AmberVertexWithState vs : dao.getVerticesByTransactionId(id)) {
+            vertices.add(vs.vertex); 
+        }
+        return vertices;
+    }
+
+
+    public List<AmberEdge> getEdgesByTransactionsId(Long id) {
+        List<AmberEdge> edges = new ArrayList<>();
+        for (AmberEdgeWithState es : dao.getEdgesByTransactionId(id)) {
+            edges.add(es.edge); 
+        }
+        return edges;
+    }
+    
 }
 
