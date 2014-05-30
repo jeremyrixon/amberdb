@@ -88,4 +88,17 @@ public class AmberEdge extends BaseEdge implements Comparable {
     public List<AmberTransaction> getAllTransactions() {
         return ((AmberGraph)graph).getTransactionsByEdgeId(id);
     }
+    
+    
+    public AmberTransaction getLastTransaction() {
+        if (txnStart == null || txnStart == 0 ) return null;
+        return ((AmberGraph) graph).getTransaction(txnStart);
+    }
+    
+    
+    public AmberTransaction getFirstTransaction() {
+        return ((AmberGraph) graph).getFirstTransactionForEdgeId(id);
+    }    
+    
+    
 }
