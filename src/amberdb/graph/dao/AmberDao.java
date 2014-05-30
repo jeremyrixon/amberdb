@@ -231,7 +231,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "FROM transaction "
             + "WHERE id = :id")
     @Mapper(TransactionMapper.class)
-    AmberTransaction getTxn(@Bind("id") Long id);
+    AmberTransaction getTransaction(@Bind("id") Long id);
     
     
     @SqlQuery("SELECT DISTINCT t.id, t.time, t.user, t.operation "
@@ -268,6 +268,28 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "ORDER BY t.id")
     @Mapper(EdgeMapper.class)
     List<AmberEdgeWithState> getEdgesByTransactionId(@Bind("id") Long id);
+
+
+    @SqlQuery("SELECT id, time, user, operation "
+            + "FROM transaction "
+            + "WHERE id = (" 
+    		+ "  SELECT MIN(t.id) "
+            + "  FROM transaction t, vertex v "
+            + "  WHERE v.id = :id "
+            + "  AND t.id = v.txn_start)")
+    @Mapper(TransactionMapper.class)
+    AmberTransaction getFirstTransactionForVertexId(@Bind("id") Long id);
+    
+    
+    @SqlQuery("SELECT id, time, user, operation "
+            + "FROM transaction "
+            + "WHERE id = (" 
+            + "  SELECT MIN(t.id) "
+            + "  FROM transaction t, edge e "
+            + "  WHERE e.id = :id "
+            + "  AND t.id = e.txn_start)")
+    @Mapper(TransactionMapper.class)
+    AmberTransaction getFirstTransactionForEdgeId(@Bind("id") Long id);
 
     
     /* Note: resume edge and vertex implemented in AmberGraph */

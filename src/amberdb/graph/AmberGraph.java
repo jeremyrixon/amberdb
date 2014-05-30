@@ -640,5 +640,19 @@ public class AmberGraph extends BaseGraph
         return edges;
     }
     
+    
+    public AmberTransaction getTransaction(Long id) {
+        return dao.getTransaction(id);
+    }
+    
+    
+    public AmberTransaction getFirstTransactionForVertexId(Long id) {
+        return dao.getFirstTransactionForVertexId(id);
+    }
+
+
+    public AmberTransaction getFirstTransactionForEdgeId(Long id) {
+        return dao.getFirstTransactionForEdgeId(id);
+    }
 }
 
