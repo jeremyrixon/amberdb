@@ -1,5 +1,6 @@
 package amberdb.graph;
 
+import java.util.List;
 import java.util.Map;
 
 
@@ -82,4 +83,22 @@ public class AmberEdge extends BaseEdge implements Comparable {
         }
         return -1;
     }
+    
+    
+    public List<AmberTransaction> getAllTransactions() {
+        return ((AmberGraph)graph).getTransactionsByEdgeId(id);
+    }
+    
+    
+    public AmberTransaction getLastTransaction() {
+        if (txnStart == null || txnStart == 0 ) return null;
+        return ((AmberGraph) graph).getTransaction(txnStart);
+    }
+    
+    
+    public AmberTransaction getFirstTransaction() {
+        return ((AmberGraph) graph).getFirstTransactionForEdgeId(id);
+    }    
+    
+    
 }

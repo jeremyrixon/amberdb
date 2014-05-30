@@ -1,51 +1,51 @@
 package amberdb.graph;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Date;
-
-import org.skife.jdbi.v2.Handle;
-import org.skife.jdbi.v2.StatementContext;
-import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 
 public class AmberTransaction {
-    private TxInfo txInfo;
-    
-    public AmberTransaction(AmberGraph graph) {
-        try (Handle h = graph.dbi().open()) {
-            Long id = graph.suspend();
-            graph.resume(id);
-            txInfo = h.createQuery("select user, time from transaction where id = :id").
-                    bind("id", id).map(new AmberTransactionMapper()).first();
-        }
-    }
-    
-    public String getRecordUpdator() {
-        return (txInfo == null)? null: txInfo.recordUpdator;
-    }
-    
-    public Date getDateTimeUpdated() {
-        return (txInfo == null)? null:txInfo.dateTimeUpdated;
-    }
-    
-    static class AmberTransactionMapper implements ResultSetMapper<TxInfo> {        
-        @Override
-        public TxInfo map(int index, ResultSet r, StatementContext ctx) throws SQLException {
-            String recordUpdator = r.getString("user");
-            Long time = r.getLong("time");
-            Date dateTimeUpdated = (time == null)? null : new Date(time);
-            return new TxInfo(recordUpdator, dateTimeUpdated);
-        }
-    }
-}
 
-class TxInfo {
-    String recordUpdator;
-    Date dateTimeUpdated;
     
-    public TxInfo(String recordUpdator, Date dateTimeUpdated) {
-        this.recordUpdator = recordUpdator;
-        this.dateTimeUpdated = dateTimeUpdated;
+    Long id;
+    Long time;
+    String user;
+    String operation;
+    
+    
+    public AmberTransaction(long id, Long time, String user, String operation) {
+        this.id = id;
+        this.time = time;
+        this.user = user;
+        this.operation = operation;
+    }
+
+    
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(" id:").append(id)
+          .append(" time:").append(new Date(time))
+          .append(" user:").append(user)
+          .append(" operation:").append(operation);
+        return super.toString() + sb.toString();
+    }
+    
+    
+    public Long getId() {
+        return id;
+    }
+    
+    
+    public Long getTime() {
+        return time;
+    }
+    
+    
+    public String getUser() {
+        return user;
+    }
+    
+    
+    public String getOperation() {
+        return operation;
     }
 }

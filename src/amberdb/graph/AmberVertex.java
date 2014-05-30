@@ -56,5 +56,21 @@ public class AmberVertex extends BaseVertex {
     public AmberGraph getAmberGraph() {
         return (AmberGraph) graph;
     }
+
+    
+    public List<AmberTransaction> getAllTransactions() {
+        return ((AmberGraph) graph).getTransactionsByVertexId(id);
+    }
+    
+    
+    public AmberTransaction getLastTransaction() {
+        if (txnStart == null || txnStart == 0 ) return null;
+        return ((AmberGraph) graph).getTransaction(txnStart);
+    }
+    
+    
+    public AmberTransaction getFirstTransaction() {
+        return ((AmberGraph) graph).getFirstTransactionForVertexId(id);
+    }
 }
 

@@ -168,11 +168,6 @@ public interface Node extends VertexFrame {
     }
     
     @Override
-    public AmberTransaction getAmberTransaction() {
-        return new AmberTransaction(getAmberGraph());
-    }
-    
-    @Override
     public long getId() {
       return toLong(asVertex().getId());
     }
