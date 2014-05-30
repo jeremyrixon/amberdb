@@ -11,8 +11,14 @@ import org.skife.jdbi.v2.sqlobject.SqlBatch;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
 
+import amberdb.graph.AmberEdgeWithState;
 import amberdb.graph.AmberProperty;
+import amberdb.graph.AmberTransaction;
+import amberdb.graph.AmberVertexWithState;
+import amberdb.graph.EdgeMapper;
+import amberdb.graph.VertexMapper;
 import amberdb.graph.PropertyMapper;
+import amberdb.graph.TransactionMapper;
 
 
 public interface AmberDao extends Transactional<AmberDao> {
@@ -217,8 +223,54 @@ public interface AmberDao extends Transactional<AmberDao> {
     @Mapper(PropertyMapper.class)
     List<AmberProperty> resumeProperties(@Bind("sessId") Long sessId);
     
+
+    /* Transaction operations */
     
-    /* Note: resume edge and vertex implemented in AmberGraph
+    
+    @SqlQuery("SELECT id, time, user, operation "
+            + "FROM transaction "
+            + "WHERE id = :id")
+    @Mapper(TransactionMapper.class)
+    AmberTransaction getTxn(@Bind("id") Long id);
+    
+    
+    @SqlQuery("SELECT DISTINCT t.id, t.time, t.user, t.operation "
+            + "FROM transaction t, vertex v "
+            + "WHERE v.id = :id "
+            + "AND (t.id = v.txn_start OR t.id = v.txn_end) "
+            + "ORDER BY t.id")
+    @Mapper(TransactionMapper.class)
+    List<AmberTransaction> getTransactionsByVertexId(@Bind("id") Long id);
+    
+    
+    @SqlQuery("SELECT DISTINCT t.id, t.time, t.user, t.operation "
+            + "FROM transaction t, edge v "
+            + "WHERE e.id = :id "
+            + "AND (t.id = e.txn_start OR t.id = e.txn_end) "
+            + "ORDER BY t.id")
+    @Mapper(TransactionMapper.class)
+    List<AmberTransaction> getTransactionsByEdgeId(@Bind("id") Long id);
+    
+    
+    @SqlQuery("SELECT DISTINCT v.id, v.txn_start, v.txn_end, 'AMB' "
+            + "FROM transaction t, vertex v "
+            + "WHERE t.id = :id "
+            + "AND (v.txn_start = t.id OR e.txn_end = t.id) "
+            + "ORDER BY t.id")
+    @Mapper(VertexMapper.class)
+    List<AmberVertexWithState> getVerticesByTransactionId(@Bind("id") Long id);
+    
+
+    @SqlQuery("SELECT DISTINCT e.id, e.txn_start, e.txn_end, e.v_out, e.v_in, e.label, e.edge_order, 'AMB' "
+            + "FROM transaction t, edge e "
+            + "WHERE t.id = :id "
+            + "AND (e.txn_start = t.id OR e.txn_end = t.id) "
+            + "ORDER BY t.id")
+    @Mapper(EdgeMapper.class)
+    List<AmberEdgeWithState> getEdgesByTransactionId(@Bind("id") Long id);
+
+    
+    /* Note: resume edge and vertex implemented in AmberGraph */
     
     
     /*
