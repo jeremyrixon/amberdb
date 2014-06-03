@@ -630,12 +630,6 @@ public interface Work extends Node {
     @Property("constraint")
     public void setConstraint(String constraint);
 
-    @Property("callNo")
-    public String getCallNo();
-
-    @Property("callNo")
-    public void setCallNo(String callNo);
-
     @Property("rights")
     public String getRights();
 
