@@ -310,12 +310,6 @@ public interface Work extends Node {
     @Property("publicationCategory")
     public void setPublicationCategory(String publicationCategory);
     
-    @Property("localSystemno")
-    public String getLocalSystemno();
-    
-    @Property("localSystemno")
-    public void setLocalSystemno(String localSystemno);
-    
     /**
      * This property is encoded as a JSON Array - You probably want to use getSeries to get this property
      */
@@ -636,12 +630,6 @@ public interface Work extends Node {
     @Property("constraint")
     public void setConstraint(String constraint);
 
-    @Property("callNo")
-    public String getCallNo();
-
-    @Property("callNo")
-    public void setCallNo(String callNo);
-
     @Property("rights")
     public String getRights();
 
@@ -798,13 +786,8 @@ public interface Work extends Node {
     @JavaHandler
     public List<Work> getExistsOn(String subType);
 
-    @JavaHandler
-    public AmberGraph getAmberGraph();
-
-    abstract class Impl implements JavaHandlerContext<Vertex>, Work {
-        
-        
-        
+    abstract class Impl implements JavaHandlerContext<Vertex>, Work {       
+        static ObjectMapper mapper = new ObjectMapper();     
 
         @Override
         public Page addPage(Path sourceFile, String mimeType) throws IOException {
@@ -917,10 +900,6 @@ public interface Work extends Node {
             } else {
                 return (AmberVertex) this.asVertex();
             }
-        }
-
-        public AmberGraph getAmberGraph() {
-            return this.asAmberVertex().getAmberGraph();
         }
 
         /**
@@ -1081,14 +1060,14 @@ public interface Work extends Node {
             setJSONScaleEtc(serialiseToJSON(scaleEtc));
         }
         private List<String> deserialiseJSONString(String json) throws JsonParseException, JsonMappingException, IOException {
-            ObjectMapper mapper = new ObjectMapper();
+            
             if (json == null || json.isEmpty())
                 return new ArrayList<String>();
             return mapper.readValue(json, new TypeReference<List<String>>() { } );            
         }
         
         private String serialiseToJSON( List<String>  list) throws JsonParseException, JsonMappingException, IOException {
-            ObjectMapper mapper = new ObjectMapper();
+            
             return mapper.writeValueAsString(list);
         }
         

@@ -11,8 +11,12 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
 import amberdb.PIUtil;
+import amberdb.graph.AmberGraph;
+import amberdb.graph.AmberTransaction;
+import amberdb.graph.AmberVertex;
 
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.util.wrappers.wrapped.WrappedVertex;
 import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.VertexFrame;
 import com.tinkerpop.frames.modules.javahandler.JavaHandler;
@@ -123,6 +127,12 @@ public interface Node extends VertexFrame {
     @JavaHandler
     public List<String> getAlias() throws JsonParseException, JsonMappingException, IOException;
 
+    @Property("localSystemNumber")
+    public String getLocalSystemNumber();
+
+    @Property("localSystemNumber")
+    public void setLocalSystemNumber(String localSystemNumber);
+    
     @Property("commentsInternal")
     public String getCommentsInternal();
 
@@ -135,9 +145,28 @@ public interface Node extends VertexFrame {
     @Property("commentsExternal")
     public void setCommentsExternal(String commentsExternal);
         
+    @JavaHandler
+    public AmberGraph getAmberGraph();
+    
+    @JavaHandler
+    public AmberTransaction getAmberTransaction();
     
     abstract class Impl implements JavaHandlerContext<Vertex>, Node {
-
+    static ObjectMapper mapper = new ObjectMapper();
+    
+    @Override
+    public AmberGraph getAmberGraph() {
+        return this.asAmberVertex().getAmberGraph();
+    }
+    
+    private AmberVertex asAmberVertex() {
+        if (this.asVertex() instanceof WrappedVertex) {
+            return (AmberVertex) ((WrappedVertex) this.asVertex()).getBaseVertex();
+        } else {
+            return (AmberVertex) this.asVertex();
+        }
+    }
+    
     @Override
     public long getId() {
       return toLong(asVertex().getId());
@@ -158,7 +187,6 @@ public interface Node extends VertexFrame {
        
         @Override
         public List<String> getAlias() throws JsonParseException, JsonMappingException, IOException {
-            ObjectMapper mapper = new ObjectMapper();
             String alias = getJSONAlias();
             if (alias == null || alias.isEmpty())
                 return new ArrayList<String>();
@@ -168,7 +196,6 @@ public interface Node extends VertexFrame {
         
         @Override
         public void setAlias( List<String>  alias) throws JsonParseException, JsonMappingException, IOException {
-            ObjectMapper mapper = new ObjectMapper();
             setJSONAlias(mapper.writeValueAsString(alias));
         }
         

@@ -1,6 +1,5 @@
 package amberdb.graph;
 
-
 import java.util.Date;
 
 
@@ -50,4 +49,3 @@ public class AmberTransaction {
         return operation;
     }
 }
-
