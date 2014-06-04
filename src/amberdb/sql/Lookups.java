@@ -8,7 +8,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,6 +18,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
+import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
+import org.skife.jdbi.v2.sqlobject.SqlBatch;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
@@ -129,34 +133,38 @@ public abstract class Lookups extends Tools {
         }
     }
     
-    public void addLookup(ListLu lu) {
+    public Long addLookup(String name, String code, String value) {
+        System.out.println("lookups: start time : " + fmtDate(new Date()));
+        Long newId = addLookupData(name, code, value);
+        System.out.println("lookups: end time : " + fmtDate(new Date()));
+        return newId;
+    }
+    
+    private String fmtDate(Date date) {
+        if (date == null) return null;
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy:MM:dd hh:mm:ss:SSS");
+        return dateFormat.format(date);
+    }
+    
+    public long addLookup(ListLu lu) {
         // Validate that name, code combination does not already exist and is active.
         String code = (lu.getCode() == null || lu.getCode().isEmpty())? lu.getValue() : lu.getCode();
-        ListLu _lu = findLookup(lu.getName(), code);
-        if (_lu != null && !_lu.isDeleted())
-            throw new IllegalArgumentException("The lookup entry: (" + lu.getName() + ", " + code + ") already exist.");
-        
-        Long id = nextLookupId();
-        if (id == null) id = 1L;
-        addLookupData(lu.getName(), code, lu.getValue());
+        return addLookupData(lu.getName(), code, lu.getValue());
     }
     
-    public synchronized void updateLookup(ListLu lu) {
+    public synchronized void updateLookup(Long id, String value) {
         // check the list lu is in the database with its id, otherwise, throw an exception.
-        String LuNotFoundErr = "Fail to update lookup (" + lu.name + ", " + lu.code + "," + lu.value + "), can not find this entry in the database.";
-        String code = (lu.getCode() == null || lu.getCode().isEmpty())? lu.getValue() : lu.getCode();
-        ListLu persistedLu = findLookup(lu.getName(), code);
-        if (persistedLu == null)
-            throw new IllegalArgumentException(LuNotFoundErr);
-
-        updLookupData(lu.getName(), code, lu.getValue());
+        if (id != null) {
+            System.out.println("updating " + id + ", " + value);
+            updLookupData(id, value);
+        }
     }
     
-    public synchronized void deleteLookup(Long id) {
+    public synchronized void deleteLookup(List<Long> id) {
         deleteLookupData(id);
     }
     
-    public synchronized void undeleteLookup(Long id) {
+    public synchronized void undeleteLookup(List<Long> id) {
         undeleteLookupData(id);
     }
     
@@ -165,23 +173,22 @@ public abstract class Lookups extends Tools {
     
     @SqlUpdate("INSERT INTO lookups (name, code, value, deleted) VALUES"
             + "(:name, :code, :value, 'N')")
-    protected abstract void addLookupData(@Bind("name") String name,
+    @GetGeneratedKeys
+    public abstract long addLookupData(@Bind("name") String name,
                                           @Bind("code") String code,
                                           @Bind("value") String value);
     
     @SqlUpdate("UPDATE lookups set value = :value "
-            + "where name = :name "
-            + "and code = :code "
+            + "where id = :id "
             + "and (deleted = 'N' or deleted is null)")
-    protected abstract void updLookupData(@Bind("name") String name,
-                                          @Bind("code") String code,
+    public abstract void updLookupData(@Bind("id") long id,
                                           @Bind("value") String value);
     
-    @SqlUpdate("UPDATE lookups SET deleted = 'D' WHERE id = :id")
-    public abstract void deleteLookupData(@Bind("id") Long id);
+    @SqlBatch("UPDATE lookups SET deleted = 'D' WHERE id = :id")
+    protected abstract void deleteLookupData(@Bind("id") List<Long> id);
     
-    @SqlUpdate("UPDATE lookups SET deleted = 'N' WHERE id = :id")
-    public abstract void undeleteLookupData(@Bind("id") Long id);
+    @SqlBatch("UPDATE lookups SET deleted = 'N' WHERE id = :id")
+    public abstract void undeleteLookupData(@Bind("id") List<Long> id);
     
     @SqlUpdate("INSERT INTO lookups (id, name, code, value, deleted) VALUES"
             + "(:id, :name, :code, :value, :deleted)")

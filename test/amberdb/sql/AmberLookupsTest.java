@@ -125,7 +125,7 @@ public class AmberLookupsTest {
     public void testUpdateMaterialTypeTextToOcrText() {        
         ListLu imageMT = lookups.findLookup("materialType", "Text");
         imageMT.setValue("Ocr Text");
-        lookups.updateLookup(imageMT);
+        lookups.updateLookup(imageMT.id, imageMT.value);
         assertFalse(activeLookupsInclude("materialType", "Text"));
         assert(activeLookupsInclude("materialType", "Ocr Text"));
     }
