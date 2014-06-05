@@ -149,7 +149,10 @@ public interface Node extends VertexFrame {
     public AmberGraph getAmberGraph();
     
     @JavaHandler
-    public AmberTransaction getAmberTransaction();
+    public AmberTransaction getFirstTransaction();
+    
+    @JavaHandler
+    public AmberTransaction getLastTransaction();
     
     abstract class Impl implements JavaHandlerContext<Vertex>, Node {
     static ObjectMapper mapper = new ObjectMapper();
@@ -165,6 +168,16 @@ public interface Node extends VertexFrame {
         } else {
             return (AmberVertex) this.asVertex();
         }
+    }
+    
+    @Override
+    public AmberTransaction getFirstTransaction() {
+        return this.asAmberVertex().getFirstTransaction();
+    }
+    
+    @Override
+    public AmberTransaction getLastTransaction() {
+        return this.asAmberVertex().getLastTransaction();
     }
     
     @Override
