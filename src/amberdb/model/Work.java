@@ -601,36 +601,6 @@ public interface Work extends Node {
     @JavaHandler
     public List<String> getScaleEtc() throws JsonParseException, JsonMappingException, IOException;
     
-    /**
-     * This property is encoded as a JSON Map - You probably want to use getGPS to get this property
-     */
-    @Property("gps")
-    public String getJSONGPS();
-    
-    /**
-     * This property is encoded as a JSON Map - You probably want to use setGPS to set this property
-     */
-    @Property("GPS")
-    public void setJSONGPS(String gps);
-    
-    /**
-     * This method handles the JSON serialisation of the GPS Property
-     * @throws IOException 
-     * @throws JsonMappingException 
-     * @throws JsonParseException 
-     */
-    @JavaHandler
-    public void setGPS(List<String> gps) throws JsonParseException, JsonMappingException, IOException;
-    
-    /**
-     * This method handles the JSON deserialisation of the GPS Property
-     * @throws IOException 
-     * @throws JsonMappingException 
-     * @throws JsonParseException 
-     */
-    @JavaHandler
-    public List<String> getGPS() throws JsonParseException, JsonMappingException, IOException;
-
     @Property("west")
     public String getWest();
 
