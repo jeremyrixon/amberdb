@@ -145,7 +145,7 @@ public interface File extends Node {
     @JavaHandler
     void putLegacyDoss(Path dossPath) throws IOException;
 
-    abstract class Impl implements JavaHandlerContext<Vertex>, File {
+    abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, File {
 
         private BlobStore getBlobStore() {
             return AmberSession.ownerOf(g()).getBlobStore();

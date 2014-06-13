@@ -164,7 +164,7 @@ public interface Node extends VertexFrame {
     @JavaHandler
     public AmberTransaction getLastTransaction();
     
-    abstract class Impl implements JavaHandlerContext<Vertex>, Node {
+    public abstract class Impl implements JavaHandlerContext<Vertex>, Node {
     static ObjectMapper mapper = new ObjectMapper();
     
     @Override
@@ -174,7 +174,7 @@ public interface Node extends VertexFrame {
             Iterator<Description> it = descriptions.iterator();
             while (it.hasNext()) {
                 Description next = it.next();
-                if (next.getType().equals(fmt)) {
+                if (next.getType() != null && next.getType().equals(fmt)) {
                     return next;
                 }
             }

@@ -311,17 +311,17 @@ public interface Work extends Node {
     @Property("publicationCategory")
     public void setPublicationCategory(String publicationCategory);
     
-    @JavaHandler
-    public GeoCoding getGeoCoding();
-    
-    @JavaHandler
-    public IPTC getIPTC();
-    
     @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
     public GeoCoding addGeoCoding();
     
     @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
     public IPTC addIPTC();
+    
+    @JavaHandler
+    public GeoCoding getGeoCoding();
+    
+    @JavaHandler
+    public IPTC getIPTC();
     
     /**
      * This property is encoded as a JSON Array - You probably want to use getSeries to get this property
@@ -821,7 +821,7 @@ public interface Work extends Node {
     @JavaHandler
     public List<Work> getExistsOn(String subType);
 
-    abstract class Impl implements JavaHandlerContext<Vertex>, Work {       
+    abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {       
         static ObjectMapper mapper = new ObjectMapper();     
 
         @Override

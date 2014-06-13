@@ -280,7 +280,7 @@ public interface Copy extends Node {
     Copy deriveImageCopy(Path tiffUnCompressor, Path jp2Generator) throws IllegalStateException, IOException, InterruptedException;
 
 
-    abstract class Impl implements JavaHandlerContext<Vertex>, Copy {
+    abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Copy {
         static ObjectMapper mapper = new ObjectMapper();
         
         @Override
