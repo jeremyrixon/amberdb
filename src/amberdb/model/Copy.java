@@ -121,12 +121,6 @@ public interface Copy extends Node {
     @Property("carrier")
     public void setCarrier(String carrier);
     
-    @Property("carrierCapacity")
-    public String getCarrierCapacity();
-
-    @Property("carrierCapacity")
-    public void setCarrierCapacity(String carrierCapacity);
-    
     @Property("bestCopy")
     public String getBestCopy();
 

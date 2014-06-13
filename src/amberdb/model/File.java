@@ -107,6 +107,14 @@ public interface File extends Node {
     @Property("softwareSerialNumber")
     public void setSoftwareSerialNumber(String softwareSerialNumber);
     
+    @Property("encoding")
+    public String getEncoding();
+    
+    @Property("encoding")
+    public void setEncoding(String encoding);
+    
+
+    
     /*
      * Fields migrated from DCM
      */

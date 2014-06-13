@@ -5,6 +5,12 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
 @TypeValue("IPTC")
 public interface IPTC extends Description {
+    @Property("alternativeTitle")
+    public String getAlternativeTitle();
+    
+    @Property("alternativeTitle")
+    public void setAlternativeTitle(String alternativeTitle);
+    
     @Property("subLocation")
     public String getSubLocation();
     

@@ -112,4 +112,10 @@ public interface ImageFile extends File {
     
     @Property("cpLocation")
     public void setCpLocation(String cpLocation);
+    
+    @Property("zoomLevel")
+    public String getZoomLevel();
+    
+    @Property("zoomLevel")
+    public void setZoomLevel(String zoomLevel);
 }
