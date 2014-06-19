@@ -673,6 +673,12 @@ public interface Work extends Node {
     @Property("uniformTitle")
     public void setUniformTitle(String uniformTitle);
     
+    @Property("alternativeTitle")
+    public String getAlternativeTitle();
+    
+    @Property("alternativeTitle")
+    public void setAlternativeTitle(String alternativeTitle);
+    
     /**
      * Also known as localsystmno
      */
