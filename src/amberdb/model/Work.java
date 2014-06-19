@@ -16,6 +16,7 @@ import org.codehaus.jackson.type.TypeReference;
 import amberdb.InvalidSubtypeException;
 import amberdb.enums.CopyRole;
 import amberdb.enums.SubType;
+import amberdb.relation.DescriptionOf;
 import amberdb.relation.IsCopyOf;
 import amberdb.relation.IsPartOf;
 import amberdb.graph.AmberGraph;
@@ -310,6 +311,18 @@ public interface Work extends Node {
     @Property("publicationCategory")
     public void setPublicationCategory(String publicationCategory);
     
+    @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
+    public GeoCoding addGeoCoding();
+    
+    @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
+    public IPTC addIPTC();
+    
+    @JavaHandler
+    public GeoCoding getGeoCoding();
+    
+    @JavaHandler
+    public IPTC getIPTC();
+    
     /**
      * This property is encoded as a JSON Array - You probably want to use getSeries to get this property
      */
@@ -587,7 +600,7 @@ public interface Work extends Node {
      */
     @JavaHandler
     public List<String> getScaleEtc() throws JsonParseException, JsonMappingException, IOException;
-
+    
     @Property("west")
     public String getWest();
 
@@ -636,7 +649,29 @@ public interface Work extends Node {
     @Property("rights")
     public void setRights(String rights);
 
+    @Property("tempHolding")
+    public String getTempHolding();
 
+    @Property("tempHolding")
+    public void setTempHolding(String tempHolding);
+    
+    @Property("sensitiveMaterial")
+    public String getSensitiveMaterial();
+    
+    @Property("sensitiveMaterial")
+    public void setSensitiveMaterial(String sensitiveMaterial);
+    
+    @Property("sensitiveReason")
+    public String getSensitiveReason();
+    
+    @Property("sensitiveReason")
+    public void setSensitiveReason(String sensitiveReason);
+    
+    @Property("uniformTitle")
+    public String getUniformTitle();
+    
+    @Property("uniformTitle")
+    public void setUniformTitle(String uniformTitle);
     
     /**
      * Also known as localsystmno
@@ -786,7 +821,7 @@ public interface Work extends Node {
     @JavaHandler
     public List<Work> getExistsOn(String subType);
 
-    abstract class Impl implements JavaHandlerContext<Vertex>, Work {       
+    abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {       
         static ObjectMapper mapper = new ObjectMapper();     
 
         @Override
@@ -1071,6 +1106,14 @@ public interface Work extends Node {
             return mapper.writeValueAsString(list);
         }
         
-
+        @Override
+        public GeoCoding getGeoCoding() {
+            return (GeoCoding) getDescription("GeoCoding");
+        }
+        
+        @Override
+        public IPTC getIPTC() {
+            return (IPTC) getDescription("IPTC");
+        }
     }
 }

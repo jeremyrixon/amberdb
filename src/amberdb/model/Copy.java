@@ -21,6 +21,7 @@ import org.codehaus.jackson.type.TypeReference;
 import amberdb.AmberSession;
 import amberdb.NoSuchCopyException;
 import amberdb.enums.CopyRole;
+import amberdb.relation.DescriptionOf;
 import amberdb.relation.IsCopyOf;
 import amberdb.relation.IsFileOf;
 import amberdb.relation.IsSourceCopyOf;
@@ -119,12 +120,6 @@ public interface Copy extends Node {
 
     @Property("carrier")
     public void setCarrier(String carrier);
-    
-    @Property("carrierCapacity")
-    public String getCarrierCapacity();
-
-    @Property("carrierCapacity")
-    public void setCarrierCapacity(String carrierCapacity);
     
     @Property("bestCopy")
     public String getBestCopy();
@@ -246,10 +241,16 @@ public interface Copy extends Node {
     public File getFile();
     
     @JavaHandler
+    public CameraData getCameraData();
+    
+    @JavaHandler
     public ImageFile getImageFile();
 
     @JavaHandler
     public SoundFile getSoundFile();
+    
+    @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
+    public CameraData addCameraData();
     
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     public File addFile();
@@ -279,7 +280,7 @@ public interface Copy extends Node {
     Copy deriveImageCopy(Path tiffUnCompressor, Path jp2Generator) throws IllegalStateException, IOException, InterruptedException;
 
 
-    abstract class Impl implements JavaHandlerContext<Vertex>, Copy {
+    abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Copy {
         static ObjectMapper mapper = new ObjectMapper();
         
         @Override
@@ -459,37 +460,34 @@ public interface Copy extends Node {
             }
             return bytesTransferred;
         }
-
+        
+        @Override
+        public CameraData getCameraData() {
+            return (CameraData) getDescription("CameraData");
+        }
+        
         @Override
         public ImageFile getImageFile() {
-            Iterable<File> files = this.getFiles();
-            if (files != null) {
-                Iterator<File> it = files.iterator();
-                while (it.hasNext()) {
-                    File next = it.next();
-                    if (next.getType().equals("ImageFile")) {
-                        return (ImageFile) next;
-                    }
-                }
-            }
-            return null;
+            return (ImageFile) getSpecializedFile("ImageFile");
         }
         
         @Override
         public SoundFile getSoundFile() {
+            return (SoundFile) getSpecializedFile("SoundFile");
+        }
+        
+        private File getSpecializedFile(String fmt) {
             Iterable<File> files = this.getFiles();
             if (files != null) {
                 Iterator<File> it = files.iterator();
                 while (it.hasNext()) {
                     File next = it.next();
-                    if (next.getType().equals("SoundFile")) {
-                        return (SoundFile) next;
+                    if (next.getType().equals(fmt)) {
+                        return next;
                     }
                 }
             }
             return null;
-        }
-        
-        
+        }       
     }
 }

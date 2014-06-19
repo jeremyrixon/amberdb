@@ -3,6 +3,7 @@ package amberdb.model;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import org.codehaus.jackson.JsonParseException;
@@ -14,9 +15,12 @@ import amberdb.PIUtil;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberTransaction;
 import amberdb.graph.AmberVertex;
+import amberdb.relation.DescriptionOf;
 
+import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.wrappers.wrapped.WrappedVertex;
+import com.tinkerpop.frames.Adjacency;
 import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.VertexFrame;
 import com.tinkerpop.frames.modules.javahandler.JavaHandler;
@@ -144,6 +148,12 @@ public interface Node extends VertexFrame {
 
     @Property("commentsExternal")
     public void setCommentsExternal(String commentsExternal);
+    
+    @Adjacency(label = DescriptionOf.label, direction= Direction.IN)
+    public Iterable<Description> getDescriptions();
+    
+    @JavaHandler
+    public Description getDescription(String fmt);
         
     @JavaHandler
     public AmberGraph getAmberGraph();
@@ -154,8 +164,23 @@ public interface Node extends VertexFrame {
     @JavaHandler
     public AmberTransaction getLastTransaction();
     
-    abstract class Impl implements JavaHandlerContext<Vertex>, Node {
+    public abstract class Impl implements JavaHandlerContext<Vertex>, Node {
     static ObjectMapper mapper = new ObjectMapper();
+    
+    @Override
+    public Description getDescription(String fmt) {
+        Iterable<Description> descriptions = this.getDescriptions();
+        if (descriptions != null) {
+            Iterator<Description> it = descriptions.iterator();
+            while (it.hasNext()) {
+                Description next = it.next();
+                if (next.getType() != null && next.getType().equals(fmt)) {
+                    return next;
+                }
+            }
+        }
+        return null;
+    }
     
     @Override
     public AmberGraph getAmberGraph() {

@@ -12,6 +12,11 @@ public interface SoundFile extends File {
     @Property("surface")
     public void setSurface(String surface);
 
+    @Property("carrierCapacity")
+    public String getCarrierCapacity();
+    @Property("carrierCapacity")
+    public void setCarrierCapacity(String carrierCapacity);
+    
     @Property("carrierDuration")
     public String getCarrierDuration();    
     @Property("carrierDuration")
