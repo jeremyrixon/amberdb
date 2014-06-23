@@ -13,9 +13,18 @@ public interface ImageFile extends File {
     
     @Property("resolution")
     public String getResolution();
-    
+
     @Property("resolution")
     public void setResolution(String resolution);
+    
+    // examples:
+    //   inch
+    //   cm
+    @Property("resolutionUnit")
+    public String getResolutionUnit();
+    
+    @Property("resolutionUnit")
+    public void setResolutionUnit(String resolutionUnit);
     
     @Property("colourSpace")
     public String getColourSpace();

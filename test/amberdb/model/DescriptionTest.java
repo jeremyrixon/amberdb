@@ -36,7 +36,7 @@ public class DescriptionTest {
         System.out.println("cd type: " + cd.getType());
         
         gc.setLatitude("53,17.7924S");
-        gc.setLangitude("194,7.8465E");
+        gc.setLongitude("194,7.8465E");
         gc.setMapDatum("WGS-84");
         gc.setTimeStamp(new Date());
         
@@ -100,7 +100,7 @@ public class DescriptionTest {
         GeoCoding workGeocoding = work.getGeoCoding();
         assertNotNull(workGeocoding);
         assertEquals(workGeocoding.getLatitude(), "53,17.7924S");
-        assertEquals(workGeocoding.getLangitude(), "194,7.8465E");
+        assertEquals(workGeocoding.getLongitude(), "194,7.8465E");
         assertEquals(workGeocoding.getMapDatum(), "WGS-84");
     }
     
