@@ -58,4 +58,10 @@ public interface IPTC extends Description {
     
     @Property("event")
     public void setEvent(String event);
+    
+    @Property("fileFormat")
+    public String getFileFormat();
+    
+    @Property("fileFormat")
+    public void setFileFormat(String fileFormat);
 }
