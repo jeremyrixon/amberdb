@@ -31,20 +31,20 @@ public interface GeoCoding extends Description {
     @Property("latitudeRef")
     public void setLatitudeRef(String latitudeRef);
     
-    @Property("langitude")
-    public String getLangitude();
+    @Property("longitude")
+    public String getLongitude();
     
-    @Property("langitude")
-    public void setLangitude(String langitude);
+    @Property("longitude")
+    public void setLongitude(String longitude);
     
     /*
-     * langitudeRef: the orientation of the langitude, e.g. W
+     * longitudeRef: the orientation of the longitude, e.g. W
      */
-    @Property("langitudeRef")
-    public String getLangitudeRef();
+    @Property("longitudeRef")
+    public String getLongitudeRef();
     
-    @Property("langitudeRef")
-    public void setLangitudeRef(String langitudeRef);
+    @Property("longitudeRef")
+    public void setLongitudeRef(String longitudeRef);
     
     @Property("timestamp")
     public Date getTimeStamp();
