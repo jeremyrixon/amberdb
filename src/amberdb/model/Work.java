@@ -63,6 +63,32 @@ public interface Work extends Node {
     public void setCategory(String category);
 
     /* DCM Legacy Data */
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use getDcmAltPi to get this property
+     */
+    @Property("dcmAltPi")
+    public String getJSONDcmAltPi();
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use setDcmAltPi to set this property
+     */
+    @Property("dcmAltPi")
+    public void setJSONDcmAltPi(String dcmAltPi);
+    
+    /**
+     * This method handles the JSON serialisation of the dcmAltPi Property     
+     */
+    @JavaHandler
+    public void setDcmAltPi(List<String> list) throws JsonParseException, JsonMappingException, IOException;
+    
+    /**
+     * This method handles the JSON deserialisation of the dcmAltPi Property     
+     */
+    @JavaHandler
+    public List<String> getDcmAltPi() throws JsonParseException, JsonMappingException, IOException;
+
+    
     @Property("dcmWorkPid")
     public String getDcmWorkPid();
 
@@ -1100,15 +1126,13 @@ public interface Work extends Node {
         public void setScaleEtc( List<String>  scaleEtc) throws JsonParseException, JsonMappingException, IOException {
             setJSONScaleEtc(serialiseToJSON(scaleEtc));
         }
-        private List<String> deserialiseJSONString(String json) throws JsonParseException, JsonMappingException, IOException {
-            
+        private List<String> deserialiseJSONString(String json) throws JsonParseException, JsonMappingException, IOException {            
             if (json == null || json.isEmpty())
                 return new ArrayList<String>();
             return mapper.readValue(json, new TypeReference<List<String>>() { } );            
         }
         
-        private String serialiseToJSON( List<String>  list) throws JsonParseException, JsonMappingException, IOException {
-            
+        private String serialiseToJSON( List<String>  list) throws JsonParseException, JsonMappingException, IOException {            
             return mapper.writeValueAsString(list);
         }
         
@@ -1120,6 +1144,16 @@ public interface Work extends Node {
         @Override
         public IPTC getIPTC() {
             return (IPTC) getDescription("IPTC");
+        }
+        
+        @Override
+        public List<String> getDcmAltPi() throws JsonParseException, JsonMappingException, IOException {
+            return deserialiseJSONString(getJSONDcmAltPi());            
+        }
+        
+        @Override
+        public void setDcmAltPi(List<String>  list) throws JsonParseException, JsonMappingException, IOException {
+            setJSONDcmAltPi(serialiseToJSON(list));
         }
     }
 }
