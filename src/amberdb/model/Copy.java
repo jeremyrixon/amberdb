@@ -60,11 +60,11 @@ public interface Copy extends Node {
     @Property("dcmCopyPid")
     public void setDcmCopyPid(String dcmCopyPid);
     
-    @Property("dcmDateCreated")
-    public Date getDcmDateCreated();
-    
-    @Property("dcmDateCreated")
-    public void setDcmDateCreated(Date dcmDateCreated);
+    @Property("dcmSourceCopy")
+    public String getDcmSourceCopy();
+
+    @Property("dcmSourceCopy")
+    public void setDcmSourceCopy(String dcmSourceCopy);
     
     @Property("dcmDateTimeCreated")
     public Date getDcmDateTimeCreated();
