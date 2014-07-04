@@ -1,6 +1,8 @@
 package amberdb.model;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,10 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -375,5 +373,38 @@ public class WorkTest {
         
         expectedNoOfPages = 2;
         expectedNoOfPagesForSection = 0;
+    }
+    
+    @Test
+    public void testToEnsureDCMLegacyDataFieldsExist() throws IOException {
+        AmberSession amberDb = new AmberSession();
+        Work work = amberDb.addWork();
+        
+        Date date = new Date();
+        
+        work.setDcmDateTimeCreated(date);
+        assertEquals(date, work.getDcmDateTimeCreated());
+        
+        work.setDcmWorkPid("12345");
+        assertEquals("12345", work.getDcmWorkPid());
+        
+        work.setDcmDateTimeUpdated(date);
+        assertEquals(date, work.getDcmDateTimeUpdated());
+        
+        work.setDcmRecordCreator("creator");
+        assertEquals("creator", work.getDcmRecordCreator());
+        
+        work.setDcmRecordUpdater("updater");
+        assertEquals("updater", work.getDcmRecordUpdater()); 
+        
+        List<String> list = new ArrayList<String>();
+        list.add("pi-1");
+        list.add("pi-2");
+        work.setDcmAltPi(list);
+        
+        assertEquals(2, work.getDcmAltPi().size());
+        assertEquals(list, work.getDcmAltPi());
+        
+        amberDb.close();
     }
 }

@@ -17,6 +17,8 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.tinkerpop.frames.Property;
+
 import amberdb.AmberSession;
 import amberdb.TestUtils;
 
@@ -136,6 +138,32 @@ public class CopyTest {
         assertEquals(null, imageFile.getImageLength());
         imageFile.setImageLength(200);
         assertEquals((Integer)200, imageFile.getImageLength());
+    }
+    
+    @Test
+    public void testToEnsureDCMLegacyDataFieldsExist() throws IOException {
+        Copy copy = amberDb.addWork().addCopy();
+        
+        Date date = new Date();
+        
+        copy.setDcmDateTimeCreated(date);
+        assertEquals(date, copy.getDcmDateTimeCreated());
+        
+        copy.setDcmCopyPid("12345");
+        assertEquals("12345", copy.getDcmCopyPid());
+        
+        copy.setDcmSourceCopy("12345");
+        assertEquals("12345", copy.getDcmSourceCopy());
+        
+        copy.setDcmDateTimeUpdated(date);
+        assertEquals(date, copy.getDcmDateTimeUpdated());
+        
+        copy.setDcmRecordCreator("creator");
+        assertEquals("creator", copy.getDcmRecordCreator());
+        
+        copy.setDcmRecordUpdater("updater");
+        assertEquals("updater", copy.getDcmRecordUpdater());                
+        
     }
 
     
