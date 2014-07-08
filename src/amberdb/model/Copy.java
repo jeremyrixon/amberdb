@@ -148,7 +148,7 @@ public interface Copy extends Node {
     @Property("condition")
     public String getCondition();
 
-    @Property("carrier")
+    @Property("condition")
     public void setCondition(String condition);
     
     @Property("exhibition")
