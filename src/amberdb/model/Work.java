@@ -879,7 +879,7 @@ public interface Work extends Node {
     @JavaHandler
     public void orderParts(List<Node> parts);
     
-    abstract class Impl implements JavaHandlerContext<Vertex>, Work {       
+    abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {       
         static ObjectMapper mapper = new ObjectMapper();     
 
         @Override

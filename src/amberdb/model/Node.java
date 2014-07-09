@@ -260,9 +260,7 @@ public interface Node extends VertexFrame {
             String alias = getJSONAlias();
             if (alias == null || alias.isEmpty())
                 return new ArrayList<String>();
-            return mapper.readValue(alias, new TypeReference<List<String>>() {
-            });
-
+            return mapper.readValue(alias, new TypeReference<List<String>>() {});
         }
 
         @Override
