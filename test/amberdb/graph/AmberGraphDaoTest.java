@@ -1,5 +1,8 @@
 package amberdb.graph;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.List;
@@ -23,9 +26,7 @@ public class AmberGraphDaoTest {
     
     @Before
     public void setup() throws MalformedURLException, IOException {
-        
         System.out.println("Setting up graph");
-
         graph = new AmberGraph();
     }
 
@@ -158,6 +159,42 @@ public class AmberGraphDaoTest {
         e8.remove();
         e9.remove();
         e10.remove();
+    }
+    
+    @Test
+    public void updateEdgeOrder() throws Exception {
+
+        Vertex vp = graph.addVertex(null);
+        
+        Vertex v1 = graph.addVertex(null); 
+        Vertex v2 = graph.addVertex(null);
+        Vertex v3 = graph.addVertex(null);
+        Vertex v4 = graph.addVertex(null);
+
+        Edge e1 = graph.addEdge(null, v1, vp, "isPartOf");
+        Edge e2 = graph.addEdge(null, v2, vp, "isPartOf");
+        Edge e3 = graph.addEdge(null, v3, vp, "isPartOf");
+        Edge e4 = graph.addEdge(null, v4, vp, "isPartOf");
+        
+        ((AmberVertex) vp).setEdgeOrder(v1, "isPartOf", Direction.IN, 1);
+        ((AmberVertex) vp).setEdgeOrder(v2, "isPartOf", Direction.IN, 2);
+        ((AmberVertex) vp).setEdgeOrder(v3, "isPartOf", Direction.IN, 3);
+        ((AmberVertex) vp).setEdgeOrder(v4, "isPartOf", Direction.IN, 4);
+        
+        assertEquals(1, e1.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
+        assertEquals(2, e2.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
+        assertEquals(3, e3.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
+        assertEquals(4, e4.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
+
+        ((AmberVertex) vp).setEdgeOrder(v1, "isPartOf", Direction.IN, 4);
+        ((AmberVertex) vp).setEdgeOrder(v2, "isPartOf", Direction.IN, 3);
+        ((AmberVertex) vp).setEdgeOrder(v3, "isPartOf", Direction.IN, 2);
+        ((AmberVertex) vp).setEdgeOrder(v4, "isPartOf", Direction.IN, 1);
+        
+        assertEquals(4, e1.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
+        assertEquals(3, e2.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
+        assertEquals(2, e3.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
+        assertEquals(1, e4.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
     }
     
     public void s(String s) {

@@ -1,6 +1,7 @@
 package amberdb.graph;
 
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +58,12 @@ public class AmberVertex extends BaseVertex {
         return (AmberGraph) graph;
     }
 
+
+    public boolean equals(Object obj) {
+        return super.equals(obj) 
+                && (obj instanceof AmberVertex); 
+    }
+    
     
     public List<AmberTransaction> getAllTransactions() {
         return ((AmberGraph) graph).getTransactionsByVertexId(id);
@@ -71,6 +78,49 @@ public class AmberVertex extends BaseVertex {
     
     public AmberTransaction getFirstTransaction() {
         return ((AmberGraph) graph).getFirstTransactionForVertexId(id);
+    }
+    
+    
+    /**
+     * This method is the same as the regular getEdges method, but adds the
+     * constraint of the Edges returned being incident to a particular Vertex
+     * 
+     * @param adjacent
+     *            The Vertex on the other end of returned Edges
+     * @param direction
+     *            The direction for returned Edges (wrt this Vertex)
+     * @param labels
+     *            The labels returned Edges can have
+     * @return A list of conforming edges
+     */
+    public List<Edge> getEdges(Vertex adjacent, Direction direction, String... labels) {
+        List<Edge> edges = new ArrayList<>();
+        for (Edge e : this.getEdges(direction, labels)) {
+            Vertex v = e.getVertex(Direction.IN);
+            if (v == this) v = e.getVertex(Direction.OUT);
+            if (v.getId() == adjacent.getId()) edges.add(e);
+        }
+        return edges;
+    }
+
+    
+    /* note: This method can set more than one edge's order */
+    public void setEdgeOrder(Vertex adjacent, String label, Direction direction, Integer order) {
+        List<Edge> edges = this.getEdges(adjacent, direction, label);
+        for (Edge e: edges) {
+            e.setProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME, order);
+        }
+    }
+
+    
+    /* note: This method can get more than one edge's order */
+    public List<Integer> getEdgeOrder(Vertex adjacent, String label, Direction direction) {
+        List<Integer> orders = new ArrayList<>();
+        List<Edge> edges = this.getEdges(adjacent, direction, label);
+        for (Edge e: edges) {
+            orders.add((Integer) e.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
+        }
+        return orders;
     }
 }
 

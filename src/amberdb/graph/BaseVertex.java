@@ -130,14 +130,11 @@ public class BaseVertex extends BaseElement implements Vertex {
     
     @Override
     public boolean equals(Object obj) {
-        
         if (this == obj) return true;
         if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
-
+        if (!(obj instanceof BaseVertex)) return false;
         BaseVertex other = (BaseVertex) obj;
         if (id != (Long) other.getId()) return false;
-
         return true;
     }
 }

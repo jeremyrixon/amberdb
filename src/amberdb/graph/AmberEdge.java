@@ -84,6 +84,12 @@ public class AmberEdge extends BaseEdge implements Comparable {
         return -1;
     }
     
+
+    public boolean equals(Object obj) {
+        return super.equals(obj) 
+                && (obj instanceof AmberEdge); 
+    }
+    
     
     public List<AmberTransaction> getAllTransactions() {
         return ((AmberGraph)graph).getTransactionsByEdgeId(id);
