@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +16,8 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import com.tinkerpop.blueprints.Direction;
 
 import amberdb.AmberDbFactory;
 import amberdb.AmberSession;
@@ -35,10 +38,13 @@ public class WorkTest {
     private static int expectedNoOfPagesForSection = 0;
     
     private static Work journalNLAOH;
+
+    private static AmberSession db;
     
     @Before
     public void setup() throws IOException, InstantiationException {
-        resetTestData();
+        db = new AmberSession();
+        setTestDataInH2(db);
     }
 
     @Test
@@ -71,10 +77,9 @@ public class WorkTest {
         }
     }
     
-    // @Test
-    @Ignore
+    @Test
+    //@Ignore
     public void testGetLeafsForBlinkyBill() {
-        resetTestData();
         Iterable<Work> leafs = bookBlinkyBill.getLeafs(SubType.PAGE);
         System.out.println("List leafs for book blinky bill: ");
         int noOfPages = 0;
@@ -83,10 +88,9 @@ public class WorkTest {
             noOfPages++;
         }
         assertEquals(expectedNoOfPages, noOfPages);
-        resetTestData();
     }
     
-    @Ignore
+    @Test
     public void testGetLeafsOfSubTypesForBlinkyBill() {
         
         Long start = new Date().getTime();
@@ -96,7 +100,6 @@ public class WorkTest {
         try {
             bookBlinkyBill.loadPagedWork();
         } catch (InvalidSubtypeException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         
@@ -119,7 +122,6 @@ public class WorkTest {
 
     }
     
-    @Ignore
     @Test
     public void testGetLeafsForBlinkyBillAssoication() {
         Iterable<Section> sections = bookBlinkyBill.getSections(SubType.CHAPTER);
@@ -163,8 +165,6 @@ public class WorkTest {
     
     @Test
     public void testDeattachPage() {
-        AmberSession db = new AmberSession();
-        setTestDataInH2(db);
         
         int expectedNoOfPagesBfrRemoval = 3;
         int expectedNoOfPagesAftRemoval = 2;
@@ -192,8 +192,6 @@ public class WorkTest {
     
     @Test
     public void testDeattachLeaf() {
-        AmberSession db = new AmberSession();
-        setTestDataInH2(db);
         
         int expectedNoOfPagesBfrRemoval = 2;
         int expectedNoOfPagesAftRemoval = 1;
@@ -221,8 +219,6 @@ public class WorkTest {
     
     @Test
     public void testCountCopies() {
-        AmberSession db = new AmberSession();
-        setTestDataInH2(db);
         
         Work work = bookBlinkyBill;
         Page page = workTitlePage;
@@ -245,8 +241,6 @@ public class WorkTest {
 
     @Test(expected = NoSuchObjectException.class)
     public void testDeleteWork() {
-        AmberSession db = new AmberSession();
-        setTestDataInH2(db);
 
         Work work = bookBlinkyBill;
         long workVertexId = work.getId();
@@ -259,8 +253,6 @@ public class WorkTest {
     
     @Test(expected = NoSuchObjectException.class)
     public void testDeletePage() {  
-        AmberSession db = new AmberSession();
-        setTestDataInH2(db);
        
         Page page = workTitlePage;
         long workVertexId = page.getId();
@@ -282,24 +274,35 @@ public class WorkTest {
         db.deletePage(page);
         db.findWork(workVertexId);
     }
-    
-    private static void resetTestData() {
-        String dbUrl = "jdbc:mysql://snowy.nla.gov.au:3306/dlir?zeroDateTimeBehavior=convertToNull&useUnicode=yes&characterEncoding=UTF-8";
-        String dbUser = "dlir";
-        String dbPassword = "dlir"; 
-        String rootPath = ".";
+
+    @Test
+    public void testOrderChildren() {
         
-        try (AmberSession db = AmberDbFactory.openAmberDb(dbUrl, dbUser, dbPassword, rootPath) ) {
-            bookBlinkyBill = db.findWork(179722129L);
-            chapterBlinkyBill = db.findWork(179763338);
-            journalNLAOH = db.findWork("nla.obj-665167");
-            expectedNoOfPages = 95;
-            expectedNoOfPagesForSection = 13;
-        } catch (Exception e) {
-            e.printStackTrace();
-            AmberSession db = new AmberSession();
-            setTestDataInH2(db);
-        }        
+        List<Node> pages = new ArrayList<>();
+        
+        Work book = db.addWork();
+        for (int i = 0; i < 20; i++) {
+            Page page = book.addPage();
+            page.setTitle("page " + i);
+            pages.add(page); // pages List will hold the pages in order
+        }
+        
+        // set order
+        book.orderParts(pages);
+        
+        // check ordering worked
+        for (int i = 0; i < 20; i++) {
+            assertEquals(pages.get(i).getOrder(book, "isPartOf", Direction.OUT), (Integer) i);
+        }
+        
+        // reverse order
+        Collections.reverse(pages);
+        book.orderParts(pages);
+
+        // Check reordering worked
+        for (int i = 0; i < 20; i++) {
+            assertEquals(((Page) pages.get(i)).getTitle(), "page "+(19-i));
+        }
     }
     
     private static void setTestDataInH2(AmberSession sess) {
