@@ -18,6 +18,7 @@ import amberdb.enums.CopyRole;
 import amberdb.enums.SubType;
 import amberdb.relation.IsCopyOf;
 import amberdb.relation.IsPartOf;
+import amberdb.relation.Relation;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberQuery;
 import amberdb.graph.AmberVertex;
@@ -786,6 +787,32 @@ public interface Work extends Node {
     @JavaHandler
     public List<Work> getExistsOn(String subType);
 
+    /**
+     * This method sets the edge order of the related Nodes in the list to be
+     * their index in the list. The related Nodes and their edge association to
+     * this object must already exist.
+     * 
+     * @param relatedNodes
+     *            A list of related Nodes whose edges will have their edge ordering
+     *            updated.
+     * @param label
+     *            The label or type of edge to be updated (eg: 'isPartOf', 'existsOn')
+     * @param direction
+     *            The direction of the edge from this object
+     */
+    @JavaHandler
+    public void orderRelated(List<Node> relatedNodes, String label, Direction direction);
+
+    /**
+     * Orders the parts in the given list by their list order. This is a specialization
+     * of orderRelated.
+     * 
+     * @param parts
+     *            The list of parts.
+     */
+    @JavaHandler
+    public void orderParts(List<Node> parts);
+    
     abstract class Impl implements JavaHandlerContext<Vertex>, Work {       
         static ObjectMapper mapper = new ObjectMapper();     
 
@@ -921,7 +948,7 @@ public interface Work extends Node {
             query.branch(Lists.newArrayList(new String[] { "existsOn" }), Direction.OUT);
             query.execute();
         }
-
+       
         public List<Work> getPartsOf(List<String> subTypes) {
 
             AmberVertex work = this.asAmberVertex();
@@ -1070,7 +1097,18 @@ public interface Work extends Node {
             
             return mapper.writeValueAsString(list);
         }
-        
 
+        @Override
+        public void orderRelated(List<Node> relatedNodes, String label, Direction direction) {
+            for (int i = 0; i < relatedNodes.size(); i++) {
+                Node node = relatedNodes.get(i);
+                node.setOrder(this, label, direction, i);
+            }
+        }
+        
+        @Override
+        public void orderParts(List<Node> parts) {
+            orderRelated(parts, "isPartOf", Direction.OUT);
+        }
     }
 }

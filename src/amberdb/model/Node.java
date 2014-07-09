@@ -15,6 +15,7 @@ import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberTransaction;
 import amberdb.graph.AmberVertex;
 
+import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.wrappers.wrapped.WrappedVertex;
 import com.tinkerpop.frames.Property;
@@ -154,64 +155,116 @@ public interface Node extends VertexFrame {
     @JavaHandler
     public AmberTransaction getLastTransaction();
     
+    /**
+     * Set the edge-order attribute on the edge with the given label that
+     * connects from this node to the adjacent node.
+     * 
+     * @param adjacent
+     *            The adjacent node
+     * @param label
+     *            The label of the edge to be modified
+     * @param direction
+     *            The direction of the edge to be modified (wrt this Node)
+     * @param order
+     *            The new order value
+     */
+    @JavaHandler
+    public void setOrder(Node adjacent, String label, Direction direction, Integer order);
+
+    /**
+     * Get the edge-order attribute on the edge with the given label that
+     * connects from this node to the adjacent node.
+     * 
+     * @param adjacent
+     *            The adjacent node
+     * @param label
+     *            The label of the edge whose edge order will be returned
+     * @param direction
+     *            The direction of the edge (wrt this Node) whose order will be returned  
+     * @return An order value or null if no edges conform to requirements
+     */
+    @JavaHandler
+    public Integer getOrder(Node adjacent, String label, Direction direction);
+
+    
     abstract class Impl implements JavaHandlerContext<Vertex>, Node {
-    static ObjectMapper mapper = new ObjectMapper();
-    
-    @Override
-    public AmberGraph getAmberGraph() {
-        return this.asAmberVertex().getAmberGraph();
-    }
-    
-    private AmberVertex asAmberVertex() {
-        if (this.asVertex() instanceof WrappedVertex) {
-            return (AmberVertex) ((WrappedVertex) this.asVertex()).getBaseVertex();
-        } else {
-            return (AmberVertex) this.asVertex();
+        static ObjectMapper mapper = new ObjectMapper();
+
+        @Override
+        public AmberGraph getAmberGraph() {
+            return this.asAmberVertex().getAmberGraph();
         }
-    }
-    
-    @Override
-    public AmberTransaction getFirstTransaction() {
-        return this.asAmberVertex().getFirstTransaction();
-    }
-    
-    @Override
-    public AmberTransaction getLastTransaction() {
-        return this.asAmberVertex().getLastTransaction();
-    }
-    
-    @Override
-    public long getId() {
-      return toLong(asVertex().getId());
-    }
-    
-    public long toLong(Object x) {
-      // tingergraph converts ids to strings
-      if (x instanceof String) {
-        return Long.parseLong((String) x);
-      }
-      return (long)x; 
-    }
-    
-    @Override
-    public String getObjId() {
-        return PIUtil.format(getId());
-    }
-       
+
+        private AmberVertex asAmberVertex() {
+            if (this.asVertex() instanceof WrappedVertex) {
+                return (AmberVertex) ((WrappedVertex) this.asVertex()).getBaseVertex();
+            } else {
+                return (AmberVertex) this.asVertex();
+            }
+        }
+
+        @Override
+        public AmberTransaction getFirstTransaction() {
+            return this.asAmberVertex().getFirstTransaction();
+        }
+
+        @Override
+        public AmberTransaction getLastTransaction() {
+            return this.asAmberVertex().getLastTransaction();
+        }
+
+        @Override
+        public long getId() {
+            return toLong(asVertex().getId());
+        }
+
+        public long toLong(Object x) {
+            // tinkergraph converts ids to strings
+            if (x instanceof String) {
+                return Long.parseLong((String) x);
+            }
+            return (long) x;
+        }
+
+        @Override
+        public String getObjId() {
+            return PIUtil.format(getId());
+        }
+
         @Override
         public List<String> getAlias() throws JsonParseException, JsonMappingException, IOException {
             String alias = getJSONAlias();
             if (alias == null || alias.isEmpty())
                 return new ArrayList<String>();
-            return mapper.readValue(alias, new TypeReference<List<String>>() { } );
-            
+            return mapper.readValue(alias, new TypeReference<List<String>>() {
+            });
+
         }
-        
+
         @Override
-        public void setAlias( List<String>  alias) throws JsonParseException, JsonMappingException, IOException {
+        public void setAlias(List<String> alias) throws JsonParseException, JsonMappingException, IOException {
             setJSONAlias(mapper.writeValueAsString(alias));
         }
-        
-        
+
+        @Override
+        public void setOrder(Node adjacent, String label, Direction direction, Integer order) {
+            // argument guards
+            if (adjacent == null) { throw new IllegalArgumentException("adjacent node not supplied"); }
+            if (label == null || label.isEmpty()) { throw new IllegalArgumentException("edge label not supplied"); }
+            if (direction == null || direction == Direction.BOTH) { throw new IllegalArgumentException("direction cannot be null or BOTH"); }            
+            
+            this.asAmberVertex().setEdgeOrder(adjacent.asVertex(), label, direction, order);
+        }
+
+        @Override
+        public Integer getOrder(Node adjacent, String label, Direction direction) {
+            // argument guards
+            if (adjacent == null) { throw new IllegalArgumentException("adjacent not supplied"); }
+            if (label == null || label.isEmpty()) { throw new IllegalArgumentException("edge label not supplied"); }
+            if (direction == null || direction == Direction.BOTH) { throw new IllegalArgumentException("direction cannot be null or BOTH"); }            
+
+            List<Integer> orderValues = this.asAmberVertex().getEdgeOrder(adjacent.asVertex(), label, direction);
+            return orderValues.size() > 0 ? orderValues.get(0) : null;
+        }
     }
 }
