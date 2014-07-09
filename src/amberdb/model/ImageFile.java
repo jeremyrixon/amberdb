@@ -13,9 +13,18 @@ public interface ImageFile extends File {
     
     @Property("resolution")
     public String getResolution();
-    
+
     @Property("resolution")
     public void setResolution(String resolution);
+    
+    // examples:
+    //   inch
+    //   cm
+    @Property("resolutionUnit")
+    public String getResolutionUnit();
+    
+    @Property("resolutionUnit")
+    public void setResolutionUnit(String resolutionUnit);
     
     @Property("colourSpace")
     public String getColourSpace();
@@ -112,4 +121,10 @@ public interface ImageFile extends File {
     
     @Property("cpLocation")
     public void setCpLocation(String cpLocation);
+    
+    @Property("zoomLevel")
+    public String getZoomLevel();
+    
+    @Property("zoomLevel")
+    public void setZoomLevel(String zoomLevel);
 }

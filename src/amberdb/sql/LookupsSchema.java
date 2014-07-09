@@ -915,7 +915,18 @@ public abstract class LookupsSchema {
       + "('digitalStatus','Captured'),"
       + "('digitalStatus','Not Captured'),"
       + "('digitalStatus','Partially Captured'),"
-      + "('digitalStatus','Preserved analogue')"
+      + "('digitalStatus','Preserved analogue'),"
+      + "('exposureTime', '1/100 at f/2.8'),"
+      + "('exposureMode', 'Auto'),"
+      + "('exposureMode', 'Manual'),"
+      + "('isoSpeedRating', '100'),"
+      + "('isoSpeedRating', '400'),"
+      + "('isoSpeedRating', '800'),"
+      + "('isoSpeedRating', '1600'),"
+      + "('focalLenth', '24.0mm'),"
+      + "('meteringMode', 'Evaluative'),"
+      + "('whiteBalance', 'Auto'),"
+      + "('whiteBalance', 'Manual'),"
     )
     public abstract void seedKeyCodeList();
     

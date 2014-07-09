@@ -16,9 +16,9 @@ import org.codehaus.jackson.type.TypeReference;
 import amberdb.InvalidSubtypeException;
 import amberdb.enums.CopyRole;
 import amberdb.enums.SubType;
+import amberdb.relation.DescriptionOf;
 import amberdb.relation.IsCopyOf;
 import amberdb.relation.IsPartOf;
-import amberdb.relation.Relation;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberQuery;
 import amberdb.graph.AmberVertex;
@@ -63,6 +63,32 @@ public interface Work extends Node {
     public void setCategory(String category);
 
     /* DCM Legacy Data */
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use getDcmAltPi to get this property
+     */
+    @Property("dcmAltPi")
+    public String getJSONDcmAltPi();
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use setDcmAltPi to set this property
+     */
+    @Property("dcmAltPi")
+    public void setJSONDcmAltPi(String dcmAltPi);
+    
+    /**
+     * This method handles the JSON serialisation of the dcmAltPi Property     
+     */
+    @JavaHandler
+    public void setDcmAltPi(List<String> list) throws JsonParseException, JsonMappingException, IOException;
+    
+    /**
+     * This method handles the JSON deserialisation of the dcmAltPi Property     
+     */
+    @JavaHandler
+    public List<String> getDcmAltPi() throws JsonParseException, JsonMappingException, IOException;
+
+    
     @Property("dcmWorkPid")
     public String getDcmWorkPid();
 
@@ -310,6 +336,18 @@ public interface Work extends Node {
 
     @Property("publicationCategory")
     public void setPublicationCategory(String publicationCategory);
+    
+    @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
+    public GeoCoding addGeoCoding();
+    
+    @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
+    public IPTC addIPTC();
+    
+    @JavaHandler
+    public GeoCoding getGeoCoding();
+    
+    @JavaHandler
+    public IPTC getIPTC();
     
     /**
      * This property is encoded as a JSON Array - You probably want to use getSeries to get this property
@@ -588,7 +626,7 @@ public interface Work extends Node {
      */
     @JavaHandler
     public List<String> getScaleEtc() throws JsonParseException, JsonMappingException, IOException;
-
+    
     @Property("west")
     public String getWest();
 
@@ -637,7 +675,35 @@ public interface Work extends Node {
     @Property("rights")
     public void setRights(String rights);
 
+    @Property("tempHolding")
+    public String getTempHolding();
 
+    @Property("tempHolding")
+    public void setTempHolding(String tempHolding);
+    
+    @Property("sensitiveMaterial")
+    public String getSensitiveMaterial();
+    
+    @Property("sensitiveMaterial")
+    public void setSensitiveMaterial(String sensitiveMaterial);
+    
+    @Property("sensitiveReason")
+    public String getSensitiveReason();
+    
+    @Property("sensitiveReason")
+    public void setSensitiveReason(String sensitiveReason);
+    
+    @Property("uniformTitle")
+    public String getUniformTitle();
+    
+    @Property("uniformTitle")
+    public void setUniformTitle(String uniformTitle);
+    
+    @Property("alternativeTitle")
+    public String getAlternativeTitle();
+    
+    @Property("alternativeTitle")
+    public void setAlternativeTitle(String alternativeTitle);
     
     /**
      * Also known as localsystmno
@@ -991,7 +1057,6 @@ public interface Work extends Node {
             return getExistsOn(Arrays.asList(new String[] { subType }));
         }
         
-        
         @Override
         public void setOrder(int position) {
             getParentEdge().setRelOrder(position);
@@ -1002,8 +1067,6 @@ public interface Work extends Node {
            Iterator<IsPartOf> iterator = getParentEdges().iterator();
            return (iterator != null && iterator.hasNext())? iterator.next() : null;
         }
-        
-        
         
         @Override
         public List<String> getSeries() throws JsonParseException, JsonMappingException, IOException {
@@ -1086,15 +1149,13 @@ public interface Work extends Node {
         public void setScaleEtc( List<String>  scaleEtc) throws JsonParseException, JsonMappingException, IOException {
             setJSONScaleEtc(serialiseToJSON(scaleEtc));
         }
-        private List<String> deserialiseJSONString(String json) throws JsonParseException, JsonMappingException, IOException {
-            
+        private List<String> deserialiseJSONString(String json) throws JsonParseException, JsonMappingException, IOException {            
             if (json == null || json.isEmpty())
                 return new ArrayList<String>();
             return mapper.readValue(json, new TypeReference<List<String>>() { } );            
         }
         
-        private String serialiseToJSON( List<String>  list) throws JsonParseException, JsonMappingException, IOException {
-            
+        private String serialiseToJSON( List<String>  list) throws JsonParseException, JsonMappingException, IOException {            
             return mapper.writeValueAsString(list);
         }
 
@@ -1109,6 +1170,26 @@ public interface Work extends Node {
         @Override
         public void orderParts(List<Node> parts) {
             orderRelated(parts, "isPartOf", Direction.OUT);
+        }
+
+        @Override
+        public GeoCoding getGeoCoding() {
+            return (GeoCoding) getDescription("GeoCoding");
+        }
+        
+        @Override
+        public IPTC getIPTC() {
+            return (IPTC) getDescription("IPTC");
+        }
+        
+        @Override
+        public List<String> getDcmAltPi() throws JsonParseException, JsonMappingException, IOException {
+            return deserialiseJSONString(getJSONDcmAltPi());            
+        }
+        
+        @Override
+        public void setDcmAltPi(List<String>  list) throws JsonParseException, JsonMappingException, IOException {
+            setJSONDcmAltPi(serialiseToJSON(list));
         }
     }
 }

@@ -18,8 +18,12 @@ import org.h2.Driver;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
 
+import amberdb.model.CameraData;
 import amberdb.model.Copy;
+import amberdb.model.Description;
 import amberdb.model.File;
+import amberdb.model.GeoCoding;
+import amberdb.model.IPTC;
 import amberdb.model.ImageFile;
 import amberdb.model.Page;
 import amberdb.model.Section;
@@ -202,7 +206,12 @@ public class AmberSession implements AutoCloseable {
             .withClass(SoundFile.class)
             .withClass(Page.class)
             .withClass(Section.class)
-            .withClass(Work.class).build()).create(g);
+            .withClass(Work.class)
+            .withClass(Description.class)
+            .withClass(IPTC.class)
+            .withClass(GeoCoding.class)
+            .withClass(CameraData.class)
+            .build()).create(g);
     }
 
     
