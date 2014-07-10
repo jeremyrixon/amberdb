@@ -3,7 +3,7 @@
 
   <groupId>au.gov.nla</groupId>
   <artifactId>amberdb</artifactId>
-  <version>1.1.141-SNAPSHOT</version>
+  <version>1.1.142-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>amberdb</name>
@@ -68,7 +68,7 @@
     <dependency>
       <groupId>au.gov.nla</groupId>
       <artifactId>doss</artifactId>
-      <version>0.23.8-SNAPSHOT</version>
+      <version>0.26.0</version>
     </dependency>
     <dependency>
       <groupId>org.jdbi</groupId>
