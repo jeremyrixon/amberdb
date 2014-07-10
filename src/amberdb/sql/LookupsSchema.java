@@ -94,9 +94,6 @@ public abstract class LookupsSchema {
       + "('internalAccessCondition', 'Open'),"
       + "('internalAccessCondition', 'Restricted'),"        
       + "('internalAccessCondition', 'Closed'),"      
-      + "('copyType', 'Physical'),"
-      + "('copyType', 'Digitised'),"
-      + "('copyType', 'Born Digital'),"
       + "('copyrightStatus', 'Out of Copyright'),"
       + "('copyrightStatus', 'In Copyright'),"
       + "('copyrightStatus', 'No known copyright restrictions'),"
@@ -943,44 +940,10 @@ public abstract class LookupsSchema {
     public abstract void seedCollectionList();
     
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
-            + "('copyRole', 'rm', 'Related metadata'),"
-            + "('copyRole', 'ra1', 'RealMedia reference'),"
-            + "('copyRole', 'sa1', 'RealMedia file'),"
-            + "('copyRole', 'rb1', 'QuickTime reference 1'),"
-            + "('copyRole', 'rb2', 'QuickTime reference 2'),"
-            + "('copyRole', 'rb3', 'QuickTime reference 3'),"
-            + "('copyRole', 'rb4', 'QuickTime reference 4'),"
-            + "('copyRole', 'sb1', 'QuickTime file 1'),"
-            + "('copyRole', 'sb2', 'QuickTime file 2'),"
-            + "('copyRole', 'o', 'Original'),"
-            + "('copyRole', 't', 'Thumbnail'),"
-            + "('copyRole', 'v', 'View'),"
-            + "('copyRole', 'e', 'Examination'),"
-            + "('copyRole', 'm', 'Master'),"
-            + "('copyRole', 'c', 'Co-master'),"
-            + "('copyRole', 'a', 'Archive'),"
-            + "('copyRole', 'ac', 'Access'),"
-            + "('copyRole', 'oc', 'OCR json'),"
-            + "('copyRole', 'at', 'OCR alto'),"
-            + "('copyRole', 'mt', 'OCR mets'),"
-            + "('copyRole', 's', 'Summary'),"
-            + "('copyRole', 'tr', 'Transcript'),"
-            + "('copyRole', 'sm', 'Structural map'),"
-            + "('copyRole', 'fa', 'Finding aid'),"
-            + "('copyRole', 'mf', 'Microform'),"
-            + "('copyRole', 'sd', 'Special delivery'),"
-            + "('copyRole', 'l1', 'Listen 1'),"
-            + "('copyRole', 'l2', 'Listen 2'),"
-            + "('copyRole', 'l3', 'Listen 3'),"
-            + "('copyRole', 'fap', 'Finding aid print'),"
-            + "('copyRole', 'dl', 'List'),"
-            + "('copyRole', 'dm', 'Derivative master'),"
-            + "('copyRole', 'ad', 'Analogue distribution'),"
-            + "('copyRole', 'w', 'Working'),"
-            + "('copyRole', 'd', 'Digital distribution'),"
-            + "('copyRole', 'tc', 'Time-coded Transcript'),"
-            + "('copyRole', 'p', 'Print')")
-    public abstract void seedCopyRoleList();
+            + "('copyType', 'p', 'Physical'),"
+            + "('copyType', 'd', 'Digitised'),"
+            + "('copyType', 'b', 'Born Digital')")
+    public abstract void seedCopyTypeList();
     
     @SqlUpdate("UPDATE lookups SET VALUE = CODE WHERE value is null")
     public abstract void seedValuesForKeyList();
@@ -1055,7 +1018,7 @@ public abstract class LookupsSchema {
         createToolsMaterialTypeIdIndex();
         seedKeyCodeList();
         seedCollectionList();
-        seedCopyRoleList();
+        seedCopyTypeList();
         seedValuesForKeyList();
         seedToolsList();
         seedToolTypesLookups();
