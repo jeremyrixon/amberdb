@@ -234,11 +234,13 @@ public class AmberQuery {
             if (graph.removedVertices.contains(vertex)) {
                 continue;
             }
-            if (!graph.modifiedVertices.contains(vertex)) {
+            if (graph.graphVertices.containsKey(vertex.getId())) {
+                vertices.add(graph.graphVertices.get(vertex.getId()));
+            } else {
                 vertex.replaceProperties(propMaps.get((Long) vertex.getId()));
                 graph.addVertexToGraph(vertex);
+                vertices.add(vertex);
             }
-            vertices.add(vertex);
         } 
         
         return vertices;
@@ -261,8 +263,8 @@ public class AmberQuery {
                 continue;
             }
             AmberEdge edge = wrapper.edge; 
-
-            if (graph.removedEdges.contains(edge) || graph.modifiedEdges.contains(edge)) {
+            
+            if (graph.graphEdges.containsKey(edge.getId())) {
                 continue;
             } 
             edge.replaceProperties(propMaps.get((Long) edge.getId()));
