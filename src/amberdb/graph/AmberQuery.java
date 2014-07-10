@@ -141,8 +141,7 @@ public class AmberQuery {
         StringBuilder s = new StringBuilder();
         for (String str : strs) {
             // dumbass sql injection protection (not real great)
-            str.replaceAll("'", "\\'"); 
-            s.append("'" + str + "',");
+            s.append("'" + str.replaceAll("'", "\\'") + "',");
         }
         s.setLength(s.length()-1);
         return s.toString();
@@ -189,7 +188,6 @@ public class AmberQuery {
             vertices = getVertices(h, graph, propMaps);
             getEdges(h, graph, propMaps);
         }
-        
         return vertices;
     }
     

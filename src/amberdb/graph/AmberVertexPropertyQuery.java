@@ -15,7 +15,7 @@ import com.tinkerpop.blueprints.Vertex;
 
 public class AmberVertexPropertyQuery {
 
-    // limit size of temp tables and tus the number of results returned
+    // limit size of temp tables and the number of results returned
     // note: it is possible for the set of matches to include multiple 
     // copies of the same vertex if a vertex matches more than one 
     // property. This will result in less than 10000 unique vertices
@@ -172,11 +172,13 @@ public class AmberVertexPropertyQuery {
             if (graph.removedVertices.contains(vertex)) {
                 continue;
             }
-            if (!graph.modifiedVertices.contains(vertex)) {
+            if (graph.graphVertices.containsKey(vertex.getId())) {
+                vertices.add(graph.graphVertices.get(vertex.getId()));
+            } else {
                 vertex.replaceProperties(propMaps.get((Long) vertex.getId()));
                 graph.addVertexToGraph(vertex);
+                vertices.add(vertex);
             }
-            vertices.add(vertex);
         } 
         
         return vertices;
