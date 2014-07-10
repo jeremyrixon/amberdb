@@ -864,11 +864,7 @@ public abstract class LookupsSchema {
       + "('publicationCategory','Radio'),"
       + "('publicationCategory','Commercial'),"
       + "('publicationCategory','Master Copy'),"
-      + "('publicationCategory','Other Press Club'),"
-      + "('publicationCategory','Radio'),"
-      + "('publicationCategory','Commercial'),"
-      + "('publicationCategory','Master Copy'),"
-      + "('publicationCategory','Other'),"
+      + "('publicationCategory','Other'),"      
       + "('subject','National Library - Products'),"
       + "('subject','National Library - Tapestries'),"
       + "('subject','National Library - Volunteers - [name]'),"
@@ -909,6 +905,8 @@ public abstract class LookupsSchema {
       + "('constraint','Thumbnails only'),"
       + "('constraint','Closed'),"
       + "('constraint','Indigenous - male'),"
+      + "('constraint','OH/SPATS'),"
+      + "('constraint','Error during migration'),"
       + "('digitalStatus','Captured'),"
       + "('digitalStatus','Not Captured'),"
       + "('digitalStatus','Partially Captured'),"
@@ -986,6 +984,7 @@ public abstract class LookupsSchema {
             + "('materialType', 'Moving Image', 'Moving Image')"
             )
     public abstract void seedMaterialTypesLookups();
+        
     
     @SqlUpdate("UPDATE tools SET toolTypeId = :toolTypeId where id > 0 and id < 11")
     public abstract void updateToolTypeForToolsGroup1(@Bind("toolTypeId")Long toolTypeId);
