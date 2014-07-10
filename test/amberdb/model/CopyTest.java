@@ -2,6 +2,7 @@ package amberdb.model;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -21,6 +22,7 @@ import com.tinkerpop.frames.Property;
 
 import amberdb.AmberSession;
 import amberdb.TestUtils;
+import amberdb.enums.CopyRole;
 
 public class CopyTest {
     
@@ -166,6 +168,89 @@ public class CopyTest {
         
     }
 
+    /**
+     * This test will:
+     * 1 - Create a work, copy and imagefile. Commit change.
+     * 2 - Retrieves the work from the objectId and then updates one property on the copy and imageFile. Commit change.
+     * 3 - Retrieves the work and tests for the changed property on copy and imageFile.
+     * 
+     * This test will only try and change a property on Copy and ImageFile that was part of the original create.
+     */
+    @Test
+    public void shouldBeAbleToCreateAndEditCopyAndImageFileMetadata() throws IOException {
+        
+        String DEVICE = "Canon";
+        String DEVICE_UPDATED = "Nikon";
+        
+        String RECORDSOURCE = "VOYAGER";
+        String RECORDSOURCE_UPDATED = "VUFIND";
+        
+        // Create the Work
+        Work work = amberDb.addWork();        
+        work.setTitle("cat");
+        
+        // Create the Copy
+        Copy copy = work.addCopy();
+        copy.setCopyRole(CopyRole.ACCESS_COPY.code());
+        copy.setRecordSource(RECORDSOURCE);
+        
+        // Add a File
+        ImageFile imageFile = copy.addImageFile();
+        imageFile.setDevice(DEVICE);        
+        
+        // Double Check that the values have been set
+        assertEquals(RECORDSOURCE, copy.getRecordSource());
+        assertEquals(DEVICE, imageFile.getDevice());
+        
+        Long objectId = work.getId();
+        
+        amberDb.commit();        
+        
+        work = null;
+        copy = null;
+        imageFile = null;
+        
+        // Retrieve Work / Copy / ImageFile 
+        // and make changes to ImageFile
+        //amber = amberDbService.get();
+        Work workB = amberDb.findWork(objectId);
+        assertNotNull(workB);        
+        Copy copyB = workB.getCopy(CopyRole.ACCESS_COPY);        
+        assertNotNull(copyB);
+        ImageFile imageFileB = copyB.getImageFile();
+        assertNotNull(imageFileB);
+        
+        // Before Updating the values check that they haven't changed
+        assertEquals(RECORDSOURCE, copyB.getRecordSource());
+        assertEquals(DEVICE, imageFileB.getDevice());
+        
+       
+        // Make a change to Copy and ImageFile
+        copyB.setRecordSource(RECORDSOURCE_UPDATED);
+        imageFileB.setDevice(DEVICE_UPDATED);
+        
+        // Check that the updated values have been set 
+        assertEquals(RECORDSOURCE_UPDATED, copyB.getRecordSource());
+        assertEquals(DEVICE_UPDATED, imageFileB.getDevice());
+        
+        amberDb.commit();        
+        
+        workB = null;
+        copyB = null;
+        imageFileB = null;
+        
+        // Retrieve Work / Copy / ImageFile                 
+        Work workC = amberDb.findWork(objectId);
+        assertNotNull(workC);        
+        Copy copyC = workC.getCopy(CopyRole.ACCESS_COPY);        
+        assertNotNull(copyC);
+        ImageFile imageFileC = copyC.getImageFile();
+        assertNotNull(imageFileC);
+        
+        // Check for changes against the updated values
+        assertEquals("Expecting the Record Source on Copy to be updated", RECORDSOURCE_UPDATED, copyC.getRecordSource());
+        assertEquals("Expecting the Device on ImageFile to be updated", DEVICE_UPDATED, imageFileC.getDevice());
+    }  
     
     
 
