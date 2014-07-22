@@ -692,12 +692,6 @@ public interface Work extends Node {
     @Property("workPid")
     public void setWorkPid(String workPid);
 
-    /*
-     * @Property("constraint") public String getConstraint();
-     * 
-     * @Property("constraint") public void setConstraint(String constraint);
-     */
-
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * getConstraint to get this property
@@ -713,7 +707,7 @@ public interface Work extends Node {
     public void setJSONConstraint(String constraint);
 
     /**
-     * This method handles the JSON serialisation of the series Property
+     * This method handles the JSON serialisation of the constraint Property
      * 
      * @throws IOException
      * @throws JsonMappingException
@@ -723,7 +717,7 @@ public interface Work extends Node {
     public void setConstraint(List<String> constraint) throws JsonParseException, JsonMappingException, IOException;
 
     /**
-     * This method handles the JSON deserialisation of the series Property
+     * This method handles the JSON deserialisation of the constraint Property
      * 
      * @throws IOException
      * @throws JsonMappingException
@@ -1125,7 +1119,7 @@ public interface Work extends Node {
 
         @Override
         public List<String> getConstraint() throws JsonParseException, JsonMappingException, IOException {
-            String s  = getJSONConstraint();
+            String s = getJSONConstraint();
             return deserialiseJSONString(getJSONConstraint());
         }
 
