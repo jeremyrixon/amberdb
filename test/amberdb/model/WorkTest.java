@@ -1,6 +1,7 @@
 package amberdb.model;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -409,5 +410,27 @@ public class WorkTest {
         assertEquals(list, work.getDcmAltPi());
         
         amberDb.close();
+    }
+    
+    @Test
+    public void testGetSetConstraint() throws IOException {
+        Work work = db.addWork();
+        List<String> constraints = work.getConstraint();
+        assertEquals(0, constraints.size());
+        assertFalse(constraints.contains("testingc"));
+        constraints.add("testing");
+        constraints.add("testinga");
+        constraints.add("testingb");
+        constraints.add("testingc");
+        constraints.add("testingd");
+        work.setConstraint(constraints);
+        constraints = work.getConstraint();
+        assertEquals(5,constraints.size());
+        assertTrue(constraints.contains("testingc"));
+        constraints.add("octopus");
+        work.setConstraint(constraints);
+        constraints = work.getConstraint();
+        assertEquals(6, constraints.size());
+        assertTrue(constraints.contains("octopus"));
     }
 }
