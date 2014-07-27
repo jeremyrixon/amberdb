@@ -1,0 +1,295 @@
+package amberdb.version;
+
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.sql.DataSource;
+
+import org.h2.jdbcx.JdbcConnectionPool;
+import org.skife.jdbi.v2.DBI;
+import org.skife.jdbi.v2.Handle;
+
+import amberdb.version.VersionQuery.QueryClause;
+import amberdb.version.dao.VersionDao;
+
+import com.google.common.collect.Lists;
+import com.tinkerpop.blueprints.Direction;
+
+
+public class VersionedGraph {
+
+    
+    Map<Long, VersionedEdge>   graphEdges = new HashMap<>();
+    Map<Long, VersionedVertex> graphVertices = new HashMap<>();
+    
+    protected Map<Long, Set<VersionedEdge>> inEdgeSets = new HashMap<>();
+    protected Map<Long, Set<VersionedEdge>> outEdgeSets = new HashMap<>();
+
+    public Logger log = Logger.getLogger(VersionedGraph.class.getName());
+    
+    public static final DataSource DEFAULT_DATASOURCE = 
+            JdbcConnectionPool.create("jdbc:h2:mem:persist","pers","pers");
+
+    protected DBI dbi;
+    private VersionDao dao;
+
+    private boolean localMode = false;
+    public void setLocalMode(boolean localModeOn) {
+        localMode = localModeOn;
+    }
+    public boolean inLocalMode() {
+        return localMode;
+    }
+    
+    
+    public VersionedGraph() {
+        initGraph(DEFAULT_DATASOURCE);
+    }
+
+    
+    public VersionedGraph(DataSource dataSource) {
+        initGraph(dataSource);
+    }
+
+    
+    private void initGraph(DataSource dataSource) {
+        dbi = new DBI(dataSource);
+        dao = selectDao(dataSource);
+    }
+    
+    
+    private VersionDao selectDao(DataSource dataSource) {
+        return dbi.onDemand(VersionDao.class);
+    }
+    
+    
+    public VersionDao dao() {
+        return dao;
+    }
+
+    
+    public DBI dbi() {
+        return dbi;
+    }
+
+    
+    protected void addEdgeToGraph(VersionedEdge e) {
+        graphEdges.put(e.getId(), e);
+        for (TEdge ve : e.edges) {
+            inEdgeSets.get(ve.outId).add(e);
+            outEdgeSets.get(ve.inId).add(e);
+        }
+    }
+
+    
+    protected void addVertexToGraph(VersionedVertex v) {
+        Long id = v.getId();
+        graphVertices.put(id, v);
+        
+        if (inEdgeSets.get(id) == null) inEdgeSets.put(id, new HashSet<VersionedEdge>());
+        if (outEdgeSets.get(id) == null) outEdgeSets.put(id, new HashSet<VersionedEdge>());
+    }
+    
+    
+    public VersionedEdge getEdge(Long id) {
+        return getEdge(id, localMode);
+    } 
+    
+
+    protected VersionedEdge getEdge(Long  eId, boolean localOnly) {
+
+        // argument guards
+        if (eId == null) throw new IllegalArgumentException("edge id is null");
+        
+        VersionedEdge edge = graphEdges.get(eId);
+        if (edge != null) return edge;
+        if (localOnly) return null;
+        
+        try (Handle h = dbi.open()) {
+            List<TEdge> edges = h.createQuery(
+                "SELECT id, txn_start, txn_end, label, v_in, v_out, edge_order, "
+                + "FROM edge " 
+                + "WHERE id = :id ")
+                .bind("id", eId)
+                .map(new TEdgeMapper(this, false)).list();
+
+            if (edges == null) return null;
+            
+            Map<TId, Map<String, Object>> propMap = getElementPropertyMap(eId, h);
+            for (TEdge ve : edges) {
+                ve.replaceProperties(propMap.get(ve.id));
+            }
+            Set<TEdge> eSet = new HashSet<>();
+            eSet.addAll(edges);
+            edge = new VersionedEdge(eSet, this);
+            addEdgeToGraph(edge);
+        }
+        return edge;
+    } 
+    
+    
+    protected Map<TId, Map<String, Object>> getElementPropertyMap(Long pId, Handle h) {
+
+        Map<TId, Map<String, Object>> propMap = new HashMap<>();
+
+        List<VersionProperty> propList = h.createQuery(
+                "SELECT id, txn_start, txn_end, name, type, value "
+                + "FROM property " 
+                + "WHERE id = :id")
+                .bind("id", pId)
+                .map(new PropertyMapper()).list();
+        if (propList == null || propList.size() == 0) return propMap;
+        
+        for (VersionProperty p : propList) {
+            TId id = p.getId();
+            if (propMap.get(id) == null) {
+                propMap.put(id, new HashMap<String, Object>());
+            }
+            propMap.get(id).put(p.getName(), p.getValue());
+        }
+        return propMap;
+    }
+    
+    
+    public Iterable<VersionedEdge> getEdges() {
+        List<VersionedEdge> edges = Lists.newArrayList(graphEdges.values());
+        return edges;
+    }
+
+    
+    public Iterable<VersionedEdge> getEdges(String key, Object value) {
+        Set<VersionedEdge> edges = new HashSet<>();
+        
+        for (VersionedEdge ve : graphEdges.values()) {
+            for (TEdge edge : ve.edges) {
+                Object o = edge.getProperty(key); 
+                if (o != null && o.equals(value)) {
+                    edges.add(ve);
+                }
+            }
+        }
+        return edges;        
+    }
+
+
+    protected TId parseId(Object eId) {
+        
+        if (eId == null) return null;
+        if (eId instanceof TId) return (TId) eId;
+
+        try {
+            if (eId instanceof Long) return new TId((Long) eId);
+            if (eId instanceof Integer) return new TId(((Integer) eId).longValue());
+            if (eId instanceof String) return TId.parse((String) eId);
+
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Error parsing id:", e);
+        }
+        return null;
+    }
+
+    
+    public VersionedVertex getVertex(Long id) {
+        return getVertex(id, localMode);
+    } 
+    
+    
+    protected VersionedVertex getVertex(Long vId, boolean localOnly) {
+        
+        // argument guards
+        if (vId == null) throw new IllegalArgumentException("vertex id is null");
+        
+        VersionedVertex vertex = graphVertices.get(vId);
+        if (vertex != null) return vertex;
+        if (localOnly) return null;
+        
+        try (Handle h = dbi.open()) {
+            List<TVertex> vertices = h.createQuery(
+                "SELECT id, txn_start, txn_end "
+                + "FROM vertex " 
+                + "WHERE id = :id ")
+                .bind("id", vId)
+                .map(new TVertexMapper()).list();
+
+            if (vertices == null) return null;
+            
+            Map<TId, Map<String, Object>> propMap = getElementPropertyMap(vId, h);
+            for (TVertex vv : vertices) {
+                vv.replaceProperties(propMap.get(vv.id));
+            }
+            Set<TVertex> vSet = new HashSet<>();
+            vSet.addAll(vertices);
+            vertex = new VersionedVertex(vSet, this);
+            addVertexToGraph(vertex);
+        }
+        return vertex;
+    } 
+    
+     
+    public Iterable<VersionedVertex> getVertices() {
+        List<VersionedVertex> vertices = Lists.newArrayList(graphVertices.values());
+        return vertices;        
+    }
+
+    
+    public Iterable<VersionedVertex> getVertices(String key, Object value) {
+        Set<VersionedVertex> vertices = new HashSet<>();
+        
+        for (VersionedVertex vv : graphVertices.values()) {
+            for (TVertex vertex : vv.vertices) {
+                Object o = vertex.getProperty(key); 
+                if (o != null && o.equals(value)) {
+                    vertices.add(vv);
+                }
+            }
+        }
+        return vertices;        
+    }
+    
+    
+    public String toString() {
+        return ("versiongraph");
+    }
+
+    
+    public void clear() {
+        graphEdges.clear();
+        graphVertices.clear();
+        inEdgeSets.clear();
+        outEdgeSets.clear();
+    }
+    
+    
+    protected void getBranch(Long id, Direction direction, String[] labels) {
+        VersionQuery q = new VersionQuery(id, this);
+        q.branch(Lists.newArrayList(labels), direction);
+        q.execute();
+    }
+    
+    
+    public VersionQuery newQuery(Long id) {
+        return new VersionQuery(id, this);
+    }
+
+
+    public VersionQuery newQuery(List<Long> ids) {
+        return new VersionQuery(ids, this);
+    }
+    
+    
+    public void loadTransactionGraph(Long txn) {
+        new TransactionQuery(txn, this).execute();
+    }
+
+
+    public void loadTransactionGraph(Long firstTxn, Long lastTxn) {
+        new TransactionQuery(firstTxn, lastTxn, this).execute();
+    }
+}
+

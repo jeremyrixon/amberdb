@@ -1,0 +1,265 @@
+package amberdb.version;
+
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.skife.jdbi.v2.Handle;
+
+import com.tinkerpop.blueprints.Direction;
+
+
+public class VersionQuery {
+
+    
+    List<Long> head;       
+    List<QueryClause> clauses = new ArrayList<QueryClause>();
+    private VersionedGraph graph;
+
+    protected VersionQuery(Long head, VersionedGraph graph) {
+
+        // guard
+        if (head == null) throw new IllegalArgumentException("Query must have starting vertices");
+        
+        this.head = new ArrayList<Long>();
+        this.head.add(head);
+        this.graph = graph;
+    }
+
+    
+    protected VersionQuery(List<Long> head, VersionedGraph graph) {
+        
+        // guards
+        if (head == null) throw new IllegalArgumentException("Query must have starting vertices");
+        head.removeAll(Collections.singleton(null));
+        if (head.size() == 0) throw new IllegalArgumentException("Query must have starting vertices");            
+        
+        this.head = head;
+        this.graph = graph;
+    }
+
+    
+    public VersionQuery branch(List<String> labels, Direction direction) {
+         clauses.add(new QueryClause(labels, direction));
+        return this;
+    }
+    
+    
+    class QueryClause {
+        List<String> labels;
+        Direction direction;
+        
+        QueryClause(List<String> labels, Direction direction) {
+            this.labels = labels;
+            this.direction = direction;
+        }
+    }
+    
+
+    protected String generateFullSubGraphQuery() {
+
+        int step = 0;
+        
+        StringBuilder s = new StringBuilder();
+        s.append("DROP TABLE IF EXISTS v0;\n");
+        s.append("DROP TABLE IF EXISTS v1;\n");
+        
+        s.append("CREATE TEMPORARY TABLE v0 ("
+                + "step INT, "
+                + "vid BIGINT, "
+                + "eid BIGINT, "
+                + "label VARCHAR(100), "
+                + "edge_order BIGINT);\n");
+        
+        s.append("CREATE TEMPORARY TABLE v1 ("
+                + "step INT, "
+                + "vid BIGINT, "
+                + "eid BIGINT, "
+                + "label VARCHAR(100), "
+                + "edge_order BIGINT);\n");
+        
+        // inject head
+        s.append(String.format(
+
+        "INSERT INTO v0 (step, vid, eid, label, edge_order) \n"
+        + "SELECT 0, id, 0, 'root', 0 \n"
+        + "FROM vertex \n"
+        + "WHERE id IN (%s); \n",
+        LongList2Str(head)));
+        
+        // add the clauses
+        for (QueryClause qc : clauses) {
+            
+            step++;
+            String thisTable = "v" + ( step    % 2);
+            String thatTable = "v" + ((step+1) % 2);
+            
+            String labelsClause = generatelabelsClause(qc.labels);
+            String directionClause = generateDirClause(qc.direction, thatTable);
+
+            s.append(String.format(
+
+            "INSERT INTO %1$s (step, vid, eid, label, edge_order) \n"
+            + "SELECT %3$d, v.id, e.id, e.label, e.edge_order  \n"
+            + "FROM vertex v, edge e, %2$s \n"
+            + "WHERE 1=1 "
+            + labelsClause
+            + directionClause
+            + " AND " + thatTable + ".step = " + (step-1) + " ;\n",
+            
+            thisTable, thatTable, step));
+        }
+
+        // result consolidation
+        s.append("INSERT INTO v0 (step, vid, eid, label, edge_order) "
+                + "SELECT step, vid, eid, label, edge_order FROM v1;\n");
+        
+        return s.toString();
+        // Draw from v0 for results
+    }
+
+    
+    private String LongList2Str(List<Long> longs) {
+        StringBuilder s = new StringBuilder();
+        for (Long l : longs) {
+            s.append(l).append(',');
+        }
+        s.setLength(s.length()-1);
+        return s.toString();
+    }
+
+
+    private String StrList2Str(List<String> strs) {
+        StringBuilder s = new StringBuilder();
+        for (String str : strs) {
+            // dumbass sql injection protection (not real great)
+            s.append("'" + str.replaceAll("'", "\\'") + "',");
+        }
+        s.setLength(s.length()-1);
+        return s.toString();
+    }
+    
+    
+    private String generatelabelsClause(List<String> labels) {
+        if (labels == null || labels.size() == 0) return "";
+        return " AND e.label IN (" + StrList2Str(labels) + ") \n"; 
+    }
+    
+    
+    private String generateDirClause(Direction direction, String thatTable) {
+        
+        String inClause  = "";
+        String outClause = "";
+        
+        if (direction == Direction.BOTH || direction == Direction.IN) {
+            inClause  = "(e.v_out = v.id AND e.v_in = " + thatTable    + ".vid)";
+        }
+        if (direction == Direction.BOTH || direction == Direction.OUT) {
+            outClause = "(e.v_in = v.id AND e.v_out = " + thatTable    + ".vid)";
+        }
+        
+        if (direction == Direction.BOTH) {
+            return " AND (" + inClause + " OR " + outClause + ") \n";
+        }
+        return " AND " + inClause + outClause + " \n";
+    }
+
+    
+    public List<VersionedVertex> execute() {
+
+        List<VersionedVertex> vertices;
+        try (Handle h = graph.dbi().open()) {
+
+            // run the generated query
+            h.begin();
+            h.createStatement(generateFullSubGraphQuery()).execute();
+            h.commit();
+
+            // and reap the rewards
+            Map<TId, Map<String, Object>> propMaps = getElementPropertyMaps(h);
+            vertices = getVertices(h, graph, propMaps);
+            getEdges(h, graph, propMaps);
+        }
+        return vertices;
+    }
+    
+    
+    private Map<TId, Map<String, Object>> getElementPropertyMaps(Handle h) {
+        
+        List<VersionProperty> propList = h.createQuery(
+                "SELECT p.id, p.txn_start, p.txn_end, p.name, p.type, p.value "
+                + "FROM property p, v0 " 
+                + "WHERE p.id = v0.vid OR p.id = v0.eid")
+                .map(new PropertyMapper()).list();
+
+        Map<TId, Map<String, Object>> propertyMaps = new HashMap<>();
+        for (VersionProperty prop : propList) {
+            TId id = prop.getId();
+            if (propertyMaps.get(id) == null) {
+                propertyMaps.put(id, new HashMap<String, Object>());
+            }
+            propertyMaps.get(id).put(prop.getName(), prop.getValue());
+        }
+        return propertyMaps;
+    }
+    
+    
+    private List<VersionedVertex> getVertices(Handle h , VersionedGraph graph, Map<TId, Map<String, Object>> propMaps) {
+
+        List<VersionedVertex> gotVertices = new ArrayList<>(); 
+        
+        List<TVertex> vertices = h.createQuery(
+                "SELECT v.id, v.txn_start, v.txn_end "
+                + "FROM vertex v, v0 "
+                + "WHERE v.id = v0.vid")
+                .map(new TVertexMapper()).list();
+
+        // add them to the graph
+        Map<Long, Set<TVertex>> vertexSets = new HashMap<>();
+        for (TVertex vertex : vertices) {
+            Long versId = vertex.getId().id;
+            if (vertexSets.get(versId) == null) 
+                vertexSets.put(versId, new HashSet<TVertex>()); 
+            vertexSets.get(versId).add(vertex);    
+            vertex.replaceProperties(propMaps.get(vertex.getId()));
+        }
+        for (Set<TVertex> vSet : vertexSets.values()) {
+            VersionedVertex v = new VersionedVertex(vSet, graph);
+            graph.addVertexToGraph(v);
+            gotVertices.add(v);
+        }
+        return gotVertices;
+    }
+    
+    
+    private void getEdges(Handle h , VersionedGraph graph, Map<TId, Map<String, Object>> propMaps) {
+        
+        List<TEdge> edges = h.createQuery(
+                "SELECT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order "
+                + "FROM edge e, v0 "
+                + "WHERE e.id = v0.eid ")
+                .map(new TEdgeMapper(graph, true)).list();
+        
+        // add them to the graph
+        Map<Long, Set<TEdge>> edgeSets = new HashMap<>();
+        for (TEdge edge : edges) {
+            if (edge == null) { // if either vertex doesn't exist 
+                continue;
+            }
+            Long versId = edge.getId().id;
+            if (edgeSets.get(versId) == null) 
+                edgeSets.put(versId, new HashSet<TEdge>()); 
+            edgeSets.get(versId).add(edge);    
+            edge.replaceProperties(propMaps.get(edge.getId()));
+        }            
+        for (Set<TEdge> eSet : edgeSets.values()) {
+            VersionedEdge e = new VersionedEdge(eSet, graph);
+            graph.addEdgeToGraph(e);
+        }
+    }
+}
