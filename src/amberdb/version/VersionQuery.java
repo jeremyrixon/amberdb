@@ -191,14 +191,14 @@ public class VersionQuery {
     
     private Map<TId, Map<String, Object>> getElementPropertyMaps(Handle h) {
         
-        List<VersionProperty> propList = h.createQuery(
+        List<TProperty> propList = h.createQuery(
                 "SELECT p.id, p.txn_start, p.txn_end, p.name, p.type, p.value "
                 + "FROM property p, v0 " 
                 + "WHERE p.id = v0.vid OR p.id = v0.eid")
-                .map(new PropertyMapper()).list();
+                .map(new TPropertyMapper()).list();
 
         Map<TId, Map<String, Object>> propertyMaps = new HashMap<>();
-        for (VersionProperty prop : propList) {
+        for (TProperty prop : propList) {
             TId id = prop.getId();
             if (propertyMaps.get(id) == null) {
                 propertyMaps.put(id, new HashMap<String, Object>());

@@ -9,10 +9,10 @@ import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 
-public class PropertyMapper implements ResultSetMapper<VersionProperty> {
+public class TPropertyMapper implements ResultSetMapper<TProperty> {
 
     
-    public VersionProperty map(int index, ResultSet rs, StatementContext ctx)
+    public TProperty map(int index, ResultSet rs, StatementContext ctx)
             throws SQLException {
 
         Long id = rs.getLong("id"); 
@@ -23,8 +23,8 @@ public class PropertyMapper implements ResultSetMapper<VersionProperty> {
         String name =rs.getString("name");
         DataType type = DataType.valueOf(rs.getString("type"));
         Blob b = rs.getBlob("value");
-        Object value = VersionProperty.decode(b.getBytes(1, (int) b.length()), type);
+        Object value = TProperty.decode(b.getBytes(1, (int) b.length()), type);
 
-        return new VersionProperty(vId, name, value);
+        return new TProperty(vId, name, value);
     }
 }

@@ -138,15 +138,15 @@ public class VersionedGraph {
 
         Map<TId, Map<String, Object>> propMap = new HashMap<>();
 
-        List<VersionProperty> propList = h.createQuery(
+        List<TProperty> propList = h.createQuery(
                 "SELECT id, txn_start, txn_end, name, type, value "
                 + "FROM property " 
                 + "WHERE id = :id")
                 .bind("id", pId)
-                .map(new PropertyMapper()).list();
+                .map(new TPropertyMapper()).list();
         if (propList == null || propList.size() == 0) return propMap;
         
-        for (VersionProperty p : propList) {
+        for (TProperty p : propList) {
             TId id = p.getId();
             if (propMap.get(id) == null) {
                 propMap.put(id, new HashMap<String, Object>());

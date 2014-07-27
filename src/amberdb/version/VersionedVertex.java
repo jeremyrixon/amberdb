@@ -118,8 +118,6 @@ public class VersionedVertex {
         if (direction == Direction.OUT || direction == Direction.BOTH) {
             edges.addAll(getEdges(graph.inEdgeSets.get(this.getId()), labels));
         }
-        //Collections.sort(edges);
-
         return edges;
     }
 

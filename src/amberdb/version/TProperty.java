@@ -11,7 +11,7 @@ import java.nio.charset.Charset;
 import java.util.Date;
 
 
-public class VersionProperty {
+public class TProperty {
 
     
     private TId id;
@@ -20,7 +20,7 @@ public class VersionProperty {
     
     
     // session constructor
-    public VersionProperty(TId id, String name, Object value) {
+    public TProperty(TId id, String name, Object value) {
         this.id = id;
         this.name = name;
         this.value = value;
