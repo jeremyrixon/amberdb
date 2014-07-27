@@ -1,5 +1,6 @@
 package amberdb.version;
 
+import amberdb.graph.DataType;
 
 import java.sql.Blob;
 import java.sql.ResultSet;
