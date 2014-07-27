@@ -11,22 +11,12 @@ import org.skife.jdbi.v2.tweak.ResultSetMapper;
 public class TEdgeMapper implements ResultSetMapper<TEdge> {
     
     
-    private VersionedGraph graph;
-    private boolean localOnly; 
-    
-    
-    public TEdgeMapper(VersionedGraph graph, boolean localOnly) {
-        this.graph = graph;
-        this.localOnly = localOnly;
-    }
-    
-    
     public TEdge map(int index, ResultSet rs, StatementContext ctx)
             throws SQLException {
 
-        VersionedVertex in = graph.getVertex(rs.getLong("v_in"), localOnly);
-        VersionedVertex out = graph.getVertex(rs.getLong("v_out"), localOnly);
-        if (in == null || out == null) return null;
+        //VersionedVertex in = graph.getVertex(rs.getLong("v_in"), localOnly);
+        //VersionedVertex out = graph.getVertex(rs.getLong("v_out"), localOnly);
+        //if (in == null || out == null) return null;
         
         TEdge edge = new TEdge(
                 new TId(
@@ -34,8 +24,8 @@ public class TEdgeMapper implements ResultSetMapper<TEdge> {
                         rs.getLong("txn_start"), 
                         rs.getLong("txn_end")),
                 rs.getString("label"), 
-                out.getId(), 
-                in.getId(), 
+                rs.getLong("v_out"), 
+                rs.getLong("v_in"), 
                 null, 
                 rs.getInt("edge_order"));
 

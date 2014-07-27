@@ -66,8 +66,8 @@ public class VersionedEdge {
         boolean sameIds = true;
         int current = 0;
         for (TEdge e : edges) {
-            if (e.id.id != id) sameIds = false;
-            if (e.id.end == 0L) current++;
+            if (!e.id.id.equals(id)) sameIds = false;
+            if (e.id.end.equals(0L)) current++;
         }
         if (!sameIds || current > 1) 
             throw new RuntimeException("Edges supplied to VersionedEdge are bad: " + toString());

@@ -45,7 +45,7 @@ public class VersionedVertex {
     
     public TVertex getCurrent() {
         for (TVertex e : vertices) {
-            if (e.id.end == 0) return e; 
+            if (e.id.end.equals(0L)) return e; 
         }
         return null;
     }
@@ -68,8 +68,8 @@ public class VersionedVertex {
         boolean sameIds = true;
         int current = 0;
         for (TVertex e : vertices) {
-            if (e.id.id != id) sameIds = false;
-            if (e.id.end == 0L) current++;
+            if (!e.id.id.equals(id)) sameIds = false;
+            if (e.id.end.equals(0L)) current++;
         }
         if (!sameIds || current > 1) 
             throw new RuntimeException("Vertices supplied to VersionedVertex are bad: " + vertices.toString());

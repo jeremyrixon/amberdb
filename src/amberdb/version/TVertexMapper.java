@@ -18,8 +18,7 @@ public class TVertexMapper implements ResultSetMapper<TVertex> {
                         rs.getLong("id"), 
                         rs.getLong("txn_start"), 
                         rs.getLong("txn_end")), 
-                null);//, 
-                //graph);
+                null);
         return vertex;
     }
 }

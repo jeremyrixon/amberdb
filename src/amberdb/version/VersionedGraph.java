@@ -15,7 +15,6 @@ import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 
-import amberdb.version.VersionQuery.QueryClause;
 import amberdb.version.dao.VersionDao;
 
 import com.google.common.collect.Lists;
@@ -81,9 +80,19 @@ public class VersionedGraph {
     
     protected void addEdgeToGraph(VersionedEdge e) {
         graphEdges.put(e.getId(), e);
-        for (TEdge ve : e.edges) {
-            inEdgeSets.get(ve.outId).add(e);
-            outEdgeSets.get(ve.inId).add(e);
+        for (TEdge te : e.edges) {
+            
+            Set<VersionedEdge> inEdgeSet = inEdgeSets.get(te.outId);
+            if (inEdgeSet == null) {
+                getVertex(te.outId); // load the missing vertex
+            }
+            inEdgeSets.get(te.outId).add(e);
+            
+            Set<VersionedEdge> outEdgeSet = outEdgeSets.get(te.inId);
+            if (outEdgeSet == null) {
+                getVertex(te.inId); // load the missing vertex
+            }
+            outEdgeSets.get(te.inId).add(e);
         }
     }
 
@@ -117,7 +126,7 @@ public class VersionedGraph {
                 + "FROM edge " 
                 + "WHERE id = :id ")
                 .bind("id", eId)
-                .map(new TEdgeMapper(this, false)).list();
+                .map(new TEdgeMapper()).list();
 
             if (edges == null) return null;
             

@@ -25,7 +25,7 @@ public class TId implements Comparable<TId> {
             String[] parts = idStr.split(":", 3);
             return new TId(Long.parseLong(parts[0]), Long.parseLong(parts[1]), Long.parseLong(parts[2]));
         } catch (Exception e) {
-            throw new InvalidIdentifierException("Cannot parse as VId: " + idStr, e);
+            throw new InvalidIdentifierException("Cannot parse as TId: " + idStr, e);
         }
     }
     
@@ -39,7 +39,7 @@ public class TId implements Comparable<TId> {
     public boolean equals(Object o) {
         if (o instanceof TId) {
             TId aid = (TId) o;
-            return (id == aid.id && start == aid.start && end == aid.end);
+            if (id.equals(aid.id) && start.equals(aid.start) && end.equals(aid.end)) return true;
         }
         return false;
     }

@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Paths;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.sql.DataSource;
 
@@ -88,6 +90,45 @@ public class TransactionsTest {
         graph.commit("test", "c2");
         
         vGraph.loadTransactionGraph(0L, 100L);
+        
+        for (VersionedVertex v : vGraph.getVertices()) s(""+v);
+        for (VersionedEdge e : vGraph.getEdges()) s(""+e);
+        
+        // lets try some volume stuff
+        Vertex book = graph.addVertex(null);
+        List<Vertex> pages = new ArrayList<>();
+        for (int i = 0; i < 200; i++) {
+            Vertex page = graph.addVertex(null);
+            page.setProperty("name", "page " + i);
+            page.setProperty("value", i);
+            Edge rel = graph.addEdge(null, page, book, "isPartOf");
+            rel.setProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME, i);
+            pages.add(page);
+        }
+        Long txnCommit = graph.commit("test", "commited book");
+        s("Commit Book Txn " + txnCommit);
+        
+        // modify some bits
+        for (Vertex page : pages) {
+            if ((Integer) page.getProperty("value") % 2 == 0)
+                page.setProperty("type", page.hashCode());
+            if ((Integer) page.getProperty("value") % 10 == 0)
+                page.remove();
+        }
+        Long txnModify = graph.commit("test", "modified book");
+        s("Modify Book Txn " + txnModify);
+       
+        
+        vGraph.clear();
+        s("======== COMMIT ==============");
+        vGraph.loadTransactionGraph(txnCommit);
+        
+        for (VersionedVertex v : vGraph.getVertices()) s(""+v);
+        for (VersionedEdge e : vGraph.getEdges()) s(""+e);
+        
+        vGraph.clear();
+        s("======== MODIFY ==============");
+        vGraph.loadTransactionGraph(txnModify);
         
         for (VersionedVertex v : vGraph.getVertices()) s(""+v);
         for (VersionedEdge e : vGraph.getEdges()) s(""+e);
