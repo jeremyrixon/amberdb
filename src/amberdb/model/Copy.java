@@ -359,6 +359,7 @@ public interface Copy extends Node {
                     acf.setImageLength(tiffImage.getImageLength());
                     acf.setImageWidth(tiffImage.getImageWidth());
                     acf.setResolution(tiffImage.getResolution());
+                    acf.setFileFormat("jpeg2000");
                 }
                 return ac;
                 
