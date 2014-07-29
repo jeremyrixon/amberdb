@@ -3,8 +3,11 @@ package amberdb.sql;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 
+import amberdb.util.NaturalSort;
+
+
 @Entity
-public class ListLu {
+public class ListLu implements Comparable<Object>{
     @Column
     Long id;
     @Column
@@ -33,6 +36,18 @@ public class ListLu {
             this.code = code;
         this.deleted = deleted;
     }
+    
+    /**
+     * Specifically used to compare lookup values
+     */
+    @Override
+    public int compareTo(Object object) {               
+        ListLu lookup = (ListLu)object;                     
+        String t1 = (value == null ? "" : value);
+        String t2 = (lookup.getValue() == null ? "" : lookup.getValue());
+       return NaturalSort.compareNaturalIgnoreCaseAscii(t1, t2);
+        
+    } 
     
     public String getName() {
         return name;
