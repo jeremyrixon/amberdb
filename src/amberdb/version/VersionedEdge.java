@@ -95,4 +95,12 @@ public class VersionedEdge {
         return graph.graphVertices.get(edges.get(0).outId); // direction must be out
         // note: we should always be loading an edge's vertices
     }
+    
+    
+    public TEdgeDiff getDiff(Long txn1, Long txn2) {
+        TEdge e1 = getAtTxn(txn1);
+        TEdge e2 = getAtTxn(txn2);
+        
+        return new TEdgeDiff(txn1, txn2, e1,e2);
+    }
 }

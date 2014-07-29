@@ -131,9 +131,12 @@ public class VersionedGraph {
             if (edges == null) return null;
             
             Map<TId, Map<String, Object>> propMap = getElementPropertyMap(eId, h);
-            for (TEdge ve : edges) {
-                ve.replaceProperties(propMap.get(ve.id));
-            }
+            for (TEdge te : edges) {
+                Map<String, Object> props = propMap.get(te.id);
+                if (props != null) {
+                    te.replaceProperties(props);
+                }
+            }    
             Set<TEdge> eSet = new HashSet<>();
             eSet.addAll(edges);
             edge = new VersionedEdge(eSet, this);
@@ -229,8 +232,11 @@ public class VersionedGraph {
             if (vertices == null) return null;
             
             Map<TId, Map<String, Object>> propMap = getElementPropertyMap(vId, h);
-            for (TVertex vv : vertices) {
-                vv.replaceProperties(propMap.get(vv.id));
+            for (TVertex tv : vertices) {
+                Map<String, Object> props = propMap.get(tv.id);
+                if (props != null) {
+                    tv.replaceProperties(props);
+                }
             }
             Set<TVertex> vSet = new HashSet<>();
             vSet.addAll(vertices);

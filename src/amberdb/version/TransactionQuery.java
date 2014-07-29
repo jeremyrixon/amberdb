@@ -96,8 +96,11 @@ public class TransactionQuery {
             Long versId = vertex.getId().id;
             if (vertexSets.get(versId) == null) 
                 vertexSets.put(versId, new HashSet<TVertex>()); 
-            vertexSets.get(versId).add(vertex);    
-            vertex.replaceProperties(propMaps.get(vertex.getId()));
+            vertexSets.get(versId).add(vertex); 
+            Map<String, Object> props = propMaps.get(vertex.getId());
+            if (props != null) {
+                vertex.replaceProperties(props);
+            }
         }
         for (Set<TVertex> vSet : vertexSets.values()) {
             VersionedVertex v = new VersionedVertex(vSet, graph);
@@ -125,9 +128,12 @@ public class TransactionQuery {
             Long versId = edge.getId().id;
             if (edgeSets.get(versId) == null) 
                 edgeSets.put(versId, new HashSet<TEdge>()); 
-            edgeSets.get(versId).add(edge);    
-            edge.replaceProperties(propMaps.get(edge.getId()));
-        }            
+            edgeSets.get(versId).add(edge);
+            Map<String, Object> props = propMaps.get(edge.getId());
+            if (props != null) {
+                edge.replaceProperties(props);
+            }
+        }
         for (Set<TEdge> eSet : edgeSets.values()) {
             VersionedEdge e = new VersionedEdge(eSet, graph);
             graph.addEdgeToGraph(e);
@@ -139,9 +145,9 @@ public class TransactionQuery {
 
         String where = null;
         if (lastTxn == null) {
-            where = "WHERE (txn_start = %1$d OR txn_end = %1$d);";
+            where = "WHERE (txn_start = %1$d OR txn_end <= %1$d);\n";
         } else {
-            where = "WHERE ((txn_start >= %1$d AND txn_start <= %2$d) OR (txn_end >= %1$d AND txn_end <= %2$d));";
+            where = "WHERE ((txn_start >= %1$d AND txn_start <= %2$d) OR (txn_end >= %1$d AND txn_end <= %2$d));\n";
         }
         
         StringBuilder s = new StringBuilder();

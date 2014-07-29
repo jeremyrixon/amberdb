@@ -12,12 +12,14 @@ public class TElement {
 
     
     protected TId id;
-    protected Map<String, Object> properties;
+    protected Map<String, Object> properties = new HashMap<>();
  
     
     TElement(TId id, Map<String, Object> properties) {
         this.id = id;
-        this.properties = (properties == null) ? new HashMap<String, Object>() : properties;
+        if (properties != null) {
+            this.properties = properties;
+        }
     }
 
     

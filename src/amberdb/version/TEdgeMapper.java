@@ -14,10 +14,6 @@ public class TEdgeMapper implements ResultSetMapper<TEdge> {
     public TEdge map(int index, ResultSet rs, StatementContext ctx)
             throws SQLException {
 
-        //VersionedVertex in = graph.getVertex(rs.getLong("v_in"), localOnly);
-        //VersionedVertex out = graph.getVertex(rs.getLong("v_out"), localOnly);
-        //if (in == null || out == null) return null;
-        
         TEdge edge = new TEdge(
                 new TId(
                         rs.getLong("id"),

@@ -37,7 +37,7 @@ public class VersionedVertex {
     
     public TVertex getAtTxn(Long txn) {
         for (TVertex e : vertices) {
-            if (e.id.start <= txn && (e.id.end >= txn || e.id.end == 0)) return e;
+            if (e.id.start <= txn && (e.id.end > txn || e.id.end == 0)) return e;
         }
         return null;
     }
@@ -48,6 +48,14 @@ public class VersionedVertex {
             if (e.id.end.equals(0L)) return e; 
         }
         return null;
+    }
+    
+    
+    public TVertexDiff getDiff(Long txn1, Long txn2) {
+        TVertex e1 = getAtTxn(txn1);
+        TVertex e2 = getAtTxn(txn2);
+        
+        return new TVertexDiff(txn1, txn2, e1,e2);
     }
     
 

@@ -243,7 +243,7 @@ public class VersionQuery {
                 "SELECT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order "
                 + "FROM edge e, v0 "
                 + "WHERE e.id = v0.eid ")
-                .map(new TEdgeMapper(graph, true)).list();
+                .map(new TEdgeMapper()).list();
         
         // add them to the graph
         Map<Long, Set<TEdge>> edgeSets = new HashMap<>();
