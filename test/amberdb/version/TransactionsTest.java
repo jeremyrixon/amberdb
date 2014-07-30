@@ -54,54 +54,56 @@ public class TransactionsTest {
 
 
     @Test
-    public void testTransactions() throws Exception {
+    public void testTxns2() throws Exception {
         
         // create simple graph
-//        Vertex v1 = graph.addVertex(null);
-//        Vertex v2 = graph.addVertex(null);
-//        Vertex v3 = graph.addVertex(null);
-//        
-//        v1.setProperty("name", "v1");
-//        v2.setProperty("name", "v2");
-//        v3.setProperty("name", "v3");
-//        
-//        v1.setProperty("value", 1);
-//        v2.setProperty("value", 2);
-//        v3.setProperty("value", 3);
-//        
-//        v1.addEdge("links", v2);
-//        v2.addEdge("links", v3);
-//        v3.addEdge("links", v1);
-//        
-//        // commit
-//        graph.commit("test", "c1");
-//        
-//        // do some things
-//        v1.setProperty("name", "vertex 1");
-//        v2.setProperty("value", 100);
-//        Edge e4 = graph.addEdge(null, v1, v2, "ordered");
-//        
-//        // commit
-//        graph.commit("test", "c2");
-//        
-//        // do some more things
-//        v3.remove();
-//        e4.setProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME, 99);
-//        
-//        // commit
-//        graph.commit("test", "c2");
-//        
-//        vGraph.loadTransactionGraph(0L, 100L);
-//
-//        assertEquals(((List) vGraph.getVertices()).size(), 3);
-//        assertEquals(((List) vGraph.getEdges()).size(), 4);
-//        
-//        for (VersionedVertex v : vGraph.getVertices()) s(""+v);
-//        for (VersionedEdge e : vGraph.getEdges()) s(""+e);
+        Vertex v1 = graph.addVertex(null);
+        Vertex v2 = graph.addVertex(null);
+        Vertex v3 = graph.addVertex(null);
+        
+        v1.setProperty("name", "v1");
+        v2.setProperty("name", "v2");
+        v3.setProperty("name", "v3");
+        
+        v1.setProperty("value", 1);
+        v2.setProperty("value", 2);
+        v3.setProperty("value", 3);
+        
+        v1.addEdge("links", v2);
+        v2.addEdge("links", v3);
+        v3.addEdge("links", v1);
+        
+        // commit
+        graph.commit("test", "c1");
+        
+        // do some things
+        v1.setProperty("name", "vertex 1");
+        v2.setProperty("value", 100);
+        Edge e4 = graph.addEdge(null, v1, v2, "ordered");
+        
+        // commit
+        graph.commit("test", "c2");
+        
+        // do some more things
+        v3.remove();
+        e4.setProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME, 99);
+        
+        // commit
+        graph.commit("test", "c2");
+        
+        vGraph.loadTransactionGraph(0L, 100L);
+
+        assertEquals(((List) vGraph.getVertices()).size(), 3);
+        assertEquals(((List) vGraph.getEdges()).size(), 4);
+    }        
+    
+    
+    @Test
+    public void testTxns1() throws Exception {
         
         // lets try some volume stuff
         String title1 = "Blinky kills again";
-        long txn1 = createBook(3, title1);
+        long txn1 = createBook(300, title1);
         
         // modify some bits
         Vertex book = graph.getVertices("title", title1).iterator().next();
@@ -122,7 +124,7 @@ public class TransactionsTest {
         
         // make another book
         String title2 = "Blinky rises";
-        long txn4 = createBook(2, title2);
+        long txn4 = createBook(300, title2);
 
         // reorder some pages
         book = graph.getVertices("title", title2).iterator().next();
@@ -145,7 +147,6 @@ public class TransactionsTest {
         displayChanges(txn5, 100000L);
         
     }        
-    
     
     public static void s(String s) {
         System.out.println(s);
@@ -204,6 +205,7 @@ public class TransactionsTest {
         vGraph.clear();
         s("======== TXN:"+txn1+" - TXN:"+txn2+" ========");
         vGraph.loadTransactionGraph(txn1, txn2);
+        s("beep");
         for (VersionedVertex v : vGraph.getVertices()) {
             TVertexDiff diff = v.getDiff(txn1, txn2);
             if (diff.transition != TTransition.UNCHANGED)
