@@ -929,6 +929,18 @@ public abstract class LookupsSchema {
       + "('meteringMode', 'Evaluative'),"
       + "('whiteBalance', 'Auto'),"
       + "('whiteBalance', 'Manual'),"
+      + "('tempHolding', 'Yes'),"
+      + "('tempHolding', 'No'),"
+      + "('digitalSourceType', 'Original digital capture of a real-life scene'),"
+      + "('digitalSourceType', 'Digitised from a negative on film'),"
+      + "('digitalSourceType', 'Digitised from a positive on film'),"
+      + "('digitalSourceType', 'Digitised from a print on non-transparent medium'),"
+      + "('digitalSourceType', 'Created by software'),"
+      + "('sensitiveReason', 'Indigenous - male only'),"
+      + "('sensitiveReason', 'Indigenous - female only'),"
+      + "('sensitiveReason', 'Indigenous - community only'),"
+      + "('sensitiveReason', 'Offensive content'),"
+      + "('sensitiveReason', 'Disturbing content'),"
     )
     public abstract void seedKeyCodeList();
     
