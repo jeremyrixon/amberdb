@@ -103,7 +103,7 @@ public class TransactionsTest {
         
         // lets try some volume stuff
         String title1 = "Blinky kills again";
-        long txn1 = createBook(300, title1);
+        long txn1 = createBook(200, title1);
         
         // modify some bits
         Vertex book = graph.getVertices("title", title1).iterator().next();
@@ -124,7 +124,7 @@ public class TransactionsTest {
         
         // make another book
         String title2 = "Blinky rises";
-        long txn4 = createBook(300, title2);
+        long txn4 = createBook(200, title2);
 
         // reorder some pages
         book = graph.getVertices("title", title2).iterator().next();
@@ -136,16 +136,14 @@ public class TransactionsTest {
         }
         Long txn5 = graph.commit("test", "modified book 2");
         
-
         // now lets check the results
         displayChanges(0L, txn1);
-        displayChanges(0L, txn1+1);
+        displayChanges(txn1, txn2+1);
         displayChanges(txn1, txn2);
         displayChanges(txn2, txn3);
         displayChanges(txn3, txn4);
         displayChanges(txn4, txn5);
         displayChanges(txn5, 100000L);
-        
     }        
     
     public static void s(String s) {
