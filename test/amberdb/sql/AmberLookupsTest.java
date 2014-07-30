@@ -57,6 +57,26 @@ public class AmberLookupsTest {
         actuals = populateArray(values);
         String[] expectedConstraint = {"Adult content", "Closed", "Copyright", "Error during migration", "Free-of-charge", "Indigenous", "Indigenous - male", "OH/SPATS", "Pending", "Thumbnails only", "Written permission required"};
         assertArrayEquals(expectedConstraint, actuals);
+
+        values = lookups.findActiveLookupsFor("tempHolding");
+        actuals = populateArray(values);
+        String[] expectedTempHolding = {"No", "Yes"};
+        assertArrayEquals(expectedTempHolding, actuals);
+
+        values = lookups.findActiveLookupsFor("digitalSourceType");
+        actuals = populateArray(values);
+        String[] expectedDigitalSourceType = {"Created by software", "Digitised from a negative on film",
+                                              "Digitised from a positive on film",
+                                              "Digitised from a print on non-transparent medium",
+                                              "Original digital capture of a real-life scene"};
+        assertArrayEquals(expectedDigitalSourceType, actuals);
+
+        values = lookups.findActiveLookupsFor("sensitiveReason");
+        actuals = populateArray(values);
+        String[] expectedSensitiveReason = {"Disturbing content", "Indigenous - community only",
+                                            "Indigenous - female only", "Indigenous - male only",
+                                            "Offensive content"};
+        assertArrayEquals(expectedSensitiveReason, actuals);
     }
     
     private String[] populateArray(List<ListLu> values) {
