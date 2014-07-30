@@ -52,20 +52,19 @@ public class TransactionQuery {
             h.commit();
 
             // and reap the rewards
-            Map<TId, Map<String, Object>> propMaps = getElementPropertyMaps(h);
-            vertices = getVertices(h, graph, propMaps);
-            getEdges(h, graph, propMaps);
+            vertices = getVertices(h, graph, getPropertyMaps(h, "v0"));
+            getEdges(h, graph, getPropertyMaps(h, "e0"));
         }
         return vertices;
     }
     
-    
-    private Map<TId, Map<String, Object>> getElementPropertyMaps(Handle h) {
+
+    private Map<TId, Map<String, Object>> getPropertyMaps(Handle h, String idTable) {
         
         List<TProperty> propList = h.createQuery(
                 "SELECT p.id, p.txn_start, p.txn_end, p.name, p.type, p.value "
-                + "FROM property p, v0 " 
-                + "WHERE p.id = v0.vid OR p.id = v0.eid")
+                + "FROM property p, " + idTable + " " 
+                + "WHERE p.id = " + idTable + ".id")
                 .map(new TPropertyMapper()).list();
 
         Map<TId, Map<String, Object>> propertyMaps = new HashMap<>();
@@ -78,7 +77,7 @@ public class TransactionQuery {
         }
         return propertyMaps;
     }
-    
+
     
     private List<VersionedVertex> getVertices(Handle h , VersionedGraph graph, Map<TId, Map<String, Object>> propMaps) {
 
@@ -87,7 +86,7 @@ public class TransactionQuery {
         List<TVertex> vertices = h.createQuery(
                 "SELECT v.id, v.txn_start, v.txn_end "
                 + "FROM vertex v, v0 "
-                + "WHERE v.id = v0.vid")
+                + "WHERE v.id = v0.id")
                 .map(new TVertexMapper()).list();
 
         // add them to the graph
@@ -115,8 +114,8 @@ public class TransactionQuery {
         
         List<TEdge> edges = h.createQuery(
                 "SELECT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order "
-                + "FROM edge e, v0 "
-                + "WHERE e.id = v0.eid ")
+                + "FROM edge e, e0 "
+                + "WHERE e.id = e0.id ")
                 .map(new TEdgeMapper()).list();
         
         // add them to the graph
@@ -152,21 +151,21 @@ public class TransactionQuery {
         
         StringBuilder s = new StringBuilder();
         s.append("DROP TABLE IF EXISTS v0;\n");
+        s.append("DROP TABLE IF EXISTS e0;\n");
         
-        s.append("CREATE TEMPORARY TABLE v0 ("
-                + "vid BIGINT, "
-                + "eid BIGINT);\n");
+        s.append("CREATE TEMPORARY TABLE v0 (id BIGINT);\n");
+        s.append("CREATE TEMPORARY TABLE e0 (id BIGINT);\n");
         
         s.append(String.format(
-                "INSERT INTO v0 (vid, eid) \n"
-              + "SELECT id, 0 \n"
+                "INSERT INTO v0 (id) \n"
+              + "SELECT id \n"
               + "FROM vertex \n"
               + where,
               firstTxn, lastTxn));
         
         s.append(String.format(
-                "INSERT INTO v0 (vid, eid) \n"
-              + "SELECT 0, id \n"
+                "INSERT INTO e0 (id) \n"
+              + "SELECT id \n"
               + "FROM edge \n"
               + where,
               firstTxn, lastTxn));
