@@ -72,6 +72,17 @@ public class TElementDiff {
         throw new TDiffException("Cannot get difference. TElementDiff state is " + transition);
     }
     
+
+    public Object getProperty(String propertyName) throws TDiffException {
+        switch (transition) {
+        case NEW: return element2.getProperty(propertyName);
+        case DELETED: return element1.getProperty(propertyName);
+        case MODIFIED: return diffs.get(propertyName);
+        case UNCHANGED: return element1.getProperty(propertyName);
+        }
+        throw new TDiffException("Cannot get property. Unknown Transition state: " + transition);
+    }
+    
     
     public String toString() {
 
@@ -117,5 +128,10 @@ public class TElementDiff {
             sb.append("\n");
         }
         return sb.toString();
+    }
+    
+    
+    public TTransition getTransition() {
+        return transition;
     }
 }

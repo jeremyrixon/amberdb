@@ -5,8 +5,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.tinkerpop.blueprints.Direction;
@@ -130,7 +132,7 @@ public class VersionedVertex {
     }
 
 
-     public Iterable<VersionedVertex> getVertices(Direction direction, String... labels) {
+    public Iterable<VersionedVertex> getVertices(Direction direction, String... labels) {
         
         List<VersionedVertex> vertices = new ArrayList<>();
 
@@ -150,6 +152,11 @@ public class VersionedVertex {
                 }
             }
         } 
+        return vertices;
+    }
+     
+    
+    public List<TVertex> getTVertices() {
         return vertices;
     }
 }

@@ -57,14 +57,15 @@ public class VersionedGraph {
     }
 
     
-    private void initGraph(DataSource dataSource) {
-        dbi = new DBI(dataSource);
-        dao = selectDao(dataSource);
+    public VersionedGraph(DBI dbi) {
+        this.dbi = dbi;
+        dao = this.dbi.onDemand(VersionDao.class);
     }
     
     
-    private VersionDao selectDao(DataSource dataSource) {
-        return dbi.onDemand(VersionDao.class);
+    private void initGraph(DataSource dataSource) {
+        dbi = new DBI(dataSource);
+        dao = dbi.onDemand(VersionDao.class);
     }
     
     
