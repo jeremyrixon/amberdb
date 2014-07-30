@@ -63,12 +63,17 @@ public class AmberLookupsTest {
         String[] expectedTempHolding = {"No", "Yes"};
         assertArrayEquals(expectedTempHolding, actuals);
 
+        values = lookups.findActiveLookupsFor("sensitiveMaterial");
+        actuals = populateArray(values);
+        String[] expectedSensitiveMaterial = {"No", "Yes"};
+        assertArrayEquals(expectedSensitiveMaterial, actuals);
+
         values = lookups.findActiveLookupsFor("digitalSourceType");
         actuals = populateArray(values);
         String[] expectedDigitalSourceType = {"Created by software", "Digitised from a negative on film",
                                               "Digitised from a positive on film",
                                               "Digitised from a print on non-transparent medium",
-                                              "Original digital capture of a real-life scene"};
+                                              "Original digital capture of a real life scene"};
         assertArrayEquals(expectedDigitalSourceType, actuals);
 
         values = lookups.findActiveLookupsFor("sensitiveReason");
