@@ -1,11 +1,13 @@
 package amberdb.model;
 
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.collections.IteratorUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -123,5 +125,15 @@ public class DescriptionTest {
         assertNotNull(copyCameraData);
         assertEquals(copyCameraData.getexposureTime(), "1/100 at f/2.8");
         assertEquals(copyCameraData.getexposureMode(), "Auto");
+    }
+
+    @Test
+    public void propertySetHasAllProperties() {
+        Work work = amberDb.addWork();
+        Copy masterCopy = work.addCopy();
+        CameraData cd = masterCopy.addCameraData();
+        cd.setexposureProgram("ex");
+        work.getDescriptions();
+        assertEquals(cd.getPropertyKeySet(), Sets.newHashSet("exposureProgram", "type"));
     }
 }

@@ -1,10 +1,9 @@
 package amberdb.model;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.*;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -195,7 +194,19 @@ public interface Node extends VertexFrame {
     @JavaHandler
     public Integer getOrder(Node adjacent, String label, Direction direction);
 
-    
+    // TODO amuller This may need to be implemented to return the set of properties that cannot be set.
+    // I haven't done this because I couldn't think of a reasonable way of doing this that did not involve
+    // reflection and messyness.
+    /**
+     * Get the set of keys for properties that are set on this object.
+     *
+     * This does not return the set of properties that can be set on this model.
+     *
+     * @return the keyset of properties currently set on this object.
+     */
+    @JavaHandler
+    public Set<String> getPropertyKeySet();
+
     public abstract class Impl implements JavaHandlerContext<Vertex>, Node {
         static ObjectMapper mapper = new ObjectMapper();
 
@@ -299,6 +310,11 @@ public interface Node extends VertexFrame {
 
             List<Integer> orderValues = this.asAmberVertex().getEdgeOrder(adjacent.asVertex(), label, direction);
             return orderValues.size() > 0 ? orderValues.get(0) : null;
+        }
+
+        @Override
+        public Set<String> getPropertyKeySet() {
+            return this.asVertex().getPropertyKeys();
         }
     }
 }
