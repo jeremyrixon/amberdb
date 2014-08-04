@@ -2,29 +2,17 @@ package amberdb;
 
 import static org.junit.Assert.*;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.TransactionalGraph;
-import com.tinkerpop.blueprints.Vertex;
 
-import amberdb.enums.CopyRole;
-import amberdb.graph.AmberEdgeWithState;
-import amberdb.model.Copy;
-import amberdb.model.File;
 import amberdb.model.Node;
 import amberdb.model.Page;
 import amberdb.model.Work;
