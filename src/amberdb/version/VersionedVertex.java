@@ -159,4 +159,12 @@ public class VersionedVertex {
     public List<TVertex> getTVertices() {
         return vertices;
     }
+    
+    
+    public boolean equals(Object o) {
+        if (o instanceof VersionedVertex) {
+            if (this.getId().equals(((VersionedVertex) o).getId())) return true;
+        }
+        return false;
+    }
 }

@@ -78,7 +78,7 @@ public class TElementDiff {
         case NEW: return element2.getProperty(propertyName);
         case DELETED: return element1.getProperty(propertyName);
         case MODIFIED: return diffs.get(propertyName);
-        case UNCHANGED: return element1.getProperty(propertyName);
+        case UNCHANGED: return (element1 == null) ? ((element2 == null) ? null : element2.getProperty(propertyName)) : element1.getProperty(propertyName);
         }
         throw new TDiffException("Cannot get property. Unknown Transition state: " + transition);
     }
@@ -93,7 +93,11 @@ public class TElementDiff {
             break;
         case UNCHANGED:
             if (element1 == null) {
-                sb.append(element2);
+                if (element2 == null) {
+                    sb.append("null -> null (quantum foam)");
+                } else {
+                    sb.append(element2);
+                }
             } else {
                 sb.append(element1);
             }
@@ -114,6 +118,13 @@ public class TElementDiff {
         return sb.toString();
     }
     
+    
+    public boolean isTransient() {
+        if (element1 == null && element2 == null) {
+            return true;
+        }
+        return false;
+    }
     
     private String printDiff() {
         StringBuilder sb = new StringBuilder();

@@ -36,7 +36,7 @@ public class TransactionQuery {
         if (firstTxn > lastTxn) 
             throw new IllegalArgumentException("First transaction id must be less than or equal to the last");
         
-        this.firstTxn = firstTxn;
+        this.firstTxn = (firstTxn == 0L) ? 1L : firstTxn; // A first Transaction of 0 will include unwanted quantum foam :-)
         this.lastTxn = lastTxn;
         this.graph = graph;
     }

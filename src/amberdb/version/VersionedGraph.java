@@ -299,12 +299,14 @@ public class VersionedGraph {
     }
     
     
-    public void loadTransactionGraph(Long txn) {
+    public void loadTransactionGraph(Long txn, boolean clearGraph) {
+        if (clearGraph) clear();
         new TransactionQuery(txn, this).execute();
     }
 
 
-    public void loadTransactionGraph(Long firstTxn, Long lastTxn) {
+    public void loadTransactionGraph(Long firstTxn, Long lastTxn, boolean clearGraph) {
+        if (clearGraph) clear();
         new TransactionQuery(firstTxn, lastTxn, this).execute();
     }
 }

@@ -307,7 +307,8 @@ public interface AmberDao extends Transactional<AmberDao> {
             @Bind("user") String user,
             @Bind("operation") String operation);
 
-        
+    
+    // The following query intentionally left blank. It's implemented in the db specific AmberDao sub classes (h2 or MySql)
     @SqlUpdate("")
     void endElements(
             @Bind("txnId") Long txnId);

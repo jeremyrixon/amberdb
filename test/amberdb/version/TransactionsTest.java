@@ -21,6 +21,7 @@ import org.junit.Test;
 
 import org.junit.rules.TemporaryFolder;
 
+import amberdb.ChangeListener;
 import amberdb.graph.AmberEdge;
 import amberdb.graph.AmberGraph;
 
@@ -52,7 +53,7 @@ public class TransactionsTest {
     @After
     public void teardown() {}
 
-
+    @Ignore
     @Test
     public void testTxns2() throws Exception {
         
@@ -91,13 +92,13 @@ public class TransactionsTest {
         // commit
         graph.commit("test", "c2");
         
-        vGraph.loadTransactionGraph(0L, 100L);
+        vGraph.loadTransactionGraph(0L, 100L, true);
 
         assertEquals(((List) vGraph.getVertices()).size(), 3);
         assertEquals(((List) vGraph.getEdges()).size(), 4);
     }        
     
-    
+    @Ignore
     @Test
     public void testTxns1() throws Exception {
         
@@ -146,6 +147,88 @@ public class TransactionsTest {
         displayChanges(txn5, 100000L);
     }        
     
+    
+    @Test
+    public void testTxns3() throws Exception {
+        
+        // lets try some volume stuff
+        String title1 = "Blinky kills again";
+        long txn1 = createBook(10, title1);
+        
+        // modify some bits
+        Vertex book = graph.getVertices("title", title1).iterator().next();
+        for (Vertex page : book.getVertices(Direction.IN, "isPartOf")) {
+            if ((Integer) page.getProperty("value") % 2 == 0)
+                page.setProperty("code", page.hashCode());
+            if ((Integer) page.getProperty("value") % 3 == 0)
+                page.remove();            
+        }
+        Long txn2 = graph.commit("test", "modified book 1");
+       
+        // modify some more ...
+        // add 3 pages
+        createPage(book, 10);
+        createPage(book, 20);
+        createPage(book, 40);
+        Long txn3 = graph.commit("test", "modified book 1 again");
+        
+        // make another book
+        String title2 = "Blinky rises";
+        long txn4 = createBook(200, title2);
+
+        // reorder some pages
+        book = graph.getVertices("title", title2).iterator().next();
+        for (Vertex page : book.getVertices(Direction.IN, "isPartOf")) {
+            if ((Integer) page.getProperty("value") % 20 == 0) {
+                Edge e = page.getEdges(Direction.OUT, "isPartOf").iterator().next();
+                e.setProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME, 44);
+            }
+        }
+        Long txn5 = graph.commit("test", "modified book 2");
+        
+        ChangeListener cl = new ChangeListener(graph);
+        for (VersionedVertex work : cl.changedWorks(1L, txn1).values()) {
+            s("=="+ work);
+        }
+
+        s("====================== ==================== ===================");
+        s("====================== ==================== ===================");
+        s("====================== ==================== ===================");
+        
+        cl = new ChangeListener(graph);
+        for (VersionedVertex work : cl.changedWorks(txn1, txn2).values()) {
+            s("=="+ work);
+        }
+
+        s("====================== ==================== ===================");
+        s("====================== ==================== ===================");
+        s("====================== ==================== ===================");
+        
+        cl = new ChangeListener(graph);
+        for (VersionedVertex work : cl.changedWorks(txn2, txn3).values()) {
+            s("=="+ work);
+        }
+//        
+//        s("====================== ==================== ===================");
+//        s("====================== ==================== ===================");
+//        s("====================== ==================== ===================");
+//        
+//        cl = new ChangeListener(graph);
+//        for (VersionedVertex work : cl.changedWorks(txn2, txn3).values()) {
+//            s("=="+ work);
+//        }
+//        
+//        s("====================== ==================== ===================");
+//        s("====================== ==================== ===================");
+//        s("====================== ==================== ===================");
+//        
+//        cl = new ChangeListener(graph);
+//        for (VersionedVertex work : cl.changedWorks(txn2, txn3).values()) {
+//            s("=="+ work);
+//        }
+    }        
+    
+    
     public static void s(String s) {
         System.out.println(s);
     }
@@ -153,9 +236,10 @@ public class TransactionsTest {
     
     private Long createBook(int numPages, String title) {
         
-        s("creating book...");
+        s("creating book ... " + title + " (" + numPages + " pages)");
         Vertex book = graph.addVertex(null);
         book.setProperty("type", "Work");
+        book.setProperty("bibLevel", "Item");
         book.setProperty("title", title);
         
         for (int i = 0; i < numPages; i++) {
@@ -171,6 +255,7 @@ public class TransactionsTest {
         page.setProperty("name", "page " + pageNum);
         page.setProperty("value", pageNum);
         page.setProperty("type", "Page");
+        page.setProperty("bibLevel", "Part");
         
         Edge rel = graph.addEdge(null, page, book, "isPartOf");
         rel.setProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME, pageNum);
@@ -202,7 +287,7 @@ public class TransactionsTest {
     private void displayChanges(Long txn1, Long txn2) {
         vGraph.clear();
         s("======== TXN:"+txn1+" - TXN:"+txn2+" ========");
-        vGraph.loadTransactionGraph(txn1, txn2);
+        vGraph.loadTransactionGraph(txn1, txn2, true);
         s("beep");
         for (VersionedVertex v : vGraph.getVertices()) {
             TVertexDiff diff = v.getDiff(txn1, txn2);
