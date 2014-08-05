@@ -191,15 +191,16 @@ public class AmberHistoryTransactionsSinceTest {
             f2.setBlobId(i+100);
         }
         aGraph.commit("test", "commit book");
-        
+
+        // Comment this out since this doesn't just retrieve work.
         // Check we get all the bits of the work we want
-        Map<Long, String> changed = sess.getModifiedVertexIds(now);
-        List<Long> ids = Lists.newArrayList(changed.keySet());
-        Collections.sort(ids);
-        for (Long id : ids) {
-            Work wrk = sess.findWork(id);
-            System.out.println("id:" + id + " status:" + changed.get(id) + " work:" + wrk);
-        }
+//        Map<Long, String> changed = sess.getModifiedVertexIds(now);
+//        List<Long> ids = Lists.newArrayList(changed.keySet());
+//        Collections.sort(ids);
+//        for (Long id : ids) {
+//            Work wrk = sess.findWork(id);
+//            System.out.println("id:" + id + " status:" + changed.get(id) + " work:" + wrk);
+//        }
         
         now = new Date();
         s("\nTS:" + now.getTime());
@@ -214,13 +215,13 @@ public class AmberHistoryTransactionsSinceTest {
 
         aGraph.clear();
         
-        changed = sess.getModifiedVertexIds(now);
-        ids = Lists.newArrayList(changed.keySet());
-        Collections.sort(ids);
-        for (Long id : ids) {
-            Work wrk = sess.findWork(id);
-            System.out.println("id:" + id + " status:" + changed.get(id) + " work:" + wrk);
-        }
+//        changed = sess.getModifiedVertexIds(now);
+//        ids = Lists.newArrayList(changed.keySet());
+//        Collections.sort(ids);
+//        for (Long id : ids) {
+//            Work wrk = sess.findWork(id);
+//            System.out.println("id:" + id + " status:" + changed.get(id) + " work:" + wrk);
+//        }
         
         
         now = new Date();
