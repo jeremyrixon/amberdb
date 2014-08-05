@@ -194,8 +194,8 @@ public class AmberHistoryTransactionsSinceTest {
 
         // Comment this out since this doesn't just retrieve work.
         // Check we get all the bits of the work we want
-//        Map<Long, String> changed = sess.getModifiedVertexIds(now);
-//        List<Long> ids = Lists.newArrayList(changed.keySet());
+        Map<Long, String> changed = sess.getModifiedVertexIds(now);
+        List<Long> ids = Lists.newArrayList(changed.keySet());
 //        Collections.sort(ids);
 //        for (Long id : ids) {
 //            Work wrk = sess.findWork(id);
@@ -215,7 +215,7 @@ public class AmberHistoryTransactionsSinceTest {
 
         aGraph.clear();
         
-//        changed = sess.getModifiedVertexIds(now);
+        changed = sess.getModifiedVertexIds(now);
 //        ids = Lists.newArrayList(changed.keySet());
 //        Collections.sort(ids);
 //        for (Long id : ids) {
@@ -252,16 +252,16 @@ public class AmberHistoryTransactionsSinceTest {
         
         changed = sess.getModifiedVertexIds(now);
         ids = Lists.newArrayList(changed.keySet());
-        Collections.sort(ids);
-        for (Long id : ids) {
-            Work wrk;
-            try {
-                wrk = sess.findWork(id);
-            } catch (Exception e) {
-                wrk = null;
-            }
-            System.out.println("id:" + id + " status:" + changed.get(id) + " work:" + history.getLastVertex(id));
-        }
+//        Collections.sort(ids);
+//        for (Long id : ids) {
+//            Work wrk;
+//            try {
+//                wrk = sess.findWork(id);
+//            } catch (Exception e) {
+//                wrk = null;
+//            }
+//            System.out.println("id:" + id + " status:" + changed.get(id) + " work:" + history.getLastVertex(id));
+//        }
         assertEquals(16, changed.size()); // 1 for title modification, 3 x 5 per page (1 page, 2 copies and 2 files) deletions
 
         for (Long id : ids) {
