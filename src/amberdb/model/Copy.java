@@ -127,12 +127,6 @@ public interface Copy extends Node {
     @Property("bestCopy")
     public void setBestCopy(String bestCopy);
     
-    @Property("recordSource")
-    public String getRecordSource();
-
-    @Property("recordSource")
-    public void setRecordSource(String recordSource);
-    
     @Property("materialType")
     public String getMaterialType();
 

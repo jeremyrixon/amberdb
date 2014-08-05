@@ -229,12 +229,6 @@ public interface Work extends Node {
     @Property("publisher")
     public void setPublisher(String publisher);
 
-    @Property("recordSource")
-    public String getRecordSource();
-
-    @Property("recordSource")
-    public void setRecordSource(String recordSource);
-
     @Property("copyrightPolicy")
     public String getCopyrightPolicy();
 
