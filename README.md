@@ -16,7 +16,6 @@ A graph domain model on top of SQL for representing digital library objects and 
 * History keeping and history subscription for indexing
 * Ordered edges
 
-
 Usage
 -----
 
