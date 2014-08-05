@@ -279,7 +279,7 @@ public class WorkTest {
     @Test
     public void testOrderChildren() {
         
-        List<Node> pages = new ArrayList<>();
+        List<Work> pages = new ArrayList<>();
         
         Work book = db.addWork();
         for (int i = 0; i < 20; i++) {
@@ -293,7 +293,7 @@ public class WorkTest {
         
         // check ordering worked
         for (int i = 0; i < 20; i++) {
-            assertEquals(pages.get(i).getOrder(book, "isPartOf", Direction.OUT), (Integer) i);
+            assertEquals(pages.get(i).getOrder(book, "isPartOf", Direction.OUT), (Integer) (i + 1));
         }
         
         // reverse order

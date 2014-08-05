@@ -70,6 +70,7 @@ public class AmberEdge extends BaseEdge implements Comparable {
         // set special sorting property
         if (propertyName.equals(SORT_ORDER_PROPERTY_NAME)) {
             order = (Integer) value;
+            graph.elementModListener.elementModified(this);
             return;
         }     
         super.setProperty(propertyName, value);
