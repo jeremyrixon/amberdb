@@ -4,9 +4,12 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -1206,7 +1209,8 @@ public interface Work extends Node {
 
         @Override
         public void setSubject(List<String> subject) throws JsonParseException, JsonMappingException, IOException {
-            setJSONSubject(serialiseToJSON(subject));
+            // ensure each subject entry is unique
+            setJSONSubject(serialiseToJSON(new HashSet<String>(subject)));
         }
 
         @Override
@@ -1226,7 +1230,7 @@ public interface Work extends Node {
             });
         }
 
-        private String serialiseToJSON(List<String> list) throws JsonParseException, JsonMappingException, IOException {
+        private String serialiseToJSON(Collection<String> list) throws JsonParseException, JsonMappingException, IOException {
             return mapper.writeValueAsString(list);
         }
 

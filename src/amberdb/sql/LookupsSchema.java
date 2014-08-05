@@ -964,6 +964,19 @@ public abstract class LookupsSchema {
             + "('copyType', 'b', 'Born Digital')")
     public abstract void seedCopyTypeList();
     
+    @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
+            + "('colourSpace', '2', 'RGB'),"
+            + "('colourSpace', '6', 'YCbCr'),"
+            + "('lens', '0/0', 'minimum f-stops are unknown'),"
+            + "('lens', '0', 'minimum focal length in mm'),"
+            + "('lens', '1', 'maximum focal length in mm'),"
+            + "('lens', '2', 'minimum (maximum aperture) f-stop at minimum focal length'),"
+            + "('lens', '3', 'minimum (maximum aperture) f-stop at maximum focal length'),"
+            + "('whiteBalance', '0', 'auto'),"
+            + "('whiteBalance', '1', 'manual'),"
+            + "('fileSource', '3', 'DSC'),")
+    public abstract void seedTiffMetaLuList();
+    
     @SqlUpdate("UPDATE lookups SET VALUE = CODE WHERE value is null")
     public abstract void seedValuesForKeyList();
     
@@ -1039,6 +1052,7 @@ public abstract class LookupsSchema {
         seedKeyCodeList();
         seedCollectionList();
         seedCopyTypeList();
+        seedTiffMetaLuList();
         seedValuesForKeyList();
         seedToolsList();
         seedToolTypesLookups();
