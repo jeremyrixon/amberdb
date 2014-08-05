@@ -918,7 +918,7 @@ public interface Work extends Node {
      *            The direction of the edge from this object
      */
     @JavaHandler
-    public void orderRelated(List<Node> relatedNodes, String label, Direction direction);
+    public void orderRelated(List<Work> relatedNodes, String label, Direction direction);
 
     /**
      * Orders the parts in the given list by their list order. This is a
@@ -928,7 +928,7 @@ public interface Work extends Node {
      *            The list of parts.
      */
     @JavaHandler
-    public void orderParts(List<Node> parts);
+    public void orderParts(List<Work> parts);
 
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {
         static ObjectMapper mapper = new ObjectMapper();
@@ -1225,15 +1225,15 @@ public interface Work extends Node {
         }
 
         @Override
-        public void orderRelated(List<Node> relatedNodes, String label, Direction direction) {
+        public void orderRelated(List<Work> relatedNodes, String label, Direction direction) {
             for (int i = 0; i < relatedNodes.size(); i++) {
-                Node node = relatedNodes.get(i);
-                node.setOrder(this, label, direction, i);
+                Work node = relatedNodes.get(i);
+                node.setOrder(this, label, direction, i+1);
             }
         }
 
         @Override
-        public void orderParts(List<Node> parts) {
+        public void orderParts(List<Work> parts) {
             orderRelated(parts, "isPartOf", Direction.OUT);
         }
 
