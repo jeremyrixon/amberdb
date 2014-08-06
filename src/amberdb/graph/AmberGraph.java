@@ -143,8 +143,10 @@ public class AmberGraph extends BaseGraph
         
         dao.createIdGeneratorTable();
         dao.createTransactionTable();
-               
+       
         newId(); // seed generator with id > 0
+        
+        if (!dao.schemaTablesExist()) throw new RuntimeException("Schema creation failed");
     }
 
     
