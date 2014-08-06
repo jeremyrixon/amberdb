@@ -59,6 +59,7 @@ public class AmberDbOrderingTest {
             }
             sessId = db.suspend();
             db.commit();
+            db.close();
         }
         try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()), sessId)) {
             w2 = db.findWork(w1.getId());
@@ -69,6 +70,7 @@ public class AmberDbOrderingTest {
                 assertTrue(page.getId() == order.get(i).longValue());
                 i = i + 1;
             }
+            db.close();
         }
         try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()), sessId)) {
             w3 = db.findWork(w2.getId());
@@ -88,6 +90,7 @@ public class AmberDbOrderingTest {
                 i = i + 1;
                 order1.add(page.getId());
             }
+            db.close();
         }
         try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()), sessId)) {
             w4 = db.findWork(w3.getId());
@@ -100,6 +103,7 @@ public class AmberDbOrderingTest {
                 assertTrue(page.getId() == order1.get(i).longValue());
                 i = i + 1;
             }
+            db.close();
         }
     }
 

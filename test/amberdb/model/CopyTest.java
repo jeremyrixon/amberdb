@@ -107,6 +107,8 @@ public class CopyTest {
     @Test
     public void testGetFiles() throws IOException {
         Copy copy = amberDb.addWork().addCopy();
+        long sessId = amberDb.suspend();
+        amberDb.recover(sessId);
         assertEquals(null, copy.getImageFile());
         ImageFile imageFile = copy.addImageFile();
         assertEquals(null, copy.getSoundFile());
@@ -251,7 +253,5 @@ public class CopyTest {
         assertEquals("Expecting the Record Source on Copy to be updated", RECORDSOURCE_UPDATED, copyC.getRecordSource());
         assertEquals("Expecting the Device on ImageFile to be updated", DEVICE_UPDATED, imageFileC.getDevice());
     }  
-    
-    
-
 }
+

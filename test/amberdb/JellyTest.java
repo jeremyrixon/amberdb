@@ -13,6 +13,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.skife.jdbi.v2.DBI;
 
@@ -79,6 +80,7 @@ public class JellyTest {
                 expectedResults.put("workTitlePage_OCR_JSON_COPY_ID", 179722747L);
                 expectedResults.put("workTitlePage_MASTER_COPY_ID", 179722749L);
             }
+            db.close();
         }
     }
     
@@ -181,9 +183,11 @@ public class JellyTest {
         amberDS.setPassword(amberPassword);
         DBI amberDBI = new DBI(amberDS);
         encodeFileSizeAsLong(amberDBI);
+        amberDBI.close(amberDS);
+        amberDS = null;
     }
     
-    @Ignore
+    @Test
     public void testEncodeFileSizeAsLongInJelly() {
         MysqlDataSource jellyDS = new MysqlDataSource();
         jellyDS.setURL(dbUrl);

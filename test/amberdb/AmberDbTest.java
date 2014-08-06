@@ -38,6 +38,8 @@ public class AmberDbTest {
         Work w1, w2;
         try (AmberSession db = new AmberSession()) {
             w1 = db.addWork();
+            db.commit();
+            db.close();
         }
         try (AmberSession db = new AmberSession()) {
             try {
@@ -47,6 +49,8 @@ public class AmberDbTest {
                 // ok
             }
             w2 = db.addWork();
+            db.commit();
+            db.close();
         }
         assertEquals("ids should not persist", w1.getId(), w2.getId());
     }
@@ -62,6 +66,8 @@ public class AmberDbTest {
         try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()), sessId)) {
             assertNotNull(db.findWork(w1.getId()));
             w2 = db.addWork();
+            db.commit();
+            db.close();
         }
         assertNotEquals(w1.getId(), w2.getId());
     }
@@ -114,6 +120,7 @@ public class AmberDbTest {
             System.out.println(" ***** File contains: " + br.readLine());
             
             db.commit();
+            db.close();
         }
         // next, persist the session (by closing it) open a new one and get the contents
 
@@ -130,6 +137,7 @@ public class AmberDbTest {
 
             BufferedReader br = new BufferedReader(new InputStreamReader(f1.openStream()));
             System.out.println(" ***** File still contains: " + br.readLine());
+            db.close();
         }
         
     }
@@ -156,6 +164,7 @@ public class AmberDbTest {
             // now, can we retrieve the files ?
             Work book2 = db.findWork(bookId);
             s("Book is now: " + book2);
+            db.close();
         }
     }
     

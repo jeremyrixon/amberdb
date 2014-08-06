@@ -67,7 +67,6 @@
       <version>2.4.2</version>
       <configuration>
         <excludes>
-          <exclude>amberdb/graph/*.java</exclude>
           <exclude>amberdb/TestUtils.java</exclude>
         </excludes>
       </configuration>

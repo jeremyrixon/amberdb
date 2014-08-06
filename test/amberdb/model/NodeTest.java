@@ -3,6 +3,7 @@ package amberdb.model;
 import amberdb.AmberSession;
 import com.google.common.collect.Sets;
 import org.hamcrest.CoreMatchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,5 +29,11 @@ public class NodeTest {
         Work w = db.addWork();
         w.setBibLevel("bib");
         assertEquals(w.getPropertyKeySet(), Sets.newHashSet("bibLevel", "type"));
+    }
+    
+    @After
+    public void teardown() throws IOException {
+        if (db != null)
+            db.close();
     }
 }
