@@ -155,14 +155,14 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "  'ID_GENERATOR', 'TRANSACTION')")
     boolean schemaTablesExist();
     
-    
+    /*
     @SqlUpdate(
             "DROP TABLE IF EXISTS "
             + "vertex, edge, property, "
             + "sess_vertex, sess_edge, sess_property, "
             + "transaction, id_generator")
     void dropTables();
-
+    */
     
     /*
      * id generation operations

@@ -80,11 +80,11 @@ public class AmberQueryTest {
     
         s("making books...");
         s("Book 1");
-        Object book1Id = makeBook("AA", 500, 10);
+        Object book1Id = makeBook("AA", 50, 10);
         s("Book 2");
-        Object book2Id = makeBook("BB", 3000, 10);
+        Object book2Id = makeBook("BB", 30, 10);
         s("Book 3");
-        Object book3Id = makeBook("CC", 3000, 10);
+        Object book3Id = makeBook("CC", 30, 10);
 
         s("commiting books to amber");
         graph.commit("bookMaker", "made books");

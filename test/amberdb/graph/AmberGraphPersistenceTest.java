@@ -14,6 +14,8 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import org.junit.rules.TemporaryFolder;
 
+import com.tinkerpop.blueprints.Vertex;
+
 import amberdb.graph.AmberGraph;
 
 
@@ -142,26 +144,26 @@ public class AmberGraphPersistenceTest {
 //        }
 //    }
 //    
-//    @Test
-//    public void testGraphPropertiesValuesRemainConsistent() throws Exception {
-//        
-//        Vertex v = graph1.addVertex(null);
-//        v.setProperty("String", "this is a string");
-//        v.setProperty("Boolean", true);
-//        v.setProperty("Long", 1234567891011L);
-//        v.setProperty("Integer", 1234567);
-//        v.setProperty("Float", 123456.123456);
-//        v.setProperty("Double", 12345678901232354.0d);
-//        graph1.commit();
-//
-//        Vertex v2 = graph2.getVertex(v.getId());
-//        assertEquals(v.getProperty("String"),  v2.getProperty("String"));
-//        assertEquals(v.getProperty("Boolean"), v2.getProperty("Boolean"));
-//        assertEquals(v.getProperty("Long"),    v2.getProperty("Long"));
-//        assertEquals(v.getProperty("Integer"), v2.getProperty("Integer"));
-//        assertEquals(v.getProperty("Float"),   v2.getProperty("Float"));
-//        assertEquals(v.getProperty("Double"),  v2.getProperty("Double"));
-//    }
+    @Test
+    public void testGraphPropertiesValuesRemainConsistent() throws Exception {
+        
+        Vertex v = graph1.addVertex(null);
+        v.setProperty("String", "this is a string");
+        v.setProperty("Boolean", true);
+        v.setProperty("Long", 1234567891011L);
+        v.setProperty("Integer", 1234567);
+        v.setProperty("Float", 123456.123456);
+        v.setProperty("Double", 12345678901232354.0d);
+        graph1.commit();
+
+        Vertex v2 = graph1.getVertex(v.getId());
+        assertEquals(v.getProperty("String"),  v2.getProperty("String"));
+        assertEquals(v.getProperty("Boolean"), v2.getProperty("Boolean"));
+        assertEquals(v.getProperty("Long"),    v2.getProperty("Long"));
+        assertEquals(v.getProperty("Integer"), v2.getProperty("Integer"));
+        assertEquals(v.getProperty("Float"),   v2.getProperty("Float"));
+        assertEquals(v.getProperty("Double"),  v2.getProperty("Double"));
+    }
 //    
 //    @Test
 //    public void testSynchMarking() throws Exception {

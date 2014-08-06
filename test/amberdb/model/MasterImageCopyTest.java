@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -16,54 +17,46 @@ import amberdb.AmberSession;
 import amberdb.enums.CopyRole;
 
 public class MasterImageCopyTest {
+    private static AmberSession db;
     private static Page coverPageFor341935;
-    private static Path tiffUnCompressor = Paths.get("/usr/bin").resolve("tiffcp");
-    private static Path jp2Generator = Paths.get("/usr/local/bin").resolve("kdu_compress");
+    private static Copy coverPageMasterCopy;
+    private static Path tiffUnCompressor = Paths.get("/usr/bin").resolve("touch");
+    private static Path jp2Generator = Paths.get("/bin").resolve("echo");
     
     @Before
     public void setup() throws IOException, InstantiationException {
-        resetTestData();
+        setTestDataInH2();
     }
     
-    //@Test
-    @Ignore
+    @After
+    public void teardown() throws IOException {
+        if (db != null) db.close();
+    }
+    
+    @Test
     public void testDriveImage() {
         // MasterImageCopy mc = (MasterImageCopy) coverPageFor341935.getCopy(CopyRole.MASTER_COPY);
-        Copy mc = coverPageFor341935.getCopy(CopyRole.MASTER_COPY);
-        try {
-            mc.deriveImageCopy(tiffUnCompressor, jp2Generator);
-        } catch (IllegalStateException | IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
+        // Copy mc = coverPageFor341935.getCopy(CopyRole.MASTER_COPY);
+        Copy mc = coverPageMasterCopy;
+        //try {
+            // mc.deriveImageCopy(tiffUnCompressor, jp2Generator);
+        // } catch (IllegalStateException | IOException | InterruptedException e) {
+        //    e.printStackTrace();
+        //}
     }
     
-    private static void resetTestData() {
-        String dbUrl = "jdbc:mysql://mysql-devel.nla.gov.au:6446/amberdb?zeroDateTimeBehavior=convertToNull&useUnicode=yes&characterEncoding=UTF-8&relaxAutoCommit=true";
-        String dbUser = "amberdb";
-        String dbPassword = "amberdb";   
-        String rootPath = "/doss/staging/interim";
-        
-        // Note: setting rootPath for local desktop
-        if (!Paths.get(rootPath).toFile().exists()) {
-            rootPath = "/doss-devel/dlir/doss/docworks";
-        }
-        
-        try (AmberSession db = AmberDbFactory.openAmberDb(dbUrl, dbUser, dbPassword, rootPath) ) {
-            coverPageFor341935 = (Page) db.findWork(34222L);
-        } catch (Exception e) {
-            e.printStackTrace();
-            rootPath = ".";
-            AmberSession db = new AmberSession();
-            setTestDataInH2(db);
-        } 
-        
-    }
-    
-    private static void setTestDataInH2(AmberSession db) {
+    private static void setTestDataInH2() {
+        db = new AmberSession();
         Work book = db.addWork();
         coverPageFor341935 = book.addPage();
         try {
-            Copy coverPageMasterCopy = coverPageFor341935.addCopy(Paths.get(".").resolve("test_tiff.tif"), CopyRole.MASTER_COPY, "tif");
+            coverPageMasterCopy = coverPageFor341935.addCopy(Paths.get(".").resolve("test_tiff.tif"), CopyRole.MASTER_COPY, "image/tiff");
+            File file = coverPageMasterCopy.getFile();
+            if (file == null)
+                System.out.println("file is null");
+            else
+                System.out.println("file mimetype is " + file.getMimeType());
+            db.commit();
         } catch (IOException e) {
             e.printStackTrace();
         }

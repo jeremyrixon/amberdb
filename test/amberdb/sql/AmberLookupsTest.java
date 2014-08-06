@@ -2,6 +2,7 @@ package amberdb.sql;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
 import java.util.List;
 import org.junit.After;
 import org.junit.Before;
@@ -19,8 +20,9 @@ public class AmberLookupsTest {
     }
 
     @After
-    public void teardown() {
-        session = null;
+    public void teardown() throws IOException {
+        if (session != null)
+            session.close();
     }
 
     @Test
