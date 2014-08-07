@@ -219,7 +219,7 @@ public class AmberSession implements AutoCloseable {
      * Finds a work by id.
      */
     public Work findWork(long objectId) {
-        return findVertexById(objectId, Work.class);
+        return findModelObjectById(objectId, Work.class);
     }
 
     
@@ -236,7 +236,7 @@ public class AmberSession implements AutoCloseable {
     }
 
     /**
-     * Finds some vertex and returns it as the supplied type.
+     * Finds some object and return it as the supplied model type.
      *
      * @param objectId the ID of the graph vertex you want to fetch
      * @param returnClass The type of the class that you expect the object to be
@@ -244,17 +244,17 @@ public class AmberSession implements AutoCloseable {
      * @throws ClassCastException thrown if the specified type is not what the object actually is
      * @return an object of the specified type
      */
-    public <T> T findVertexById(long objectId, Class<T> returnClass) {
+    public <T> T findModelObjectById(long objectId, Class<T> returnClass) {
         // TODO This should do some validation that the class is as expected, but that is almost impossible.
         return graph.getVertex(objectId, returnClass);
     }
 
     /**
-     * Finds some vertex and returns it as the supplied type.
+     * Finds some object and return it as the supplied model type.
      */
-    public <T> T findVertexById(String objectId, Class<T> returnClass) {
+    public <T> T findModelObjectById(String objectId, Class<T> returnClass) {
         try {
-            return findVertexById(Long.parseLong(objectId), returnClass);
+            return findModelObjectById(Long.parseLong(objectId), returnClass);
         }
         catch (NumberFormatException nfe) {
             throw new IllegalArgumentException("String supplied was not a number.");
