@@ -245,21 +245,8 @@ public class AmberSession implements AutoCloseable {
      * @return an object of the specified type
      */
     public <T> T findVertexById(long objectId, Class<T> returnClass) {
-        Vertex vertex = graph.getVertex(objectId);
-
-        if (vertex == null) {
-            throw new NoSuchObjectException(objectId);
-        }
-
-        // Working around FramedGraph#frame just adding the 'kind' automatically as an interface (even though
-        // it may not be).
-        String typeName = vertex.getProperty("type");
-        if (typeName != null && !returnClass.getSimpleName().equals(typeName)) {
-            throw new ClassCastException("Object is not of type '" + returnClass.getName() +"', but instead is type '"
-                                         + typeName + "'");
-        }
-
-        return graph.frame(vertex, returnClass);
+        // TODO This should do some validation that the class is as expected, but that is almost impossible.
+        return graph.getVertex(objectId, returnClass);
     }
 
     /**
