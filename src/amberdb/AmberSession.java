@@ -12,6 +12,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import javassist.tools.rmi.ObjectNotFoundException;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.h2.Driver;
@@ -219,7 +220,7 @@ public class AmberSession implements AutoCloseable {
      * Finds a work by id.
      */
     public Work findWork(long objectId) {
-        return findVertexById(objectId, Work.class);
+        return findModelObjectById(objectId, Work.class);
     }
 
     
@@ -236,7 +237,7 @@ public class AmberSession implements AutoCloseable {
     }
 
     /**
-     * Finds some vertex and returns it as the supplied type.
+     * Finds some object and return it as the supplied model type.
      *
      * @param objectId the ID of the graph vertex you want to fetch
      * @param returnClass The type of the class that you expect the object to be
@@ -244,30 +245,21 @@ public class AmberSession implements AutoCloseable {
      * @throws ClassCastException thrown if the specified type is not what the object actually is
      * @return an object of the specified type
      */
-    public <T> T findVertexById(long objectId, Class<T> returnClass) {
-        Vertex vertex = graph.getVertex(objectId);
-
-        if (vertex == null) {
+    public <T> T findModelObjectById(long objectId, Class<T> returnClass) {
+        // TODO This should do some validation that the class is as expected, but that is almost impossible.
+        T obj = graph.getVertex(objectId, returnClass);
+        if (obj == null) {
             throw new NoSuchObjectException(objectId);
         }
-
-        // Working around FramedGraph#frame just adding the 'kind' automatically as an interface (even though
-        // it may not be).
-        String typeName = vertex.getProperty("type");
-        if (typeName != null && !returnClass.getSimpleName().equals(typeName)) {
-            throw new ClassCastException("Object is not of type '" + returnClass.getName() +"', but instead is type '"
-                                         + typeName + "'");
-        }
-
-        return graph.frame(vertex, returnClass);
+        return obj;
     }
 
     /**
-     * Finds some vertex and returns it as the supplied type.
+     * Finds some object and return it as the supplied model type.
      */
-    public <T> T findVertexById(String objectId, Class<T> returnClass) {
+    public <T> T findModelObjectById(String objectId, Class<T> returnClass) {
         try {
-            return findVertexById(Long.parseLong(objectId), returnClass);
+            return findModelObjectById(Long.parseLong(objectId), returnClass);
         }
         catch (NumberFormatException nfe) {
             throw new IllegalArgumentException("String supplied was not a number.");
