@@ -12,6 +12,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import javassist.tools.rmi.ObjectNotFoundException;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.h2.Driver;
@@ -246,7 +247,11 @@ public class AmberSession implements AutoCloseable {
      */
     public <T> T findModelObjectById(long objectId, Class<T> returnClass) {
         // TODO This should do some validation that the class is as expected, but that is almost impossible.
-        return graph.getVertex(objectId, returnClass);
+        T obj = graph.getVertex(objectId, returnClass);
+        if (obj == null) {
+            throw new NoSuchObjectException(objectId);
+        }
+        return obj;
     }
 
     /**
