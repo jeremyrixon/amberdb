@@ -309,5 +309,10 @@ public class VersionedGraph {
         if (clearGraph) clear();
         new TransactionQuery(firstTxn, lastTxn, this).execute();
     }
+    
+    
+    public void getTransactionCopies(Long firstTxn, Long lastTxn) {
+        new TransactionQuery(firstTxn, lastTxn, this).getCopiesByTxnFileAndDescription();
+    }
 }
 

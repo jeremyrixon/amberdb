@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -21,7 +22,7 @@ import org.junit.Test;
 
 import org.junit.rules.TemporaryFolder;
 
-import amberdb.ChangeListener;
+import amberdb.TransactionIndexer;
 import amberdb.graph.AmberEdge;
 import amberdb.graph.AmberGraph;
 
@@ -53,7 +54,7 @@ public class TransactionsTest {
     @After
     public void teardown() {}
 
-    @Ignore
+
     @Test
     public void testTxns2() throws Exception {
         
@@ -153,15 +154,17 @@ public class TransactionsTest {
         
         // lets try some volume stuff
         String title1 = "Blinky kills again";
-        long txn1 = createBook(10, title1);
+        long txn1 = createBook(20, title1);
         
         // modify some bits
         Vertex book = graph.getVertices("title", title1).iterator().next();
         for (Vertex page : book.getVertices(Direction.IN, "isPartOf")) {
-            if ((Integer) page.getProperty("value") % 2 == 0)
+            if ((Integer) page.getProperty("value") % 4 == 1) {
                 page.setProperty("code", page.hashCode());
-            if ((Integer) page.getProperty("value") % 3 == 0)
+            }
+            if ((Integer) page.getProperty("value") % 4 == 0) {
                 page.remove();            
+            }
         }
         Long txn2 = graph.commit("test", "modified book 1");
        
@@ -174,58 +177,53 @@ public class TransactionsTest {
         
         // make another book
         String title2 = "Blinky rises";
-        long txn4 = createBook(200, title2);
+        long txn4 = createBook(40, title2);
 
         // reorder some pages
         book = graph.getVertices("title", title2).iterator().next();
         for (Vertex page : book.getVertices(Direction.IN, "isPartOf")) {
-            if ((Integer) page.getProperty("value") % 20 == 0) {
+            if ((Integer) page.getProperty("value") % 5 == 0) {
                 Edge e = page.getEdges(Direction.OUT, "isPartOf").iterator().next();
-                e.setProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME, 44);
+                e.setProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME, (Integer) page.getProperty("value") + 3000);
             }
         }
+        book.setProperty("internalAccessCondition", "Restricted");
         Long txn5 = graph.commit("test", "modified book 2");
         
-        ChangeListener cl = new ChangeListener(graph);
-        for (VersionedVertex work : cl.changedWorks(1L, txn1).values()) {
-            s("=="+ work);
-        }
-
-        s("====================== ==================== ===================");
-        s("====================== ==================== ===================");
-        s("====================== ==================== ===================");
+        TransactionIndexer cl = new TransactionIndexer(graph);
+        Set<Long>[] objSets = cl.findObjectsToBeIndexed(1L, txn1);
+        Set<Long> modified = objSets[0];
+        Set<Long> deleted = objSets[1];
+        assertEquals(modified.size(), 61);
+        assertEquals(deleted.size(), 0);
         
-        cl = new ChangeListener(graph);
-        for (VersionedVertex work : cl.changedWorks(txn1, txn2).values()) {
-            s("=="+ work);
-        }
-
-        s("====================== ==================== ===================");
-        s("====================== ==================== ===================");
-        s("====================== ==================== ===================");
+        cl = new TransactionIndexer(graph);
+        objSets = cl.findObjectsToBeIndexed(txn1, txn2);
+        modified = objSets[0];
+        deleted = objSets[1];
+        assertEquals(modified.size(), 5);
+        assertEquals(deleted.size(), 5);
         
-        cl = new ChangeListener(graph);
-        for (VersionedVertex work : cl.changedWorks(txn2, txn3).values()) {
-            s("=="+ work);
-        }
-//        
-//        s("====================== ==================== ===================");
-//        s("====================== ==================== ===================");
-//        s("====================== ==================== ===================");
-//        
-//        cl = new ChangeListener(graph);
-//        for (VersionedVertex work : cl.changedWorks(txn2, txn3).values()) {
-//            s("=="+ work);
-//        }
-//        
-//        s("====================== ==================== ===================");
-//        s("====================== ==================== ===================");
-//        s("====================== ==================== ===================");
-//        
-//        cl = new ChangeListener(graph);
-//        for (VersionedVertex work : cl.changedWorks(txn2, txn3).values()) {
-//            s("=="+ work);
-//        }
+        cl = new TransactionIndexer(graph);
+        objSets = cl.findObjectsToBeIndexed(txn2, txn3);
+        modified = objSets[0];
+        deleted = objSets[1];
+        assertEquals(modified.size(), 9);
+        assertEquals(deleted.size(), 0);
+
+        cl = new TransactionIndexer(graph);
+        objSets = cl.findObjectsToBeIndexed(txn3, txn4);
+        modified = objSets[0];
+        deleted = objSets[1];
+        assertEquals(modified.size(), 121);
+        assertEquals(deleted.size(), 0);
+
+        cl = new TransactionIndexer(graph);
+        objSets = cl.findObjectsToBeIndexed(txn4, txn5);
+        modified = objSets[0];
+        deleted = objSets[1];
+        assertEquals(modified.size(), 1);
+        assertEquals(deleted.size(), 0);
     }        
     
     
@@ -288,7 +286,6 @@ public class TransactionsTest {
         vGraph.clear();
         s("======== TXN:"+txn1+" - TXN:"+txn2+" ========");
         vGraph.loadTransactionGraph(txn1, txn2, true);
-        s("beep");
         for (VersionedVertex v : vGraph.getVertices()) {
             TVertexDiff diff = v.getDiff(txn1, txn2);
             if (diff.transition != TTransition.UNCHANGED)

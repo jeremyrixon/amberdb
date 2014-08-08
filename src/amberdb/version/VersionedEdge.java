@@ -37,7 +37,7 @@ public class VersionedEdge {
     
     public TEdge getAtTxn(Long txn) {
         for (TEdge e : edges) {
-            if (e.id.start <= txn && (e.id.end >= txn || e.id.end == 0)) return e;
+            if (e.id.start <= txn && (e.id.end > txn || e.id.end == 0)) return e;
         }
         return null;
     }

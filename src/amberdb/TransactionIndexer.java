@@ -34,14 +34,15 @@ public class TransactionIndexer {
         // get our transaction copies (where their file or file descriptions have been affected)
         // we do this because it is really slow to find the copies for files and/or descriptions
         // by traversing the versioned graph :(
-        log.info("Getting copies: Txn-" + startTxn + " -> Txn-" + endTxn);
-        List<Long> additionalCopies = graph.getTransactionCopies(startTxn, endTxn);
+        log.info("Including copies via file and description modifications");
+        graph.getTransactionCopies(startTxn, endTxn);
 
         Set<Long> modifiedObjects = new HashSet<>();
         Set<Long> deletedObjects = new HashSet<>();
         
         Set<Long>[] changedObjectSets = new Set[] { modifiedObjects, deletedObjects}; 
         int numVerticesProcessed = 0;
+        int numChanged = 0;
         
         vertexLoop: for (VersionedVertex v : graph.getVertices()) {
             numVerticesProcessed++;
@@ -49,7 +50,8 @@ public class TransactionIndexer {
             TVertexDiff diff = v.getDiff(startTxn, endTxn);
             TTransition change = diff.getTransition();
             if (change == TTransition.UNCHANGED) continue vertexLoop;
-
+            numChanged++;
+            
             // The type attribute of an NLA vertex shouldn't change
             String type = (String) getUnchangedProperty(diff, "type");
             if (type == null) {
@@ -86,7 +88,7 @@ public class TransactionIndexer {
                 }
             }
             
-            //log.info(change + " " + type + " " + id);
+            //log.info(change + " " + type + " " + diff);
             switch (change) {
             case DELETED:
                 deletedObjects.add(id);
@@ -98,12 +100,8 @@ public class TransactionIndexer {
             }
         }
         log.info("Vertices processed: " + numVerticesProcessed);
+        log.info("Changed vertices processed: " + numChanged);
         
-        // merge the copy ids retrieved separately into the results
-        for (Long id : additionalCopies) {
-            modifiedObjects.add(id);
-        } 
-
         // give deletion precedence over modification
         modifiedObjects.remove(deletedObjects);
         

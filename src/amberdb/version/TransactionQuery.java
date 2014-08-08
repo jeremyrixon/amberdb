@@ -9,6 +9,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.util.LongMapper;
+
+import amberdb.graph.AmberProperty;
 
 
 public class TransactionQuery {
@@ -40,6 +43,7 @@ public class TransactionQuery {
         this.lastTxn = lastTxn;
         this.graph = graph;
     }
+
     
     public List<VersionedVertex> execute() {
 
@@ -52,8 +56,8 @@ public class TransactionQuery {
             h.commit();
 
             // and reap the rewards
-            vertices = getVertices(h, graph, getPropertyMaps(h, "v0"));
-            getEdges(h, graph, getPropertyMaps(h, "e0"));
+            vertices = getVertices(h, graph, getPropertyMaps(h, "v0"), "v0");
+            getEdges(h, graph, getPropertyMaps(h, "e0"), "e0");
         }
         return vertices;
     }
@@ -79,14 +83,14 @@ public class TransactionQuery {
     }
 
     
-    private List<VersionedVertex> getVertices(Handle h , VersionedGraph graph, Map<TId, Map<String, Object>> propMaps) {
+    private List<VersionedVertex> getVertices(Handle h , VersionedGraph graph, Map<TId, Map<String, Object>> propMaps, String tableId) {
 
         List<VersionedVertex> gotVertices = new ArrayList<>(); 
         
         List<TVertex> vertices = h.createQuery(
                 "SELECT v.id, v.txn_start, v.txn_end "
-                + "FROM vertex v, v0 "
-                + "WHERE v.id = v0.id")
+                + "FROM vertex v, " + tableId + " "
+                + "WHERE v.id = " + tableId + ".id")
                 .map(new TVertexMapper()).list();
 
         // add them to the graph
@@ -110,12 +114,12 @@ public class TransactionQuery {
     }
     
     
-    private void getEdges(Handle h , VersionedGraph graph, Map<TId, Map<String, Object>> propMaps) {
+    private void getEdges(Handle h , VersionedGraph graph, Map<TId, Map<String, Object>> propMaps, String tableId) {
         
         List<TEdge> edges = h.createQuery(
                 "SELECT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order "
-                + "FROM edge e, e0 "
-                + "WHERE e.id = e0.id ")
+                + "FROM edge e, " + tableId + " "
+                + "WHERE e.id = " + tableId + ".id ")
                 .map(new TEdgeMapper()).list();
         
         // add them to the graph
@@ -142,11 +146,11 @@ public class TransactionQuery {
 
     public String generateTransactionQuery() {
 
-        String where = null;
+        String txnWhereClause = null;
         if (lastTxn == null) {
-            where = "WHERE (txn_start = %1$d OR txn_end <= %1$d);\n";
+            txnWhereClause = "WHERE (txn_start = %1$d OR txn_end <= %1$d) \n";
         } else {
-            where = "WHERE ((txn_start >= %1$d AND txn_start <= %2$d) OR (txn_end >= %1$d AND txn_end <= %2$d));\n";
+            txnWhereClause = "WHERE ((txn_start >= %1$d AND txn_start <= %2$d) OR (txn_end >= %1$d AND txn_end <= %2$d)) \n";
         }
         
         StringBuilder s = new StringBuilder();
@@ -160,16 +164,121 @@ public class TransactionQuery {
                 "INSERT INTO v0 (id) \n"
               + "SELECT id \n"
               + "FROM vertex \n"
-              + where,
+              + txnWhereClause + ";\n",
               firstTxn, lastTxn));
         
         s.append(String.format(
                 "INSERT INTO e0 (id) \n"
               + "SELECT id \n"
-              + "FROM edge \n"
-              + where,
+              + "FROM edge \n" 
+              + txnWhereClause + ";\n",
               firstTxn, lastTxn));
 
         return s.toString();
+    }
+    
+
+    public String makeTempTablesQuery() {
+        StringBuilder s = new StringBuilder();
+        s.append("DROP TABLE IF EXISTS c0;\n");
+        s.append("DROP TABLE IF EXISTS f0;\n");
+        s.append("DROP TABLE IF EXISTS d0;\n");
+
+        s.append("CREATE TEMPORARY TABLE c0 (id BIGINT);\n"); // Copies
+        s.append("CREATE TEMPORARY TABLE f0 (id BIGINT);\n"); // Files
+        s.append("CREATE TEMPORARY TABLE d0 (id BIGINT);\n"); // Descriptions
+        
+        return s.toString();
+    }
+
+    
+    public String makeDescriptionsQuery() {
+        String txnWhereClause = null;
+        if (lastTxn == null) {
+            txnWhereClause = "WHERE (v.txn_start = %1$d OR v.txn_end <= %1$d) \n";
+        } else {
+            txnWhereClause = "WHERE ((v.txn_start >= %1$d AND v.txn_start <= %2$d) " +
+                             "OR (v.txn_end >= %1$d AND v.txn_end <= %2$d)) \n";
+        }
+        
+        StringBuilder s = new StringBuilder();
+        s.append(String.format(
+                "INSERT INTO d0 (id) \n"
+              + "SELECT DISTINCT v.id \n"
+              + "FROM vertex v, property p \n"
+              +  txnWhereClause 
+              + "AND v.id = p.id \n"
+              + "AND p.name = 'type' \n"
+              + "AND p.value IN (:desc1,:desc2,:desc3,:desc4); \n",
+              firstTxn, lastTxn));
+        return s.toString();
+    }
+
+    
+    public String makeFilesQuery() {
+        String txnWhereClause = null;
+        if (lastTxn == null) {
+            txnWhereClause = "WHERE (v.txn_start = %1$d OR v.txn_end <= %1$d) \n";
+        } else {
+            txnWhereClause = "WHERE ((v.txn_start >= %1$d AND v.txn_start <= %2$d) " +
+                             "OR (v.txn_end >= %1$d AND v.txn_end <= %2$d)) \n";
+        }
+        
+        StringBuilder s = new StringBuilder();
+        s.append(String.format(
+                "INSERT INTO f0 (id) \n"
+              + "SELECT DISTINCT v.id \n"
+              + "FROM vertex v, property p \n"
+              +  txnWhereClause
+              + "AND v.id = p.id \n"
+              + "AND p.name = 'type' \n"
+              + "AND p.value IN (:file1, :file2, :file3); \n",
+              firstTxn, lastTxn));
+        return s.toString();
+    }
+
+    
+    public String makeDescriptFilesCopiesQuery() {
+        StringBuilder s = new StringBuilder();
+        // get Files from Descriptions
+        s.append(
+                "INSERT INTO f0 (id) \n"
+              + "SELECT DISTINCT e.v_in \n"
+              + "FROM edge e, d0 \n"
+              + "WHERE d0.id = e.v_out \n"
+              + "AND e.label = 'descriptionOf'; \n");
+        // get copies from files and add to 
+        s.append(
+                "INSERT INTO c0 (id) \n"
+              + "SELECT DISTINCT e.v_in \n"
+              + "FROM edge e, f0 \n"
+              + "WHERE f0.id = e.v_out \n"
+              + "AND e.label = 'isFileOf'; \n");
+        return s.toString();
+    }
+    
+
+    public List<VersionedVertex> getCopiesByTxnFileAndDescription() {
+        List<VersionedVertex> copyVertices = null;
+        try (Handle h = graph.dbi().open()) {
+            h.begin();
+            h.execute(makeTempTablesQuery());
+            h.createStatement(makeDescriptionsQuery())
+                    .bind("desc1", AmberProperty.encode("Description"))
+                    .bind("desc2", AmberProperty.encode("IPTC"))
+                    .bind("desc3", AmberProperty.encode("GeoCoding"))
+                    .bind("desc4", AmberProperty.encode("CameraData"))
+                    .execute();
+            h.createStatement(makeFilesQuery())
+                    .bind("file1", AmberProperty.encode("File"))
+                    .bind("file2", AmberProperty.encode("ImageFile"))
+                    .bind("file3", AmberProperty.encode("SoundFile"))
+                    .execute();
+            h.createStatement(makeDescriptFilesCopiesQuery()).execute();
+            h.commit();            
+            // and reap the rewards
+            copyVertices = getVertices(h, graph, getPropertyMaps(h, "c0"), "c0");
+        }
+        return copyVertices;
     }
 }

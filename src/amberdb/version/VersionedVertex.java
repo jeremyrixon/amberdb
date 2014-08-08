@@ -92,6 +92,7 @@ public class VersionedVertex {
         for (TVertex e : vertices) {
             sb.append("\t" + e + "\n");
         }
+        sb.setLength(sb.length() - 1);
         return sb.toString();
     }
     
