@@ -130,6 +130,12 @@ public interface Node extends VertexFrame {
     @JavaHandler
     public List<String> getAlias() throws JsonParseException, JsonMappingException, IOException;
 
+    @Property("recordSource")
+    public String getRecordSource();
+
+    @Property("recordSource")
+    public void setRecordSource(String recordSource);
+
     @Property("localSystemNumber")
     public String getLocalSystemNumber();
 

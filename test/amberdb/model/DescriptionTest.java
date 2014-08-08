@@ -1,11 +1,9 @@
 package amberdb.model;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.Iterator;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.IteratorUtils;
@@ -90,6 +88,8 @@ public class DescriptionTest {
 
     @Test
     public void testGetADescription() {
+        long sessId = amberDb.suspend();
+        amberDb.recover(sessId);
         Work work = amberDb.findWork(objId);
         Description workGeocoding = work.getDescription("GeoCoding");
         assertNotNull(workGeocoding);

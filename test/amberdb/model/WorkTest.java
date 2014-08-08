@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -154,14 +155,12 @@ public class WorkTest {
 
     
     @Test
-    public void testGetSetParentEdges() throws IOException {
-        try (AmberSession amberDb = new AmberSession()){           
-            Work work = amberDb.addWork();
-            Work parentWork = amberDb.addWork();
+    public void testGetSetParentEdges() throws IOException {          
+            Work work = db.addWork();
+            Work parentWork = db.addWork();
             parentWork.addChild(work);
             assertTrue(null == parentWork.getParentEdge());
             assertEquals(parentWork, work.getParentEdge().getSource());            
-        }
     }
     
     @Test
@@ -381,8 +380,7 @@ public class WorkTest {
     
     @Test
     public void testToEnsureDCMLegacyDataFieldsExist() throws IOException {
-        AmberSession amberDb = new AmberSession();
-        Work work = amberDb.addWork();
+        Work work = db.addWork();
         
         Date date = new Date();
         
@@ -408,8 +406,6 @@ public class WorkTest {
         
         assertEquals(2, work.getDcmAltPi().size());
         assertEquals(list, work.getDcmAltPi());
-        
-        amberDb.close();
     }
     
     @Test
@@ -432,5 +428,11 @@ public class WorkTest {
         constraints = work.getConstraint();
         assertEquals(6, constraints.size());
         assertTrue(constraints.contains("octopus"));
+    }
+    
+    @After
+    public void teardown() throws IOException {
+        if (db != null)
+            db.close();
     }
 }

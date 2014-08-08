@@ -12,6 +12,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import javassist.tools.rmi.ObjectNotFoundException;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.h2.Driver;
@@ -117,7 +118,7 @@ public class AmberSession implements AutoCloseable {
         this.blobStore = blobStore;
 
         // Graph
-        graph = openGraph(amber);     
+        graph = openGraph(amber);
     }
 
     
@@ -219,11 +220,7 @@ public class AmberSession implements AutoCloseable {
      * Finds a work by id.
      */
     public Work findWork(long objectId) {
-        Work work = graph.getVertex(objectId, Work.class);
-        if (work == null) {
-            throw new NoSuchObjectException(objectId);
-        }
-        return work;
+        return findModelObjectById(objectId, Work.class);
     }
 
     
@@ -236,6 +233,36 @@ public class AmberSession implements AutoCloseable {
             return findWork(Long.parseLong(idOrAlias));
         } catch (NumberFormatException e) {
             return findWork(PIUtil.parse(idOrAlias));
+        }
+    }
+
+    /**
+     * Finds some object and return it as the supplied model type.
+     *
+     * @param objectId the ID of the graph vertex you want to fetch
+     * @param returnClass The type of the class that you expect the object to be
+     * @param <T> The type of the class that you expect the object to be
+     * @throws ClassCastException thrown if the specified type is not what the object actually is
+     * @return an object of the specified type
+     */
+    public <T> T findModelObjectById(long objectId, Class<T> returnClass) {
+        // TODO This should do some validation that the class is as expected, but that is almost impossible.
+        T obj = graph.getVertex(objectId, returnClass);
+        if (obj == null) {
+            throw new NoSuchObjectException(objectId);
+        }
+        return obj;
+    }
+
+    /**
+     * Finds some object and return it as the supplied model type.
+     */
+    public <T> T findModelObjectById(String objectId, Class<T> returnClass) {
+        try {
+            return findModelObjectById(Long.parseLong(objectId), returnClass);
+        }
+        catch (NumberFormatException nfe) {
+            throw new IllegalArgumentException("String supplied was not a number.");
         }
     }
 

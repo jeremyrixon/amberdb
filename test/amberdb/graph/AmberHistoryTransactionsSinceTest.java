@@ -20,6 +20,7 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
 import org.junit.rules.TemporaryFolder;
@@ -171,7 +172,7 @@ public class AmberHistoryTransactionsSinceTest {
         
         // Set up work
         Work w = sess.addWork();
-        w.setTitle("Testing for fun and profit");
+        w.setTitle("Add 100 modifications.");
         for (long i=0; i<20; i++) {
             Page p = w.addPage();
 
@@ -191,15 +192,10 @@ public class AmberHistoryTransactionsSinceTest {
             f2.setBlobId(i+100);
         }
         aGraph.commit("test", "commit book");
-        
+
         // Check we get all the bits of the work we want
         Map<Long, String> changed = sess.getModifiedVertexIds(now);
-        List<Long> ids = Lists.newArrayList(changed.keySet());
-        Collections.sort(ids);
-        for (Long id : ids) {
-            Work wrk = sess.findWork(id);
-            System.out.println("id:" + id + " status:" + changed.get(id) + " work:" + wrk);
-        }
+        assertThat(changed.size(), is (101));
         
         now = new Date();
         s("\nTS:" + now.getTime());
@@ -215,13 +211,8 @@ public class AmberHistoryTransactionsSinceTest {
         aGraph.clear();
         
         changed = sess.getModifiedVertexIds(now);
-        ids = Lists.newArrayList(changed.keySet());
-        Collections.sort(ids);
-        for (Long id : ids) {
-            Work wrk = sess.findWork(id);
-            System.out.println("id:" + id + " status:" + changed.get(id) + " work:" + wrk);
-        }
-        
+        assertThat(changed.size(), is (2));
+
         
         now = new Date();
         s("\nTS:" + now.getTime());
@@ -230,18 +221,12 @@ public class AmberHistoryTransactionsSinceTest {
         w.setTitle("Testing a new title");
 
         p = w.getPage(12);
-//        System.out.println("deleting page: " + p);
-//        System.out.println("\tcopy: " + p.getCopy(CopyRole.ACCESS_COPY));
         sess.deletePage(p);
 
         p = w.getPage(3);
-//        System.out.println("deleting page: " + p);
-//        System.out.println("\tcopy: " + p.getCopy(CopyRole.ACCESS_COPY));
         sess.deletePage(p);
 
         p = w.getPage(5);
-//        System.out.println("deleting page: " + p);
-//        System.out.println("\tcopy: " + p.getCopy(CopyRole.ACCESS_COPY));
         sess.deletePage(p);
         
         sess.commit("test", "deleted 3 pages");
@@ -250,26 +235,7 @@ public class AmberHistoryTransactionsSinceTest {
         
         
         changed = sess.getModifiedVertexIds(now);
-        ids = Lists.newArrayList(changed.keySet());
-        Collections.sort(ids);
-        for (Long id : ids) {
-            Work wrk;
-            try {
-                wrk = sess.findWork(id);
-            } catch (Exception e) {
-                wrk = null;
-            }
-            System.out.println("id:" + id + " status:" + changed.get(id) + " work:" + history.getLastVertex(id));
-        }
         assertEquals(16, changed.size()); // 1 for title modification, 3 x 5 per page (1 page, 2 copies and 2 files) deletions
-
-        for (Long id : ids) {
-            List<AmberVertex> hist = history.getHistory(id);
-            System.out.println("--");
-            for (AmberVertex v : hist) {
-                System.out.println("" + v);
-            }    
-        }
     }
     
     @Test

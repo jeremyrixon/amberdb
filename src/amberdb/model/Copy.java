@@ -127,12 +127,6 @@ public interface Copy extends Node {
     @Property("bestCopy")
     public void setBestCopy(String bestCopy);
     
-    @Property("recordSource")
-    public String getRecordSource();
-
-    @Property("recordSource")
-    public void setRecordSource(String recordSource);
-    
     @Property("materialType")
     public String getMaterialType();
 
@@ -469,21 +463,28 @@ public interface Copy extends Node {
         
         @Override
         public ImageFile getImageFile() {
-            return (ImageFile) getSpecializedFile("ImageFile");
+            return (ImageFile) getSpecializedFile("image");
         }
         
         @Override
         public SoundFile getSoundFile() {
-            return (SoundFile) getSpecializedFile("SoundFile");
+            return (SoundFile) getSpecializedFile("audio");
         }
         
         private File getSpecializedFile(String fmt) {
+            String fileType = "";
+            if (fmt.equals("image"))
+                fileType = "ImageFile";
+            else if (fmt.equals("audio"))
+                fileType = "SoundFile";
+            
             Iterable<File> files = this.getFiles();
             if (files != null) {
                 Iterator<File> it = files.iterator();
                 while (it.hasNext()) {
                     File next = it.next();
-                    if (next.getType().equals(fmt)) {
+                    if (next.getType().equals(fileType) || 
+                            (next.getMimeType() != null && next.getMimeType().startsWith(fmt))) {
                         return next;
                     }
                 }
