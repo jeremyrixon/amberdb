@@ -34,13 +34,13 @@ public class TransactionIndexer {
         // get our transaction copies (where their file or file descriptions have been affected)
         // we do this because it is really slow to find the copies for files and/or descriptions
         // by traversing the versioned graph :(
-        log.info("Including copies via file and description modifications");
         graph.getTransactionCopies(startTxn, endTxn);
 
         Set<Long> modifiedObjects = new HashSet<>();
         Set<Long> deletedObjects = new HashSet<>();
+        Set<Long> deletedItems = new HashSet<>();
         
-        Set<Long>[] changedObjectSets = new Set[] { modifiedObjects, deletedObjects}; 
+        Set<Long>[] changedObjectSets = new Set[] { modifiedObjects, deletedObjects, deletedItems}; 
         int numVerticesProcessed = 0;
         int numChanged = 0;
         
@@ -77,18 +77,30 @@ public class TransactionIndexer {
             // treat objects with a bibLevel of Item differently. For
             // deletions and access control changes we want to modify
             // the full item graph ie: delete all related records from
-            // the index.
+            // the index. 
             String bibLevel = (String) getUnchangedProperty(diff, "bibLevel");
             if (bibLevel != null && bibLevel.equals("Item")) {
+
+                // NOTE: Commented this code, but left it here as i'm not sure it is unnecessary yet. 
+                // scoen 11/08/2014
+                //if (diff.getTransition() == TTransition.DELETED) {
+                //    log.info("Deleting Item " + id);
+                //    deletedItems.add(id);
+                //    continue vertexLoop;
+                //}
+                
                 // check a change in access conditions
                 Object ac = diff.getProperty("internalAccessCondition");
                 if (ac instanceof Object[]) {
                     Object[] cond = (Object[]) ac; 
-                    log.info("Access condition has changed from " + cond[0] + " to " + cond[1]); 
+                    if (cond[1].equals("Restricted")) {
+                        log.info("Access condition changed: " + cond[0] + " -> " + cond[1] + " for Item " + id);
+                        deletedItems.add(id);
+                        continue vertexLoop;
+                    }
                 }
             }
             
-            //log.info(change + " " + type + " " + diff);
             switch (change) {
             case DELETED:
                 deletedObjects.add(id);

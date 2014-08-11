@@ -222,8 +222,10 @@ public class TransactionsTest {
         objSets = cl.findObjectsToBeIndexed(txn4, txn5);
         modified = objSets[0];
         deleted = objSets[1];
-        assertEquals(modified.size(), 1);
+        Set<Long> deletedItems = objSets[2];
+        assertEquals(modified.size(), 0);
         assertEquals(deleted.size(), 0);
+        assertEquals(deletedItems.size(), 1);
     }        
     
     
