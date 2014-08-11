@@ -177,8 +177,8 @@ public class AmberSession implements AutoCloseable {
      * @param who the username to associate with the transaction
      * @param why the operation they were fulfilling by commiting the transaction
      */
-    public void commit(String who, String why) {
-        getAmberGraph().commit(who, why);
+    public Long commit(String who, String why) {
+        return getAmberGraph().commit(who, why);
     }
     
     
