@@ -40,7 +40,7 @@ public class TransactionIndexer {
         Set<Long> deletedObjects = new HashSet<>();
         Set<Long> deletedItems = new HashSet<>();
         
-        Set<Long>[] changedObjectSets = new Set[] { modifiedObjects, deletedObjects, deletedItems}; 
+        Set<Long>[] changedObjectSets = new Set[] { modifiedObjects, deletedObjects, deletedItems }; 
         int numVerticesProcessed = 0;
         int numChanged = 0;
         

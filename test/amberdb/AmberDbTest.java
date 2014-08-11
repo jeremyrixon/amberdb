@@ -33,12 +33,13 @@ public class AmberDbTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
+    // Following test makes very little sense 
+    // needs fixing or deleting (scoen 11/08/2014)
     @Test
     public void testInMemory() throws IOException {
         Work w1, w2;
         try (AmberSession db = new AmberSession()) {
             w1 = db.addWork();
-            db.commit();
             db.close();
         }
         try (AmberSession db = new AmberSession()) {
@@ -52,7 +53,7 @@ public class AmberDbTest {
             db.commit();
             db.close();
         }
-        assertEquals("ids should not persist", w1.getId(), w2.getId());
+        assertNotEquals("ids should not persist", w1.getId(), w2.getId());
     }
 
     @Test
