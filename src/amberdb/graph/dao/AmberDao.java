@@ -155,15 +155,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "  'ID_GENERATOR', 'TRANSACTION')")
     boolean schemaTablesExist();
     
-    /*
-    @SqlUpdate(
-            "DROP TABLE IF EXISTS "
-            + "vertex, edge, property, "
-            + "sess_vertex, sess_edge, sess_property, "
-            + "transaction, id_generator")
-    void dropTables();
-    */
-    
+
     /*
      * id generation operations
      */
@@ -307,7 +299,8 @@ public interface AmberDao extends Transactional<AmberDao> {
             @Bind("user") String user,
             @Bind("operation") String operation);
 
-        
+    
+    // The following query intentionally left blank. It's implemented in the db specific AmberDao sub classes (h2 or MySql)
     @SqlUpdate("")
     void endElements(
             @Bind("txnId") Long txnId);
