@@ -28,16 +28,15 @@ public interface TxIdxDao extends Transactional<TxIdxDao> {
     
     
     @SqlQuery(
-            "SELECT MAX(txn) "
-            + "FROM indexed_txns")
+            "SELECT MAX(txn) FROM indexed_txns")
     Long getLastIndexedTxnId();
 
     
     @SqlQuery(
             "SELECT id "
             + "FROM transaction "
-            + "WHERE txn > :lastIndexedTxnId "
-            + "ORDER BY txn")
+            + "WHERE id > :lastIndexedTxnId "
+            + "ORDER BY id")
     List<Long> getTxnsSinceIndexed(
             @Bind("lastIndexedTxnId") Long lastIndexedTxnId);
     
@@ -45,7 +44,7 @@ public interface TxIdxDao extends Transactional<TxIdxDao> {
     @SqlUpdate(
             "INSERT INTO indexed_txns (txn) VALUES (:txn)")
     void updateIndexedTransactions(
-            @Bind("sinceTxn") Long txn);
+            @Bind("txn") Long txn);
 
     
     @SqlQuery(

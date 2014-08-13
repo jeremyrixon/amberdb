@@ -38,9 +38,8 @@ public class TransactionIndexer {
 
         Set<Long> modifiedObjects = new HashSet<>();
         Set<Long> deletedObjects = new HashSet<>();
-        Set<Long> deletedItems = new HashSet<>();
         
-        Set<Long>[] changedObjectSets = new Set[] { modifiedObjects, deletedObjects, deletedItems }; 
+        Set<Long>[] changedObjectSets = new Set[] { modifiedObjects, deletedObjects }; 
         int numVerticesProcessed = 0;
         int numChanged = 0;
         
@@ -74,33 +73,17 @@ public class TransactionIndexer {
                 continue vertexLoop;
             }
 
-            // treat objects with a bibLevel of Item differently. For
-            // deletions and access control changes we want to modify
-            // the full item graph ie: delete all related records from
-            // the index. 
-            String bibLevel = (String) getUnchangedProperty(diff, "bibLevel");
-            if (bibLevel != null && bibLevel.equals("Item")) {
-
-                // NOTE: Commented this code, but left it here as i'm not sure it is unnecessary yet. 
-                // scoen 11/08/2014
-                //if (diff.getTransition() == TTransition.DELETED) {
-                //    log.info("Deleting Item " + id);
-                //    deletedItems.add(id);
-                //    continue vertexLoop;
-                //}
-                
-                // check a change in access conditions
-                Object ac = diff.getProperty("internalAccessCondition");
-                if (ac instanceof Object[]) {
-                    Object[] cond = (Object[]) ac; 
-                    if (cond[1].equals("Restricted")) {
-                        log.info("Access condition changed: " + cond[0] + " -> " + cond[1] + " for Item " + id);
-                        deletedItems.add(id);
-                        continue vertexLoop;
-                    }
+            // check a change in access conditions
+            Object ac = diff.getProperty("internalAccessCondition");
+            if (ac instanceof Object[]) {
+                Object[] cond = (Object[]) ac;
+                if (cond[1] != null && cond[1].equals("Restricted")) {
+                    log.info("Access condition changed: " + cond[0] + " -> " + cond[1] + " for Item " + id);
+                    deletedObjects.add(id);
+                    continue vertexLoop;
                 }
             }
-            
+
             switch (change) {
             case DELETED:
                 deletedObjects.add(id);
@@ -115,7 +98,7 @@ public class TransactionIndexer {
         log.info("Changed vertices processed: " + numChanged);
         
         // give deletion precedence over modification
-        modifiedObjects.remove(deletedObjects);
+        modifiedObjects.removeAll(deletedObjects);
         
         return changedObjectSets;
     }

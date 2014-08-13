@@ -275,6 +275,7 @@ public class WorkTest {
         db.findWork(workVertexId);
     }
 
+    @Ignore
     @Test
     public void testOrderChildren() {
         
