@@ -187,7 +187,7 @@ public class TransactionsTest {
                 e.setProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME, (Integer) page.getProperty("value") + 3000);
             }
         }
-        book.setProperty("internalAccessCondition", "Restricted");
+        book.setProperty("internalAccessCondition", "Closed");
         Long txn5 = graph.commit("test", "modified book 2");
         
         TransactionIndexer cl = new TransactionIndexer(graph);

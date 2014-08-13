@@ -75,7 +75,7 @@ public class TransactionIndexer {
 
             // check a change in access conditions
             Object ac = diff.getProperty("internalAccessCondition");
-            if (change == TTransition.NEW && ac.equals("Closed")) {
+            if (change == TTransition.NEW && ac != null && ac.equals("Closed")) {
                 log.info("Internal Access Condition for NEW object is 'Closed'. Not indexing {}", id);
                 continue vertexLoop;
             }
