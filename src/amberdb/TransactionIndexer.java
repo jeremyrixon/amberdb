@@ -54,7 +54,7 @@ public class TransactionIndexer {
             // The type attribute of an NLA vertex shouldn't change
             String type = (String) getUnchangedProperty(diff, "type");
             if (type == null) {
-                log.warn("No type or type changed: " + diff);
+                log.warn("No type or type changed: {}", diff);
                 continue vertexLoop;
             }
 
@@ -75,10 +75,14 @@ public class TransactionIndexer {
 
             // check a change in access conditions
             Object ac = diff.getProperty("internalAccessCondition");
-            if (ac instanceof Object[]) {
+            if (change == TTransition.NEW && ac.equals("Closed")) {
+                log.info("Internal Access Condition for NEW object is 'Closed'. Not indexing {}", id);
+                continue vertexLoop;
+            }
+            if (change == TTransition.MODIFIED && ac instanceof Object[]) {
                 Object[] cond = (Object[]) ac;
-                if (cond[1] != null && cond[1].equals("Restricted")) {
-                    log.info("Access condition changed: " + cond[0] + " -> " + cond[1] + " for Item " + id);
+                if (cond[1] != null && cond[1].equals("Closed")) {
+                    log.info("Internal Access Condition changed: {} -> {} for Item {}", cond[0], cond[1], id);
                     deletedObjects.add(id);
                     continue vertexLoop;
                 }
