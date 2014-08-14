@@ -127,4 +127,65 @@ public interface ImageFile extends File {
     
     @Property("zoomLevel")
     public void setZoomLevel(String zoomLevel);
+    
+    
+    @Property("exposureTime")
+    public String getExposureTime();
+    
+    @Property("exposureTime")
+    public void setExposureTime(String exposureTime);
+    
+    @Property("exposureFNumber")
+    public String getExposureFNumber();
+    
+    @Property("exposureFNumber")
+    public void setExposureFNumber(String exposureFNumber);
+    
+    @Property("exposureMode")
+    public String getExposureMode();
+    
+    @Property("exposureMode")
+    public void setExposureMode(String exposureMode);
+    
+    @Property("exposureProgram")
+    public String getExposureProgram();
+    
+    @Property("exposureProgram")
+    public void setExposureProgram(String exposureProgram);
+    
+    @Property("isoSpeedRating")
+    public String getISOSpeedRating();
+    
+    @Property("isoSpeedRating")
+    public void setISOSpeedRating(String isoSpeedRating);
+    
+    @Property("focalLength")
+    public String getFocalLength();
+    
+    @Property("focalLength")
+    public void setFocalLength(String focalLength);
+    
+    @Property("lens")
+    public String getLens();
+    
+    @Property("lens")
+    public void setLens(String lens);
+    
+    @Property("meteringMode")
+    public String getMeteringMode();
+    
+    @Property("meteringMode")
+    public void setMeteringMode(String meteringMode);
+    
+    @Property("whiteBalance")
+    public String getWhiteBalance();
+    
+    @Property("whiteBalance")
+    public void setWhiteBalance(String whiteBalance);
+    
+    @Property("fileSource")
+    public String getFileSource();
+    
+    @Property("fileSource")
+    public void setFileSource(String fileSource);
 }
