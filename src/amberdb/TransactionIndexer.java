@@ -82,7 +82,7 @@ public class TransactionIndexer {
             }
             if (change == TTransition.MODIFIED && ac instanceof Object[]) {
                 Object[] cond = (Object[]) ac;
-                if (cond[1] != null && cond[1].equals("Closed")) {
+                if (cond.length > 1 && cond[1] != null && cond[1].equals("Closed")) {
                     log.info("Internal Access Conditions changed: {} -> {} for Item {}", cond[0], cond[1], id);
                     deletedObjects.add(id);
                     continue vertexLoop;
