@@ -497,8 +497,6 @@ public class AmberSession implements AutoCloseable {
         
         for (Long id : modIds.keySet()) {
 
-            System.out.println(id);
-
             // how it's been modified
             String how = modIds.get(id);
             
