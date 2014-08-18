@@ -262,7 +262,7 @@ public class AmberSession implements AutoCloseable {
             return findModelObjectById(Long.parseLong(objectId), returnClass);
         }
         catch (NumberFormatException nfe) {
-            throw new IllegalArgumentException("String supplied was not a number.");
+            return findModelObjectById(PIUtil.parse(objectId), returnClass);
         }
     }
 
@@ -496,6 +496,8 @@ public class AmberSession implements AutoCloseable {
         AmberHistory history = getAmberHistory();
         
         for (Long id : modIds.keySet()) {
+
+            System.out.println(id);
 
             // how it's been modified
             String how = modIds.get(id);
