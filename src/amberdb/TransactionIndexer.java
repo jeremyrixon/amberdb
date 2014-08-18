@@ -19,12 +19,13 @@ import amberdb.version.VersionedVertex;
 public class TransactionIndexer {
 
     private VersionedGraph graph;
-    static final Logger log = LoggerFactory.getLogger(TransactionIndexer.class);
+    private final Logger log = LoggerFactory.getLogger(TransactionIndexer.class);
     
     
     public TransactionIndexer(AmberGraph graph) {
         this.graph = new VersionedGraph(graph.dbi());
     }
+
     
     public Set<Long>[] findObjectsToBeIndexed(Long startTxn, Long endTxn) {
         
@@ -74,15 +75,15 @@ public class TransactionIndexer {
             }
 
             // check a change in access conditions
-            Object ac = diff.getProperty("internalAccessCondition");
+            Object ac = diff.getProperty("internalAccessConditions");
             if (change == TTransition.NEW && ac != null && ac.equals("Closed")) {
-                log.info("Internal Access Condition for NEW object is 'Closed'. Not indexing {}", id);
+                log.info("Internal Access Conditions for NEW object is 'Closed'. Not indexing {}", id);
                 continue vertexLoop;
             }
             if (change == TTransition.MODIFIED && ac instanceof Object[]) {
                 Object[] cond = (Object[]) ac;
-                if (cond[1] != null && cond[1].equals("Closed")) {
-                    log.info("Internal Access Condition changed: {} -> {} for Item {}", cond[0], cond[1], id);
+                if (cond.length > 1 && cond[1] != null && cond[1].equals("Closed")) {
+                    log.info("Internal Access Conditions changed: {} -> {} for Item {}", cond[0], cond[1], id);
                     deletedObjects.add(id);
                     continue vertexLoop;
                 }
