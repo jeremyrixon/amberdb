@@ -7,8 +7,10 @@ import java.nio.file.Path;
 
 import amberdb.AmberSession;
 import amberdb.relation.IsFileOf;
+import amberdb.relation.DescriptionOf;
 
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.frames.Adjacency;
 import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.modules.javahandler.JavaHandler;
@@ -144,6 +146,9 @@ public interface File extends Node {
 
     @JavaHandler
     void putLegacyDoss(Path dossPath) throws IOException;
+
+    @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
+    void removeDescription(final Description description);
 
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, File {
 
