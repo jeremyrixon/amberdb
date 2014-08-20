@@ -6,7 +6,8 @@ import java.util.Set;
 
 public class TElementDiff {
 
-    TElement elem1, elem2;
+    TElement elem1;
+    TElement elem2;
     TTransition transition; 
     
     public TElementDiff(Long txn1, Long txn2, TElement e1, TElement e2) {
@@ -45,6 +46,16 @@ public class TElementDiff {
         transition = TTransition.MODIFIED;
     }
     
+    
+    public TId[] getId() {
+        switch (transition) {
+        case NEW:       return new TId[] { elem2.getId() };
+        case DELETED:   return new TId[] { elem1.getId() };
+        case UNCHANGED: return (elem1 == null) ? new TId[] { null } : new TId[] { elem1.getId() };
+        case MODIFIED:  return (elem1.getId().equals(elem2.getId())) ? new TId[] { elem1.getId() } : new TId[] { elem1.getId(), elem2.getId() };
+        }
+        return null;
+    }
     
 
     public Object getProperty(String propertyName) throws TDiffException {

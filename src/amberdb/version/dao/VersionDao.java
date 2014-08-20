@@ -40,6 +40,13 @@ public interface VersionDao extends Transactional<VersionDao> {
     void endElements(
             @Bind("txnId") Long txnId);
 
+    @SqlQuery(
+            "SELECT id "
+            + "FROM transaction " 
+            + "WHERE time > :time "
+            + "ORDER BY id")
+    List<Long> getTransactionsSince(
+            @Bind("time") Long time);
     
     void close();
 }
