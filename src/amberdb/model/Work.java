@@ -742,10 +742,17 @@ public interface Work extends Node {
     public void setSensitiveMaterial(String sensitiveMaterial);
 
     @Property("sensitiveReason")
-    public String getSensitiveReason();
+    public String getJSONSensitiveReason();
 
     @Property("sensitiveReason")
-    public void setSensitiveReason(String sensitiveReason);
+    public void setJSONSensitiveReason(String sensitiveReason);
+    
+    @JavaHandler
+    public void setSensitiveReason(List<String> sensitiveReason) throws JsonParseException, JsonMappingException, IOException;
+    
+    @JavaHandler
+    public List<String> getSensitiveReason() throws JsonParseException, JsonMappingException, IOException;
+
 
     @Property("uniformTitle")
     public String getUniformTitle();
@@ -758,6 +765,16 @@ public interface Work extends Node {
 
     @Property("alternativeTitle")
     public void setAlternativeTitle(String alternativeTitle);
+    
+    /**
+     * summary of scope of work, description of image
+     */
+    @Property("summary")
+    public String getSummary();
+
+    @Property("summary")
+    public void setSummary(String summary);
+
 
     /**
      * Also known as localsystmno
@@ -1115,15 +1132,23 @@ public interface Work extends Node {
         }
 
         @Override
-        public List<String> getConstraint() throws JsonParseException, JsonMappingException, IOException {
-            String s = getJSONConstraint();
+        public List<String> getConstraint() throws JsonParseException, JsonMappingException, IOException {          
             return deserialiseJSONString(getJSONConstraint());
         }
 
         @Override
-        public void setConstraint(List<String> constraint) throws JsonParseException, JsonMappingException, IOException {
-            String s = serialiseToJSON(constraint);
+        public void setConstraint(List<String> constraint) throws JsonParseException, JsonMappingException, IOException {           
             setJSONConstraint(serialiseToJSON(constraint));
+        }
+        
+        @Override
+        public List<String> getSensitiveReason() throws JsonParseException, JsonMappingException, IOException {           
+            return deserialiseJSONString(getJSONSensitiveReason());
+        }
+
+        @Override
+        public void setSensitiveReason(List<String> sensitiveReason) throws JsonParseException, JsonMappingException, IOException {          
+            setJSONSensitiveReason(serialiseToJSON(sensitiveReason));
         }
 
         @Override
