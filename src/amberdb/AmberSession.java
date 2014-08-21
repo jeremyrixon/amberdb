@@ -262,7 +262,7 @@ public class AmberSession implements AutoCloseable {
             return findModelObjectById(Long.parseLong(objectId), returnClass);
         }
         catch (NumberFormatException nfe) {
-            throw new IllegalArgumentException("String supplied was not a number.");
+            return findModelObjectById(PIUtil.parse(objectId), returnClass);
         }
     }
 
@@ -313,16 +313,18 @@ public class AmberSession implements AutoCloseable {
         graph.removeVertex(work.asVertex());
     }
 
-    
+
     /**
-     * Noting deletion of all the vertices representing the work, its copies, and its copy files
-     * within the session.
-     * @param work
+     * Delete all the vertices representing the copy, all its files and their descriptions.
+     * @param copy
      */
     public void deleteCopy(final Copy copy) {
         Work work = copy.getWork();
-        File file = copy.getFile();
-        if (file != null) {
+        for (File file : copy.getFiles()) {
+            for (Description desc : file.getDescriptions()) {
+                file.removeDescription(desc);
+                graph.removeVertex(desc.asVertex());
+            }
             copy.removeFile(file);
             graph.removeVertex(file.asVertex());
         }
@@ -331,7 +333,7 @@ public class AmberSession implements AutoCloseable {
         }
         graph.removeVertex(copy.asVertex());
     }
-
+    
     
     /**
      * Noting deletion of all the vertices representing the work, its copies, and its copy files
