@@ -211,12 +211,7 @@ public interface Copy extends Node {
      */
     @JavaHandler
     public void setAllOtherNumbers(Map<String, String> otherNumbers) throws JsonParseException, JsonMappingException, IOException;
-    
-    @Property("encoding")
-    public String getEncoding();
-    
-    @Property("encoding")
-    public void setEncoding(String encoding);
+
     
     /**
      * The source copy which this copy was derived from. Null if this copy is
