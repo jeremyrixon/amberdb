@@ -102,20 +102,32 @@ public class AmberQuery {
             String thatTable = "v" + ((step+1) % 2);
             
             String labelsClause = generatelabelsClause(qc.labels);
-            String directionClause = generateDirClause(qc.direction, thatTable);
-
-            s.append(String.format(
-
-            "INSERT INTO %1$s (step, vid, eid, label, edge_order) \n"
-            + "SELECT %3$d, v.id, e.id, e.label, e.edge_order  \n"
-            + "FROM vertex v, edge e, %2$s \n"
-            + "WHERE e.txn_end = 0 \n"
-            + " AND v.txn_end = 0 \n"
-            + labelsClause
-            + directionClause
-            + " AND " + thatTable + ".step = " + (step-1) + " ;\n",
             
-            thisTable, thatTable, step));
+            if (qc.direction == Direction.BOTH || qc.direction == Direction.IN) {
+                s.append(String.format(
+                "INSERT INTO %1$s (step, vid, eid, label, edge_order) \n"
+                + "SELECT %3$d, v.id, e.id, e.label, e.edge_order  \n"
+                + "FROM vertex v, edge e, %2$s \n"
+                + "WHERE e.txn_end = 0 \n"
+                + " AND v.txn_end = 0 \n"
+                + labelsClause
+                + " AND (e.v_out = v.id AND e.v_in = " + thatTable    + ".vid)\n"
+                + " AND " + thatTable + ".step = " + (step-1) + " ;\n",
+                thisTable, thatTable, step));
+            }
+            
+            if (qc.direction == Direction.BOTH || qc.direction == Direction.OUT) {
+                s.append(String.format(
+                "INSERT INTO %1$s (step, vid, eid, label, edge_order) \n"
+                + "SELECT %3$d, v.id, e.id, e.label, e.edge_order  \n"
+                + "FROM vertex v, edge e, %2$s \n"
+                + "WHERE e.txn_end = 0 \n"
+                + " AND v.txn_end = 0 \n"
+                + labelsClause
+                + " AND (e.v_in = v.id AND e.v_out = " + thatTable    + ".vid)\n"
+                + " AND " + thatTable + ".step = " + (step-1) + " ;\n",
+                thisTable, thatTable, step));
+            }
         }
 
         // result consolidation
@@ -153,25 +165,6 @@ public class AmberQuery {
         return " AND e.label IN (" + StrList2Str(labels) + ") \n"; 
     }
     
-    
-    private String generateDirClause(Direction direction, String thatTable) {
-        
-        String inClause  = "";
-        String outClause = "";
-        
-        if (direction == Direction.BOTH || direction == Direction.IN) {
-            inClause  = "(e.v_out = v.id AND e.v_in = " + thatTable    + ".vid)";
-        }
-        if (direction == Direction.BOTH || direction == Direction.OUT) {
-            outClause = "(e.v_in = v.id AND e.v_out = " + thatTable    + ".vid)";
-        }
-        
-        if (direction == Direction.BOTH) {
-            return " AND (" + inClause + " OR " + outClause + ") \n";
-        }
-        return " AND " + inClause + outClause + " \n";
-    }
-
     
     public List<Vertex> execute() {
 
