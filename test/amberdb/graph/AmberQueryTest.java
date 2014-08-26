@@ -49,7 +49,6 @@ public class AmberQueryTest {
     @After
     public void teardown() {}
 
-    @Ignore
     @Test
     public void testQueryGeneration() throws Exception {
 
@@ -59,7 +58,7 @@ public class AmberQueryTest {
         AmberQuery q = graph.newQuery(heads);
 
         q.branch(Arrays.asList(new String[] {"partOf", "belongsTo"}),
-                Direction.IN);
+                Direction.BOTH);
         
         q.branch(Arrays.asList(new String[] {"isCopyOf", "belongsTo"}),
                 Direction.IN);
@@ -109,6 +108,7 @@ public class AmberQueryTest {
 
         s("Executing query");
         List<Vertex> results = q.execute();
+        assertEquals(results.size(), 333);    
         
         s("Done " + results.size());
         
@@ -119,6 +119,8 @@ public class AmberQueryTest {
         List<Vertex> pages = (List<Vertex>) book.getVertices(Direction.IN, "isPageOf");
         
         s("Number of pages: " + pages.size());
+        
+        assertEquals(pages.size(), 50);
         
         for (int i=0; i < 10; i++) {
             s("Page " + pages.get(i));
@@ -146,11 +148,16 @@ public class AmberQueryTest {
             copy.setProperty("type", "Copy");
             addRandomProps(copy, numProps);
 
-//            Vertex file = graph.addVertex(null);
-//            file.setProperty("type", "File");
-//            addRandomProps(file, numProps);
+            Vertex file = graph.addVertex(null);
+            file.setProperty("type", "File");
+            addRandomProps(file, numProps);
 
-//            file.addEdge("isFileOf", copy);
+            Vertex desc = graph.addVertex(null);
+            desc.setProperty("type", "Description");
+            addRandomProps(desc, numProps);
+
+            desc.addEdge("descriptionOf", file);
+            file.addEdge("isFileOf", copy);
             copy.addEdge("isCopyOf", page);
             Edge e = page.addEdge("isPageOf", book);
             e.setProperty("edge-order", 1000-i);
