@@ -10,8 +10,8 @@ public enum SubType {
     ARTICLE("article"),
     CHAPTER("chapter"),
     VOLUME("volume"),
+    COLLECTION("collection"),
     SERIES("series"),
-    SUBSERIES("subseries"),
     FOLDER("folder");
 
     private String code;

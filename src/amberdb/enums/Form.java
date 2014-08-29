@@ -7,7 +7,8 @@ public enum Form {
     
     BOOK("Book"), 
     JOURNAL("Journal"),
-    MULTIBOOK("Multi Volume Book");
+    MULTIBOOK("Multi Volume Book"),
+    MSCOLLECTION("Manuscript Collection");
 
     private String code;
 

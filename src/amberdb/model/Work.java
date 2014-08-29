@@ -812,6 +812,24 @@ public interface Work extends Node {
     @Property("rdsAcknowledgementReceiver")
     public void setRdsAcknowledgementReceiver(String rdsAcknowledgementReceiver);
     
+    @Property("eadUpdateReviewRequired")
+    public String getEADUpdateReviewRequired();
+    
+    @Property("eadUpdateReviewRequired")
+    public void setEADUpdateReviewRequired(String eadUpdateReviewRequired);
+    
+    @Property("folderType")
+    public String getFolderType();
+    
+    @Property("folderType")
+    public void setFolderType(String folderType);
+    
+    @Property("folderNo")
+    public String getFolderNo();
+    
+    @Property("folderNo")
+    public void setFolderNo(String folderNo);
+    
     @Adjacency(label = IsPartOf.label)
     public void setParent(final Work parent);
 
@@ -847,7 +865,7 @@ public interface Work extends Node {
     public Section asSection();
     
     @GremlinGroovy("it")
-    public Series asSeries();
+    public Collection asCollection();
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public void addCopy(final Copy copy);
