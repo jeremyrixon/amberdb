@@ -818,18 +818,34 @@ public interface Work extends Node {
     @Property("eadUpdateReviewRequired")
     public void setEADUpdateReviewRequired(String eadUpdateReviewRequired);
     
-    @Property("folderType")
-    public String getFolderType();
+    /**
+     * This property is encoded as a JSON Array - You probably want to use
+     * getFolder() to get this property.
+     */
+    @Property("folder")
+    public String getJSONFolder();
     
-    @Property("folderType")
-    public void setFolderType(String folderType);
+    /**
+     * This property is encoded as a JSON Array - You probably want to use 
+     * setFolder() to set this property.
+     */
+    @Property("folder")
+    public void setJSONFolder(String folder);
     
-    @Property("folderNo")
-    public String getFolderNo();
+    /**
+     * This method handles the JSON deserialisation of the folder property.
+     * Each folder entry is returned as <folder type>-<folder number>
+     */
+    @JavaHandler
+    public List<String> getFolder() throws JsonParseException, JsonMappingException, IOException;
     
-    @Property("folderNo")
-    public void setFolderNo(String folderNo);
-    
+    /**
+     * This method handles the JSON serialisation of the folder property.
+     * Each folder input entry should be formatted as <folder type>-<folder number>
+     */
+    @JavaHandler
+    public void setFolder(List<String> folder) throws JsonParseException, JsonMappingException, IOException;    
+
     @Adjacency(label = IsPartOf.label)
     public void setParent(final Work parent);
 
@@ -1192,6 +1208,16 @@ public interface Work extends Node {
         @Override
         public void setSeries(List<String> series) throws JsonParseException, JsonMappingException, IOException {
             setJSONSeries(serialiseToJSON(series));
+        }
+
+        @Override
+        public List<String> getFolder() throws JsonParseException, JsonMappingException, IOException {
+            return deserialiseJSONString(getJSONFolder());
+        }
+        
+        @Override
+        public void setFolder(List<String> folder) throws JsonParseException, JsonMappingException, IOException {
+            setJSONFolder(serialiseToJSON(folder));
         }
 
         @Override
