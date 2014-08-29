@@ -15,4 +15,7 @@ public interface Series extends Work {
     
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public Folder addFolder();
+    
+    @Adjacency(label = IsPartOf.label, direction = Direction.IN)
+    public Series addSubSeries();
 }

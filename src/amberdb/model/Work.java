@@ -845,6 +845,9 @@ public interface Work extends Node {
     // TODO: need to test later whether it has any existsOn outE(s)
     @GremlinGroovy("it")
     public Section asSection();
+    
+    @GremlinGroovy("it")
+    public Series asSeries();
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public void addCopy(final Copy copy);
@@ -860,9 +863,6 @@ public interface Work extends Node {
 
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public Section addSection();
-    
-    @Adjacency(label = IsPartOf.label, direction = Direction.IN)
-    public Series addSeries();
 
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public Page addPage();
