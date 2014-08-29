@@ -799,7 +799,37 @@ public interface Work extends Node {
      */
     @Property("publicNotes")
     public void setPublicNotes(String publicNotes);
-
+    
+    @Property("rdsAcknowledgementType")
+    public String getRdsAcknowledgementType();
+    
+    @Property("rdsAcknowledgementType")
+    public void setRdsAcknowledgementType(String rdsAcknowledgementType);
+    
+    @Property("rdsAcknowledgementReceiver")
+    public String getRdsAcknowledgementReceiver();
+    
+    @Property("rdsAcknowledgementReceiver")
+    public void setRdsAcknowledgementReceiver(String rdsAcknowledgementReceiver);
+    
+    @Property("eadUpdateReviewRequired")
+    public String getEADUpdateReviewRequired();
+    
+    @Property("eadUpdateReviewRequired")
+    public void setEADUpdateReviewRequired(String eadUpdateReviewRequired);
+    
+    @Property("folderType")
+    public String getFolderType();
+    
+    @Property("folderType")
+    public void setFolderType(String folderType);
+    
+    @Property("folderNo")
+    public String getFolderNo();
+    
+    @Property("folderNo")
+    public void setFolderNo(String folderNo);
+    
     @Adjacency(label = IsPartOf.label)
     public void setParent(final Work parent);
 
