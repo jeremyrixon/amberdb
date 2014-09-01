@@ -334,6 +334,25 @@ public interface Work extends Node {
     @Property("publicationCategory")
     public void setPublicationCategory(String publicationCategory);
 
+    @Property("sendToIlms")
+    public boolean hasSendToIlms();
+
+    @Property("sendToIlms")
+    public void setSendToIlms(boolean sendToIlms);
+
+    @Property("moreIlmsDetailsRequired")
+    public String getMoreIlmsDetailsRequired();
+
+    @Property("moreIlmsDetailsRequired")
+    public void setMoreIlmsDetailsRequired(String moreIlmsDetailsRequired);
+
+
+    @Property("ilmsSentDateTime")
+    public Date getIlmsSentDateTime();
+
+    @Property("ilmsSentDateTime")
+    public void setIlmsSentDateTime(Date dateTime);
+
     @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
     public GeoCoding addGeoCoding();
 
