@@ -335,16 +335,16 @@ public interface Work extends Node {
     public void setPublicationCategory(String publicationCategory);
 
     @Property("sendToIlms")
-    public boolean hasSendToIlms();
+    public Boolean getSendToIlms();
 
     @Property("sendToIlms")
-    public void setSendToIlms(boolean sendToIlms);
+    public void setSendToIlms(Boolean sendToIlms);
 
     @Property("moreIlmsDetailsRequired")
-    public String getMoreIlmsDetailsRequired();
+    public Boolean getMoreIlmsDetailsRequired();
 
     @Property("moreIlmsDetailsRequired")
-    public void setMoreIlmsDetailsRequired(String moreIlmsDetailsRequired);
+    public void setMoreIlmsDetailsRequired(Boolean moreIlmsDetailsRequired);
 
 
     @Property("ilmsSentDateTime")
