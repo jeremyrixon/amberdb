@@ -126,5 +126,5 @@ public interface ImageFile extends File {
     public String getZoomLevel();
     
     @Property("zoomLevel")
-    public void setZoomLevel(String zoomLevel);
+    public void setZoomLevel(String zoomLevel);   
 }
