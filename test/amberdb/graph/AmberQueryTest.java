@@ -88,7 +88,7 @@ public class AmberQueryTest {
         s("Book 1");
         Vertex book1 = makeBook("AA", 50, 10);
         s("Book 2");
-        Vertex book2 = makeBook("BB", 2, 0);
+        Vertex book2 = makeBook("BB", 50, 0);
         s("Book 3");
         Vertex book3 = makeBook("CC", 30, 10);
 
@@ -103,9 +103,9 @@ public class AmberQueryTest {
         graph.clear();
         
         List<Long> heads = new ArrayList<Long>();
-//        heads.add((Long) book1.getId());
+        heads.add((Long) book1.getId());
         heads.add((Long) book2.getId());
-//        heads.add((Long) book3.getId());
+        //heads.add((Long) book3.getId());
         
         s("Preparing query...");
         AmberQuery q = graph.newQuery(heads);
@@ -124,37 +124,16 @@ public class AmberQueryTest {
         s("MILLIS TO RUN: " + (now.getTime() - then.getTime()));
         
         s("Size: " + results.size());
-        for (Vertex v : results) {
-            s(""+v);
-        }
         graph.setLocalMode(true);
-        s("++ EDGES +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        for (Edge e : graph.getEdges()) {
-            s(""+e);
-        }
-        s("++ VERTS +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        for (Vertex v : graph.getVertices()) {
-            s(""+v);
-        }
         
         
-//        assertEquals(results.size(), 333);    
-//        
-//        s("Done " + results.size());
-//        
-//        s("Getting book bits ...");
-//        
-//        Vertex book = graph.getVertex(book2Id);
-//        
-//        List<Vertex> pages = (List<Vertex>) book.getVertices(Direction.IN, "isPageOf");
-//        
-//        s("Number of pages: " + pages.size());
-//        
-//        assertEquals(pages.size(), 50);
-//        
-//        for (int i=0; i < 10; i++) {
-//            s("Page " + pages.get(i));
-//        }
+        assertEquals(results.size(), 706);    
+        s("Done " + results.size());
+        s("Getting book bits ...");
+        Vertex book = graph.getVertex(book2.getId());
+        List<Vertex> pages = (List<Vertex>) book.getVertices(Direction.IN, "isPartOf");
+        s("Number of pages and one section: " + pages.size());
+        assertEquals(pages.size(), 51);
     }
     
     
