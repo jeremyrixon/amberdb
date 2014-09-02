@@ -54,7 +54,7 @@ public abstract class LookupsSchema {
     
     @SqlUpdate(
             "CREATE INDEX lookups_name_code_idx "
-            + "ON lookups(name, code, deleted)")
+            + "ON lookups(name, code(100), deleted)")
     public abstract void createLookupsNameCodeIndex();
     
     @SqlUpdate(
