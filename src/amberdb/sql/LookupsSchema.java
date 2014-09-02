@@ -18,7 +18,7 @@ public abstract class LookupsSchema {
             "CREATE TABLE IF NOT EXISTS lookups ("
             + "id        bigint(11) PRIMARY KEY AUTO_INCREMENT, "
             + "name      varchar(50), "
-            + "code      varchar(255), "
+            + "code      varchar(100), "
             + "value     varchar(255), "
             + "deleted   varchar(1) default 'N' )")
     public abstract void createLookupTable();
@@ -54,7 +54,7 @@ public abstract class LookupsSchema {
     
     @SqlUpdate(
             "CREATE INDEX lookups_name_code_idx "
-            + "ON lookups(name, code(100), deleted)")
+            + "ON lookups(name, code, deleted)")
     public abstract void createLookupsNameCodeIndex();
     
     @SqlUpdate(
