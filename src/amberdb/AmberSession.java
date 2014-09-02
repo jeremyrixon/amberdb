@@ -455,7 +455,9 @@ public class AmberSession implements AutoCloseable {
     
     
     /**
-     * Get the ids of objects that have been modified since a given time.
+     * Get the ids of objects that have been modified since a given time. If an
+     * edge has been modified, then both its connected objects (vertices) are
+     * returned
      * 
      * @param when
      *            time of first modifications to be included
