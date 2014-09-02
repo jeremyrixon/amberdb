@@ -3,7 +3,17 @@ package amberdb.version;
 
 import java.util.Set;
 
-
+/**
+ * A class that represents the difference between 2 elements (edges or vertices)
+ * 
+ * This class needs to be split into 2:
+ * 
+ * A class that represents the difference between 2 arbitrary elements and a
+ * specialization class that represents the difference between the same element
+ * at different transactions.
+ *
+ * Anyway, as it stands they are currently the one class ... this one. 
+ */
 public class TElementDiff {
 
     TElement elem1;
@@ -20,7 +30,7 @@ public class TElementDiff {
             return;
         }
         if (elem1 == null) {
-            if (elem2.id.end > 0L && elem2.id.end == txn2) {
+            if (elem2.id.end.compareTo(0L) > 0 && elem2.id.end.equals(txn2)) {
                 transition = TTransition.UNCHANGED;
             } else {
                 transition = TTransition.NEW;
@@ -28,7 +38,7 @@ public class TElementDiff {
             return;
         }
         if (elem2 == null) {
-            if (elem1.id.end > 0L && ((elem1.id.end == txn2 && elem1.id.start != txn1) || (elem1.id.end == txn1))) {
+            if (elem1.id.end.compareTo(0L) > 0 && ((elem1.id.end.equals(txn2) && !elem1.id.start.equals(txn1)) || (elem1.id.end.equals(txn1)))) {
                 transition = TTransition.UNCHANGED;
             } else {
                 transition = TTransition.DELETED;
@@ -36,7 +46,7 @@ public class TElementDiff {
             return;
         }
         if (elem1.equals(elem2)) {
-            if (elem1.id.start == txn1 && elem1.id.end == txn2) {
+            if (elem1.id.start.equals(txn1) && elem1.id.end.equals(txn2)) {
                 transition = TTransition.DELETED;
             } else {
                 transition = TTransition.UNCHANGED;
@@ -110,7 +120,12 @@ public class TElementDiff {
         return sb.toString();
     }
     
-    
+
+    /**
+     * @return true if the element popped into existence after the first txn but
+     *         was deleted before the second txn. Thus this element is null at
+     *         both txns.
+     */
     public boolean isTransient() {
         if (elem1 == null && elem2 == null) {
             return true;

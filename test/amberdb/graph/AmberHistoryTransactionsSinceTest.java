@@ -35,6 +35,8 @@ import amberdb.model.Copy;
 import amberdb.model.File;
 import amberdb.model.Page;
 import amberdb.model.Work;
+import amberdb.version.VersionedGraph;
+import amberdb.version.VersionedVertex;
 
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
@@ -84,7 +86,7 @@ public class AmberHistoryTransactionsSinceTest {
         
         // check we get them all back again
         AmberHistory ah = new AmberHistory(graph);
-        Map<Long, String> vSince = ah.modifiedSince(now);
+        Map<Long, String> vSince = ah.getModifiedObjectIds(now);
         assertEquals(100, vSince.size());
         //for (Long key : vSince.keySet()) { s(""+key+":"+vSince.get(key)); }
 
@@ -111,12 +113,12 @@ public class AmberHistoryTransactionsSinceTest {
         }
 
         // check for no change before commit
-        assertEquals(0, ah.modifiedSince(now).size());
+        assertEquals(0, ah.getModifiedObjectIds(now).size());
         
         // don't forget to commit
         graph.commit("test", "modified 80");
         
-        vSince = ah.modifiedSince(now);
+        vSince = ah.getModifiedObjectIds(now);
         
         int vNew = 0;
         int vMod = 0;
@@ -126,10 +128,10 @@ public class AmberHistoryTransactionsSinceTest {
             if (state.equals("NEW")) {
                 vNew++;
             } 
-            if (state.equals("MOD")) {
+            if (state.equals("MODIFIED")) {
                 vMod++;
             }
-            if (state.equals("DEL")) {
+            if (state.equals("DELETED")) {
                 vDel++;
             }
         }
@@ -148,14 +150,14 @@ public class AmberHistoryTransactionsSinceTest {
         s("TS:" + now.getTime());
         
         // now add some edges
-//        for (int i = 50; i < 60; i++) {
-//            graph.addEdge(null, graph.getVertex(vertIds.get(i)), graph.getVertex(vertIds.get(i+10)), "link"+i);
-//        }
-//        graph.commit("test", "rel test");    
-//
-//        vSince = ah.modifiedSince(now);
-//        for (Long key : vSince.keySet()) { s(""+key+":"+vSince.get(key)); }
-//        assertEquals(20, vSince.size());
+        for (int i = 50; i < 60; i++) {
+            graph.addEdge(null, graph.getVertex(vertIds.get(i)), graph.getVertex(vertIds.get(i+10)), "link"+i);
+        }
+        graph.commit("test", "rel test");    
+
+        vSince = ah.getModifiedObjectIds(now);
+        for (Long key : vSince.keySet()) { s(""+key+":"+vSince.get(key)); }
+        assertEquals(20, vSince.size());
     }        
 
     
@@ -194,7 +196,7 @@ public class AmberHistoryTransactionsSinceTest {
         aGraph.commit("test", "commit book");
 
         // Check we get all the bits of the work we want
-        Map<Long, String> changed = sess.getModifiedVertexIds(now);
+        Map<Long, String> changed = sess.getModifiedObjectIds(now);
         assertThat(changed.size(), is (101));
         
         now = new Date();
@@ -210,7 +212,7 @@ public class AmberHistoryTransactionsSinceTest {
 
         aGraph.clear();
         
-        changed = sess.getModifiedVertexIds(now);
+        changed = sess.getModifiedObjectIds(now);
         assertThat(changed.size(), is (2));
 
         
@@ -234,7 +236,7 @@ public class AmberHistoryTransactionsSinceTest {
         aGraph.clear();
         
         
-        changed = sess.getModifiedVertexIds(now);
+        changed = sess.getModifiedObjectIds(now);
         assertEquals(16, changed.size()); // 1 for title modification, 3 x 5 per page (1 page, 2 copies and 2 files) deletions
     }
     
@@ -285,16 +287,18 @@ public class AmberHistoryTransactionsSinceTest {
         
         aGraph.commit();
         
-        Vertex newly = history.getLastVertex(fId);
+        VersionedGraph vg = history.getVersionedGraph();
         
-        List<Long> deletedParent = history.followLastEdges((Long) newly.getId(), "e-f", Direction.IN);
-        Long parentId = deletedParent.get(0);
-        Vertex parent = history.getLastVertex(parentId);
+        VersionedVertex newly = vg.getVertex(fId);
+        
+        List<VersionedVertex> deletedParent = (List<VersionedVertex>) newly.getVertices(Direction.IN, "e-f");
+        VersionedVertex parent = deletedParent.get(0);
         s("parent " + parent);
-        assertEquals(parent, e);
-        List<Long> deletedGrandParent = history.followLastEdges(parentId, "b-e", Direction.IN);
-        Vertex grandParent = history.getLastVertex(deletedGrandParent.get(0));
-        assertEquals(grandParent, b);
+        assertEquals(parent.getId(), e.getId());
+        List<VersionedVertex> deletedGrandParent = (List<VersionedVertex>) parent.getVertices(Direction.IN, "b-e");
+
+        VersionedVertex grandParent = deletedGrandParent.get(0);
+        assertEquals(grandParent.getId(), b.getId());
         s("grand parent " + grandParent);
     }        
     

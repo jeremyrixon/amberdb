@@ -6,14 +6,11 @@ import java.io.IOException;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.sql.DataSource;
 
-import javassist.tools.rmi.ObjectNotFoundException;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.h2.Driver;
@@ -36,12 +33,7 @@ import amberdb.sql.Lookups;
 import amberdb.sql.LookupsSchema;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberHistory;
-import amberdb.graph.Node;
-import amberdb.version.TDiffException;
-import amberdb.version.TTransition;
-import amberdb.version.TVertexDiff;
 
-import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.TransactionalGraph;
 import com.tinkerpop.blueprints.Vertex;
@@ -346,20 +338,7 @@ public class AmberSession implements AutoCloseable {
      * @param work
      */
     public void deletePage(final Page page) {
-        page.getParent().removePart(page);
-        Iterable<Copy> copies = page.getCopies();
-        if (copies != null) {
-            for (Copy copy : copies) {
-                File file = copy.getFile();
-                if (file != null) {
-                    copy.removeFile(file);
-                    graph.removeVertex(file.asVertex());
-                }
-                page.removeCopy(copy);
-                graph.removeVertex(copy.asVertex());
-            }
-            graph.removeVertex(page.asVertex());
-        }
+        deleteWork(page);
     }    
     
     
@@ -475,237 +454,17 @@ public class AmberSession implements AutoCloseable {
     }
     
     
-//    public Map<Long, String> getModifiedVertexIds(Date since) {
-//
-//        Map<Long, String> modVerts = new HashMap<>();
-//        AmberHistory history = getAmberHistory();
-//        Set<TVertexDiff> changedVertices = history.getModifiedVerticesSince(since);
-//        for (TVertexDiff diff : changedVertices) {
-//            modVerts.put((Long) diff.getId()[0].getId(), diff.getTransition().toString());
-//        }
-//        return modVerts;
-//    }       
-
-
     /**
-     * Horrible horrible method. I promise it and all its mutated ilk will
-     * be replaced once history is implemented sanely.
+     * Get the ids of objects that have been modified since a given time.
      * 
-     * In othr words:
-     * 
-     * My sincere apologies for this crass-bucket of munted smegma
-     * 
-     * @param when get modifications made after this time
-     * @return smegma ?
+     * @param when
+     *            time of first modifications to be included
+     * @return a map of object ids and how they changed
      */
-    public Map<Long, String> getModifiedWorkIds(Date when) {
-
-        Map<Long, String> modifiedIds = new HashMap<Long,String>();
-        
-        AmberHistory history = getAmberHistory();
-        Set<TVertexDiff> diffs = history.getModifiedVerticesSince(when);
-        
-        for (TVertexDiff diff : diffs) {
-
-            // how it's been modified
-            TTransition change = diff.getTransition();
-            //String how = modIds.get(id);
-            
-            // Get the Vertex whether deleted or not 
-            //Vertex v = history.getLastVertex(id);
-
-            Object tObj = diff.getProperty("type");
-            // if type changes then skip (type should not change)
-            if (tObj == null || tObj instanceof Object[]) continue; 
-            String type = (String) tObj;
-            
-            switch (type) {
-            case "File":
-            case "ImageFile":
-            case "SoundFile":
-
-                // get the associated page and work
-                Long p = pageIdFromFileId(id);
-                Long w = workIdFromPartId(p);
-                
-                modifiedIds.put(p, how + ":Page");
-                if (modifiedIds.get(w) == null) {
-                    if (w == null) {
-                        System.out.println("Failed to get work from :" + v + ": no isPartOf edge for:" + p);
-                    } else {
-                        modifiedIds.put(w, "MOD:Work");
-                    }
-                }
-                break;
-                
-            case "Copy": 
-            case "Node":
-                continue;
-                
-            case "Page":
-                modifiedIds.put(id, how + ":Page");
-                w = workIdFromPartId(id);
-                String prevHow = modifiedIds.get(w);
-                if (prevHow == null) {
-                    modifiedIds.put(w, "MOD:Work");
-                }
-                break;
-                
-            case "Section": // article, chapter
-                
-                modifiedIds.put(id, how + ":Section");
-                // get pages and work
-                w = workIdFromPartId(id);
-                prevHow = modifiedIds.get(w);
-                if (prevHow == null || !prevHow.equals("DEL")) {
-                    modifiedIds.put(w, how + ":Work");
-                }
-                List<Long> ps = pageIdsFromSection(id);
-                for (Long pId : ps) {
-                    modifiedIds.put(pId, "MOD:Page");
-                }
-                break;
-                
-            case "Work":
-                prevHow = modifiedIds.get(id);
-                if (prevHow == null || !prevHow.equals("DEL")) {
-                    modifiedIds.put(id, how + ":Work");
-                }
-                break;
-                
-            default:
-                System.out.println("Unknown vertex type ignored :" + v);
-                continue;
-            }
-        }
-        return null;
+    public Map<Long, String> getModifiedObjectIds(Date when) {
+        return getAmberHistory().getModifiedObjectIds(when);
     }
-
     
-//    /**
-//     * Horrible horrible method. I promise it and all its mutated ilk will
-//     * be replaced once history is implemented sanely.
-//     * 
-//     * In othr words:
-//     * 
-//     * My sincere apologies for this crass-bucket of munted smegma
-//     * 
-//     * @param since get modifications made after this time
-//     * @return smegma ?
-//     */
-//    public Map<Long, String> getModifiedWorkIds(Date since) {
-//
-//        Map<Long, String> modifiedIds = new HashMap<Long,String>();
-//        Map<Long, String> modIds = getModifiedVertexIds(since);
-//        
-//        AmberHistory history = getAmberHistory();
-//        
-//        for (Long id : modIds.keySet()) {
-//
-//            // how it's been modified
-//            String how = modIds.get(id);
-//            
-//            // Get the Vertex whether deleted or not 
-//            Vertex v = history.getLastVertex(id);
-//
-//            // cast to the the type we want
-//            String vType = (String) v.getProperty("type");
-//            if (vType == null) vType="";
-//            switch (vType) {
-//            
-//            case "File":
-//            case "ImageFile":
-//                // get the associated page and work
-//                Long p = pageIdFromFileId(id);
-//                Long w = workIdFromPartId(p);
-//                
-//                modifiedIds.put(p, how + ":Page");
-//                if (modifiedIds.get(w) == null) {
-//                    if (w == null) {
-//                        System.out.println("Failed to get work from :" + v + ": no isPartOf edge for:" + p);
-//                    } else {
-//                        modifiedIds.put(w, "MOD:Work");
-//                    }
-//                }
-//                break;
-//                
-//            case "Copy": 
-//                //System.out.println("Modified Copy ignored :" + v);
-//                continue;
-//                
-//            case "Node":
-//                //System.out.println("Modified Node ignored :" + v);
-//                continue;
-//                
-//            case "Page":
-//                modifiedIds.put(id, how + ":Page");
-//                w = workIdFromPartId(id);
-//                String prevHow = modifiedIds.get(w);
-//                if (prevHow == null) {
-//                    modifiedIds.put(w, "MOD:Work");
-//                }
-//                break;
-//                
-//            case "Section": // article, chapter
-//                
-//                modifiedIds.put(id, how + ":Section");
-//                // get pages and work
-//                w = workIdFromPartId(id);
-//                prevHow = modifiedIds.get(w);
-//                if (prevHow == null || !prevHow.equals("DEL")) {
-//                    modifiedIds.put(w, how + ":Work");
-//                }
-//                List<Long> ps = pageIdsFromSection(id);
-//                for (Long pId : ps) {
-//                    modifiedIds.put(pId, "MOD:Page");
-//                }
-//                break;
-//                
-//            case "Work":
-//                prevHow = modifiedIds.get(id);
-//                if (prevHow == null || !prevHow.equals("DEL")) {
-//                    modifiedIds.put(id, how + ":Work");
-//                }
-//                break;
-//                
-//            default:
-//                System.out.println("Unknown vertex type ignored :" + v);
-//                continue;
-//            }
-//        }
-//        return modifiedIds;
-//    }
-//    
-    
-//    private Long pageIdFromFileId(Long fileId) {
-//        // assuming only 1 copy per file and 1 page per copy
-//        AmberHistory history = getAmberHistory();
-//        List<Long> ids = history.followLastEdges(fileId, "isFileOf", Direction.OUT);
-//        if (ids.size() < 1) 
-//            return null;
-//        Long copyId = ids.get(0);
-//        ids = history.followLastEdges(copyId, "isCopyOf", Direction.OUT);
-//        if (ids.size() < 1) 
-//            return null;
-//        return ids.get(0);
-//    }
-//
-//    
-//    private Long workIdFromPartId(Long pageId) {
-//        // assuming only 1 work per part (page, section) - (really not a good permanent assumption)
-//        AmberHistory history = getAmberHistory();
-//        List<Long> ids = history.followLastEdges(pageId, "isPartOf", Direction.OUT);
-//        if (ids.size() < 1)
-//            return null;
-//        return ids.get(0);
-//    }
-//
-//
-//    private List<Long> pageIdsFromSection(Long sectionId) {
-//        AmberHistory history = getAmberHistory();
-//        return history.followLastEdges(sectionId, "existsOn", Direction.OUT);
-//    }
-
 
     public AmberHistory getAmberHistory() {
         return new AmberHistory(getAmberGraph());
