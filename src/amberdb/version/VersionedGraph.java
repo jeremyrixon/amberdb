@@ -46,6 +46,43 @@ public class VersionedGraph {
         return localMode;
     }
     
+
+    public VersionedVertex removeVertex(Long id) {
+        
+        VersionedVertex v = graphVertices.remove(id);
+        if (v != null) {
+            Set<VersionedEdge> edges;
+            edges = inEdgeSets.remove(id);
+            if (edges != null) {
+                for (VersionedEdge edge : edges) {
+                    graphEdges.remove(edge.getId());
+                }
+            }
+            edges = outEdgeSets.remove(id);
+            if (edges != null) {
+                for (VersionedEdge edge : edges) {
+                    graphEdges.remove(edge.getId());
+                }
+            }
+        }
+        return v;
+    }
+
+    
+    public VersionedEdge removeEdge(Long id) {
+        
+        VersionedEdge e = graphEdges.remove(id);
+        if (e != null) {
+            for (Set<VersionedEdge> set : inEdgeSets.values()) {
+                set.remove(e);
+            }
+            for (Set<VersionedEdge> set : outEdgeSets.values()) {
+                set.remove(e);
+            }
+        }
+        return e;
+    }
+
     
     public VersionedGraph() {
         initGraph(DEFAULT_DATASOURCE);

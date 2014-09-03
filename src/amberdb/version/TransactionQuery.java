@@ -9,9 +9,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.skife.jdbi.v2.Handle;
-import org.skife.jdbi.v2.util.LongMapper;
-
-import amberdb.graph.AmberProperty;
 
 
 public class TransactionQuery {
@@ -146,11 +143,15 @@ public class TransactionQuery {
 
     public String generateTransactionQuery() {
 
-        String txnWhereClause = null;
+        String txnWhereClause1 = null;
+        String txnWhereClause2 = null;
+
         if (lastTxn == null) {
-            txnWhereClause = "WHERE (txn_start = %1$d OR txn_end <= %1$d) \n";
+            txnWhereClause1 = "WHERE (txn_start = "+firstTxn+") \n";
+            txnWhereClause2 = "WHERE (txn_end <= "+firstTxn+") \n";
         } else {
-            txnWhereClause = "WHERE ((txn_start >= %1$d AND txn_start <= %2$d) OR (txn_end >= %1$d AND txn_end <= %2$d)) \n";
+            txnWhereClause1 = "WHERE (txn_start >= "+firstTxn+" AND txn_start <= "+lastTxn+") \n";
+            txnWhereClause2 = "WHERE (txn_end >= "+firstTxn+" AND txn_end <= "+lastTxn+") \n";
         }
         
         StringBuilder s = new StringBuilder();
@@ -160,19 +161,23 @@ public class TransactionQuery {
         s.append("CREATE TEMPORARY TABLE v0 (id BIGINT);\n");
         s.append("CREATE TEMPORARY TABLE e0 (id BIGINT);\n");
         
-        s.append(String.format(
-                "INSERT INTO v0 (id) \n"
-              + "SELECT id \n"
-              + "FROM vertex \n"
-              + txnWhereClause + ";\n",
-              firstTxn, lastTxn));
+        s.append("INSERT INTO v0 (id) \n"
+               + "SELECT id \n"
+               + "FROM vertex \n"
+               + txnWhereClause1 + ";\n");
+        s.append("INSERT INTO v0 (id) \n"
+               + "SELECT id \n"
+               + "FROM vertex \n"
+               + txnWhereClause2 + ";\n");
         
-        s.append(String.format(
-                "INSERT INTO e0 (id) \n"
-              + "SELECT id \n"
-              + "FROM edge \n" 
-              + txnWhereClause + ";\n",
-              firstTxn, lastTxn));
+        s.append("INSERT INTO e0 (id) \n"
+               + "SELECT id \n"
+               + "FROM edge \n" 
+               + txnWhereClause1 + ";\n");
+        s.append("INSERT INTO e0 (id) \n"
+               + "SELECT id \n"
+               + "FROM edge \n" 
+               + txnWhereClause2 + ";\n");
 
         return s.toString();
     }
@@ -193,47 +198,81 @@ public class TransactionQuery {
 
     
     public String makeDescriptionsQuery() {
-        String txnWhereClause = null;
+
+        String txnWhereClause1 = null;
+        String txnWhereClause2 = null;
+        
         if (lastTxn == null) {
-            txnWhereClause = "WHERE (v.txn_start = %1$d OR v.txn_end <= %1$d) \n";
+            txnWhereClause1 = "WHERE (v.txn_start = "+firstTxn+") \n";
+            txnWhereClause2 = "WHERE (v.txn_end <= "+firstTxn+") \n";
         } else {
-            txnWhereClause = "WHERE ((v.txn_start >= %1$d AND v.txn_start <= %2$d) " +
-                             "OR (v.txn_end >= %1$d AND v.txn_end <= %2$d)) \n";
+            txnWhereClause1 = "WHERE (v.txn_start >= "+firstTxn+" AND v.txn_start <= "+lastTxn+") \n";
+            txnWhereClause2 = "WHERE (v.txn_end >= "+firstTxn+" AND v.txn_end <= "+lastTxn+") \n";
         }
         
         StringBuilder s = new StringBuilder();
-        s.append(String.format(
-                "INSERT INTO d0 (id) \n"
-              + "SELECT DISTINCT v.id \n"
-              + "FROM vertex v, property p \n"
-              +  txnWhereClause 
-              + "AND v.id = p.id \n"
-              + "AND p.name = 'type' \n"
-              + "AND p.value IN (:desc1,:desc2,:desc3,:desc4); \n",
-              firstTxn, lastTxn));
+        s.append("INSERT INTO d0 (id) \n"
+               + "SELECT DISTINCT v.id \n"
+               + "FROM vertex v, property p \n"
+               +  txnWhereClause1 
+               + "AND v.id = p.id \n"
+               + "AND p.name = 'type' \n"
+               + "AND p.value IN (" 
+               + toHex("Description") + ", " 
+               + toHex("IPTC") + ", " 
+               + toHex("GeoCoding") + ", " 
+               + toHex("CameraData") + "); \n");
+        
+        s.append("INSERT INTO d0 (id) \n"
+               + "SELECT DISTINCT v.id \n"
+               + "FROM vertex v, property p \n"
+               +  txnWhereClause2 
+               + "AND v.id = p.id \n"
+               + "AND p.name = 'type' \n"
+               + "AND p.value IN (" 
+               + toHex("Description") + ", " 
+               + toHex("IPTC") + ", " 
+               + toHex("GeoCoding") + ", " 
+               + toHex("CameraData") +"); \n");
         return s.toString();
     }
 
     
     public String makeFilesQuery() {
-        String txnWhereClause = null;
+
+        String txnWhereClause1 = null;
+        String txnWhereClause2 = null;
+
         if (lastTxn == null) {
-            txnWhereClause = "WHERE (v.txn_start = %1$d OR v.txn_end <= %1$d) \n";
+            txnWhereClause1 = "WHERE (v.txn_start = "+firstTxn+") \n";
+            txnWhereClause2 = "WHERE (v.txn_end <= "+firstTxn+") \n";
         } else {
-            txnWhereClause = "WHERE ((v.txn_start >= %1$d AND v.txn_start <= %2$d) " +
-                             "OR (v.txn_end >= %1$d AND v.txn_end <= %2$d)) \n";
+            txnWhereClause1 = "WHERE (v.txn_start >= "+firstTxn+" AND v.txn_start <= "+lastTxn+") \n";
+            txnWhereClause2 = "WHERE (v.txn_end >= "+firstTxn+" AND v.txn_end <= "+lastTxn+") \n";
         }
-        
+
         StringBuilder s = new StringBuilder();
-        s.append(String.format(
-                "INSERT INTO f0 (id) \n"
-              + "SELECT DISTINCT v.id \n"
-              + "FROM vertex v, property p \n"
-              +  txnWhereClause
-              + "AND v.id = p.id \n"
-              + "AND p.name = 'type' \n"
-              + "AND p.value IN (:file1, :file2, :file3); \n",
-              firstTxn, lastTxn));
+        s.append("INSERT INTO f0 (id) \n"
+               + "SELECT DISTINCT v.id \n"
+               + "FROM vertex v, property p \n"
+               +  txnWhereClause1
+               + "AND v.id = p.id \n"
+               + "AND p.name = 'type' \n"
+               + "AND cast(p.value as char(100)) IN (" 
+               + toHex("File") + ", " 
+               + toHex("ImageFile") + ", " 
+               + toHex("SoundFile") + "); \n");
+        
+        s.append("INSERT INTO f0 (id) \n"
+               + "SELECT DISTINCT v.id \n"
+               + "FROM vertex v, property p \n"
+               +  txnWhereClause2
+               + "AND v.id = p.id \n"
+               + "AND p.name = 'type' \n"
+               + "AND cast(p.value as char(100)) IN (" 
+               + toHex("File") + ", " 
+               + toHex("ImageFile") + ", " 
+               + toHex("SoundFile") + "); \n");
         return s.toString();
     }
 
@@ -263,22 +302,22 @@ public class TransactionQuery {
         try (Handle h = graph.dbi().open()) {
             h.begin();
             h.execute(makeTempTablesQuery());
-            h.createStatement(makeDescriptionsQuery())
-                    .bind("desc1", AmberProperty.encode("Description"))
-                    .bind("desc2", AmberProperty.encode("IPTC"))
-                    .bind("desc3", AmberProperty.encode("GeoCoding"))
-                    .bind("desc4", AmberProperty.encode("CameraData"))
-                    .execute();
-            h.createStatement(makeFilesQuery())
-                    .bind("file1", AmberProperty.encode("File"))
-                    .bind("file2", AmberProperty.encode("ImageFile"))
-                    .bind("file3", AmberProperty.encode("SoundFile"))
-                    .execute();
+            h.createStatement(makeDescriptionsQuery()).execute();
+            h.createStatement(makeFilesQuery()).execute();
             h.createStatement(makeDescriptFilesCopiesQuery()).execute();
             h.commit();            
             // and reap the rewards
             copyVertices = getVertices(h, graph, getPropertyMaps(h, "c0"), "c0");
         }
         return copyVertices;
+    }
+    
+    
+    private String toHex(String s) {
+        StringBuilder sb = new StringBuilder("x'");
+        for (byte b : s.getBytes()) {
+            sb.append(String.format("%02X", b));
+        }
+        return sb.append("'").toString();
     }
 }

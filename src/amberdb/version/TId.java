@@ -61,4 +61,19 @@ public class TId implements Comparable<TId> {
         if (end > o.end) return -1; 
         return 0;
     }
+
+
+    public Long getId() {
+        return id;
+    }
+
+
+    public Long getStart() {
+        return start;
+    }
+
+
+    public Long getEnd() {
+        return end;
+    }
 }
