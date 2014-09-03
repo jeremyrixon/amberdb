@@ -9,7 +9,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -368,6 +367,10 @@ public interface Work extends Node {
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * getSeries to get this property
+     * 
+     * NOTE: this property should not be used to retrieve manuscript series
+     *       from EAD.  For EAD related work properties, please refer to 
+     *       amberdb.facade.EADWork class.
      */
     @Property("series")
     public String getJSONSeries();
@@ -375,6 +378,10 @@ public interface Work extends Node {
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * setSeries to set this property
+     *      
+     * NOTE: this property should not be used to populate manuscript series
+     *       from EAD. For EAD related work properties, please refer to 
+     *       amberdb.facade.EADWork class.
      */
     @Property("series")
     public void setJSONSeries(String series);
@@ -385,6 +392,10 @@ public interface Work extends Node {
      * @throws IOException
      * @throws JsonMappingException
      * @throws JsonParseException
+     * 
+     * NOTE: this property should not be used to populate manuscript series
+     *       from EAD. For EAD related work properties, please refer to 
+     *       amberdb.facade.EADWork class.
      */
     @JavaHandler
     public void setSeries(List<String> series) throws JsonParseException, JsonMappingException, IOException;
@@ -395,6 +406,10 @@ public interface Work extends Node {
      * @throws IOException
      * @throws JsonMappingException
      * @throws JsonParseException
+     * 
+     * NOTE: this property should not be used to retrieve manuscript series
+     *       from EAD.  For EAD related work properties, please refer to 
+     *       amberdb.facade.EADWork class.
      */
     @JavaHandler
     public List<String> getSeries() throws JsonParseException, JsonMappingException, IOException;
@@ -898,9 +913,6 @@ public interface Work extends Node {
     // TODO: need to test later whether it has any existsOn outE(s)
     @GremlinGroovy("it")
     public Section asSection();
-    
-    @GremlinGroovy("it")
-    public Collection asCollection();
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public void addCopy(final Copy copy);
