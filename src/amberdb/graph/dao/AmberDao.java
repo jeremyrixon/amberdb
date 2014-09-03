@@ -226,37 +226,57 @@ public interface AmberDao extends Transactional<AmberDao> {
     AmberTransaction getTransaction(@Bind("id") Long id);
     
     
-    @SqlQuery("SELECT DISTINCT t.id, t.time, t.user, t.operation "
+    @SqlQuery("(SELECT DISTINCT t.id, t.time, t.user, t.operation "
             + "FROM transaction t, vertex v "
             + "WHERE v.id = :id "
-            + "AND (t.id = v.txn_start OR t.id = v.txn_end) "
+            + "AND t.id = v.txn_start) "
+            + "UNION "
+            + "(SELECT DISTINCT t.id, t.time, t.user, t.operation "
+            + "FROM transaction t, vertex v "
+            + "WHERE v.id = :id "
+            + "AND t.id = v.txn_end) "
             + "ORDER BY t.id")
     @Mapper(TransactionMapper.class)
     List<AmberTransaction> getTransactionsByVertexId(@Bind("id") Long id);
     
     
-    @SqlQuery("SELECT DISTINCT t.id, t.time, t.user, t.operation "
-            + "FROM transaction t, edge v "
+    @SqlQuery("(SELECT DISTINCT t.id, t.time, t.user, t.operation "
+            + "FROM transaction t, edge e "
             + "WHERE e.id = :id "
-            + "AND (t.id = e.txn_start OR t.id = e.txn_end) "
+            + "AND t.id = e.txn_start) "
+            + "UNION "
+            + "(SELECT DISTINCT t.id, t.time, t.user, t.operation "
+            + "FROM transaction t, edge e "
+            + "WHERE e.id = :id "
+            + "AND t.id = e.txn_end) "
             + "ORDER BY t.id")
     @Mapper(TransactionMapper.class)
     List<AmberTransaction> getTransactionsByEdgeId(@Bind("id") Long id);
     
     
-    @SqlQuery("SELECT DISTINCT v.id, v.txn_start, v.txn_end, 'AMB' "
+    @SqlQuery("(SELECT DISTINCT v.id, v.txn_start, v.txn_end, 'AMB' "
             + "FROM transaction t, vertex v "
             + "WHERE t.id = :id "
-            + "AND (v.txn_start = t.id OR e.txn_end = t.id) "
+            + "AND v.txn_start = t.id) "
+            + "UNION "
+            + "(SELECT DISTINCT v.id, v.txn_start, v.txn_end, 'AMB' "
+            + "FROM transaction t, vertex v "
+            + "WHERE t.id = :id "
+            + "AND v.txn_end = t.id) "
             + "ORDER BY t.id")
     @Mapper(VertexMapper.class)
     List<AmberVertexWithState> getVerticesByTransactionId(@Bind("id") Long id);
     
 
-    @SqlQuery("SELECT DISTINCT e.id, e.txn_start, e.txn_end, e.v_out, e.v_in, e.label, e.edge_order, 'AMB' "
+    @SqlQuery("(SELECT DISTINCT e.id, e.txn_start, e.txn_end, e.v_out, e.v_in, e.label, e.edge_order, 'AMB' "
             + "FROM transaction t, edge e "
             + "WHERE t.id = :id "
-            + "AND (e.txn_start = t.id OR e.txn_end = t.id) "
+            + "AND e.txn_start = t.id) "
+            + "UNION "
+            + "(SELECT DISTINCT e.id, e.txn_start, e.txn_end, e.v_out, e.v_in, e.label, e.edge_order, 'AMB' "
+            + "FROM transaction t, edge e "
+            + "WHERE t.id = :id "
+            + "AND e.txn_end = t.id) "
             + "ORDER BY t.id")
     @Mapper(EdgeMapper.class)
     List<AmberEdgeWithState> getEdgesByTransactionId(@Bind("id") Long id);
@@ -313,14 +333,26 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "SELECT id, s_id, 0, v_out, v_in, label, edge_order "
             + "FROM sess_edge "
             + "WHERE s_id = @txn "
-            + "AND (state = 'NEW' OR state = 'MOD');\n"
+            + "AND state = 'NEW';\n"
+
+            + "INSERT INTO edge (id, txn_start, txn_end, v_out, v_in, label, edge_order) "
+            + "SELECT id, s_id, 0, v_out, v_in, label, edge_order "
+            + "FROM sess_edge "
+            + "WHERE s_id = @txn "
+            + "AND state = 'MOD';\n"
 
             // vertices            
             + "INSERT INTO vertex (id, txn_start, txn_end) "
             + "SELECT id, s_id, 0 "
             + "FROM sess_vertex "
             + "WHERE s_id = @txn "
-            + "AND (state = 'NEW' OR state = 'MOD');\n"
+            + "AND state = 'NEW';\n"
+
+            + "INSERT INTO vertex (id, txn_start, txn_end) "
+            + "SELECT id, s_id, 0 "
+            + "FROM sess_vertex "
+            + "WHERE s_id = @txn "
+            + "AND state = 'MOD';\n"
 
             // properties            
             + "INSERT INTO property (id, txn_start, txn_end, name, type, value) "

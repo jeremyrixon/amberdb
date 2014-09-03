@@ -90,7 +90,7 @@ public class VersionQuery {
         + "SELECT 0, id, 0, 'root', 0 \n"
         + "FROM vertex \n"
         + "WHERE id IN (%s); \n",
-        LongList2Str(head)));
+        numberListToStr(head)));
         
         // add the clauses
         for (QueryClause qc : clauses) {
@@ -100,19 +100,32 @@ public class VersionQuery {
             String thatTable = "v" + ((step+1) % 2);
             
             String labelsClause = generatelabelsClause(qc.labels);
-            String directionClause = generateDirClause(qc.direction, thatTable);
 
-            s.append(String.format(
+            if (qc.direction == Direction.BOTH || qc.direction == Direction.IN) {
 
-            "INSERT INTO %1$s (step, vid, eid, label, edge_order) \n"
-            + "SELECT %3$d, v.id, e.id, e.label, e.edge_order  \n"
-            + "FROM vertex v, edge e, %2$s \n"
-            + "WHERE 1=1 "
-            + labelsClause
-            + directionClause
-            + " AND " + thatTable + ".step = " + (step-1) + " ;\n",
+                s.append(String.format(
+                "INSERT INTO %1$s (step, vid, eid, label, edge_order) \n"
+                + "SELECT %3$d, v.id, e.id, e.label, e.edge_order  \n"
+                + "FROM vertex v, edge e, %2$s \n"
+                + "WHERE 1=1 "
+                + labelsClause
+                + " AND (e.v_out = v.id AND e.v_in = %2$s.vid) \n"
+                + " AND " + thatTable + ".step = " + (step-1) + " ;\n",
+                thisTable, thatTable, step));
+            }
             
-            thisTable, thatTable, step));
+            if (qc.direction == Direction.BOTH || qc.direction == Direction.OUT) {
+
+                s.append(String.format(
+                "INSERT INTO %1$s (step, vid, eid, label, edge_order) \n"
+                + "SELECT %3$d, v.id, e.id, e.label, e.edge_order  \n"
+                + "FROM vertex v, edge e, %2$s \n"
+                + "WHERE 1=1 "
+                + labelsClause
+                + " AND (e.v_in = v.id AND e.v_out = %2$s.vid) \n"
+                + " AND " + thatTable + ".step = " + (step-1) + " ;\n",
+                thisTable, thatTable, step));
+            }
         }
 
         // result consolidation
@@ -123,18 +136,17 @@ public class VersionQuery {
         // Draw from v0 for results
     }
 
-    
-    private String LongList2Str(List<Long> longs) {
+
+    private <T> String numberListToStr(List<T> numbers) {
         StringBuilder s = new StringBuilder();
-        for (Long l : longs) {
-            s.append(l).append(',');
+        for (T n : numbers) {
+            s.append(n).append(',');
         }
         s.setLength(s.length()-1);
         return s.toString();
     }
-
-
-    private String StrList2Str(List<String> strs) {
+    
+    private String strListToStr(List<String> strs) {
         StringBuilder s = new StringBuilder();
         for (String str : strs) {
             // dumbass sql injection protection (not real great)
@@ -147,28 +159,9 @@ public class VersionQuery {
     
     private String generatelabelsClause(List<String> labels) {
         if (labels == null || labels.size() == 0) return "";
-        return " AND e.label IN (" + StrList2Str(labels) + ") \n"; 
+        return " AND e.label IN (" + strListToStr(labels) + ") \n"; 
     }
     
-    
-    private String generateDirClause(Direction direction, String thatTable) {
-        
-        String inClause  = "";
-        String outClause = "";
-        
-        if (direction == Direction.BOTH || direction == Direction.IN) {
-            inClause  = "(e.v_out = v.id AND e.v_in = " + thatTable    + ".vid)";
-        }
-        if (direction == Direction.BOTH || direction == Direction.OUT) {
-            outClause = "(e.v_in = v.id AND e.v_out = " + thatTable    + ".vid)";
-        }
-        
-        if (direction == Direction.BOTH) {
-            return " AND (" + inClause + " OR " + outClause + ") \n";
-        }
-        return " AND " + inClause + outClause + " \n";
-    }
-
     
     public List<VersionedVertex> execute() {
 
@@ -181,7 +174,7 @@ public class VersionQuery {
             h.commit();
 
             // and reap the rewards
-            Map<TId, Map<String, Object>> propMaps = getElementPropertyMaps(h);
+            Map<TId, Map<String, Object>> propMaps = getVertexPropertyMaps(h);
             vertices = getVertices(h, graph, propMaps);
             getEdges(h, graph, propMaps);
         }
@@ -189,12 +182,12 @@ public class VersionQuery {
     }
     
     
-    private Map<TId, Map<String, Object>> getElementPropertyMaps(Handle h) {
+    private Map<TId, Map<String, Object>> getVertexPropertyMaps(Handle h) {
         
         List<TProperty> propList = h.createQuery(
                 "SELECT p.id, p.txn_start, p.txn_end, p.name, p.type, p.value "
                 + "FROM property p, v0 " 
-                + "WHERE p.id = v0.vid OR p.id = v0.eid")
+                + "WHERE p.id = v0.vid")
                 .map(new TPropertyMapper()).list();
 
         Map<TId, Map<String, Object>> propertyMaps = new HashMap<>();

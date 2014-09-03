@@ -5,10 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import com.tinkerpop.blueprints.Direction;
@@ -38,34 +36,43 @@ public class VersionedVertex {
 
     
     public TVertex getAtTxn(Long txn) {
-        for (TVertex e : vertices) {
-            if (e.id.start <= txn && (e.id.end > txn || e.id.end == 0)) return e;
+        for (TVertex v : vertices) {
+            if (v.id.start <= txn && (v.id.end > txn || v.id.end == 0)) return v;
         }
         return null;
     }
     
     
+    public TVertex getAtTxnOrLast(Long txn) {
+        TVertex v = getAtTxn(txn);
+        if (v == null) {
+            v = vertices.get(vertices.size()-1);
+        }
+        return v;
+    }
+    
+    
     public TVertex getCurrent() {
-        for (TVertex e : vertices) {
-            if (e.id.end.equals(0L)) return e; 
+        for (TVertex v : vertices) {
+            if (v.id.end.equals(0L)) return v; 
         }
         return null;
     }
     
     
     public TVertexDiff getDiff(Long txn1, Long txn2) {
-        TVertex e1 = getAtTxn(txn1);
-        TVertex e2 = getAtTxn(txn2);
+        TVertex v1 = getAtTxn(txn1);
+        TVertex v2 = getAtTxn(txn2);
         
-        return new TVertexDiff(txn1, txn2, e1,e2);
+        return new TVertexDiff(txn1, txn2, v1, v2);
     }
     
 
     public TVertex getFirst() {
         long start = Long.MAX_VALUE;
         TVertex firstVertex = null;
-        for (TVertex e : vertices) {
-            if (e.id.start < start) firstVertex = e;
+        for (TVertex v : vertices) {
+            if (v.id.start < start) firstVertex = v;
         }
         return firstVertex;
     }
@@ -77,9 +84,9 @@ public class VersionedVertex {
         Long id = vertices.iterator().next().id.id;
         boolean sameIds = true;
         int current = 0;
-        for (TVertex e : vertices) {
-            if (!e.id.id.equals(id)) sameIds = false;
-            if (e.id.end.equals(0L)) current++;
+        for (TVertex v : vertices) {
+            if (!v.id.id.equals(id)) sameIds = false;
+            if (v.id.end.equals(0L)) current++;
         }
         if (!sameIds || current > 1) 
             throw new RuntimeException("Vertices supplied to VersionedVertex are bad: " + vertices.toString());
@@ -89,8 +96,8 @@ public class VersionedVertex {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("VERSIONED VERTEX\n");
-        for (TVertex e : vertices) {
-            sb.append("\t" + e + "\n");
+        for (TVertex v : vertices) {
+            sb.append("\t" + v + "\n");
         }
         sb.setLength(sb.length() - 1);
         return sb.toString();

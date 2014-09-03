@@ -1099,19 +1099,15 @@ public interface Work extends Node {
          * Copies and Files
          */
         public void loadPagedWork() {
-
             AmberVertex work = this.asAmberVertex();
             AmberGraph g = work.getAmberGraph();
 
             AmberQuery query = g.newQuery((Long) work.getId());
-            query.branch(Lists.newArrayList(new String[] { "isPartOf" }), Direction.BOTH);
-            query.branch(Lists.newArrayList(new String[] { "isCopyOf" }), Direction.IN);
-            query.branch(Lists.newArrayList(new String[] { "isFileOf" }), Direction.IN);
-            query.execute();
-
-            query = g.newQuery((Long) work.getId());
-            query.branch(Lists.newArrayList(new String[] { "existsOn" }), Direction.OUT);
-            query.execute();
+            query.branch(new String[] { "isPartOf" }, Direction.BOTH);
+            query.branch(new String[] { "isCopyOf" }, Direction.IN);
+            query.branch(new String[] { "isFileOf" }, Direction.IN);
+            query.branch(new String[] { "descriptionOf" }, Direction.IN);
+            query.execute(true);
         }
 
         public List<Work> getPartsOf(List<String> subTypes) {
