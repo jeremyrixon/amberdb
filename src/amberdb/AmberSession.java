@@ -468,6 +468,18 @@ public class AmberSession implements AutoCloseable {
     }
     
 
+    /**
+     * Get the ids of works that have been modified since a given time. 
+     * 
+     * @param when
+     *            time of first modifications to be included
+     * @return a map of work ids and how the work was changed
+     */
+    public Map<Long, String> getModifiedWorkIds(Date when) {
+        return getAmberHistory().getModifiedWorkIds(when);
+    }
+    
+
     public AmberHistory getAmberHistory() {
         return new AmberHistory(getAmberGraph());
     }

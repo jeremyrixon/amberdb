@@ -10,6 +10,7 @@ import java.util.Set;
 
 import com.tinkerpop.blueprints.Direction;
 
+import amberdb.util.AmberModelTypes;
 import amberdb.version.TEdgeDiff;
 import amberdb.version.TId;
 import amberdb.version.TTransition;
@@ -113,6 +114,60 @@ public class AmberHistory {
         }
         
         return modifiedIds;
+    }
+    
+    
+    public Map<Long, String> getModifiedWorkIds(Date when) {
+        Map<Long, String> modifiedWorks = new HashMap<>();
+        Map<Long, String> modifiedObjs = getModifiedObjectIds(when);
+
+        for (Long id : modifiedObjs.keySet()) {
+            Set<VersionedVertex> works = getWorksForObject(id, new HashSet<VersionedVertex>());
+            String changeToObj = modifiedObjs.get(id);
+            for (VersionedVertex v : works) {
+                Long workId = v.getId();
+                String changeToWork = modifiedWorks.get(workId);
+                
+                // don't overwrite a delete with anything else 
+                if (TTransition.DELETED.toString().equals(changeToWork)) { 
+                    continue;
+                }
+
+                // only write as a delete if it's the work itself that has been deleted
+                if (workId.equals(id) && changeToObj.equals(TTransition.DELETED.toString())) {
+                    changeToWork = TTransition.DELETED.toString();
+                } else {
+                    changeToWork = TTransition.MODIFIED.toString();
+                }
+                
+                modifiedWorks.put(workId, changeToWork);
+            }
+        }
+        return modifiedWorks;
+    }
+    
+
+    private Set<VersionedVertex> getWorksForObject(Long id, Set<VersionedVertex> works) {
+        
+        VersionedVertex v = vGraph.getVertex(id);
+        String type = v.getAtTxnOrLast(Long.MAX_VALUE).getProperty("type");
+        
+        if (AmberModelTypes.isDescription(type)) {
+            for (VersionedVertex parent : v.getVertices(Direction.OUT, "descriptionOf")) {
+                getWorksForObject(parent.getId(), works);
+            }        
+        } else if (AmberModelTypes.isFile(type)) {
+            for (VersionedVertex parent : v.getVertices(Direction.OUT, "isFileOf")) {
+                getWorksForObject(parent.getId(), works);
+            }        
+        } else if (AmberModelTypes.isCopy(type)) {
+            for (VersionedVertex parent : v.getVertices(Direction.OUT, "isCopyOf")) {
+                getWorksForObject(parent.getId(), works);
+            }        
+        } else if (AmberModelTypes.isWork(type)) {
+            works.add(v);
+        } 
+        return works;
     }
     
     
