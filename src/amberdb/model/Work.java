@@ -370,7 +370,7 @@ public interface Work extends Node {
      * 
      * NOTE: this property should not be used to retrieve manuscript series
      *       from EAD.  For EAD related work properties, please refer to 
-     *       amberdb.facade.EADWork class.
+     *       amberdb.model.EADWork class.
      */
     @Property("series")
     public String getJSONSeries();
@@ -381,7 +381,7 @@ public interface Work extends Node {
      *      
      * NOTE: this property should not be used to populate manuscript series
      *       from EAD. For EAD related work properties, please refer to 
-     *       amberdb.facade.EADWork class.
+     *       amberdb.model.EADWork class.
      */
     @Property("series")
     public void setJSONSeries(String series);
@@ -395,7 +395,7 @@ public interface Work extends Node {
      * 
      * NOTE: this property should not be used to populate manuscript series
      *       from EAD. For EAD related work properties, please refer to 
-     *       amberdb.facade.EADWork class.
+     *       amberdb.model.EADWork class.
      */
     @JavaHandler
     public void setSeries(List<String> series) throws JsonParseException, JsonMappingException, IOException;
@@ -409,7 +409,7 @@ public interface Work extends Node {
      * 
      * NOTE: this property should not be used to retrieve manuscript series
      *       from EAD.  For EAD related work properties, please refer to 
-     *       amberdb.facade.EADWork class.
+     *       amberdb.model.EADWork class.
      */
     @JavaHandler
     public List<String> getSeries() throws JsonParseException, JsonMappingException, IOException;
