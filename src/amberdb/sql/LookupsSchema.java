@@ -18,7 +18,7 @@ public abstract class LookupsSchema {
             "CREATE TABLE IF NOT EXISTS lookups ("
             + "id        bigint(11) PRIMARY KEY AUTO_INCREMENT, "
             + "name      varchar(50), "
-            + "code      varchar(255), "
+            + "code      varchar(100), "
             + "value     varchar(255), "
             + "deleted   varchar(1) default 'N' )")
     public abstract void createLookupTable();
