@@ -20,6 +20,7 @@ import org.skife.jdbi.v2.DBI;
 import amberdb.model.CameraData;
 import amberdb.model.Copy;
 import amberdb.model.Description;
+import amberdb.model.EADWork;
 import amberdb.model.File;
 import amberdb.model.GeoCoding;
 import amberdb.model.IPTC;
@@ -209,6 +210,7 @@ public class AmberSession implements AutoCloseable {
             .withClass(IPTC.class)
             .withClass(GeoCoding.class)
             .withClass(CameraData.class)
+            .withClass(EADWork.class)
             .build()).create(g);
     }
 
