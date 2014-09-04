@@ -1,21 +1,20 @@
 package amberdb.model;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.type.TypeReference;
 
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.modules.javahandler.JavaHandler;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
+import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
 import amberdb.model.Work;
 
+@TypeValue("EADWork")
 public interface EADWork extends Work {
     @Property("rdsAcknowledgementType")
     public String getRdsAcknowledgementType();
