@@ -209,6 +209,7 @@ public class AmberSession implements AutoCloseable {
             .withClass(IPTC.class)
             .withClass(GeoCoding.class)
             .withClass(CameraData.class)
+            .withClass(EADWork.class)
             .build()).create(g);
     }
 
