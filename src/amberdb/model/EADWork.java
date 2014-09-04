@@ -73,16 +73,5 @@ public interface EADWork extends Work {
         public void setFolder(List<String> folder) throws JsonParseException, JsonMappingException, IOException {
             setJSONFolder(serialiseToJSON(folder));
         }
-        
-        private List<String> deserialiseJSONString(String json) throws JsonParseException, JsonMappingException, IOException {
-            if (json == null || json.isEmpty())
-                return new ArrayList<String>();
-            return mapper.readValue(json, new TypeReference<List<String>>() {
-            });
-        }
-
-        private String serialiseToJSON(Collection<String> list) throws JsonParseException, JsonMappingException, IOException {
-            return mapper.writeValueAsString(list);
-        }
     }
 }

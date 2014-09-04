@@ -864,9 +864,11 @@ public interface Work extends Node {
     @GremlinGroovy("it.inE.has('label', 'isPartOf').outV.has('subType', subType.code)")
     public Iterable<Section> getSections(@GremlinParam("subType") SubType subType);
 
-    // TODO: need to test later whether it has any existsOn outE(s)
-    @GremlinGroovy("it")
+    @JavaHandler
     public Section asSection();
+    
+    @JavaHandler
+    public EADWork asEADWork();
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public void addCopy(final Copy copy);
@@ -1082,6 +1084,16 @@ public interface Work extends Node {
             return (parts() == null) ? 0 : parts().size();
         }
 
+        @Override
+        public Section asSection() {
+            return frame(this.asVertex(), Section.class);
+        }
+        
+        @Override
+        public EADWork asEADWork() {
+            return frame(this.asVertex(), EADWork.class);
+        }
+        
         private List<Edge> parts() {
             return (gremlin().inE(IsPartOf.label) == null) ? null : gremlin().inE(IsPartOf.label).toList();
         }
@@ -1272,14 +1284,14 @@ public interface Work extends Node {
             setJSONScaleEtc(serialiseToJSON(scaleEtc));
         }
 
-        private List<String> deserialiseJSONString(String json) throws JsonParseException, JsonMappingException, IOException {
+        protected List<String> deserialiseJSONString(String json) throws JsonParseException, JsonMappingException, IOException {
             if (json == null || json.isEmpty())
                 return new ArrayList<String>();
             return mapper.readValue(json, new TypeReference<List<String>>() {
             });
         }
 
-        private String serialiseToJSON(Collection<String> list) throws JsonParseException, JsonMappingException, IOException {
+        protected String serialiseToJSON(Collection<String> list) throws JsonParseException, JsonMappingException, IOException {
             return mapper.writeValueAsString(list);
         }
 
