@@ -177,8 +177,7 @@ public class AmberQuery {
                 + "WHERE e.txn_end = 0 \n"
                 + " AND v.txn_end = 0 \n"
                 + labelsClause
-                + " AND (e.v_in = v.id AND e.v_out = v0.vid) \n"
-                + " AND v0.step < %1$d \n",
+                + " AND (e.v_in = v.id AND e.v_out = v0.vid) \n",
                 step));
 
                 s.append(generateBranchClause(qc, step));
