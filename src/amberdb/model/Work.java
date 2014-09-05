@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
-
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -368,6 +367,10 @@ public interface Work extends Node {
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * getSeries to get this property
+     * 
+     * NOTE: this property should not be used to retrieve manuscript series
+     *       from EAD.  For EAD related work properties, please refer to 
+     *       amberdb.model.EADWork class.
      */
     @Property("series")
     public String getJSONSeries();
@@ -375,6 +378,10 @@ public interface Work extends Node {
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * setSeries to set this property
+     *      
+     * NOTE: this property should not be used to populate manuscript series
+     *       from EAD. For EAD related work properties, please refer to 
+     *       amberdb.model.EADWork class.
      */
     @Property("series")
     public void setJSONSeries(String series);
@@ -385,6 +392,10 @@ public interface Work extends Node {
      * @throws IOException
      * @throws JsonMappingException
      * @throws JsonParseException
+     * 
+     * NOTE: this property should not be used to populate manuscript series
+     *       from EAD. For EAD related work properties, please refer to 
+     *       amberdb.model.EADWork class.
      */
     @JavaHandler
     public void setSeries(List<String> series) throws JsonParseException, JsonMappingException, IOException;
@@ -395,6 +406,10 @@ public interface Work extends Node {
      * @throws IOException
      * @throws JsonMappingException
      * @throws JsonParseException
+     * 
+     * NOTE: this property should not be used to retrieve manuscript series
+     *       from EAD.  For EAD related work properties, please refer to 
+     *       amberdb.model.EADWork class.
      */
     @JavaHandler
     public List<String> getSeries() throws JsonParseException, JsonMappingException, IOException;
@@ -817,7 +832,7 @@ public interface Work extends Node {
      * To be published in the catalogue
      */
     @Property("publicNotes")
-    public void setPublicNotes(String publicNotes);
+    public void setPublicNotes(String publicNotes);    
 
     @Adjacency(label = IsPartOf.label)
     public void setParent(final Work parent);
@@ -849,9 +864,11 @@ public interface Work extends Node {
     @GremlinGroovy("it.inE.has('label', 'isPartOf').outV.has('subType', subType.code)")
     public Iterable<Section> getSections(@GremlinParam("subType") SubType subType);
 
-    // TODO: need to test later whether it has any existsOn outE(s)
-    @GremlinGroovy("it")
+    @JavaHandler
     public Section asSection();
+    
+    @JavaHandler
+    public EADWork asEADWork();
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public void addCopy(final Copy copy);
@@ -1067,6 +1084,16 @@ public interface Work extends Node {
             return (parts() == null) ? 0 : parts().size();
         }
 
+        @Override
+        public Section asSection() {
+            return frame(this.asVertex(), Section.class);
+        }
+        
+        @Override
+        public EADWork asEADWork() {
+            return frame(this.asVertex(), EADWork.class);
+        }
+        
         private List<Edge> parts() {
             return (gremlin().inE(IsPartOf.label) == null) ? null : gremlin().inE(IsPartOf.label).toList();
         }
@@ -1257,14 +1284,14 @@ public interface Work extends Node {
             setJSONScaleEtc(serialiseToJSON(scaleEtc));
         }
 
-        private List<String> deserialiseJSONString(String json) throws JsonParseException, JsonMappingException, IOException {
+        protected List<String> deserialiseJSONString(String json) throws JsonParseException, JsonMappingException, IOException {
             if (json == null || json.isEmpty())
                 return new ArrayList<String>();
             return mapper.readValue(json, new TypeReference<List<String>>() {
             });
         }
 
-        private String serialiseToJSON(Collection<String> list) throws JsonParseException, JsonMappingException, IOException {
+        protected String serialiseToJSON(Collection<String> list) throws JsonParseException, JsonMappingException, IOException {
             return mapper.writeValueAsString(list);
         }
 

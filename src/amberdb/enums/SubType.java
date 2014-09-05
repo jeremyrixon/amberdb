@@ -9,7 +9,10 @@ public enum SubType {
     BOOK("book"),
     ARTICLE("article"),
     CHAPTER("chapter"),
-    VOLUME("volume");
+    VOLUME("volume"),
+    COLLECTION("collection"),
+    SERIES("series"),
+    FOLDER("folder");
 
     private String code;
 

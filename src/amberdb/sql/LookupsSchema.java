@@ -944,6 +944,10 @@ public abstract class LookupsSchema {
       + "('sensitiveReason', 'Indigenous - community only'),"
       + "('sensitiveReason', 'Offensive content'),"
       + "('sensitiveReason', 'Disturbing content'),"
+      + "('rdsAcknowledgementType', 'Donation of material'),"
+      + "('rdsAcknowledgementType', 'Lending of material'),"
+      + "('rdsAcknowledgementType', 'Donation of digitised copy'),"
+      + "('rdsAcknowledgementType', 'Sponsor'),"
     )
     public abstract void seedKeyCodeList();
     

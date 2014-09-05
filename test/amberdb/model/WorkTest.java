@@ -21,7 +21,6 @@ import org.junit.Test;
 
 import com.tinkerpop.blueprints.Direction;
 
-import amberdb.AmberDbFactory;
 import amberdb.AmberSession;
 import amberdb.InvalidSubtypeException;
 import amberdb.NoSuchObjectException;
