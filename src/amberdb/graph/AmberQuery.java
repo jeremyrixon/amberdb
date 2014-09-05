@@ -137,6 +137,18 @@ public class AmberQuery {
                 + "eid BIGINT, "
                 + "label VARCHAR(100), "
                 + "edge_order BIGINT);\n");
+
+        // double buffer table to get around mysql limitation
+        // of not being able to open the same temporary table
+        // more than once in a query
+        s.append("DROP TABLE IF EXISTS v1;\n");
+        s.append("CREATE TEMPORARY TABLE v1 ("
+                + "step INT, "
+                + "vid BIGINT, "
+                + "eid BIGINT, "
+                + "label VARCHAR(100), "
+                + "edge_order BIGINT);\n");
+
         
         // inject head
         s.append(String.format(
@@ -146,6 +158,10 @@ public class AmberQuery {
                 + "WHERE id IN (%s) \n"
                 + "AND txn_end = 0; \n",
                 numberListToStr(head)));
+        
+        s.append("INSERT INTO v1 (step, vid, eid, label, edge_order) \n"
+                + "SELECT step, vid, eid, label, edge_order \n"
+                + "FROM v0; \n");
         
         // add the clauses
         for (QueryClause qc : clauses) {
@@ -158,11 +174,11 @@ public class AmberQuery {
                 s.append(String.format(
                 "INSERT INTO v0 (step, vid, eid, label, edge_order) \n"
                 + "SELECT %1$d, v.id, e.id, e.label, e.edge_order  \n"
-                + "FROM vertex v, edge e, v0 \n"
+                + "FROM vertex v, edge e, v1 \n"
                 + "WHERE e.txn_end = 0 \n"
                 + " AND v.txn_end = 0 \n"
                 + labelsClause
-                + " AND (e.v_out = v.id AND e.v_in = v0.vid)\n",
+                + " AND (e.v_out = v.id AND e.v_in = v1.vid)\n",
                 step));
 
                 s.append(generateBranchClause(qc, step));
@@ -173,20 +189,28 @@ public class AmberQuery {
                 s.append(String.format(
                 "INSERT INTO v0 (step, vid, eid, label, edge_order) \n"
                 + "SELECT %1$d, v.id, e.id, e.label, e.edge_order  \n"
-                + "FROM vertex v, edge e, v0 \n"
+                + "FROM vertex v, edge e, v1 \n"
                 + "WHERE e.txn_end = 0 \n"
                 + " AND v.txn_end = 0 \n"
                 + labelsClause
-                + " AND (e.v_in = v.id AND e.v_out = v0.vid) \n",
+                + " AND (e.v_in = v.id AND e.v_out = v1.vid) \n",
                 step));
 
                 s.append(generateBranchClause(qc, step));
                 s.append(";\n");
             }
+
+            // copy results to v1
+            s.append(String.format(
+            "INSERT INTO v1 (step, vid, eid, label, edge_order) \n"
+            + "SELECT step, vid, eid, label, edge_order  \n"
+            + "FROM v0 \n"
+            + "WHERE v0.step = %1$d ;\n",
+            step));
         }
 
         return s.toString();
-        // Draw from v0 for results
+        // Draw from v1 for results
     }
 
     
@@ -194,13 +218,13 @@ public class AmberQuery {
         String clause;
         switch (qc.branchType) {
         case BRANCH_FROM_PREVIOUS:
-            clause = " AND v0.step = " + (step-1) + " \n";
+            clause = " AND v1.step = " + (step-1) + " \n";
             break;
         case BRANCH_FROM_LISTED:
-            clause = " AND v0.step IN (" + numberListToStr(qc.branchList) + ") \n";
+            clause = " AND v1.step IN (" + numberListToStr(qc.branchList) + ") \n";
             break;
         case BRANCH_FROM_UNLISTED:    
-            clause = " AND v0.step NOT IN (" + numberListToStr(qc.branchList) + ") \n";
+            clause = " AND v1.step NOT IN (" + numberListToStr(qc.branchList) + ") \n";
             break;
         case BRANCH_FROM_ALL:
         default:    
@@ -372,10 +396,9 @@ public class AmberQuery {
     private void getFillEdges(Handle h , AmberGraph graph, Map<Long, Map<String, Object>> propMaps) {
 
         List<AmberEdgeWithState> wrappedEdges;
-            
         wrappedEdges = h.createQuery(
                 "SELECT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order, 'AMB' state "
-                + "FROM edge e, v0 vin, v0 vout "
+                + "FROM edge e, v0 vin, v1 vout "
                 + "WHERE e.v_in = vin.vid "
                 + "AND e.v_out = vout.vid "
                 + "AND e.txn_end = 0")
