@@ -63,11 +63,6 @@ public abstract class LookupsSchema {
     public abstract void createToolsIdIndex();
     
     @SqlUpdate(
-            "CREATE INDEX tools_name_idx "
-            + "ON tools(name, deleted)")
-    public abstract void createToolsNameIndex();
-    
-    @SqlUpdate(
             "CREATE INDEX tools_tool_type_idx "
             + "ON tools(toolTypeId, deleted)")
     public abstract void createToolsToolTypeIdIndex();
@@ -1052,7 +1047,6 @@ public abstract class LookupsSchema {
         createLookupsNameCodeIndex();
         createToolsTable();
         createToolsIdIndex();
-        createToolsNameIndex();
         createToolsToolTypeIdIndex();
         createToolsToolCategoryIdIndex();
         createToolsMaterialTypeIdIndex();
