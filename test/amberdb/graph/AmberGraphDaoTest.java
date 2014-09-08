@@ -12,8 +12,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import amberdb.enums.SubType;
-import amberdb.graph.AmberGraph;
-import amberdb.graph.AmberVertex;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;

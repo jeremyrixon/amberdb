@@ -19,9 +19,6 @@ import org.junit.Test;
 
 import org.junit.rules.TemporaryFolder;
 
-import amberdb.graph.AmberGraph;
-import amberdb.graph.AmberProperty;
-import amberdb.graph.AmberVertexPropertyQuery;
 
 import com.tinkerpop.blueprints.Vertex;
 

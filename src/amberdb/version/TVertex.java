@@ -14,7 +14,7 @@ public class TVertex extends TElement {
     
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("VERTEX id:[").append(id).append("]");
+        sb.append("VERTEX id:[").append(id).append(']');
         sb.append(propertiesAsString());
         sb.append(" hash:"+hashCode());
         return sb.toString();

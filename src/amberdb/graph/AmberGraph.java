@@ -334,6 +334,11 @@ public class AmberGraph extends BaseGraph
         modifiedVertices.clear();
     }
     
+
+    public void destroySession(Long sessId) {
+        dao.clearSession(sessId);
+    }
+    
     
     public void resume(Long sessId) {
 

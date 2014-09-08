@@ -31,7 +31,7 @@ public class TEdge extends TElement implements Comparable<TEdge> {
     
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("EDGE id:[").append(id).append("]")
+        sb.append("EDGE id:[").append(id).append(']')
         .append(" label:").append(label)
         .append(" out:").append(outId)
         .append(" in:").append(inId)

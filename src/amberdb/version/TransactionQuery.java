@@ -318,6 +318,6 @@ public class TransactionQuery {
         for (byte b : s.getBytes()) {
             sb.append(String.format("%02X", b));
         }
-        return sb.append("'").toString();
+        return sb.append('\'').toString();
     }
 }

@@ -378,5 +378,6 @@ public interface AmberDao extends Transactional<AmberDao> {
             "WHERE s_id = @sessId;\n")
     void clearSession(
             @Bind("sessId") Long sessId);
+
 }
 
