@@ -103,11 +103,11 @@ public class AmberHistory {
         // find and return the vertices for any changed edge 
         Long id;
         for (VersionedEdge e : edges) {
-            id = e.getVertex(Direction.IN).getId();
+            id = (Long) e.getVertex(Direction.IN).getId();
             if (!(TTransition.DELETED.toString().equals(modifiedIds.get(id)))) {
                 modifiedIds.put(id, TTransition.MODIFIED.toString());
             }
-            id = e.getVertex(Direction.OUT).getId();
+            id = (Long) e.getVertex(Direction.OUT).getId();
             if (!(TTransition.DELETED.toString().equals(modifiedIds.get(id)))) {
                 modifiedIds.put(id, TTransition.MODIFIED.toString());
             }

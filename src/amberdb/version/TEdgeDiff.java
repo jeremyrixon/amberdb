@@ -81,7 +81,7 @@ public class TEdgeDiff extends TElementDiff {
                 sb.append(" -> ");
                 sb.append((objArr[1] != null) ? objArr[1].toString() : "<null>"); 
             }
-            sb.append("\n");
+            sb.append('\n');
         }
         sb.setLength(sb.length() - 1);
         return sb.toString();

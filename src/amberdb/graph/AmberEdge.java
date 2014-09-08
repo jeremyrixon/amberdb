@@ -20,7 +20,7 @@ public class AmberEdge extends BaseEdge implements Comparable {
             AmberGraph graph, Long txnStart, Long txnEnd, Integer order) {
         
         super(id, label, (Long) outVertex.getId(), (Long) inVertex.getId(), 
-                properties, (BaseGraph) graph);
+                properties, graph);
         this.txnStart = txnStart;
         this.txnEnd = txnEnd;
         this.order = order;

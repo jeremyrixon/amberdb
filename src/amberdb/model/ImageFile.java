@@ -2,10 +2,7 @@ package amberdb.model;
 
 import java.util.Date;
 
-import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.frames.Property;
-import com.tinkerpop.frames.modules.javahandler.JavaHandler;
-import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
 @TypeValue("ImageFile")

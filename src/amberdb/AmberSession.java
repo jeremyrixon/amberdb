@@ -485,4 +485,15 @@ public class AmberSession implements AutoCloseable {
     public AmberHistory getAmberHistory() {
         return new AmberHistory(getAmberGraph());
     }
+    
+    
+    /**
+     * Removes a suspended session from the database.
+     * 
+     * @param sessId
+     *            The id of the session to be removed.
+     */
+    public void removeSession(Long sessId) {
+        getAmberGraph().destroySession(sessId);
+    }
 }

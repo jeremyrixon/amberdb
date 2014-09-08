@@ -131,6 +131,7 @@ public class AmberQueryTest {
         s("Done " + results.size());
         s("Getting book bits ...");
         Vertex book = graph.getVertex(book2.getId());
+        s("BOOK: "+book);
         List<Vertex> pages = (List<Vertex>) book.getVertices(Direction.IN, "isPartOf");
         s("Number of pages and one section: " + pages.size());
         assertEquals(pages.size(), 51);
