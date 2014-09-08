@@ -1047,7 +1047,6 @@ public abstract class LookupsSchema {
         createLookupsNameCodeIndex();
         createToolsTable();
         createToolsIdIndex();
-        createToolsNameIndex();
         createToolsToolTypeIdIndex();
         createToolsToolCategoryIdIndex();
         createToolsMaterialTypeIdIndex();
