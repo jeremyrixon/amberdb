@@ -6,39 +6,26 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Paths;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.sql.DataSource;
 
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
 
 import org.junit.rules.TemporaryFolder;
 
-import amberdb.TransactionIndexer;
 import amberdb.enums.CopyRole;
-import amberdb.graph.AmberEdge;
-import amberdb.graph.AmberGraph;
 import amberdb.model.Copy;
-import amberdb.model.Description;
 import amberdb.model.File;
-import amberdb.model.IPTC;
 import amberdb.model.Page;
 import amberdb.model.Work;
 import amberdb.version.VersionedGraph;
-
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Vertex;
 
 
 public class ChangedWorksTest {
@@ -72,17 +59,14 @@ public class ChangedWorksTest {
         Date time1 = new Date();
         Work book1 = createBook(20, "blinky 1");
         sess.commit("tester", "testing");
-        Thread.sleep(50);
         
         Date time2 = new Date();
         Work book2 = createBook(20, "blinky 2");
         sess.commit("tester", "testing");
-        Thread.sleep(50);
 
         Date time3 = new Date();
         Work book3 = createBook(20, "blinky 3");
         sess.commit("tester", "testing");
-        Thread.sleep(50);
 
         Date time4 = new Date();
         Work book4 = createBook(20, "blinky 4");

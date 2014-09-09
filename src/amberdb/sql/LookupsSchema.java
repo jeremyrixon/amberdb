@@ -63,11 +63,6 @@ public abstract class LookupsSchema {
     public abstract void createToolsIdIndex();
     
     @SqlUpdate(
-            "CREATE INDEX tools_name_idx "
-            + "ON tools(name, deleted)")
-    public abstract void createToolsNameIndex();
-    
-    @SqlUpdate(
             "CREATE INDEX tools_tool_type_idx "
             + "ON tools(toolTypeId, deleted)")
     public abstract void createToolsToolTypeIdIndex();
@@ -949,7 +944,7 @@ public abstract class LookupsSchema {
       + "('rdsAcknowledgementType', 'Donation of material'),"
       + "('rdsAcknowledgementType', 'Lending of material'),"
       + "('rdsAcknowledgementType', 'Donation of digitised copy'),"
-      + "('rdsAcknowledgementType', 'Sponsor'),"
+      + "('rdsAcknowledgementType', 'Sponsor')"
     )
     public abstract void seedKeyCodeList();
     
@@ -981,7 +976,7 @@ public abstract class LookupsSchema {
             + "('lens', '3', 'minimum (maximum aperture) f-stop at maximum focal length'),"
             + "('whiteBalance', '0', 'auto'),"
             + "('whiteBalance', '1', 'manual'),"
-            + "('fileSource', '3', 'DSC'),")
+            + "('fileSource', '3', 'DSC')")
     public abstract void seedTiffMetaLuList();
     
     @SqlUpdate("UPDATE lookups SET VALUE = CODE WHERE value is null")
@@ -1052,7 +1047,6 @@ public abstract class LookupsSchema {
         createLookupsNameCodeIndex();
         createToolsTable();
         createToolsIdIndex();
-        createToolsNameIndex();
         createToolsToolTypeIdIndex();
         createToolsToolCategoryIdIndex();
         createToolsMaterialTypeIdIndex();

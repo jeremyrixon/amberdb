@@ -54,11 +54,11 @@ public class TElement {
         StringBuilder sb = new StringBuilder("{");
         if (properties != null && properties.size() > 0) {
             for (String key : properties.keySet()) {
-                sb.append(key).append(":").append(properties.get(key)).append(", ");
+                sb.append(key).append(':').append(properties.get(key)).append(", ");
             }
             sb.setLength(sb.length()-2);
         }
-        sb.append("}");
+        sb.append('}');
         return sb.toString();
     }
 }

@@ -146,7 +146,7 @@ public class TElementDiff {
                 sb.append(" -> ");
                 sb.append((objArr[1] != null) ? objArr[1].toString() : "<null>"); 
             }
-            sb.append("\n");
+            sb.append('\n');
         }
         if (sb.length() > 1) sb.setLength(sb.length() - 1);
         return sb.toString();

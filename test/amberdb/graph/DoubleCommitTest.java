@@ -17,9 +17,6 @@ import org.junit.Assert;
 import static org.junit.Assert.*;
 import org.junit.rules.TemporaryFolder;
 
-import amberdb.graph.AmberGraph;
-import amberdb.graph.BaseGraph;
-
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
