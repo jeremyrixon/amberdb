@@ -3,7 +3,7 @@
 
   <groupId>au.gov.nla</groupId>
   <artifactId>amberdb</artifactId>
-  <version>1.1.182-SNAPSHOT</version>
+  <version>1.1.186-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>amberdb</name>
@@ -188,6 +188,11 @@
       <artifactId>imgscalr-lib</artifactId>
       <version>4.2</version>
       <type>jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tika</groupId>
+      <artifactId>tika-core</artifactId>
+      <version>1.4</version>
     </dependency>
   </dependencies>
   <repositories>
