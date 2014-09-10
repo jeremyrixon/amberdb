@@ -11,14 +11,12 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.media.jai.JAI;
-import javax.media.jai.RenderedOp;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.tika.Tika;
 
-import com.sun.media.jai.codec.TIFFDirectory;
-import com.sun.media.jai.codec.TIFFField;
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.exif.ExifIFD0Directory;
 
 /*
  * This class is to convert an image (only tiff for now) to jpeg 2000 (.jp2),
@@ -301,29 +299,32 @@ public class Jp2Converter {
     }
 
     class ImageInfo {
-        long compression, samplesPerPixel, bitsPerSample, photometric;
+        int compression, samplesPerPixel, bitsPerSample, photometric;
 
-        public ImageInfo(Path filePath) {
-            // Read tiff header using JAI
-            RenderedOp srcImg = JAI.create("fileload", filePath.toString());
-            TIFFDirectory tiffDir = (TIFFDirectory)srcImg.getProperty("tiff_directory");
+        public ImageInfo(Path filePath) throws Exception {
+            // Read image metadata using metadata-extractor
+            Metadata metadata = ImageMetadataReader.readMetadata(filePath.toFile());
+            ExifIFD0Directory directory = metadata.getDirectory(ExifIFD0Directory.class);
+            if (directory == null) {
+                throw new Exception("Missing ExifIFD0Directory: " + filePath.toString());
+            }
 
             // Compression (259)
-            this.compression = getTagValue(tiffDir, 259);
+            this.compression = getTagValue(directory, 259);
 
             // Samples per pixel (277)
-            this.samplesPerPixel = getTagValue(tiffDir, 277);
+            this.samplesPerPixel = getTagValue(directory, 277);
 
             // Bits per sample (258)
-            this.bitsPerSample = getTagValue(tiffDir, 258);
+            this.bitsPerSample = getTagValue(directory, 258);
 
             // Photometric (262)
-            this.photometric = getTagValue(tiffDir, 262);
+            this.photometric = getTagValue(directory, 262);
         }
 
-        private long getTagValue(TIFFDirectory tiffDir, int tagNo) {
-            TIFFField field = tiffDir.getField(tagNo);
-            return (field != null) ? field.getAsLong(0) : -1;
+        private int getTagValue(ExifIFD0Directory directory, int tagNo) {
+            return directory.getIntArray(tagNo)[0];
         }
     }
+
 }
