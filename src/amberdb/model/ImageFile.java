@@ -95,11 +95,23 @@ public interface ImageFile extends File {
     @Property("dateDigitised")
     public void setDateDigitised(Date dateDigitised);
     
+    @Property("samplesPerPixel")
+    public String getSamplesPerPixel();
+    
+    @Property("samplesPerPixel")
+    public void setSamplesPerPixel(String samplesPerPixel);
+    
     @Property("bitDepth")
     public String getBitDepth();
         
     @Property("bitDepth")
     public void setBitDepth(String bitDepth);
+    
+    @Property("photometric")
+    public String getPhotometric();
+    
+    @Property("photometric")
+    public void setPhotometric(String photometric);
     
     @Property("location")
     public String getLocation();
