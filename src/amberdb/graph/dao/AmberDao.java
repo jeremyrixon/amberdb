@@ -146,6 +146,24 @@ public interface AmberDao extends Transactional<AmberDao> {
     void createEdgeOutVertexIndex();
 
     
+    @SqlUpdate(
+            "CREATE INDEX sess_edge_idx "
+            + "ON sess_edge(s_id)")
+    void createSessionEdgeIndex();
+
+    
+    @SqlUpdate(
+            "CREATE INDEX sess_vertex_idx "
+            + "ON sess_vertex(s_id)")
+    void createSessionVertexIndex();
+    
+    
+    @SqlUpdate(
+            "CREATE INDEX sess_property_idx "
+            + "ON sess_property(s_id)")
+    void createSessionPropertyIndex();
+
+    
     @SqlQuery(
             "SELECT (COUNT(table_name) = 8) "
             + "FROM information_schema.tables " 

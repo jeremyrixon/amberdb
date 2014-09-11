@@ -140,6 +140,10 @@ public class AmberGraph extends BaseGraph
         dao.createSessionVertexTable();
         dao.createSessionEdgeTable();
         dao.createSessionPropertyTable();
+
+        dao.createSessionVertexIndex();
+        dao.createSessionEdgeIndex();
+        dao.createSessionPropertyIndex();
         
         dao.createIdGeneratorTable();
         dao.createTransactionTable();
