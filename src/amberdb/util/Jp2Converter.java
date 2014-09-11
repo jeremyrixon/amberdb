@@ -2,16 +2,12 @@ package amberdb.util;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
 
-import org.apache.commons.lang.StringUtils;
+//import org.apache.commons.lang.StringUtils;
 import org.apache.tika.Tika;
 
 import com.drew.imaging.ImageMetadataReader;
@@ -50,8 +46,7 @@ import com.drew.metadata.exif.ExifIFD0Directory;
 */
 
 public class Jp2Converter {
-    private static final String JP2_CONVERTER_PATH = "/usr/local/bin/kdu_compress";
-    private static final String IMG_CONVERTER_PATH = "/usr/bin/convert";
+    private static final Logger log = Logger.getLogger("amberdb.util.Jp2Converter");
 
     Path imgConverter;
     Path jp2Converter;
@@ -63,72 +58,24 @@ public class Jp2Converter {
         this.tika = new Tika();
     }
 
-    public void convert(Path srcPath) throws Exception {
-        if (!Files.exists(srcPath)) {
-            throw new Exception("source (" + srcPath.toString() + ") does not exist");
-        } else if (Files.isDirectory(srcPath)) {
-            convert(srcPath, srcPath);
-        } else {
-            convertFileToDir(srcPath, srcPath.getParent());
-        }
-    }
-
-    public void convert(Path srcPath, Path dstPath) throws Exception {
-        if (!Files.exists(srcPath)) {
-            throw new Exception("source (" + srcPath.toString() + ") does not exist");
-        }
-
-        if (Files.isDirectory(srcPath)) {
-            // A directory
-            if (!Files.exists(dstPath)) {
-                // Create it
-                Files.createDirectories(dstPath);
-            }
-            if (Files.isDirectory(dstPath)) {
-                // process all files (tiff only for now) in srcPath
-                final List<Path> files = new ArrayList<Path>();
-                Files.walkFileTree(srcPath, new SimpleFileVisitor<Path>() {
-                    @Override
-                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                        if (file.toString().endsWith(".tif") || file.toString().endsWith(".tiff")) {
-                            files.add(file);
-                        }
-                        return FileVisitResult.CONTINUE;
-                    }
-                });
-
-                for (Path file : files) {
-                    try {
-                        convertFileToDir(file, dstPath);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            } else {
-                throw new Exception("source (" + srcPath.toString() + ") is a directory but destination (" + dstPath + ") is not.");
-            }
-        } else if (Files.isRegularFile(srcPath)) {
-            // A file
-            if (Files.exists(dstPath) && Files.isDirectory(dstPath)) {
-                convertFileToDir(srcPath, dstPath);
-            } else {
-                convertFile(srcPath, dstPath);
-            }
-        } else {
-            throw new Exception("Can't convert file " + srcPath.toString());
-        }
-    }
-
-    public void convertFileToDir(Path srcFilePath, Path dstDirPath)  throws Exception{
-        String srcFilename = srcFilePath.getFileName().toString();
-        int pos = srcFilename.lastIndexOf('.');
-        String dstFilename = ((pos > 0) ? srcFilename.substring(0, pos) : srcFilename) + ".jp2";
-        Path dstFilePath = dstDirPath.resolve(dstFilename);
-        convertFile(srcFilePath, dstFilePath);
-    }
-
     public void convertFile(Path srcFilePath, Path dstFilePath) throws Exception {
-        log("***Convert " + srcFilePath.toString() + " to " + dstFilePath.toString());
+        // Use metadata-extractor to get image info of the source image
+        convertFile(srcFilePath,  new ImageInfo(srcFilePath), dstFilePath);
+    }
+
+    public void convertFile(Path srcFilePath, Path dstFilePath, Map<String, Integer> imgInfoMap) throws Exception {
+        // Image info of the source image is passed in as a map
+        convertFile(srcFilePath,  new ImageInfo(imgInfoMap), dstFilePath);
+    }
+
+    public void convertFile(Path srcFilePath, Path dstFilePath,
+                            int compression, int samplesPerPixel, int bitsPerSample, int photometric) throws Exception {
+        // Image info of the source image is passed in as a list of integers
+        convertFile(srcFilePath, new ImageInfo(compression, samplesPerPixel, bitsPerSample, photometric), dstFilePath);
+    }
+
+    private void convertFile(Path srcFilePath, ImageInfo imgInfo, Path dstFilePath) throws Exception {
+        // Main method to convert an image to a jp2 - imgInfo has to be accurate!
         // Jp2 file must end with .jp2
         if (!dstFilePath.getFileName().toString().endsWith(".jp2")) {
             throw new Exception("Jpeg2000 file (" + dstFilePath.toString() + ") must end with .jp2");
@@ -141,9 +88,6 @@ public class Jp2Converter {
         }
 
         long startTime = System.currentTimeMillis();
-
-        // Get image info - use JAI to read only the tiff header
-        ImageInfo imgInfo = new ImageInfo(srcFilePath);
 
         Path tmpFilePath = dstFilePath.getParent().resolve("tmp_" + dstFilePath.getFileName() + ".tif");
 
@@ -173,7 +117,7 @@ public class Jp2Converter {
                 createJp2(fileToCreateJp2, dstFilePath);
             } catch (Exception e1) {
                 // It'd be good to send an email to someone so we know what's wrong!
-                log("Kakadu kdu_compress error: " + fileToCreateJp2.toString() + "\n" + e1.toString());
+                log.info("Kakadu kdu_compress error: " + fileToCreateJp2.toString() + "\n" + e1.toString());
                 // Can't create jp2 with kakadu kdu_compress, try using imagemagick convert
                 createJp2ImageMagick(fileToCreateJp2, dstFilePath);
             }
@@ -186,7 +130,7 @@ public class Jp2Converter {
         }
 
         long endTime = System.currentTimeMillis();
-        log("+++Done. Time taken: " + (endTime - startTime) + " milliseconds");
+        log.info("***Convert " + srcFilePath.toString() + " to " + dstFilePath.toString() + " took " + (endTime - startTime) + " milliseconds");
     }
 
     // Convert the bit depth of an image
@@ -250,8 +194,8 @@ public class Jp2Converter {
 
     // Execute a command
     private void executeCmd(String[] cmd) throws Exception {
-        // Print command
-        log("Command: " + StringUtils.join(cmd, ' '));
+        // Log command
+        //log.info("Command: " + StringUtils.join(cmd, ' '));
 
         // Execute command
         ProcessBuilder builder = new ProcessBuilder(cmd);
@@ -281,25 +225,22 @@ public class Jp2Converter {
         }
     }
 
-    private static void log(Object o) {
-        System.out.println(o);
-    }
-
-    public static void main(String[] args) throws Exception {
-        Jp2Converter j2c = new Jp2Converter(Paths.get(JP2_CONVERTER_PATH), Paths.get(IMG_CONVERTER_PATH));
-        if (args.length < 1 || args.length > 2) {
-            System.err.println("Usage: java jp2.Jp2Converter <source directory/file> [<destination directory/file>]");
-            System.exit(1);
-        }
-        if (args.length == 2) {
-            j2c.convert(Paths.get(args[0]), Paths.get(args[1]));
-        } else {
-            j2c.convert(Paths.get(args[0]));
-        }
-    }
-
     class ImageInfo {
         int compression, samplesPerPixel, bitsPerSample, photometric;
+
+        public ImageInfo(int compression, int samplesPerPixel, int bitsPerSample, int photometric) throws Exception {
+            this.compression = compression;
+            this.samplesPerPixel = samplesPerPixel;
+            this.bitsPerSample = bitsPerSample;
+            this.photometric = photometric;
+        }
+
+        public ImageInfo(Map<String, Integer> imgInfoMap) throws Exception {
+            this.compression = imgInfoMap.get("compression");
+            this.samplesPerPixel = imgInfoMap.get("samplesPerPixel");
+            this.bitsPerSample = imgInfoMap.get("bitsPerSample");
+            this.photometric = imgInfoMap.get("photometric");
+        }
 
         public ImageInfo(Path filePath) throws Exception {
             // Read image metadata using metadata-extractor
@@ -326,5 +267,4 @@ public class Jp2Converter {
             return directory.getIntArray(tagNo)[0];
         }
     }
-
 }
