@@ -25,6 +25,7 @@ import amberdb.relation.DescriptionOf;
 import amberdb.relation.IsCopyOf;
 import amberdb.relation.IsFileOf;
 import amberdb.relation.IsSourceCopyOf;
+import amberdb.util.Jp2Converter;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
@@ -266,7 +267,11 @@ public interface Copy extends Node {
     public Work getWork();
     
     @JavaHandler
+    @Deprecated
     Copy deriveImageCopy(Path tiffUnCompressor, Path jp2Generator) throws IllegalStateException, IOException, InterruptedException;
+
+    @JavaHandler
+    Copy deriveJp2ImageCopy(Path jp2Converter, Path imgConverter) throws IllegalStateException, IOException, InterruptedException, Exception;
 
 
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Copy {
@@ -296,18 +301,23 @@ public interface Copy extends Node {
             storeFile(file, contents, mimeType);
             return file;
         }
-        
+
         private void storeFile(File file, Writable contents, String mimeType) throws IOException {
             file.put(contents);
             file.setMimeType(mimeType);
         }
-                
+
         private void storeLegacyDossFile(File file, Path dossPath, String mimeType) throws IOException {
             file.putLegacyDoss(dossPath);
             file.setMimeType(mimeType);
         }
-        
+
+        /*
+         * The old method to derive image copy
+         * @deprecated - use {@links #deriveJp2ImageCopy()} instead
+         */
         @Override
+        @Deprecated
         public Copy deriveImageCopy(Path tiffUncompressor, Path jp2Generator) throws IllegalStateException, IOException, InterruptedException {
 
             ImageFile tiffImage = this.getImageFile();
@@ -363,8 +373,65 @@ public interface Copy extends Node {
                 stage.toFile().delete();
             }
         }
-        
-        
+
+        @Override
+        public Copy deriveJp2ImageCopy(Path jp2Converter, Path imgConverter) throws IllegalStateException, IOException, InterruptedException, Exception {
+            ImageFile tiffImage = this.getImageFile();
+            if (!tiffImage.getMimeType().equals("image/tiff")) {
+                throw new IllegalStateException(this.getWork().getObjId() + " master is not a tiff.  You may not generate a jpeg2000 from anything but a tiff");
+            }
+
+            Path stage = null;
+            try {
+                // create a temporary file processing location for deriving the jpeg2000 from the tiff
+                stage = Files.createTempDirectory("amberdb-derivative");
+
+                // assume this Copy is a tiff master copy and access the amber file
+                Long tiffBlobId = this.getFile().getBlobId();
+
+                // get this copy's blob store ...
+                BlobStore doss = AmberSession.ownerOf(g()).getBlobStore();
+
+                // aaaaand generate the derivative ...
+                Path jp2ImgPath = generateJp2Image(doss, jp2Converter, imgConverter, stage, tiffBlobId);
+
+                // add the derived jp2 image to this Copy's work as an access copy
+                Copy ac = null;
+                if (jp2ImgPath != null) {
+                    Work work = this.getWork();
+
+                    ac = work.getCopy(CopyRole.ACCESS_COPY);
+                    if ( ac == null ) {
+                        ac = work.addCopy(jp2ImgPath, CopyRole.ACCESS_COPY, "image/jp2");
+                        ac.setSourceCopy(this);
+                    }
+
+                    ImageFile acf = ac.getImageFile();
+                    acf.setLocation(jp2ImgPath.toString());
+
+                    // add image metadata based on the master image metadata
+                    // this is used by some nla delivery systems eg: tarkine
+                    acf.setImageLength(tiffImage.getImageLength());
+                    acf.setImageWidth(tiffImage.getImageWidth());
+                    acf.setResolution(tiffImage.getResolution());
+                    acf.setFileFormat("jpeg2000");
+                }
+                return ac;
+
+            } catch (Exception e) {
+                throw e;
+            } finally {
+                // clean up temporary working space
+                java.io.File[] files = stage.toFile().listFiles();
+                if (files != null) {
+                    for (java.io.File f : files) {
+                        f.delete();
+                    }
+                }
+                stage.toFile().delete();
+            }
+        }
+
         @Override
         public Map<String,String> getAllOtherNumbers() throws JsonParseException, JsonMappingException, IOException {
 
@@ -374,15 +441,18 @@ public interface Copy extends Node {
             return mapper.readValue(otherNumbers, new TypeReference<Map<String, String>>() { } );
             
         }
-        
+
         @Override
         public void setAllOtherNumbers( Map<String,String>  otherNumbers) throws JsonParseException, JsonMappingException, IOException {
 
             setOtherNumbers(mapper.writeValueAsString(otherNumbers));
         }
-   
-        
-        
+
+        /*
+         * The old method to generate jp2 from a tiff file
+         * @deprecated - use {@links #generateJP2Image()} instead
+         */
+        @Deprecated
         private Path generateImage(BlobStore doss, Path tiffUncompressor, Path jp2Generator, Path stage, Long tiffBlobId) throws IOException, InterruptedException, NoSuchCopyException {
             
             if (tiffBlobId == null)
@@ -432,12 +502,69 @@ public interface Copy extends Node {
             Process jp2Process = jp2Pb.start();
             jp2Process.waitFor();
             int convertResult = jp2Process.exitValue(); // really should check it's worked
-            
+
             // NOTE: to return null at this point to cater for TiffEcho and JP2Echo test cases running in Travis env.
             if (!tiffUncompressor.toFile().exists() || !jp2Generator.toFile().exists()) return null;
             return jp2ImgPath;
         }
-        
+
+        private Path generateJp2Image(BlobStore doss, Path jp2Converter, Path imgConverter, Path stage, Long tiffBlobId) throws IOException, InterruptedException, NoSuchCopyException, Exception {
+            if (tiffBlobId == null) {
+                throw new NoSuchCopyException(this.getWork().getId(), CopyRole.fromString(this.getCopyRole()));
+            }
+
+            // prepare the files for conversion
+            Path tiffPath = stage.resolve(tiffBlobId + ".tif");   // where to put the tif retrieved from the amber blob
+            copyBlobToFile(doss.get(tiffBlobId), tiffPath);       // get the blob from amber
+
+            // Jp2 file
+            Path jp2ImgPath = stage.resolve(tiffBlobId + ".jp2"); // name the jpeg2000 derivative after the original uncompressed blob
+
+            // Convert to jp2
+            Jp2Converter jp2c = new Jp2Converter(jp2Converter, imgConverter);
+
+            // To prevent Jp2Converter from re-doing the image metadata extractor step,
+            // check 4 properties from ImageFile: compression, samplesPerPixel, bitsPerSample and photometric
+            // If they all exist and have proper values, pass them in a Map to Jp2Converter.
+            // Otherwise, let Jp2Converter find out from the source file.
+            ImageFile imgFile = this.getImageFile();
+            if (imgFile != null) {
+                int compression = parseIntFromStr(imgFile.getCompression());
+                int samplesPerPixel = parseIntFromStr(imgFile.getSamplesPerPixel());
+                int bitsPerSample = parseIntFromStr(imgFile.getBitDepth());
+                int photometric = parseIntFromStr(imgFile.getPhotometric());
+
+                if (compression >= 0 && samplesPerPixel >= 0 && bitsPerSample >= 0 && photometric >= 0) {
+                    Map<String, Integer> imgInfoMap = new HashMap<String, Integer>();
+                    imgInfoMap.put("compression", compression);
+                    imgInfoMap.put("samplesPerPixel", samplesPerPixel);
+                    imgInfoMap.put("bitsPerSample", bitsPerSample);
+                    imgInfoMap.put("photometric", photometric);
+                    jp2c.convertFile(tiffPath, jp2ImgPath, imgInfoMap);
+                } else {
+                    jp2c.convertFile(tiffPath, jp2ImgPath);
+                }
+            } else {
+                // No image file
+                jp2c.convertFile(tiffPath, jp2ImgPath);
+            }
+
+            // NOTE: to return null at this point to cater for TiffEcho and JP2Echo test cases running in Travis env.
+            if (!jp2Converter.toFile().exists() || !imgConverter.toFile().exists()) return null;
+
+            return jp2ImgPath;
+        }
+
+        private int parseIntFromStr(String s) {
+            int n = -1;
+            try {
+                n = Integer.parseInt(s.split("\\D+")[0], 10);
+            } catch (Exception e) {
+                n = -1;
+            }
+            return n;
+        }
+
         private long copyBlobToFile(Blob blob, Path destinationFile) throws IOException {
             long bytesTransferred = 0;
             try (ReadableByteChannel channel = blob.openChannel(); 
