@@ -522,12 +522,47 @@ public interface Copy extends Node {
 
             // Convert to jp2
             Jp2Converter jp2c = new Jp2Converter(jp2Converter, imgConverter);
-            jp2c.convertFile(tiffPath, jp2ImgPath);
+
+            // To prevent Jp2Converter from re-doing the image metadata extractor step,
+            // check 4 properties from ImageFile: compression, samplesPerPixel, bitsPerSample and photometric
+            // If they all exist and have proper values, pass them in a Map to Jp2Converter.
+            // Otherwise, let Jp2Converter find out from the source file.
+            ImageFile imgFile = this.getImageFile();
+            if (imgFile != null) {
+                int compression = parseIntFromStr(imgFile.getCompression());
+                int samplesPerPixel = parseIntFromStr(imgFile.getSamplesPerPixel());
+                int bitsPerSample = parseIntFromStr(imgFile.getBitDepth());
+                int photometric = parseIntFromStr(imgFile.getPhotometric());
+
+                if (compression >= 0 && samplesPerPixel >= 0 && bitsPerSample >= 0 && photometric >= 0) {
+                    Map<String, Integer> imgInfoMap = new HashMap<String, Integer>();
+                    imgInfoMap.put("compression", compression);
+                    imgInfoMap.put("samplesPerPixel", samplesPerPixel);
+                    imgInfoMap.put("bitsPerSample", bitsPerSample);
+                    imgInfoMap.put("photometric", photometric);
+                    jp2c.convertFile(tiffPath, jp2ImgPath, imgInfoMap);
+                } else {
+                    jp2c.convertFile(tiffPath, jp2ImgPath);
+                }
+            } else {
+                // No image file
+                jp2c.convertFile(tiffPath, jp2ImgPath);
+            }
 
             // NOTE: to return null at this point to cater for TiffEcho and JP2Echo test cases running in Travis env.
             if (!jp2Converter.toFile().exists() || !imgConverter.toFile().exists()) return null;
 
             return jp2ImgPath;
+        }
+
+        private int parseIntFromStr(String s) {
+            int n = -1;
+            try {
+                n = Integer.parseInt(s.split("\\D+")[0], 10);
+            } catch (Exception e) {
+                n = -1;
+            }
+            return n;
         }
 
         private long copyBlobToFile(Blob blob, Path destinationFile) throws IOException {
