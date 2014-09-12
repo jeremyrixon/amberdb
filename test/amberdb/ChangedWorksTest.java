@@ -42,7 +42,6 @@ public class ChangedWorksTest {
     public void setup() throws MalformedURLException, IOException {
         System.out.println("Setting up graph");
         tempPath = Paths.get(tempFolder.getRoot().getAbsolutePath());
-        s("amber db located here: " + tempPath + "amber");
         src = JdbcConnectionPool.create("jdbc:h2:"+tempPath.toString()+"amber;auto_server=true","sess","sess");
         sess = new AmberDb(src, tempPath).begin();
     }
@@ -75,19 +74,15 @@ public class ChangedWorksTest {
         Map<Long, String> changed;
         
         changed = sess.getModifiedWorkIds(time1);
-        s("size 1: " + changed.size());
         assertEquals(changed.size(), 84);
         
         changed = sess.getModifiedWorkIds(time2);
-        s("size 2: " + changed.size());
         assertEquals(changed.size(), 63);
 
         changed = sess.getModifiedWorkIds(time3);
-        s("size 3: " + changed.size());
         assertEquals(changed.size(), 42);
         
         changed = sess.getModifiedWorkIds(time4);
-        s("size 4: " + changed.size());
         assertEquals(changed.size(), 21);
 
         // delete 3 pages
@@ -98,11 +93,6 @@ public class ChangedWorksTest {
         sess.commit("tester", "testing");
         
         changed = sess.getModifiedWorkIds(time5);
-        VersionedGraph vg = sess.getAmberHistory().getVersionedGraph();
-        s("size 5: " + changed.size());
-        for (Long id : changed.keySet()) {
-            s(vg.getVertex(id) + " --- " + changed.get(id));
-        }
         assertEquals(changed.size(), 4); // 3 deleted pages + 1 modified book
 
         // delete an entire book
@@ -114,11 +104,6 @@ public class ChangedWorksTest {
         sess.commit("tester", "testing");
         
         changed = sess.getModifiedWorkIds(time6);
-        vg = sess.getAmberHistory().getVersionedGraph();
-        s("size 6: " + changed.size());
-        for (Long id : changed.keySet()) {
-            s(vg.getVertex(id) + " --- " + changed.get(id));
-        }
         assertEquals(changed.size(), 21); // 3 deleted pages + 1 modified book
     
     }        
@@ -130,7 +115,6 @@ public class ChangedWorksTest {
     
     
     private Work createBook(int numPages, String title) {
-        s("creating book ... " + title + " (" + numPages + " pages)");
         Work book = sess.addWork();
         book.setTitle(title);
         for (int i = 0; i < numPages; i++) {

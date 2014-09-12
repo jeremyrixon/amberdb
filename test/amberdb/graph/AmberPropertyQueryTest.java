@@ -34,9 +34,7 @@ public class AmberPropertyQueryTest {
     
     @Before
     public void setup() throws MalformedURLException, IOException {
-        System.out.println("Setting up graph");
         String tempPath = tempFolder.getRoot().getAbsolutePath();
-        s("amber db located here: " + tempPath + "amber");
         src = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"amber;auto_server=true","sess","sess");
         graph = new AmberGraph(src);
     }
@@ -90,12 +88,8 @@ public class AmberPropertyQueryTest {
         
         AmberVertexPropertyQuery avpq = new AmberVertexPropertyQuery(aps, graph);
         
-        //s(avpq.generatePropertyQuery());
-        
         List<Vertex> results = avpq.execute();
         
-        //s(""+results);
-        //s("number matched: "+results.size());
         assertEquals(6, results.size());
         assertTrue(results.remove(v1));
         assertTrue(results.remove(v5));

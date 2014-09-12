@@ -122,5 +122,19 @@ public class AmberVertex extends BaseVertex {
         }
         return orders;
     }
+    
+    
+    public String toJson() {
+        StringBuilder sb = new StringBuilder("{\n");
+        sb.append("  \"id\": "        + getId()    + ",\n")
+          .append("  \"txnStart\": "  + txnStart   + ",\n")
+          .append("  \"txnEnd\": "    + txnEnd     + ",\n")
+          .append("  \"properties\": {\n");
+        for (String prop : getPropertyKeys()) {
+            sb.append("    \"" + prop + "\": " + getProperty(prop) + "\n");
+        }
+        sb.append("  }\n}");
+        return sb.toString();
+    }
 }
 

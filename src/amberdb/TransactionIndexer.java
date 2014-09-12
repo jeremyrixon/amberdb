@@ -17,6 +17,7 @@ import amberdb.version.VersionedVertex;
 
 public class TransactionIndexer {
 
+    
     private VersionedGraph graph;
     private final Logger log = LoggerFactory.getLogger(TransactionIndexer.class);
     
@@ -28,7 +29,7 @@ public class TransactionIndexer {
     
     public Set<Long>[] findObjectsToBeIndexed(Long startTxn, Long endTxn) {
         
-        log.info("loading graph: Txn-" + startTxn + " -> Txn-" + endTxn);
+        log.debug("loading graph: Txn-" + startTxn + " -> Txn-" + endTxn);
         graph.loadTransactionGraph(startTxn, endTxn, true);
         
         // get our transaction copies (where their file or file descriptions have been affected)
@@ -54,7 +55,7 @@ public class TransactionIndexer {
             // The type attribute of an NLA vertex shouldn't change
             String type = (String) getUnchangedProperty(diff, "type");
             if (type == null) {
-                log.warn("No type or type changed: {}", diff);
+                log.debug("No type or type changed: {}", diff);
                 continue vertexLoop;
             }
 
@@ -76,13 +77,13 @@ public class TransactionIndexer {
             // check a change in access conditions
             Object ac = diff.getProperty("internalAccessConditions");
             if (change == TTransition.NEW && ac != null && ac.equals("Closed")) {
-                log.info("Internal Access Conditions for NEW object is 'Closed'. Not indexing {}", id);
+                log.debug("Internal Access Conditions for NEW object is 'Closed'. Not indexing {}", id);
                 continue vertexLoop;
             }
             if (change == TTransition.MODIFIED && ac instanceof Object[]) {
                 Object[] cond = (Object[]) ac;
                 if (cond.length > 1 && cond[1] != null && cond[1].equals("Closed")) {
-                    log.info("Internal Access Conditions changed: {} -> {} for Item {}", cond[0], cond[1], id);
+                    log.debug("Internal Access Conditions changed: {} -> {} for Item {}", cond[0], cond[1], id);
                     deletedObjects.add(id);
                     continue vertexLoop;
                 }
@@ -98,8 +99,8 @@ public class TransactionIndexer {
                 break;
             }
         }
-        log.info("Vertices processed: " + numVerticesProcessed);
-        log.info("Changed vertices processed: " + numChanged);
+        log.debug("Vertices processed: " + numVerticesProcessed);
+        log.debug("Changed vertices processed: " + numChanged);
         
         // give deletion precedence over modification
         modifiedObjects.removeAll(deletedObjects);

@@ -25,6 +25,8 @@ import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberQuery;
 import amberdb.graph.AmberVertex;
 
+import static amberdb.graph.BranchType.*;
+
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
@@ -1113,13 +1115,13 @@ public interface Work extends Node {
         public void loadPagedWork() {
             AmberVertex work = this.asAmberVertex();
             AmberGraph g = work.getAmberGraph();
-
             AmberQuery query = g.newQuery((Long) work.getId());
-            query.branch(new String[] { "isPartOf" }, Direction.BOTH);
-            query.branch(new String[] { "isCopyOf" }, Direction.IN);
-            query.branch(new String[] { "isFileOf" }, Direction.IN);
-            query.branch(new String[] { "descriptionOf" }, Direction.IN);
-            query.execute(true);
+            query.branch(new String[] {"isPartOf"}, Direction.BOTH)
+                 .branch(new String[] {"isPartOf"}, Direction.IN)
+                 .branch(BRANCH_FROM_ALL, new String[] {"isCopyOf"}, Direction.IN)
+                 .branch(BRANCH_FROM_PREVIOUS, new String[] {"isFileOf"}, Direction.IN)
+                 .branch(BRANCH_FROM_PREVIOUS, new String[] {"descriptionOf"}, Direction.IN)
+                 .execute(true);
         }
 
         public List<Work> getPartsOf(List<String> subTypes) {

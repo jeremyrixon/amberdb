@@ -107,5 +107,19 @@ public class AmberEdge extends BaseEdge implements Comparable {
         return ((AmberGraph) graph).getFirstTransactionForEdgeId(id);
     }    
     
-    
+    public String toJson() {
+        StringBuilder sb = new StringBuilder("{\n");
+        sb.append("  \"id\": "        + getId()    + ",\n")
+          .append("  \"txnStart\": "  + txnStart   + ",\n")
+          .append("  \"txnEnd\": "    + txnEnd     + ",\n")
+          .append("  \"label\": "     + getLabel() + ",\n")
+          .append("  \"inVertex\": "  + inId       + ",\n")
+          .append("  \"outVertex\": " + outId      + ",\n")
+          .append("  \"properties\": {\n");
+        for (String prop : getPropertyKeys()) {
+            sb.append("    \"" + prop + "\": " + getProperty(prop) + "\n");
+        }
+        sb.append("  }\n}");
+        return sb.toString();
+    }
 }

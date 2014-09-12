@@ -52,9 +52,7 @@ public class AmberHistoryTransactionsSinceTest {
     
     @Before
     public void setup() throws MalformedURLException, IOException {
-        System.out.println("Setting up graph");
         tempPath = Paths.get(tempFolder.getRoot().getAbsolutePath());
-        s("amber db located here: " + tempPath + "amber");
         src = JdbcConnectionPool.create("jdbc:h2:"+tempPath.toString()+"amber;auto_server=true","sess","sess");
         graph = new AmberGraph(src);
     }
@@ -67,7 +65,6 @@ public class AmberHistoryTransactionsSinceTest {
     public void testPersistingVertex() throws Exception {
         
         Date now = new Date();
-        s("TS:" + now.getTime());
         
         // make 100 other vertices
         List<Long> vertIds = new ArrayList<Long>();
@@ -83,10 +80,8 @@ public class AmberHistoryTransactionsSinceTest {
         AmberHistory ah = new AmberHistory(graph);
         Map<Long, String> vSince = ah.getModifiedObjectIds(now);
         assertEquals(100, vSince.size());
-        //for (Long key : vSince.keySet()) { s(""+key+":"+vSince.get(key)); }
 
         now = new Date();
-        s("TS:" + now.getTime());
         
         // lets make some changes
 
@@ -130,19 +125,12 @@ public class AmberHistoryTransactionsSinceTest {
                 vDel++;
             }
         }
-
-        for (Long key : vSince.keySet()) { s("id:"+key+" state:"+vSince.get(key)); }
-
-        s("NEW:" + vNew);
-        s("MOD:" + vMod);
-        s("DEL:" + vDel);
         
         assertEquals(10, vNew);
         assertEquals(20, vMod);
         assertEquals(50, vDel);
 
         now = new Date();
-        s("TS:" + now.getTime());
         
         // now add some edges
         for (int i = 50; i < 60; i++) {
@@ -151,7 +139,6 @@ public class AmberHistoryTransactionsSinceTest {
         graph.commit("test", "rel test");    
 
         vSince = ah.getModifiedObjectIds(now);
-        for (Long key : vSince.keySet()) { s(""+key+":"+vSince.get(key)); }
         assertEquals(20, vSince.size());
     }        
 
@@ -162,10 +149,8 @@ public class AmberHistoryTransactionsSinceTest {
         
         AmberSession sess = new AmberDb(src, tempPath).begin();
         AmberGraph aGraph = sess.getAmberGraph();
-        AmberHistory history = new AmberHistory(aGraph);
 
         Date now = new Date();
-        s("TS:" + now.getTime());
         
         // Set up work
         Work w = sess.addWork();
@@ -195,7 +180,6 @@ public class AmberHistoryTransactionsSinceTest {
         assertThat(changed.size(), is (101));
         
         now = new Date();
-        s("\nTS:" + now.getTime());
 
         // Modify work by updating title, adding a page
         w.setTitle("Testing a new title");
@@ -209,10 +193,8 @@ public class AmberHistoryTransactionsSinceTest {
         
         changed = sess.getModifiedObjectIds(now);
         assertThat(changed.size(), is (2));
-
         
         now = new Date();
-        s("\nTS:" + now.getTime());
 
         // Modify work by deleting 2 pages
         w.setTitle("Testing a new title");
@@ -257,20 +239,15 @@ public class AmberHistoryTransactionsSinceTest {
         e.setProperty("name", "e");
         f.setProperty("name", "f");
         
-        Edge ab = aGraph.addEdge(null, a, b, "a-b");
-        Edge bc = aGraph.addEdge(null, b, c, "b-c");
-        Edge cd = aGraph.addEdge(null, c, d, "c-d");
+        aGraph.addEdge(null, a, b, "a-b");
+        aGraph.addEdge(null, b, c, "b-c");
+        aGraph.addEdge(null, c, d, "c-d");
         
-        Edge be = aGraph.addEdge(null, b, e, "b-e");
-        Edge ef = aGraph.addEdge(null, e, f, "e-f");
+        aGraph.addEdge(null, b, e, "b-e");
+        aGraph.addEdge(null, e, f, "e-f");
         
         aGraph.commit();
 
-        Date now = new Date();
-        s("\nTS:" + now.getTime());
-        
-        s("||"+ a + "\n" + b + "\n" + c + "\n" + d + "\n" + e + "\n" + f + "\n");
-        
         Long fId = (Long) f.getId();
         
         a.remove();
@@ -288,17 +265,10 @@ public class AmberHistoryTransactionsSinceTest {
         
         List<VersionedVertex> deletedParent = (List<VersionedVertex>) newly.getVertices(Direction.IN, "e-f");
         VersionedVertex parent = deletedParent.get(0);
-        s("parent " + parent);
         assertEquals(parent.getId(), e.getId());
         List<VersionedVertex> deletedGrandParent = (List<VersionedVertex>) parent.getVertices(Direction.IN, "b-e");
 
         VersionedVertex grandParent = deletedGrandParent.get(0);
         assertEquals(grandParent.getId(), b.getId());
-        s("grand parent " + grandParent);
     }        
-    
-    
-    public static void s(String s) {
-        System.out.println(s);
-    }
 }

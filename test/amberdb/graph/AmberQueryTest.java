@@ -40,9 +40,7 @@ public class AmberQueryTest {
     
     @Before
     public void setup() throws MalformedURLException, IOException {
-        System.out.println("Setting up graph");
         String tempPath = tempFolder.getRoot().getAbsolutePath();
-        s("amber db located here: " + tempPath + "amber");
         src = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"amber;auto_server=true","sess","sess");
         graph = new AmberGraph(src);
     }
@@ -61,7 +59,7 @@ public class AmberQueryTest {
         q.branch(Arrays.asList(new String[] {"isPartOf", "belongsTo"}), Direction.BOTH);
         q.branch(Arrays.asList(new String[] {"isCopyOf", "belongsTo"}), Direction.IN);
         q.branch(Arrays.asList(new String[] {"isFileOf", "belongsTo"}), Direction.IN);
-        s(q.generateFullSubGraphQuery());
+        //s(q.generateFullSubGraphQuery());
     }
  
     
@@ -69,8 +67,6 @@ public class AmberQueryTest {
     public void testExecuteQuery() throws Exception {
 
         // set up database
-
-        //graph.setLocalMode(true);    
 
         Vertex set = graph.addVertex(null);
         set.setProperty("type", "Set");
@@ -84,21 +80,15 @@ public class AmberQueryTest {
         setPart1.addEdge("isPartOf", set);
         setPart2.addEdge("isPartOf", set);
         
-        s("making books...");
-        s("Book 1");
         Vertex book1 = makeBook("AA", 50, 10);
-        s("Book 2");
         Vertex book2 = makeBook("BB", 50, 0);
-        s("Book 3");
         Vertex book3 = makeBook("CC", 30, 10);
 
         book1.addEdge("isPartOf", set);
         book2.addEdge("isPartOf", set);
         book3.addEdge("isPartOf", set);
         
-        s("commiting books to amber");
         graph.commit("bookMaker", "made books");
-        s("commited");
         
         graph.clear();
         
@@ -107,7 +97,6 @@ public class AmberQueryTest {
         heads.add((Long) book2.getId());
         //heads.add((Long) book3.getId());
         
-        s("Preparing query...");
         AmberQuery q = graph.newQuery(heads);
         q.branch(new String[] {"isPartOf"}, Direction.IN);
         q.branch(new String[] {"isPartOf"}, Direction.IN);
@@ -117,23 +106,17 @@ public class AmberQueryTest {
         q.branch(BRANCH_FROM_PREVIOUS, new String[] {"descriptionOf"}, Direction.IN);
         q.branch(BRANCH_FROM_LISTED, new String[] {"isPartOf"}, Direction.OUT, new Integer[] {0});
 
-        s("Executing query");
         Date then = new Date();
         List<Vertex> results = q.execute(true);
         Date now = new Date();
-        s("MILLIS TO RUN: " + (now.getTime() - then.getTime()));
+        //s("MILLIS TO RUN: " + (now.getTime() - then.getTime()));
         
-        s("Size: " + results.size());
         graph.setLocalMode(true);
         
         
         assertEquals(results.size(), 706);    
-        s("Done " + results.size());
-        s("Getting book bits ...");
         Vertex book = graph.getVertex(book2.getId());
-        s("BOOK: "+book);
         List<Vertex> pages = (List<Vertex>) book.getVertices(Direction.IN, "isPartOf");
-        s("Number of pages and one section: " + pages.size());
         assertEquals(pages.size(), 51);
     }
     

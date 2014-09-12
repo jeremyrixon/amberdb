@@ -79,13 +79,10 @@ public class WorkTest {
     }
     
     @Test
-    //@Ignore
     public void testGetLeafsForBlinkyBill() {
         Iterable<Work> leafs = bookBlinkyBill.getLeafs(SubType.PAGE);
-        System.out.println("List leafs for book blinky bill: ");
         int noOfPages = 0;
         for (Work leaf : leafs) {
-            System.out.println("Leaf: " + leaf.getSubUnitType());
             noOfPages++;
         }
         assertEquals(expectedNoOfPages, noOfPages);
@@ -95,7 +92,6 @@ public class WorkTest {
     public void testGetLeafsOfSubTypesForBlinkyBill() {
         
         Long start = new Date().getTime();
-        System.out.println("starting actual test");
         
         // try loading the book first
         try {
@@ -105,22 +101,16 @@ public class WorkTest {
         }
         
         List<Work> leaves = bookBlinkyBill.getPartsOf(Arrays.asList(new String[] {SubType.PAGE.code(), SubType.CHAPTER.code()}));
-        System.out.println("loaded work millis: " + (new Date().getTime()-start));
         
-        System.out.println("List leaves for book blinky bill of type page and chapter: ");
         int noOfLeaves = 0;
         for (Work leaf : leaves) {
-            System.out.println("Leaf: " + leaf.getSubType() + ", " + leaf.getSubUnitType() + ", " + leaf.getTitle());
             noOfLeaves++;
         }
+
+        assertEquals(noOfLeaves, 3);
         
         // Check output bits
         leaves.get(0).getExistsOn(SubType.PAGE.code());
-        
-        System.out.println("Total number of leaves was: " + noOfLeaves);
-        System.out.println("got leaves millis: " + (new Date().getTime()-start));
-        System.out.println("now resetting test data");
-
     }
     
     @Test
@@ -132,12 +122,7 @@ public class WorkTest {
                 theNewArrival = section;
         }
         Iterable<Work> leafs = theNewArrival.getLeafs(SubType.PAGE.code());
-        System.out.println("List leafs for chapter the new arrival: ");
         int noOfPages = 0;
-        for (Work leaf : leafs) {
-            System.out.println("Leaf: " + leaf.getSubType());
-            noOfPages++;
-        }
         assertEquals(expectedNoOfPagesForSection, noOfPages);
     }
     
@@ -147,8 +132,7 @@ public class WorkTest {
         assertEquals(chapterBlinkyBill.getId(), theChapter.getId());
         
         // Also verify bibId can be returned as a String
-        System.out.println("voyager id for blinky bill: " + bookBlinkyBill.getBibId().toString());
-        // assertEquals(bookBlinkyBill.getBibId().getClass().getName(), "java.lang.String");
+        assertEquals(bookBlinkyBill.getBibId().getClass().getName(), "java.lang.String");
     }
     
 
@@ -274,7 +258,6 @@ public class WorkTest {
         db.findWork(workVertexId);
     }
 
-    @Ignore
     @Test
     public void testOrderChildren() {
         
