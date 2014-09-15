@@ -23,26 +23,24 @@ public class DescriptionTest {
         amberDb = new AmberSession();
         Work work = amberDb.addWork();
         objId = work.getObjId();
-        System.out.println("objId is " + objId);
         Copy masterCopy = work.addCopy();
-        System.out.println("copy type is " + masterCopy.getType());
         masterCopy.setCopyRole(CopyRole.MASTER_COPY.code());
         
         GeoCoding gc = work.addGeoCoding();
         IPTC iptc = work.addIPTC();
         CameraData cd = masterCopy.addCameraData();
-        System.out.println("gc type: " + gc.getType());
-        System.out.println("iptc type: " + iptc.getType());
-        System.out.println("cd type: " + cd.getType());
+        assertEquals("GeoCoding", gc.getType());
+        assertEquals("IPTC", iptc.getType());
+        assertEquals("CameraData", cd.getType());
         
         gc.setLatitude("53,17.7924S");
         gc.setLongitude("194,7.8465E");
         gc.setMapDatum("WGS-84");
         gc.setTimeStamp(new Date());
         
-        for (String key : gc.asVertex().getPropertyKeys()) {
-            System.out.println("key : " + key);
-        }
+        //for (String key : gc.asVertex().getPropertyKeys()) {
+        //    System.out.println("key : " + key);
+        //}
         
         iptc.setSubLocation("Parkes");
         iptc.setCity("Canberra");
