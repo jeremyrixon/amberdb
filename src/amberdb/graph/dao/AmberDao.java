@@ -135,6 +135,36 @@ public interface AmberDao extends Transactional<AmberDao> {
 
     
     @SqlUpdate(
+            "CREATE INDEX vert_txn_end_idx "
+            + "ON vertex(txn_end)")
+    void createVertexTxnEndIndex();
+
+    
+    @SqlUpdate(
+            "CREATE INDEX edge_txn_end_idx "
+            + "ON edge(txn_end)")
+    void createEdgeTxnEndIndex();
+
+
+    @SqlUpdate(
+            "CREATE INDEX prop_name_idx "
+            + "ON property(name)")
+    void createPropertyNameIndex();
+
+    
+    @SqlUpdate(
+            "CREATE INDEX prop_txn_end_idx "
+            + "ON property(txn_end)")
+    void createPropertyTxnEndIndex();
+
+    
+    @SqlUpdate(
+            "CREATE INDEX edge_label_idx "
+            + "ON edge(label)")
+    void createEdgeLabelIndex();
+
+    
+    @SqlUpdate(
             "CREATE INDEX edge_in_idx "
             + "ON edge(v_in)")
     void createEdgeInVertexIndex();
@@ -144,6 +174,24 @@ public interface AmberDao extends Transactional<AmberDao> {
             "CREATE INDEX edge_out_idx "
             + "ON edge(v_out)")
     void createEdgeOutVertexIndex();
+
+    
+    @SqlUpdate(
+            "CREATE INDEX sess_edge_idx "
+            + "ON sess_edge(s_id)")
+    void createSessionEdgeIndex();
+
+    
+    @SqlUpdate(
+            "CREATE INDEX sess_vertex_idx "
+            + "ON sess_vertex(s_id)")
+    void createSessionVertexIndex();
+    
+    
+    @SqlUpdate(
+            "CREATE INDEX sess_property_idx "
+            + "ON sess_property(s_id)")
+    void createSessionPropertyIndex();
 
     
     @SqlQuery(

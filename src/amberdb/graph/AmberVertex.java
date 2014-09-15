@@ -97,8 +97,12 @@ public class AmberVertex extends BaseVertex {
         List<Edge> edges = new ArrayList<>();
         for (Edge e : this.getEdges(direction, labels)) {
             Vertex v = e.getVertex(Direction.IN);
-            if (v == this) v = e.getVertex(Direction.OUT);
-            if (v.getId() == adjacent.getId()) edges.add(e);
+            if (v.equals(this)) {
+                v = e.getVertex(Direction.OUT);
+            }
+            if (v.getId().equals(adjacent.getId())) { 
+                edges.add(e);
+            }
         }
         return edges;
     }
@@ -121,6 +125,20 @@ public class AmberVertex extends BaseVertex {
             orders.add((Integer) e.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
         }
         return orders;
+    }
+    
+    
+    public String toJson() {
+        StringBuilder sb = new StringBuilder("{\n");
+        sb.append("  \"id\": "        + getId()    + ",\n")
+          .append("  \"txnStart\": "  + txnStart   + ",\n")
+          .append("  \"txnEnd\": "    + txnEnd     + ",\n")
+          .append("  \"properties\": {\n");
+        for (String prop : getPropertyKeys()) {
+            sb.append("    \"" + prop + "\": " + getProperty(prop) + "\n");
+        }
+        sb.append("  }\n}");
+        return sb.toString();
     }
 }
 

@@ -33,28 +33,6 @@ public class AmberDbTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    // Following test makes very little sense 
-    // needs fixing or deleting (scoen 11/08/2014)
-    @Test
-    public void testInMemory() throws IOException {
-        Work w1, w2;
-        try (AmberSession db = new AmberSession()) {
-            w1 = db.addWork();
-            db.close();
-        }
-        try (AmberSession db = new AmberSession()) {
-            try {
-                db.findWork(w1.getId());
-                assertTrue("works should not persist", false);
-            } catch (NoSuchObjectException e) {
-                // ok
-            }
-            w2 = db.addWork();
-            db.commit();
-            db.close();
-        }
-        assertNotEquals("ids should not persist", w1.getId(), w2.getId());
-    }
 
     @Test
     public void testPersistence() throws IOException {
@@ -94,31 +72,18 @@ public class AmberDbTest {
             sessId = db.suspend();
         }
         
+        String line;
         try (AmberSession db = adb.resume(sessId)) {
-            
-            // print out the book graph details
-            TransactionalGraph tg = (TransactionalGraph) db.getGraph();
-            for (Vertex v : tg.getVertices()) {
-                System.out.println(v.toString());
-                for (String p : v.getPropertyKeys()) {
-                    System.out.println("\t"+p + ": " + v.getProperty(p));
-                }
-                for (Edge e : v.getEdges(Direction.OUT)) {
-                    System.out.println("\t"+e.toString());
-                }
-            }
             
             // now, can we retrieve the files ?
             Work book2 = db.findWork(bookId);
-            
-            s("Book is: " + book2);
             
             Page p1 = book2.getPage(1);
             Copy c1 = p1.getCopy(CopyRole.MASTER_COPY);
             File f1 = c1.getFile();
             
             BufferedReader br = new BufferedReader(new InputStreamReader(f1.openStream()));
-            System.out.println(" ***** File contains: " + br.readLine());
+            line = br.readLine();
             
             db.commit();
             db.close();
@@ -129,18 +94,15 @@ public class AmberDbTest {
         try (AmberSession db = adb.begin()) {
 
             Work book2 = db.findWork(bookId);
-            s("Again Book is: " + book2);
-
             
             Page p1 = book2.getPage(1);
             Copy c1 = p1.getCopy(CopyRole.MASTER_COPY);
             File f1 = c1.getFile();
 
             BufferedReader br = new BufferedReader(new InputStreamReader(f1.openStream()));
-            System.out.println(" ***** File still contains: " + br.readLine());
+            assertEquals(line, br.readLine());
             db.close();
         }
-        
     }
  
     
@@ -151,11 +113,13 @@ public class AmberDbTest {
         
         Long sessId;
         Long bookId;
+        
+        Work book;
+        
         try (AmberSession db = adb.begin()) {
-            Work book = db.addWork();
+            book = db.addWork();
             bookId = book.getId();
             book.setTitle("Test book");
-            s("Book is: " + book);
             sessId = db.suspend();
         }
 
@@ -164,7 +128,7 @@ public class AmberDbTest {
             
             // now, can we retrieve the files ?
             Work book2 = db.findWork(bookId);
-            s("Book is now: " + book2);
+            assertEquals(book, book2);
             db.close();
         }
     }

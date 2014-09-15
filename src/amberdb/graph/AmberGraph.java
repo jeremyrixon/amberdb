@@ -10,13 +10,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 
 import amberdb.graph.dao.AmberDao;
 import amberdb.graph.dao.AmberDaoH2;
@@ -34,8 +37,8 @@ public class AmberGraph extends BaseGraph
         implements Graph, TransactionalGraph, IdGenerator, 
         ElementModifiedListener, EdgeFactory, VertexFactory {
 
-    
-    public Logger log = Logger.getLogger(AmberGraph.class.getName());
+
+    private static final Logger log = LoggerFactory.getLogger(AmberGraph.class);
     
     public static final DataSource DEFAULT_DATASOURCE = 
             JdbcConnectionPool.create("jdbc:h2:mem:persist","pers","pers");
@@ -97,7 +100,7 @@ public class AmberGraph extends BaseGraph
         dbi = new DBI(dataSource);
         dao = selectDao(dataSource);
         if (!dao.schemaTablesExist()) {
-            log.info("Graph schema doesn't exist - creating ...");
+            log.trace("Graph schema doesn't exist - creating ...");
             createAmberSchema();
         }
     }
@@ -107,10 +110,10 @@ public class AmberGraph extends BaseGraph
         String dbProduct = "";
         try (Connection conn = dataSource.getConnection()) {
             dbProduct = conn.getMetaData().getDatabaseProductName();
-            log.finest("Amber database type is " + dbProduct);
+            log.debug("Amber database type is {}", dbProduct);
         } catch (SQLException e) {
-            log.info("could not determine the database type - assuming it is H2");
-            log.info(e.getMessage());
+            log.trace("could not determine the database type - assuming it is H2");
+            log.trace(e.getMessage());
         }
 
         if (dbProduct.equals("MySQL")) {
@@ -134,12 +137,22 @@ public class AmberGraph extends BaseGraph
         dao.createEdgeIndex();
         dao.createEdgeInVertexIndex();
         dao.createEdgeOutVertexIndex();
+        dao.createEdgeLabelIndex();
         
         dao.createPropertyIndex();
+        dao.createPropertyNameIndex();
+        
+        dao.createVertexTxnEndIndex();
+        dao.createEdgeTxnEndIndex();
+        dao.createPropertyTxnEndIndex();
 
         dao.createSessionVertexTable();
         dao.createSessionEdgeTable();
         dao.createSessionPropertyTable();
+
+        dao.createSessionVertexIndex();
+        dao.createSessionEdgeIndex();
+        dao.createSessionPropertyIndex();
         
         dao.createIdGeneratorTable();
         dao.createTransactionTable();
@@ -231,9 +244,7 @@ public class AmberGraph extends BaseGraph
         batchSuspendEdges(e, p);
         batchSuspendVertices(v, p);
         
-        log.info("vertices   in batch: " + v.id.size());
-        log.info("edges      in batch: " + e.id.size());
-        log.info("properties in batch: " + p.id.size());
+        log.debug("batches -- vertices:{} edges:{} properties:{}", v.id.size(), e.id.size(), p.id.size() );
         
         dao.begin();
         
@@ -249,10 +260,8 @@ public class AmberGraph extends BaseGraph
     
     private void batchSuspendEdges(AmberEdgeBatch edges, AmberPropertyBatch properties) {
         
-        log.info("suspending edges -- r:" 
-                + removedEdges.size() + " n:" 
-                + newEdges.size() + " m:" 
-                + modifiedEdges.size());
+        log.debug("suspending edges -- deleted:{} new:{} modified:{}", 
+                removedEdges.size(), newEdges.size(), modifiedEdges.size());
         
         for (Edge e : removedEdges) {
             modifiedEdges.remove(e);
@@ -277,10 +286,8 @@ public class AmberGraph extends BaseGraph
     
     private void batchSuspendVertices(AmberVertexBatch vertices, AmberPropertyBatch properties) {
 
-        log.info("suspending verts -- r:" 
-                + removedVertices.size() + " n:" 
-                + newVertices.size() + " m:" 
-                + modifiedVertices.size());
+        log.debug("suspending verts -- deleted:{} new:{} modified:{} ", 
+                removedVertices.size(), newVertices.size(), modifiedVertices.size());
         
         for (Vertex v : removedVertices) {
             modifiedVertices.remove(v);
@@ -336,6 +343,7 @@ public class AmberGraph extends BaseGraph
     
 
     public void destroySession(Long sessId) {
+        log.debug("removing session {} from the session tables", sessId);
         dao.clearSession(sessId);
     }
     
@@ -354,7 +362,7 @@ public class AmberGraph extends BaseGraph
             }
             propertyMaps.get(id).put(prop.getName(), prop.getValue());
         }
-        log.info("property maps resumed: " + propertyMaps.size());
+        log.debug("property maps resumed: {}", propertyMaps.size());
         
         // Restore vertices to the graph before edges because 
         // edge construction depends on vertex existence
@@ -398,12 +406,9 @@ public class AmberGraph extends BaseGraph
             }
         }
         
-        log.info("resuming vr:" + removedVertices.size()
-                + " vn:" + newVertices.size()
-                + " vm:" + modifiedVertices.size()
-                + " er:" + removedEdges.size()
-                + " en:" + newEdges.size()
-                + " em:" + modifiedEdges.size());
+        log.debug("resuming -- vertices - deleted:{} new:{} modified:{} -- edges - deleted:{} new:{} modified:{}", 
+                removedVertices.size(), newVertices.size(), modifiedVertices.size(), 
+                removedEdges.size(), newEdges.size(), modifiedEdges.size());
     }
     
     private List<AmberVertexWithState> resumeVertices(Long sessId) {
@@ -436,10 +441,9 @@ public class AmberGraph extends BaseGraph
     public Long commit(String user, String operation) {
         
         Long txnId = suspend();
-        
         dao.begin();
 
-        // End current elements where this transaction modifies or deletes it.
+        // End current elements where this transaction modifies or deletes them.
         // Additionally, end edges orphaned by this procedure.
         dao.endElements(txnId);
         
@@ -448,9 +452,7 @@ public class AmberGraph extends BaseGraph
         
         // Refactor note: need to check when adding (modding?) edges that both ends exist
         dao.insertTransaction(txnId, new Date().getTime(), user, operation);
-        
         dao.commit();
-        
         clearChangeSets();
 
         return txnId;

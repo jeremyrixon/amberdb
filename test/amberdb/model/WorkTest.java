@@ -29,18 +29,18 @@ import amberdb.enums.SubType;
 
 public class WorkTest {
 
-    private static Work workCollection;
-    private static Work bookBlinkyBill;
-    private static Work chapterBlinkyBill;
-    private static Page workFrontCover;
-    private static Page workTitlePage;
-    private static Map<String, Object> expectedResults = new HashMap<String, Object>();    
-    private static int expectedNoOfPages = 0;
-    private static int expectedNoOfPagesForSection = 0;
+    private Work workCollection;
+    private Work bookBlinkyBill;
+    private Work chapterBlinkyBill;
+    private Page workFrontCover;
+    private Page workTitlePage;
+    private Map<String, Object> expectedResults = new HashMap<String, Object>();    
+    private int expectedNoOfPages = 0;
+    private int expectedNoOfPagesForSection = 0;
     
-    private static Work journalNLAOH;
+    private Work journalNLAOH;
 
-    private static AmberSession db;
+    private AmberSession db;
     
     @Before
     public void setup() throws IOException, InstantiationException {
@@ -58,10 +58,7 @@ public class WorkTest {
         
         List<String> subTypes = new ArrayList<String>();
         subTypes.add("page");
-        // subTypes.add("article");
-        // subTypes.add("chapter");
         List<Work> pages = journalNLAOH.getPartsOf(subTypes);
-        System.out.println("no. of pages: " + pages.size());
         if (pages != null) {
             for (Work page : pages) {
                 System.out.println("page: " + page.getId());
@@ -70,7 +67,6 @@ public class WorkTest {
         subTypes.remove("page");
         subTypes.add("article");
         List<Work> articles = journalNLAOH.getPartsOf(subTypes);
-        System.out.println("no. of articles: " + articles.size());
         if (articles != null) {
             for (Work article : articles) {
                 System.out.println("article: " + article.getId());
@@ -79,13 +75,10 @@ public class WorkTest {
     }
     
     @Test
-    //@Ignore
     public void testGetLeafsForBlinkyBill() {
         Iterable<Work> leafs = bookBlinkyBill.getLeafs(SubType.PAGE);
-        System.out.println("List leafs for book blinky bill: ");
         int noOfPages = 0;
         for (Work leaf : leafs) {
-            System.out.println("Leaf: " + leaf.getSubUnitType());
             noOfPages++;
         }
         assertEquals(expectedNoOfPages, noOfPages);
@@ -95,7 +88,6 @@ public class WorkTest {
     public void testGetLeafsOfSubTypesForBlinkyBill() {
         
         Long start = new Date().getTime();
-        System.out.println("starting actual test");
         
         // try loading the book first
         try {
@@ -105,22 +97,16 @@ public class WorkTest {
         }
         
         List<Work> leaves = bookBlinkyBill.getPartsOf(Arrays.asList(new String[] {SubType.PAGE.code(), SubType.CHAPTER.code()}));
-        System.out.println("loaded work millis: " + (new Date().getTime()-start));
         
-        System.out.println("List leaves for book blinky bill of type page and chapter: ");
         int noOfLeaves = 0;
         for (Work leaf : leaves) {
-            System.out.println("Leaf: " + leaf.getSubType() + ", " + leaf.getSubUnitType() + ", " + leaf.getTitle());
             noOfLeaves++;
         }
+
+        assertEquals(noOfLeaves, 3);
         
         // Check output bits
         leaves.get(0).getExistsOn(SubType.PAGE.code());
-        
-        System.out.println("Total number of leaves was: " + noOfLeaves);
-        System.out.println("got leaves millis: " + (new Date().getTime()-start));
-        System.out.println("now resetting test data");
-
     }
     
     @Test
@@ -132,12 +118,7 @@ public class WorkTest {
                 theNewArrival = section;
         }
         Iterable<Work> leafs = theNewArrival.getLeafs(SubType.PAGE.code());
-        System.out.println("List leafs for chapter the new arrival: ");
         int noOfPages = 0;
-        for (Work leaf : leafs) {
-            System.out.println("Leaf: " + leaf.getSubType());
-            noOfPages++;
-        }
         assertEquals(expectedNoOfPagesForSection, noOfPages);
     }
     
@@ -147,8 +128,7 @@ public class WorkTest {
         assertEquals(chapterBlinkyBill.getId(), theChapter.getId());
         
         // Also verify bibId can be returned as a String
-        System.out.println("voyager id for blinky bill: " + bookBlinkyBill.getBibId().toString());
-        // assertEquals(bookBlinkyBill.getBibId().getClass().getName(), "java.lang.String");
+        assertEquals(bookBlinkyBill.getBibId().getClass().getName(), "java.lang.String");
     }
     
 
@@ -274,7 +254,6 @@ public class WorkTest {
         db.findWork(workVertexId);
     }
 
-    @Ignore
     @Test
     public void testOrderChildren() {
         
@@ -305,7 +284,7 @@ public class WorkTest {
         }
     }
     
-    private static void setTestDataInH2(AmberSession sess) {
+    private void setTestDataInH2(AmberSession sess) {
         workCollection = sess.addWork();
         
         workCollection.setSubType("title");

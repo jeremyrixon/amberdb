@@ -18,11 +18,13 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
+
 import amberdb.enums.CopyRole;
 import amberdb.model.Page;
 import amberdb.model.Work;
 
-import com.google.common.collect.Lists;
 
 public class IngestTest {
     @ClassRule
@@ -143,7 +145,6 @@ public class IngestTest {
             int count = work.countParts();
             if (count > 0) {
                 Page page7 = work.getPages().iterator().next();
-                System.out.println("*********** check set title: " + work.getId() + " pages:" + Lists.newArrayList(work.getPages()).size()  );
                 if (page7 != null)
                     page7.setTitle("III");
             }
@@ -154,22 +155,19 @@ public class IngestTest {
         db.commit();
     }
 
-    @Ignore
-    public void testCompleteJob() {
-        // recover existing transaction if any
-        db.commit();
-    }
-
     @Test
     public void testCancelJob() {
         db.rollback();
     }
 
+    @Ignore
     @Test
     public void testSerializeToJson() throws JsonGenerationException, JsonMappingException,
             IOException {
-        System.out.println(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(
-                db.serializeToJson()));
+        System.out.println(new ObjectMapper()
+                .writerWithDefaultPrettyPrinter()
+                .writeValueAsString(
+                        db.serializeToJson()));
     }
 
     private void describeWork(JobMockup job, Work work) {
@@ -180,10 +178,23 @@ public class IngestTest {
 
         // show the qa form
         try {
+            
+            Page p1;
+            Page p2;
+            
             if (work.countParts() > 1) {
-                // swap page 1 and 2
-                work.getPage(1).setOrder(2);
-                work.getPage(2).setOrder(1);
+                
+                p1 = work.getPage(1);
+                p2 = work.getPage(2);
+                
+                Page a = work.getPage(1);
+                Page b = work.getPage(2);
+                
+                a.setOrder(2);
+                b.setOrder(1);
+                
+                assertEquals(p1, work.getPage(2));
+                assertEquals(p2, work.getPage(1));
             }
 
             if (work.countParts() > 0) {
@@ -192,6 +203,9 @@ public class IngestTest {
                 page.crop(100, 100, 200, 200);
                 page.setTitle("IV");
             }
+            
+            assertEquals(work.getPage(1).getTitle(), "IV");
+
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -6,8 +6,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 
@@ -30,7 +31,7 @@ public class VersionedGraph {
     protected Map<Long, Set<VersionedEdge>> inEdgeSets = new HashMap<>();
     protected Map<Long, Set<VersionedEdge>> outEdgeSets = new HashMap<>();
 
-    public Logger log = Logger.getLogger(VersionedGraph.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(VersionedGraph.class);
     
     public static final DataSource DEFAULT_DATASOURCE = 
             JdbcConnectionPool.create("jdbc:h2:mem:persist","pers","pers");
@@ -239,7 +240,7 @@ public class VersionedGraph {
             if (eId instanceof String) return TId.parse((String) eId);
 
         } catch (Exception e) {
-            log.log(Level.WARNING, "Error parsing id:", e);
+            log.debug("Error parsing id:", e);
         }
         return null;
     }

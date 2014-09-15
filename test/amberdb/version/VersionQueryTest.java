@@ -31,7 +31,7 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 
 
-public class TransactionsTest {
+public class VersionQueryTest {
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
@@ -54,52 +54,7 @@ public class TransactionsTest {
 
 
     @Test
-    public void testTxns2() throws Exception {
-        
-        // create simple graph
-        Vertex v1 = graph.addVertex(null);
-        Vertex v2 = graph.addVertex(null);
-        Vertex v3 = graph.addVertex(null);
-        
-        v1.setProperty("name", "v1");
-        v2.setProperty("name", "v2");
-        v3.setProperty("name", "v3");
-        
-        v1.setProperty("value", 1);
-        v2.setProperty("value", 2);
-        v3.setProperty("value", 3);
-        
-        v1.addEdge("links", v2);
-        v2.addEdge("links", v3);
-        v3.addEdge("links", v1);
-        
-        // commit
-        graph.commit("test", "c1");
-        
-        // do some things
-        v1.setProperty("name", "vertex 1");
-        v2.setProperty("value", 100);
-        Edge e4 = graph.addEdge(null, v1, v2, "ordered");
-        
-        // commit
-        graph.commit("test", "c2");
-        
-        // do some more things
-        v3.remove();
-        e4.setProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME, 99);
-        
-        // commit
-        graph.commit("test", "c2");
-        
-        vGraph.loadTransactionGraph(0L, 100L, true);
-
-        assertEquals(((List) vGraph.getVertices()).size(), 3);
-        assertEquals(((List) vGraph.getEdges()).size(), 4);
-    }        
-    
-    
-    @Test
-    public void testTxns3() throws Exception {
+    public void testTxns1() throws Exception {
         
         // lets try some volume stuff
         String title1 = "Blinky kills again";
@@ -108,12 +63,10 @@ public class TransactionsTest {
         // modify some bits
         Vertex book = graph.getVertices("title", title1).iterator().next();
         for (Vertex page : book.getVertices(Direction.IN, "isPartOf")) {
-            if ((Integer) page.getProperty("value") % 4 == 1) {
+            if ((Integer) page.getProperty("value") % 2 == 0)
                 page.setProperty("code", page.hashCode());
-            }
-            if ((Integer) page.getProperty("value") % 4 == 0) {
+            if ((Integer) page.getProperty("value") % 3 == 0)
                 page.remove();            
-            }
         }
         Long txn2 = graph.commit("test", "modified book 1");
        
@@ -126,55 +79,76 @@ public class TransactionsTest {
         
         // make another book
         String title2 = "Blinky rises";
-        long txn4 = createBook(40, title2);
+        long txn4 = createBook(10, title2);
 
         // reorder some pages
         book = graph.getVertices("title", title2).iterator().next();
         for (Vertex page : book.getVertices(Direction.IN, "isPartOf")) {
-            if ((Integer) page.getProperty("value") % 5 == 0) {
+            if ((Integer) page.getProperty("value") % 20 == 0) {
                 Edge e = page.getEdges(Direction.OUT, "isPartOf").iterator().next();
-                e.setProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME, (Integer) page.getProperty("value") + 3000);
+                e.setProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME, 44);
             }
         }
-        book.setProperty("internalAccessConditions", "Closed");
         Long txn5 = graph.commit("test", "modified book 2");
-        
-        TransactionIndexer cl = new TransactionIndexer(graph);
-        Set<Long>[] objSets = cl.findObjectsToBeIndexed(1L, txn1);
-        Set<Long> modified = objSets[0];
-        Set<Long> deleted = objSets[1];
-        assertEquals(modified.size(), 61);
-        assertEquals(deleted.size(), 0);
-        
-        cl = new TransactionIndexer(graph);
-        objSets = cl.findObjectsToBeIndexed(txn1, txn2);
-        modified = objSets[0];
-        deleted = objSets[1];
-        assertEquals(modified.size(), 5);
-        assertEquals(deleted.size(), 5);
-        
-        cl = new TransactionIndexer(graph);
-        objSets = cl.findObjectsToBeIndexed(txn2, txn3);
-        modified = objSets[0];
-        deleted = objSets[1];
-        assertEquals(modified.size(), 9);
-        assertEquals(deleted.size(), 0);
 
-        cl = new TransactionIndexer(graph);
-        objSets = cl.findObjectsToBeIndexed(txn3, txn4);
-        modified = objSets[0];
-        deleted = objSets[1];
-        assertEquals(modified.size(), 121);
-        assertEquals(deleted.size(), 0);
+        // and another book
+        String title3 = "Blinky unleashed";
+        long txn6 = createBook(15, title3);
 
-        cl = new TransactionIndexer(graph);
-        objSets = cl.findObjectsToBeIndexed(txn4, txn5);
-        modified = objSets[0];
-        deleted = objSets[1];
-        assertEquals(modified.size(), 0);
-        assertEquals(deleted.size(), 1);
+        // reorder some pages
+        book = graph.getVertices("title", title3).iterator().next();
+        for (Vertex page : book.getVertices(Direction.IN, "isPartOf")) {
+            if ((Integer) page.getProperty("value") % 3 == 0) {
+                Edge e = page.getEdges(Direction.OUT, "isPartOf").iterator().next();
+                e.setProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME, 44);
+            }
+            if (page.getProperty("value").equals(3)) {
+                page.remove();
+            }
+            if (page.getProperty("value").equals(5)) {
+                page.setProperty("foo", "fum");
+            }
+        }
+        Long txn7 = graph.commit("test", "modified book 3");
+
+        
+        // Here we go
+        VersionQuery vq = new VersionQuery((Long) book.getId(), vGraph);
+        List<String> labels = new ArrayList<>();
+        labels.add("isPartOf");
+        labels.add("isCopyOf");
+        labels.add("isFileOf");
+        labels.add("descriptionOf");
+        vq.branch(labels, Direction.IN);
+        vq.branch(labels, Direction.IN);
+        vq.branch(labels, Direction.IN);
+        vq.branch(labels, Direction.IN);
+
+        List<VersionedVertex> l = vq.execute();
+
+        int works = 0;
+        int pages = 0;
+        int copies = 0;
+        int files = 0;
+        int descs = 0;
+        
+        for (VersionedVertex v: l) {
+            switch ((String) v.getFirst().getProperty("type")) {
+            case "Work": works++; break;
+            case "Page": pages++; break;
+            case "Copy": copies++; break;
+            case "File": files++; break;
+            case "Description": descs++; break;
+            }
+        }
+        assertEquals(1, works);
+        assertEquals(15, pages);
+        assertEquals(30, copies);
+        assertEquals(30, files);
+        assertEquals(30, descs);
+        
     }        
-    
+
     
     public static void s(String s) {
         System.out.println(s);
@@ -182,10 +156,12 @@ public class TransactionsTest {
     
     
     private Long createBook(int numPages, String title) {
+        
         Vertex book = graph.addVertex(null);
         book.setProperty("type", "Work");
         book.setProperty("bibLevel", "Item");
         book.setProperty("title", title);
+        
         for (int i = 0; i < numPages; i++) {
             createPage(book, i);
         }
@@ -224,6 +200,16 @@ public class TransactionsTest {
         file.setProperty("type", "File");
         file.setProperty("path", "/fiddle/de/do");
         file.addEdge("isFileOf", copy);
+        createDescription(file);
         return file;
+    }
+    
+    
+    private Vertex createDescription(Vertex file) {
+        Vertex desc = graph.addVertex(null);
+        desc.setProperty("type", "Description");
+        desc.setProperty("note", "foo foo");
+        desc.addEdge("descriptionOf", file);
+        return desc;
     }
 }
