@@ -97,8 +97,12 @@ public class AmberVertex extends BaseVertex {
         List<Edge> edges = new ArrayList<>();
         for (Edge e : this.getEdges(direction, labels)) {
             Vertex v = e.getVertex(Direction.IN);
-            if (v == this) v = e.getVertex(Direction.OUT);
-            if (v.getId() == adjacent.getId()) edges.add(e);
+            if (v.equals(this)) {
+                v = e.getVertex(Direction.OUT);
+            }
+            if (v.getId().equals(adjacent.getId())) { 
+                edges.add(e);
+            }
         }
         return edges;
     }

@@ -29,18 +29,18 @@ import amberdb.enums.SubType;
 
 public class WorkTest {
 
-    private static Work workCollection;
-    private static Work bookBlinkyBill;
-    private static Work chapterBlinkyBill;
-    private static Page workFrontCover;
-    private static Page workTitlePage;
-    private static Map<String, Object> expectedResults = new HashMap<String, Object>();    
-    private static int expectedNoOfPages = 0;
-    private static int expectedNoOfPagesForSection = 0;
+    private Work workCollection;
+    private Work bookBlinkyBill;
+    private Work chapterBlinkyBill;
+    private Page workFrontCover;
+    private Page workTitlePage;
+    private Map<String, Object> expectedResults = new HashMap<String, Object>();    
+    private int expectedNoOfPages = 0;
+    private int expectedNoOfPagesForSection = 0;
     
-    private static Work journalNLAOH;
+    private Work journalNLAOH;
 
-    private static AmberSession db;
+    private AmberSession db;
     
     @Before
     public void setup() throws IOException, InstantiationException {
@@ -58,10 +58,7 @@ public class WorkTest {
         
         List<String> subTypes = new ArrayList<String>();
         subTypes.add("page");
-        // subTypes.add("article");
-        // subTypes.add("chapter");
         List<Work> pages = journalNLAOH.getPartsOf(subTypes);
-        System.out.println("no. of pages: " + pages.size());
         if (pages != null) {
             for (Work page : pages) {
                 System.out.println("page: " + page.getId());
@@ -70,7 +67,6 @@ public class WorkTest {
         subTypes.remove("page");
         subTypes.add("article");
         List<Work> articles = journalNLAOH.getPartsOf(subTypes);
-        System.out.println("no. of articles: " + articles.size());
         if (articles != null) {
             for (Work article : articles) {
                 System.out.println("article: " + article.getId());
@@ -288,7 +284,7 @@ public class WorkTest {
         }
     }
     
-    private static void setTestDataInH2(AmberSession sess) {
+    private void setTestDataInH2(AmberSession sess) {
         workCollection = sess.addWork();
         
         workCollection.setSubType("title");
