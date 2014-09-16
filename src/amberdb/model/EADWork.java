@@ -6,13 +6,16 @@ import java.util.List;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 
+import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.frames.Adjacency;
 import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.modules.javahandler.JavaHandler;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
 import amberdb.model.Work;
+import amberdb.relation.IsPartOf;
 
 @TypeValue("EADWork")
 public interface EADWork extends Work {
@@ -61,6 +64,9 @@ public interface EADWork extends Work {
      */
     @JavaHandler
     public void setFolder(List<String> folder) throws JsonParseException, JsonMappingException, IOException;
+    
+    @Adjacency(label = IsPartOf.label, direction = Direction.IN)
+    public EADWork addEADWork();
     
     abstract class Impl extends Work.Impl implements JavaHandlerContext<Vertex>, EADWork {
         @Override
