@@ -344,15 +344,14 @@ public class AmberSession implements AutoCloseable {
     }    
     
     
-    static void s(String s) {
-        System.out.println(s);
-    }
-    
     @Override
     public void close() throws IOException {
         graph.shutdown();
         if (tempDir != null) {
             tempDir.delete();
+        }
+        if (blobStore != null) {
+            blobStore.close();
         }
     }
 

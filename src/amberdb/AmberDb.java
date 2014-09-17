@@ -13,27 +13,22 @@ import doss.CorruptBlobStoreException;
 public class AmberDb {
     final private DataSource dataSource;
     final private Path rootPath;
-    final private BlobStore blobStore;
-
+    
     public AmberDb(DataSource dataSource, Path rootPath) {
         this.dataSource = dataSource;
         this.rootPath = rootPath;
-        this.blobStore = AmberDb.openBlobStore(rootPath);
     }
 
     public AmberSession begin() {        
-        return new AmberSession(dataSource, blobStore, null);
+        return new AmberSession(dataSource, openBlobStore(rootPath), null);
     }
     
     public AmberSession resume(long sessionId) {
-        AmberSession as = new AmberSession(dataSource, blobStore, sessionId);
+        AmberSession as = new AmberSession(dataSource, openBlobStore(rootPath), sessionId);
         return as;
     }
 
     public void close() {
-        if (blobStore != null) {
-            blobStore.close();
-        }
     }
 
     static BlobStore openBlobStore(Path root) {

@@ -19,7 +19,6 @@ import javax.sql.DataSource;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
-import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 
 import amberdb.graph.dao.AmberDao;
 import amberdb.graph.dao.AmberDaoH2;
