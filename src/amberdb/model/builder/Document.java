@@ -9,18 +9,18 @@ public class Document {
     final JsonNode document;
     final ObjectMapper mapper = new ObjectMapper();
     
-    public Document(JsonNode structure, JsonNode index) {
+    public Document(JsonNode structure, JsonNode content) {
         this.document = mapper.createObjectNode();
         ((ObjectNode) document).put("structure", structure);
-        ((ObjectNode) document).put("index", index);
+        ((ObjectNode) document).put("content", content);
     }
     
     public JsonNode getStructure() {
         return document.get("structure");
     }
     
-    public JsonNode getIndex() {
-        return document.get("index");
+    public JsonNode getContent() {
+        return document.get("content");
     }
     
     public String toJson() throws IOException {

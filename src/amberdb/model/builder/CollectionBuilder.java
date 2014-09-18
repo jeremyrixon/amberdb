@@ -1,6 +1,7 @@
 package amberdb.model.builder;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 
 import nu.xom.Node;
@@ -28,22 +29,22 @@ public class CollectionBuilder {
     static final ObjectMapper mapper = new ObjectMapper();
     
     /**
-     * createCollection currently parses the ead file attached to the top-level
+     * createCollection parses the ead file attached to the top-level
      * collection work with the input field mapping from collectionCfg, and 
      * create the collection work structure under the top level collection work. 
      * 
-     * 
-     * @param eadFilePath 
-     * @param collectCfg
+     * @param collectionWork - the top level work to attach a collection of works to. 
+     * @param collectionCfg  - configuration for parsing attached EAD file for creating
+     *                         the collection.
+     * @param parser         - the XML document parser for parsing the EAD. 
+     * @param validateXML    - flag whether or not to validate the input EAD as valid XML.
      * @return
      * @throws IOException 
      * @throws ParsingException 
      * @throws ValidityException 
      */
-    public static void createCollection(Work collectionWork, JsonNode collectionCfg, XmlDocumentParser parser) throws ValidityException, ParsingException, IOException{
+    public static void createCollection(Work collectionWork, JsonNode collectionCfg, XmlDocumentParser parser, boolean validateXML) throws ValidityException, ParsingException, IOException{
         // map metadata in the top-level work for the collection 
-        
-        // File inFile = eadFilePath.toFile();
         if (collectionWork == null) {
             String errMsg = "Failed to create work collection as the input collection work is null.";
             log.error(errMsg);
@@ -59,16 +60,26 @@ public class CollectionBuilder {
         File eadFile = eadCopy.getFile();
         
         String collectionName = eadFile.getFileName();
-        boolean validateXML = false;
-        parser.init(eadFile.openStream(), validateXML);
-        mapCollectionMD(collectionWork, collectionCfg.get("collection"), parser);
-        
-        // traverse each work component under the top-level work, and map its metadata
-        Nodes eadElements = parser.traverse(parser.getDocument());
-        traverseEAD(collectionWork.asEADWork(), eadElements, collectionCfg.get("collection"), parser);
+        createCollection(collectionWork, eadFile.openStream(), collectionCfg, parser, validateXML);
     }
     
-    public static File generateJson(Work collectionWork) throws IOException {
+    /**
+     * generateJson generates a document in json format consist the mapping of the structure and
+     * an array of items with each item contains the detailed content required for the delivery,
+     * and if the storeCopy flag is set to true, stores the document as a finding aid view copy. 
+     * 
+     * Pre-condition: if the collectionWork has already an existing finding aid view copy, and the 
+     *                copy must be deleted and the storeCopy must be set to true before the newly
+     *                generated view copy can be stored.
+     *                
+     * @param collectionWork - the top level work to attach a collection of works to.
+     * @param storeCopy    - flag whether or not to store the generated json as a finding aid
+     *                         view copy to the top level work.
+     * @return Document      - the newly generated document containing structure and content json
+     *                         nodes.
+     * @throws IOException
+     */
+    public static Document generateJson(Work collectionWork, boolean storeCopy) throws IOException {
         ObjectNode structure = mapper.createObjectNode();
         ObjectNode content = mapper.createObjectNode();
         
@@ -77,9 +88,24 @@ public class CollectionBuilder {
         Document doc = new Document(structure, content);
         
         // store the document as a copy to collectionWork.
-        Copy favEADCopy = collectionWork.addCopy();
-        favEADCopy.setCopyRole(CopyRole.FINDING_AID__VIEW_COPY.code());
-        return favEADCopy.addFile(Writables.wrap(doc.toJson()), "application/json");
+        if (storeCopy) {
+            // check and remove the previous copy
+            if (collectionWork.getCopy(CopyRole.FINDING_AID__VIEW_COPY) == null) {
+                Copy favEADCopy = collectionWork.addCopy();
+                favEADCopy.setCopyRole(CopyRole.FINDING_AID__VIEW_COPY.code());
+                favEADCopy.addFile(Writables.wrap(doc.toJson()), "application/json");   
+            }
+        }
+        return doc;
+    }
+    
+    protected static void createCollection(Work collectionWork, InputStream in, JsonNode collectionCfg, XmlDocumentParser parser, boolean validateXML) throws ValidityException, ParsingException, IOException {
+        parser.init(in, validateXML);
+        mapCollectionMD(collectionWork, collectionCfg.get("collection"), parser);
+        
+        // traverse each work component under the top-level work, and map its metadata
+        Nodes eadElements = parser.traverse(parser.getDocument());
+        traverseEAD(collectionWork.asEADWork(), eadElements, collectionCfg.get("collection"), parser);
     }
     
     protected static void traverseEAD(EADWork parentWork, Nodes eadElements, JsonNode elementCfg, XmlDocumentParser parser) {
