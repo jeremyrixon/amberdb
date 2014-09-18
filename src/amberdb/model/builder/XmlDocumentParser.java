@@ -2,6 +2,7 @@ package amberdb.model.builder;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,9 +26,9 @@ public abstract class XmlDocumentParser {
     protected static ObjectMapper mapper = new ObjectMapper();
     protected Document doc;
     
-    public void init(File inFile, boolean validateXML) throws ValidityException, ParsingException, IOException {
+    public void init(InputStream in, boolean validateXML) throws ValidityException, ParsingException, IOException {
         Builder builder = new Builder(validateXML);
-        doc = builder.build(inFile);
+        doc = builder.build(in);
     }
     
     public Nodes traverse(Document doc) {

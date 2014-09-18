@@ -1,8 +1,6 @@
 package amberdb.model.builder;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Map;
 
 import nu.xom.Node;
@@ -12,20 +10,27 @@ import nu.xom.ValidityException;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import doss.core.Writables;
+
+import amberdb.enums.CopyRole;
+import amberdb.model.Copy;
 import amberdb.model.EADWork;
+import amberdb.model.File;
 import amberdb.model.Work;
 
 public class CollectionBuilder {
     static final Logger log = LoggerFactory.getLogger(CollectionBuilder.class);
+    static final ObjectMapper mapper = new ObjectMapper();
     
     /**
-     * createCollection currently parses an ead file with the input field mapping 
-     * from collectionCfg, and create the collection work structure under the
-     * top level collection work. 
+     * createCollection currently parses the ead file attached to the top-level
+     * collection work with the input field mapping from collectionCfg, and 
+     * create the collection work structure under the top level collection work. 
      * 
      * 
      * @param eadFilePath 
@@ -35,34 +40,49 @@ public class CollectionBuilder {
      * @throws ParsingException 
      * @throws ValidityException 
      */
-    public static void createCollection(Work collectionWork, Path eadFilePath, JsonNode collectionCfg, XmlDocumentParser parser) throws ValidityException, ParsingException, IOException{
+    public static void createCollection(Work collectionWork, JsonNode collectionCfg, XmlDocumentParser parser) throws ValidityException, ParsingException, IOException{
         // map metadata in the top-level work for the collection 
-        File inFile = eadFilePath.toFile();
-        String collectionName = inFile.getName();
+        
+        // File inFile = eadFilePath.toFile();
+        if (collectionWork == null) {
+            String errMsg = "Failed to create work collection as the input collection work is null.";
+            log.error(errMsg);
+            throw new IllegalArgumentException(errMsg);
+        }
+        
+        Copy eadCopy = collectionWork.getCopy(CopyRole.FINDING_AID_COPY);
+        if (eadCopy == null || eadCopy.getFile() == null) {
+            String errMsg = "Failed to create work collection as the input collection work " + collectionWork.getObjId() + " does not have a finding aid copy.";
+            log.error(errMsg);
+            throw new IllegalArgumentException(errMsg);
+        }
+        File eadFile = eadCopy.getFile();
+        
+        String collectionName = eadFile.getFileName();
         boolean validateXML = false;
-        parser.init(inFile, validateXML);
-        mapCollectionMD(collectionWork, eadFilePath, collectionCfg.get("collection"), parser);
+        parser.init(eadFile.openStream(), validateXML);
+        mapCollectionMD(collectionWork, collectionCfg.get("collection"), parser);
         
         // traverse each work component under the top-level work, and map its metadata
         Nodes eadElements = parser.traverse(parser.getDocument());
-        traverse(collectionWork.asEADWork(), eadElements, collectionCfg.get("collection"), parser);
+        traverseEAD(collectionWork.asEADWork(), eadElements, collectionCfg.get("collection"), parser);
     }
     
-    public static void generateJson(Work collectionWork) {
-        ObjectMapper mapper = new ObjectMapper();
+    public static File generateJson(Work collectionWork) throws IOException {
         ObjectNode structure = mapper.createObjectNode();
         ObjectNode content = mapper.createObjectNode();
         
         // create the document from the work.
-        generateStructure(collectionWork, structure);
-        generateContent(collectionWork, content);
-        
+        traverseCollection(collectionWork, structure, content);
         Document doc = new Document(structure, content);
-
-        // TODO: store the document as a copy to collectionWork.
+        
+        // store the document as a copy to collectionWork.
+        Copy favEADCopy = collectionWork.addCopy();
+        favEADCopy.setCopyRole(CopyRole.FINDING_AID__VIEW_COPY.code());
+        return favEADCopy.addFile(Writables.wrap(doc.toJson()), "application/json");
     }
     
-    protected static void traverse(EADWork parentWork, Nodes eadElements, JsonNode elementCfg, XmlDocumentParser parser) {
+    protected static void traverseEAD(EADWork parentWork, Nodes eadElements, JsonNode elementCfg, XmlDocumentParser parser) {
         for (int i = 0 ; i < eadElements.size(); i++) {
             Node eadElement = eadElements.get(i);
             EADWork workInCollection = parentWork.addEADWork();
@@ -70,11 +90,11 @@ public class CollectionBuilder {
             
             Nodes nextLevel = parser.traverse(eadElement);
             if (nextLevel != null)
-                traverse(workInCollection, nextLevel, elementCfg, parser);
+                traverseEAD(workInCollection, nextLevel, elementCfg, parser);
         }
     }
     
-    protected static void mapCollectionMD(Work collectionWork, Path eadFilePath, JsonNode collectionCfg, XmlDocumentParser parser) throws ValidityException, ParsingException, IOException {
+    protected static void mapCollectionMD(Work collectionWork, JsonNode collectionCfg, XmlDocumentParser parser) throws ValidityException, ParsingException, IOException {
         Map<String, Object> fieldsMap = parser.getFieldsMap(parser.getDocument(), collectionCfg);      
         collectionWork.setCollection(fieldsMap.get("collection-name").toString());
         collectionWork.setCreator(fieldsMap.get("creator").toString());
@@ -107,11 +127,35 @@ public class CollectionBuilder {
         workInCollection.setAccessConditions("Unrestricted");
     }
     
-    protected static void generateStructure(Work collectionWork, ObjectNode structure) {
-        // TODO:
+    protected static void traverseCollection (Work work, JsonNode structure, JsonNode content) {
+        JsonNode workProperties = mapWorkProperties(work);
+
+        String uuid = "";
+        if (workProperties.get("uuid") != null && !workProperties.get("uuid").getTextValue().isEmpty()) {
+            uuid = workProperties.get("uuid").getTextValue();
+        }
+        ((ObjectNode) structure).put(work.getObjId(), uuid);
+        ((ObjectNode) content).put(work.getObjId(), workProperties);
+        traverseCollection(work.getChildren(), structure, content);
     }
     
-    protected static void generateContent(Work collectionWork, ObjectNode content) {
-        // TODO:
+    protected static void traverseCollection (Iterable<Work> works, JsonNode structure, JsonNode content) {
+        if (works == null || !works.iterator().hasNext()) return;
+        ArrayNode arry = mapper.createArrayNode();
+        ((ObjectNode) structure).put("sub-element", arry);
+        for (Work work : works) {
+            JsonNode item = mapper.createObjectNode();
+            traverseCollection(work, item, content);
+        }
+    }
+    
+    private static JsonNode mapWorkProperties(Work work) {
+        JsonNode workProperties = mapper.createObjectNode();
+        String[] fields = { "subType", "subUnitType", "form", "bibLevel", "collection", "recordSource", "localSystemNumber",
+                               "rdsAcknowledgementType", "rdsAcknowledgementReceiver", "eadUpdateReviewRequired", "accessConditions" };
+        for (String field : fields) {
+            ((ObjectNode) workProperties).put(field, work.asVertex().getProperty(field).toString());
+        }
+        return workProperties;
     }
 }

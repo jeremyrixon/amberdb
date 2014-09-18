@@ -25,6 +25,7 @@ public enum CopyRole {
     STRUCTURAL_MAP_COPY("sm", "Structural map"),
     FINDING_AID_COPY("fa", "Finding aid"),
     FINDING_AID__PRINT_COPY("fap", "Finding aid print"),
+    FINDING_AID__VIEW_COPY("fav", "Finding aid view"),
     MICROFORM_COPY("mf", "Microform"),
     SPECIAL_DELIVERY_COPY("sd", "Special delivery"),    
     RELATED_METADATA_COPY("rm", "Related metadata"),
