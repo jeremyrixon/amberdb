@@ -121,9 +121,7 @@ public class AmberSession implements AutoCloseable {
 
     
     private AmberGraph init(DataSource dataSource, Long sessionId) {
-        try {
 
-            DriverManager.registerDriver(new Driver());
             // NLA specific lookup table config
             lookupsDbi = new DBI(dataSource);
             LookupsSchema luSchema = lookupsDbi.onDemand(LookupsSchema.class);
@@ -139,10 +137,6 @@ public class AmberSession implements AutoCloseable {
             if (sessionId != null) amber.resume(sessionId);
             
             return amber;
-            
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }        
     }
     
     
