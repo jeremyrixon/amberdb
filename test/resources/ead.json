@@ -5,7 +5,8 @@
     "fields": {    
       "collection-name":          "fileName",
       "summary": {
-        "eadid":              "//ead:ead/ead:eadheader/ead:eadid[1]",
+        "uuid":               "notsupplied",
+        "eadid":              "//ead:ead/ead:eadheader/ead:eadid",
         "collection-number":  "//ead:ead/ead:archdesc/ead:did/ead:unitid",
         "creator":            "//ead:ead/ead:archdesc/ead:did/ead:origination/ead:persname",
         "title":              "//ead:ead/ead:archdesc/ead:did/ead:unittitle",
@@ -14,7 +15,6 @@
       "introduction": {
         "scope-n-content":    "//ead:ead/ead:archdesc/ead:scopecontent/ead:p",
         "arrangement":        "//ead:ead/ead:archdesc/ead:arrangement/ead:p",
-        "access":             "??",
         "provenance":         "//ead:ead/ead:archdesc/ead:acqinfo",
         "copying-publishing": "//ead:ead/ead:archdesc/ead:userestrict",
         "preferred-citation": "//ead:ead/ead:archdesc/ead:prefercite" },
@@ -22,17 +22,17 @@
         "biographical-note":  "//ead:ead/ead:archdesc/ead:bioghist" }
     },
     "sub-elements": {
-      "series": {
-        "base":               "//ead:ead/ead:archdesc/ead:dsc",
-        "fields": {                
+      "base":                 "//ead:ead/ead:archdesc/ead:dsc",
+      "fields": {                
+        "series": {
           "title":              "ead:did/ead:unittitle",
           "ord":                "ead:did/ead:unitid",
           "date-range":         "ead:did/ead:unitdate",
           "scope-n-content":    "ead:scopecontent/ead:p",
           "sub-unit-type":      "@level",
-          "uuid":               "@id"},
-        "repeatable-element":   "ead:c"
-      }      
+          "uuid":               "@id"}
+      },
+      "repeatable-element":   "ead:c"
     }          
  }           
 }

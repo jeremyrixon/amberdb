@@ -1,5 +1,6 @@
 package amberdb.model.builder;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,28 +20,27 @@ public class EADParser extends XmlDocumentParser {
     static final Logger log = LoggerFactory.getLogger(EADParser.class);
     static ObjectMapper mapper = new ObjectMapper();
     
-    public Map<String, Object> getFieldsMap(Document doc, JsonNode collectionCfg) {
-        Map<String, Object> fldsMap = new ConcurrentHashMap<>();
-        mapFields(doc, null, "", getFldsMapCfg(collectionCfg));
-        return fldsMap;
+    public Map<String, Object> getFieldsMap(Document doc, JsonNode collectionCfg) {       
+        boolean isRootElement = true;
+        return mapFields(doc.getRootElement(), getFldsMapCfg(collectionCfg), getBasePath(doc), isRootElement);
     }
-    
-    public Map<String, Object> getFieldsMap(Node node, JsonNode elementCfg) {
-        Map<String, Object> fldsMap = new ConcurrentHashMap<>();
-        
-        return fldsMap;
+       
+    public Map<String, Object> getFieldsMap(Node node, JsonNode elementCfg, String basePath) {
+        boolean isRootElement = false;
+        return mapFields(node, getFldsMapCfg(elementCfg), basePath, isRootElement);
     }
     
     /**
-     * Allow fields configuration to be grouped into sections
-     * @param elementCfg
-     * @return
+     * Get a list of field mapping configurations.  The configuration will allow fields to be grouped 
+     * into sections.
+     * 
+     * @param elementCfg - the JsonNode to extract the field mapping configuration from.
+     * @return field mapping configuration.
      */
     protected Map<String, Object> getFldsMapCfg(JsonNode elementCfg) {
             JsonNode fields = elementCfg.get("fields");
             boolean recurse = true;
             return getFldsMapCfg(fields, recurse);
-            // return mapper.readValue(elementCfg.get("fields"), Map.class);
     }
     
     protected Map<String, Object> getFldsMapCfg(JsonNode fields, boolean recurse) {
@@ -58,6 +58,34 @@ public class EADParser extends XmlDocumentParser {
             }
         }
         return fldsCfg;
+    }
+    
+    protected Map<String, Object> mapFields(Node node, Map<String, Object> fldsCfg, String basePath, boolean rootElement) {
+        Map<String, Object> fldsMap = new ConcurrentHashMap<>();
+        if (fldsCfg == null) return fldsMap;
+        for (String fldName : fldsCfg.keySet()) {
+            // create a map entry for the field
+            fldsMap.put(fldName, "");
+            
+            // set the value for the field
+            String fldCfg = fldsCfg.get(fldName).toString();
+            if (fldCfg != null && !fldCfg.isEmpty()) {
+                System.out.println("fldName : " + fldName + ", xpath: " + fldCfg);
+                if (queryAttribute(fldCfg)) {
+                    fldsMap.put(fldName, getAttribute(node, fldCfg));
+                } else {
+                    Nodes nodes = node.query(fldCfg, xc);
+                    if (nodes != null && nodes.size() > 0)
+                        fldsMap.put(fldName, nodes.get(0).getValue());
+                }
+            } 
+        }
+        try {
+            System.out.println("map from base path: " + basePath + ": " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(fldsMap));
+        } catch ( IOException e) {
+            e.printStackTrace();
+        }
+        return fldsMap;
     }
 
     @Override

@@ -24,6 +24,12 @@ import amberdb.model.EADWork;
 import amberdb.model.File;
 import amberdb.model.Work;
 
+import static amberdb.model.builder.XmlDocumentParser.CFG_COLLECTION_ELEMENT;
+import static amberdb.model.builder.XmlDocumentParser.CFG_SUB_ELEMENTS;
+import static amberdb.model.builder.XmlDocumentParser.CFG_BASE;
+import static amberdb.model.builder.XmlDocumentParser.CFG_REPEATABLE_ELEMENTS;
+import static amberdb.model.builder.XmlDocumentParser.CFG_ATTRIBUTE_PREFIX;
+
 public class CollectionBuilder {
     static final Logger log = LoggerFactory.getLogger(CollectionBuilder.class);
     static final ObjectMapper mapper = new ObjectMapper();
@@ -60,7 +66,7 @@ public class CollectionBuilder {
         File eadFile = eadCopy.getFile();
         
         String collectionName = eadFile.getFileName();
-        createCollection(collectionWork, eadFile.openStream(), collectionCfg, parser, validateXML);
+        createCollection(collectionWork, collectionName, eadFile.openStream(), collectionCfg, parser, validateXML);
     }
     
     /**
@@ -99,13 +105,27 @@ public class CollectionBuilder {
         return doc;
     }
     
-    protected static void createCollection(Work collectionWork, InputStream in, JsonNode collectionCfg, XmlDocumentParser parser, boolean validateXML) throws ValidityException, ParsingException, IOException {
+    protected static void createCollection(Work collectionWork, String collectionName, InputStream in, JsonNode collectionCfg, XmlDocumentParser parser, boolean validateXML) throws ValidityException, ParsingException, IOException {
         parser.init(in, validateXML);
-        mapCollectionMD(collectionWork, collectionCfg.get("collection"), parser);
+        collectionWork.setCollection(collectionName);
+        mapCollectionMD(collectionWork, collectionCfg.get(CFG_COLLECTION_ELEMENT), parser);
         
         // traverse each work component under the top-level work, and map its metadata
-        Nodes eadElements = parser.traverse(parser.getDocument());
-        traverseEAD(collectionWork.asEADWork(), eadElements, collectionCfg.get("collection"), parser);
+        JsonNode subElementsCfg = collectionCfg.get(CFG_COLLECTION_ELEMENT).get(CFG_SUB_ELEMENTS);
+        
+        if (subElementsCfg != null) {
+            String basePath = subElementsCfg.get(CFG_BASE).getTextValue();
+            String repeatablePath = subElementsCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
+            Nodes eadElements = parser.getElementsByXPath(parser.getDocument(), basePath);
+            System.out.println("sub elements found: " +  eadElements.size() + " for query " + basePath);
+            if (eadElements != null && eadElements.size() > 0) {
+                for (int i = 0; i < eadElements.size(); i++) {
+                    Nodes eadSubElements = parser.traverse(eadElements.get(i), repeatablePath);
+                    System.out.println("sub elements found: " +  eadSubElements.size() + " for query repeatable path " + repeatablePath);
+                    traverseEAD(collectionWork.asEADWork(), eadSubElements, subElementsCfg, parser);
+                }
+            }
+        }
     }
     
     protected static void traverseEAD(EADWork parentWork, Nodes eadElements, JsonNode elementCfg, XmlDocumentParser parser) {
@@ -114,15 +134,18 @@ public class CollectionBuilder {
             EADWork workInCollection = parentWork.addEADWork();
             mapWorkMD(workInCollection, eadElement, elementCfg, parser);
             
-            Nodes nextLevel = parser.traverse(eadElement);
+            String repeatablePath = elementCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
+            Nodes nextLevel = parser.traverse(eadElement, repeatablePath);
             if (nextLevel != null)
                 traverseEAD(workInCollection, nextLevel, elementCfg, parser);
         }
     }
     
     protected static void mapCollectionMD(Work collectionWork, JsonNode collectionCfg, XmlDocumentParser parser) throws ValidityException, ParsingException, IOException {
-        Map<String, Object> fieldsMap = parser.getFieldsMap(parser.getDocument(), collectionCfg);      
-        collectionWork.setCollection(fieldsMap.get("collection-name").toString());
+        Map<String, Object> fieldsMap = parser.getFieldsMap(parser.getDocument(), collectionCfg, parser.getBasePath(parser.getDocument()));  
+        // System.out.println("collection config: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(collectionCfg));
+        // System.out.println("collection fieldMap: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(fieldsMap));
+
         collectionWork.setCreator(fieldsMap.get("creator").toString());
         collectionWork.setSubType("Work");
         collectionWork.setSubUnitType("Collection");
@@ -138,7 +161,7 @@ public class CollectionBuilder {
     }
     
     protected static void mapWorkMD(EADWork workInCollection, Node eadElement, JsonNode elementCfg, XmlDocumentParser parser) {
-        Map<String, Object> fieldsMap = parser.getFieldsMap(eadElement, elementCfg);
+        Map<String, Object> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));
         // workInCollection.
         workInCollection.setSubType("Work");      
         workInCollection.setSubUnitType("Series");
@@ -157,10 +180,14 @@ public class CollectionBuilder {
         JsonNode workProperties = mapWorkProperties(work);
 
         String uuid = "";
-        if (workProperties.get("uuid") != null && !workProperties.get("uuid").getTextValue().isEmpty()) {
-            uuid = workProperties.get("uuid").getTextValue();
+        if (workProperties.get("localSystemNumber") != null && !workProperties.get("localSystemNumber").getTextValue().isEmpty()) {
+            uuid = workProperties.get("localSystemNumber").getTextValue();
         }
-        ((ObjectNode) structure).put(work.getObjId(), uuid);
+        if (uuid.isEmpty()) {
+            ((ObjectNode) structure).put(work.getObjId(), work.getCollection());
+        } else {   
+            ((ObjectNode) structure).put(work.getObjId(), uuid);
+        }
         ((ObjectNode) content).put(work.getObjId(), workProperties);
         traverseCollection(work.getChildren(), structure, content);
     }
@@ -171,16 +198,18 @@ public class CollectionBuilder {
         ((ObjectNode) structure).put("sub-element", arry);
         for (Work work : works) {
             JsonNode item = mapper.createObjectNode();
+            arry.add(item);
             traverseCollection(work, item, content);
         }
     }
     
     private static JsonNode mapWorkProperties(Work work) {
         JsonNode workProperties = mapper.createObjectNode();
-        String[] fields = { "subType", "subUnitType", "form", "bibLevel", "collection", "recordSource", "localSystemNumber",
+        String[] fields = { "creator", "title", "subType", "subUnitType", "form", "bibLevel", "collection", "recordSource", "localSystemNumber",
                                "rdsAcknowledgementType", "rdsAcknowledgementReceiver", "eadUpdateReviewRequired", "accessConditions" };
         for (String field : fields) {
-            ((ObjectNode) workProperties).put(field, work.asVertex().getProperty(field).toString());
+            if (work.asVertex().getProperty(field) != null)
+                ((ObjectNode) workProperties).put(field, work.asVertex().getProperty(field).toString());
         }
         return workProperties;
     }

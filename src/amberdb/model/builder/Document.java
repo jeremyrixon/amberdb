@@ -24,6 +24,6 @@ public class Document {
     }
     
     public String toJson() throws IOException {
-        return mapper.writeValueAsString(document);
+        return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(document);
     }
 }

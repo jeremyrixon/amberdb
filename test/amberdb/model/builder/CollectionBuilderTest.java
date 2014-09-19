@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -51,7 +50,7 @@ public class CollectionBuilderTest {
             collectionWork.setSubUnitType("Collection");
             collectionWork.setForm("Manuscript");
             collectionWork.setBibLevel("Set");
-            collectionWork.setCollection("nla.ms");
+            collectionWork.setCollection("nla.ms-ms6442");
             collectionWork.setRecordSource("FA");
             collectionWork.asEADWork().setRdsAcknowledgementType("Sponsor");
             collectionWork.asEADWork().setRdsAcknowledgementReceiver("NLA");
@@ -61,18 +60,13 @@ public class CollectionBuilderTest {
             as.commit();
         }
     }
-
-    @Test
-    public void test() {
-        
-    }
     
-    // @Test
+    @Test
     public void testCreateCollection() throws IOException, ValidityException, ParsingException {
         // Verify before creating collection, collectionWork does not have any sub-work attached
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
-            assertNull(collectionWork.getPartsOf(new ArrayList<String>()));
+            assertTrue(collectionWork.getPartsOf(new ArrayList<String>()).isEmpty());
         }
         
         createCollection();
@@ -86,21 +80,23 @@ public class CollectionBuilderTest {
         }
     }
     
-    // @Test
+    @Test
     public void testGenerateJson() throws IOException, ValidityException, ParsingException {
         createCollection();
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
             boolean storeCopy = false;
             Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
+            System.out.println("doc: " + doc.toJson());
             JsonNode content = doc.getContent();
             Iterator<String> it = content.getFieldNames();
             assertTrue(it.hasNext());
             int i = 0;
             while (it.hasNext()) {
+                it.next();
                 i++;
             }
-            assertEquals(8, i);
+            assertEquals(9, i);
         }
     }
     
@@ -109,7 +105,8 @@ public class CollectionBuilderTest {
             Work collectionWork = as.findWork(collectionWorkId);
             InputStream in = new FileInputStream(testEADPath.toFile());
             boolean validateXml = false;
-            CollectionBuilder.createCollection(collectionWork, in, collectCfg, new EADParser(), validateXml);
+            String collectionName = testEADPath.getFileName().toString();
+            CollectionBuilder.createCollection(collectionWork, collectionName, in, collectCfg, new EADParser(), validateXml);
             as.commit();
         }
     }

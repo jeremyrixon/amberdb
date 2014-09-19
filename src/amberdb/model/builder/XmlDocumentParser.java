@@ -1,6 +1,5 @@
 package amberdb.model.builder;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -22,13 +21,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class XmlDocumentParser {
+    public static final String CFG_COLLECTION_ELEMENT = "collection";  // collection cfg tag
+    public static final String CFG_SUB_ELEMENTS = "sub-elements";      // sub-elements cfg tag
+    public static final String CFG_BASE = "base";                      // base cfg tag, use for base path of an repeatable element type
+    public static final String CFG_REPEATABLE_ELEMENTS = "repeatable-element"; // cfg tag to specify how to identify repeatable elements.
+    public static final String CFG_ATTRIBUTE_PREFIX = "@";
+    
     static final Logger log = LoggerFactory.getLogger(XmlDocumentParser.class);
     protected static ObjectMapper mapper = new ObjectMapper();
     protected Document doc;
+    protected XPathContext xc;
+    protected String qualifiedName;
+    protected String namespaceURI;
     
     public void init(InputStream in, boolean validateXML) throws ValidityException, ParsingException, IOException {
         Builder builder = new Builder(validateXML);
         doc = builder.build(in);
+        qualifiedName = doc.getRootElement().getQualifiedName();
+        namespaceURI = doc.getRootElement().getNamespaceURI();
+        xc = new XPathContext();
+        xc.addNamespace(qualifiedName, namespaceURI);
     }
     
     public Nodes traverse(Document doc) {
@@ -37,11 +49,16 @@ public abstract class XmlDocumentParser {
         return nodes;
     }
     
-    public Nodes traverse(Node node) {
+    public Nodes traverse(Node node, String repeatablePath) {
+        String fmttedRepeatablePath = repeatablePath.replace(qualifiedName + ":", "").toUpperCase();
         Nodes nodes = new Nodes();
-        int size = node.getChildCount();
-        for (int i = 0; i < size; i++) {
-            nodes.append(node.getChild(i));
+        Elements elements = ((Element) node).getChildElements();
+        if (elements != null && elements.size() > 0) {
+            for (int i = 0; i < elements.size(); i++) {
+                if (elements.get(i).getLocalName().toUpperCase().startsWith(fmttedRepeatablePath)) {
+                    nodes.append(elements.get(i));
+                }
+            }
         }
         return nodes;
     }
@@ -71,6 +88,7 @@ public abstract class XmlDocumentParser {
      * The field value can be of type Integer, Long, String, etc. 
      * 
      * @param doc - the input xml document.
+     * @param collectionCfg - the fields config for mapping the top collection work
      * @return field mapping of the root element of the document
      */
     public abstract Map<String, Object> getFieldsMap(Document doc, JsonNode collectionCfg);
@@ -80,9 +98,11 @@ public abstract class XmlDocumentParser {
      * The field value can be of type Integer, Long, String, etc.
      * 
      * @param node - the input xml node.
+     * @param elementCfg - the fields config for mapping the sub work item.
+     * @param basePath - the xpath for the input xml node.
      * @return field mapping of the input element.
      */
-    public abstract Map<String, Object> getFieldsMap(Node node, JsonNode elementCfg);
+    public abstract Map<String, Object> getFieldsMap(Node node, JsonNode elementCfg, String basePath);
     
     protected String getQualifiedXPath(String xpath) {
         String qualifiedXPath = xpath.replace("//", "");
@@ -119,7 +139,7 @@ public abstract class XmlDocumentParser {
         if (node == null) return getBasePath(doc);
         
         String elementLocalName = ((Element) node).getLocalName();
-        log.debug("elementPath : " + elementPath + ", element local name: " + elementLocalName);
+        System.out.println("elementPath : " + elementPath + ", element local name: " + elementLocalName);
         String newPath = elementPath;
         if (elementPath.lastIndexOf('/') > 0)
             newPath = elementPath.substring(0, elementPath.lastIndexOf('/')) + "/" + qualifiedName + ":" + elementLocalName;
