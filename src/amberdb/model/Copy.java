@@ -6,7 +6,6 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -403,6 +402,8 @@ public interface Copy extends Node {
                     if ( ac == null ) {
                         ac = work.addCopy(jp2ImgPath, CopyRole.ACCESS_COPY, "image/jp2");
                         ac.setSourceCopy(this);
+                    } else {
+                        ac.getImageFile().put(jp2ImgPath);
                     }
 
                     ImageFile acf = ac.getImageFile();
