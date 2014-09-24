@@ -69,18 +69,17 @@ public class AmberHistory {
     }    
 
     
-    public Map<Long, String> getModifiedObjectIds(Date when) {
+    protected Map<Long, String> getModifiedObjectIds(List<Long> txns) {
 
         // Get the txns involved
-        Map<Long, String> modifiedIds = new HashMap<Long, String>();
-        List<Long> txnsSince = getTxnsSince(when);
-        if (txnsSince.size() == 0) {
+        Map<Long, String> modifiedIds = new HashMap<>();
+        if (txns.size() == 0) {
             return modifiedIds;
         }
         
         // set our transaction period
-        Long txn1 = txnsSince.get(0) - 1;
-        Long txn2 = txnsSince.get(txnsSince.size()-1) + 1; // > than last txn
+        Long txn1 = txns.get(0) - 1;
+        Long txn2 = txns.get(txns.size()-1) + 1; // > than last txn
         
         // load the graph
         VersionedGraph vGraph = loadChangedGraphForPeriod(txn1, txn2);
@@ -117,9 +116,9 @@ public class AmberHistory {
     }
     
     
-    public Map<Long, String> getModifiedWorkIds(Date when) {
+    protected Map<Long, String> getModifiedWorkIds(List<Long> transactions) {
         Map<Long, String> modifiedWorks = new HashMap<>();
-        Map<Long, String> modifiedObjs = getModifiedObjectIds(when);
+        Map<Long, String> modifiedObjs = getModifiedObjectIds(transactions);
 
         for (Long id : modifiedObjs.keySet()) {
             Set<VersionedVertex> works = getWorksForObject(id, new HashSet<VersionedVertex>());
@@ -144,6 +143,22 @@ public class AmberHistory {
             }
         }
         return modifiedWorks;
+    }
+
+    public Map<Long, String> getModifiedWorkIds(Date from) {
+        return getModifiedWorkIds(getTxnsSince(from));
+    }
+
+    public Map<Long, String> getModifiedWorkIds(Date from, Date to) {
+        return getModifiedWorkIds(getTxnsBetween(from, to));
+    }
+
+    public Map<Long, String> getModifiedObjectIds(Date from) {
+        return getModifiedObjectIds(getTxnsSince(from));
+    }
+
+    public Map<Long, String> getModifiedOBjectIds(Date from, Date to) {
+        return getModifiedObjectIds(getTxnsBetween(from, to));
     }
     
 
@@ -173,6 +188,10 @@ public class AmberHistory {
     
     public List<Long> getTxnsSince(Date time) {
         return vGraph.dao().getTransactionsSince(time.getTime());
+    }
+
+    public List<Long> getTxnsBetween(Date startTime, Date endTime) {
+        return vGraph.dao().getTransactionsBetween(startTime.getTime(), endTime.getTime());
     }
 
     
