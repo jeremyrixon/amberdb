@@ -9,6 +9,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -1292,9 +1294,19 @@ public interface Work extends Node {
             return mapper.readValue(json, new TypeReference<List<String>>() {
             });
         }
+        
+        protected Map<String, String> deserialiseJSONMap(String json) throws JsonParseException, JsonMappingException, IOException {
+            if (json == null || json.isEmpty())
+                return new ConcurrentHashMap<String, String>();
+            return mapper.readValue(json, new TypeReference<Map<String, String>>() {});
+        }
 
         protected String serialiseToJSON(Collection<String> list) throws JsonParseException, JsonMappingException, IOException {
             return mapper.writeValueAsString(list);
+        }
+        
+        protected String serialiseToJSON(Map<String, String> map) throws JsonParseException, JsonMappingException, IOException {
+            return mapper.writeValueAsString(map);
         }
 
         @Override
