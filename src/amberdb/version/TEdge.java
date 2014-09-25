@@ -69,7 +69,14 @@ public class TEdge extends TElement implements Comparable<TEdge> {
         return super.getProperty(propertyName);
     }
 
-    
+    public Long getOutId() {
+        return outId;
+    }
+
+    public Long getInId() {
+        return inId;
+    }
+
     @Override
     public int compareTo(TEdge o) {
         return order - ((TEdge) o).order;

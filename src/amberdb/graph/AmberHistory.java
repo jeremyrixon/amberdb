@@ -29,7 +29,11 @@ public class AmberHistory {
     public AmberHistory(AmberGraph graph) {
         vGraph = new VersionedGraph(graph.dbi());
     }
-    
+
+    public VersionedGraph loadChangedGraphForPeriod(Date startDate, Date endDate) {
+        List<Long> txnsBetween = getTxnsBetween(startDate, endDate);
+        return loadChangedGraphForPeriod(txnsBetween.get(0), txnsBetween.get(txnsBetween.size()-1));
+    }
     
     public VersionedGraph loadChangedGraphForPeriod(Long txn1, Long txn2) {
         vGraph.loadTransactionGraph(txn1, txn2, true);
