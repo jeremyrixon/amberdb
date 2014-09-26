@@ -2,7 +2,6 @@ package amberdb.model;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -52,12 +51,6 @@ public interface EADWork extends Work {
     @Property("folder")
     public void setJSONFolder(String folder);
     
-    @Property("elements")
-    public String getJSONElements();
-    
-    @Property("elements")
-    public String setJSONElements(String elements);
-    
     /**
      * This method handles the JSON deserialisation of the folder property.
      * Each folder entry is returned as <folder type>-<folder number>
@@ -72,15 +65,6 @@ public interface EADWork extends Work {
     @JavaHandler
     public void setFolder(List<String> folder) throws JsonParseException, JsonMappingException, IOException;
     
-    @JavaHandler
-    public Map<String, String> getElements() throws JsonParseException, JsonMappingException, IOException;
-    
-    @JavaHandler
-    public void setElements(Map<String, String> elements) throws JsonParseException, JsonMappingException, IOException;
-    
-    @JavaHandler
-    public void addElement(String name, String content) throws JsonParseException, JsonMappingException, IOException;
-    
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public EADWork addEADWork();
     
@@ -93,23 +77,6 @@ public interface EADWork extends Work {
         @Override
         public void setFolder(List<String> folder) throws JsonParseException, JsonMappingException, IOException {
             setJSONFolder(serialiseToJSON(folder));
-        }
-        
-        @Override
-        public Map<String, String> getElements() throws JsonParseException, JsonMappingException, IOException {
-            return deserialiseJSONMap(getJSONElements());
-        }
-        
-        @Override
-        public void setElements(Map<String, String> elements) throws JsonParseException, JsonMappingException, IOException {
-            setJSONElements(serialiseToJSON(elements));
-        }
-        
-        @Override
-        public void addElement(String name, String content) throws JsonParseException, JsonMappingException, IOException {
-            Map<String, String> elements = getElements();
-            elements.put(name, content);
-            setElements(elements);
         }
     }
 }

@@ -26,21 +26,26 @@ public abstract class XmlDocumentParser {
     public static final String CFG_BASE = "base";                      // base cfg tag, use for base path of an repeatable element type
     public static final String CFG_REPEATABLE_ELEMENTS = "repeatable-element"; // cfg tag to specify how to identify repeatable elements.
     public static final String CFG_ATTRIBUTE_PREFIX = "@";
+    public static final String CFG_EXCLUDE_ELEMENTS = "excludes";
     
     static final Logger log = LoggerFactory.getLogger(XmlDocumentParser.class);
     protected static ObjectMapper mapper = new ObjectMapper();
+    protected JsonNode parsingCfg;
+    protected boolean validateXML;
     protected Document doc;
     protected XPathContext xc;
     protected String qualifiedName;
     protected String namespaceURI;
     
-    public void init(InputStream in, boolean validateXML) throws ValidityException, ParsingException, IOException {
+    public void init(InputStream in, JsonNode parsingCfg, boolean validateXML) throws ValidityException, ParsingException, IOException {
         Builder builder = new Builder(validateXML);
         doc = builder.build(in);
         qualifiedName = doc.getRootElement().getQualifiedName();
         namespaceURI = doc.getRootElement().getNamespaceURI();
         xc = new XPathContext();
         xc.addNamespace(qualifiedName, namespaceURI);
+        this.parsingCfg = parsingCfg;
+        this.validateXML = validateXML;
     }
     
     public Nodes traverse(Document doc) {
@@ -61,6 +66,10 @@ public abstract class XmlDocumentParser {
             }
         }
         return nodes;
+    }
+    
+    public String parseComponent(Node node, JsonNode segmentFilterCfg) {   
+        return node.toXML();
     }
     
     public Nodes getElementsByXPath(Document doc, String xpath) {

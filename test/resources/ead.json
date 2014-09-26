@@ -21,6 +21,28 @@
       "bioghistory": {
         "biographical-note":  "//ead:ead/ead:archdesc/ead:bioghist" }
     },
+    "excludes": [
+      "arc",
+      "archdescgrp",
+      "bibseries",
+      "change",
+      "creation",
+      "descgrp",
+      "descrules",
+      "div",
+      "dscgrp",
+      "eadgrp",
+      "eadid",
+      "frontmatter",
+      "language",
+      "notestmt",
+      "profiledesc",
+      "publicationstmt",
+      "revisiondesc",
+      "runner",
+      "seriesstmt",
+      "titlepage"
+    ],
     "sub-elements": {
       "base":                 "//ead:ead/ead:archdesc/ead:dsc",
       "fields": {                

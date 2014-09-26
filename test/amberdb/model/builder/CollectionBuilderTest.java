@@ -23,8 +23,10 @@ import nu.xom.Elements;
 import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 
+import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.Before;
@@ -137,7 +139,7 @@ public class CollectionBuilderTest {
         testEADPath = Paths.get("test/resources/6442.xml");
       
         objectMapper = new ObjectMapper();
-        collectCfg = objectMapper.readTree(new File("test/resources/ead_structure.json"));
+        collectCfg = objectMapper.readTree(new File("test/resources/ead.json"));
 
         // create the top-level work
         DataSource ds = JdbcConnectionPool.create("jdbc:h2:mem:cache", "store", "collection");
@@ -224,7 +226,7 @@ public class CollectionBuilderTest {
     private void traverseDoc(Map<String, List<String>> tagMaps, InputStream in) throws ValidityException, ParsingException, IOException {
         EADParser eadParser = new EADParser();
         boolean validateXML = false;
-        eadParser.init(in, validateXML);
+        eadParser.init(in, collectCfg, validateXML);
         Element rootElement = eadParser.doc.getRootElement();
         String qualifiedName = eadParser.qualifiedName;
         String xpath = "//" + qualifiedName + ":" + qualifiedName;

@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
+import nu.xom.Element;
+import nu.xom.Elements;
 import nu.xom.Node;
 import nu.xom.Nodes;
 import nu.xom.ParsingException;
@@ -29,6 +31,7 @@ import static amberdb.model.builder.XmlDocumentParser.CFG_SUB_ELEMENTS;
 import static amberdb.model.builder.XmlDocumentParser.CFG_BASE;
 import static amberdb.model.builder.XmlDocumentParser.CFG_REPEATABLE_ELEMENTS;
 import static amberdb.model.builder.XmlDocumentParser.CFG_ATTRIBUTE_PREFIX;
+import static amberdb.model.builder.XmlDocumentParser.CFG_EXCLUDE_ELEMENTS;
 
 public class CollectionBuilder {
     static final Logger log = LoggerFactory.getLogger(CollectionBuilder.class);
@@ -105,8 +108,32 @@ public class CollectionBuilder {
         return doc;
     }
     
+    /**
+     * attachComponentEAD: 
+     * 
+     * Pre-condition: the method createCollection() need to be called before (to create component works)
+     *                before attachComponentEAD() method can be called to attach the component XML segment
+     *                from EAD to the specified componentWork as a FINDING_AID_VIEW_COPY.
+     * @param componentWork
+     * @param storeCopy
+     * @return
+     * @throws IOException
+     */
+    protected static String attachComponentEAD(Work componentWork, Node node, XmlDocumentParser parser, boolean storeCopy) throws IOException {
+        JsonNode segmentFilterCfg = parser.parsingCfg.get(CFG_EXCLUDE_ELEMENTS);
+      
+        Elements elements = ((Element) node).getChildElements();
+        if (elements != null) {
+            // TODO: 
+            for (int i = 0; i < elements.size(); i++) {
+                parser.parseComponent(elements.get(i), segmentFilterCfg);
+            }
+        }
+        return "";
+    }
+    
     protected static void createCollection(Work collectionWork, String collectionName, InputStream in, JsonNode collectionCfg, XmlDocumentParser parser, boolean validateXML) throws ValidityException, ParsingException, IOException {
-        parser.init(in, validateXML);
+        parser.init(in, collectionCfg, validateXML);
         collectionWork.setCollection(collectionName);
         mapCollectionMD(collectionWork, collectionCfg.get(CFG_COLLECTION_ELEMENT), parser);
         
