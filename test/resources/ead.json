@@ -1,4 +1,7 @@
 {"collection": {
+    "cfg-doc"  :                "TODO: document this configuration.  This configuration file currently specifies how ...",
+    "validateXML":              "no",
+    "storeCopy":                "no",
     "applicable-attributes-to-all-fields": {
       "access-attribute":       "@audience",
       "render-attribute":       "@render" },

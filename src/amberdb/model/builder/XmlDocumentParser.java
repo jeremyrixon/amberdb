@@ -2,6 +2,8 @@ package amberdb.model.builder;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -16,6 +18,7 @@ import nu.xom.ValidityException;
 import nu.xom.XPathContext;
 
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,25 +30,32 @@ public abstract class XmlDocumentParser {
     public static final String CFG_REPEATABLE_ELEMENTS = "repeatable-element"; // cfg tag to specify how to identify repeatable elements.
     public static final String CFG_ATTRIBUTE_PREFIX = "@";
     public static final String CFG_EXCLUDE_ELEMENTS = "excludes";
+    public static final String CFG_VALIDATE_XML = "validateXML";
+    public static final String CFG_STORE_COPY = "storeCopy";
     
     static final Logger log = LoggerFactory.getLogger(XmlDocumentParser.class);
     protected static ObjectMapper mapper = new ObjectMapper();
     protected JsonNode parsingCfg;
+    protected List<String> filters;
     protected boolean validateXML;
+    protected boolean storeCopy;
+    protected Builder builder;
     protected Document doc;
     protected XPathContext xc;
     protected String qualifiedName;
     protected String namespaceURI;
     
-    public void init(InputStream in, JsonNode parsingCfg, boolean validateXML) throws ValidityException, ParsingException, IOException {
-        Builder builder = new Builder(validateXML);
+    public void init(InputStream in, JsonNode parsingCfg) throws ValidityException, ParsingException, IOException {
+        this.parsingCfg = parsingCfg;
+        this.validateXML = validateXML();
+        this.storeCopy = storeCopy();
+        filters = parseFiltersCfg();
+        builder = new Builder(validateXML());
         doc = builder.build(in);
         qualifiedName = doc.getRootElement().getQualifiedName();
         namespaceURI = doc.getRootElement().getNamespaceURI();
         xc = new XPathContext();
         xc.addNamespace(qualifiedName, namespaceURI);
-        this.parsingCfg = parsingCfg;
-        this.validateXML = validateXML;
     }
     
     public Nodes traverse(Document doc) {
@@ -68,8 +78,48 @@ public abstract class XmlDocumentParser {
         return nodes;
     }
     
-    public String parseComponent(Node node, JsonNode segmentFilterCfg) {   
-        return node.toXML();
+    public List<String> getFilters() {
+        return filters;
+    }
+    
+    public boolean validateXML() {
+        String validateXMLCfg = parsingCfg.get(CFG_COLLECTION_ELEMENT).get(CFG_VALIDATE_XML).getTextValue();
+        if (validateXMLCfg != null && (validateXMLCfg.equalsIgnoreCase("yes") 
+                || validateXMLCfg.equalsIgnoreCase("y") || validateXMLCfg.equalsIgnoreCase("true")))
+                		return true;
+        return false;
+    }
+    
+    public boolean storeCopy() {
+        String storeCopyCfg = parsingCfg.get(CFG_COLLECTION_ELEMENT).get(CFG_STORE_COPY).getTextValue();
+        if (storeCopyCfg != null && (storeCopyCfg.equalsIgnoreCase("yes") 
+                || storeCopyCfg.equalsIgnoreCase("y") || storeCopyCfg.equalsIgnoreCase("true")))
+                        return true;
+        return false;
+    }
+    
+    protected List<String> parseFiltersCfg() {
+        JsonNode filtersCfg = parsingCfg.get(CFG_COLLECTION_ELEMENT).get(CFG_EXCLUDE_ELEMENTS);
+        filters = new ArrayList<>();
+        if (filtersCfg.isArray() && ((ArrayNode) filtersCfg).size() > 0) {
+            for (int i = 0; i < ((ArrayNode) filtersCfg).size(); i++)
+                filters.add(((ArrayNode) filtersCfg).get(i).getTextValue().toUpperCase());
+        }
+        return filters;
+    }
+    
+    public void filterEAD(Node node) { 
+        Elements elements = ((Element) node).getChildElements();
+        if (elements != null) {
+            for (int i = 0; i < elements.size(); i++) {
+                Element element = elements.get(i);
+                if (filters.contains((element.getLocalName().toUpperCase()))) {
+                    ((Element) node).removeChild(element);
+                } else {
+                    filterEAD(element);
+                }
+            }
+        }
     }
     
     public Nodes getElementsByXPath(Document doc, String xpath) {

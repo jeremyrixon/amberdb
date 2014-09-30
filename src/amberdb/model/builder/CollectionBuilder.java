@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.util.Map;
 
 import nu.xom.Element;
-import nu.xom.Elements;
 import nu.xom.Node;
 import nu.xom.Nodes;
 import nu.xom.ParsingException;
@@ -31,11 +30,42 @@ import static amberdb.model.builder.XmlDocumentParser.CFG_SUB_ELEMENTS;
 import static amberdb.model.builder.XmlDocumentParser.CFG_BASE;
 import static amberdb.model.builder.XmlDocumentParser.CFG_REPEATABLE_ELEMENTS;
 import static amberdb.model.builder.XmlDocumentParser.CFG_ATTRIBUTE_PREFIX;
-import static amberdb.model.builder.XmlDocumentParser.CFG_EXCLUDE_ELEMENTS;
 
 public class CollectionBuilder {
     static final Logger log = LoggerFactory.getLogger(CollectionBuilder.class);
     static final ObjectMapper mapper = new ObjectMapper();
+    
+    /**
+     * createCollection in absence of collection configuration and document parser input parameters, 
+     * resolves to default collection JSON configuration and the default EAD parser in order to 
+     * create the collection work structure under the top level collection work.
+     * 
+     * @param collectionWork: the top-level collection work with EAD file attached.
+     * @throws IOException 
+     * @throws ParsingException 
+     * @throws ValidityException 
+     */
+    public static void createCollection(Work collectionWork) throws ValidityException, ParsingException, IOException {
+        createCollection(collectionWork, getDefaultCollectionCfg(), getDefaultXmlDocumentParser());
+    }
+    
+    /**
+     * getDefaultCollectionCfg returns the default configuration for creating a hierarchy of works under
+     * the top level collection work.  The default configuration sets validateXML to be true and 
+     * storeCopy to be true.
+     */
+    public static JsonNode getDefaultCollectionCfg() {
+        return new EADConfiguration().getConfig();
+    }
+    
+    /**
+     * getDefaultXmlDocumentParser returns the EADParser as the default xml document parser
+     * for the CollectionBuilder.
+     */
+    public static XmlDocumentParser getDefaultXmlDocumentParser() {
+        // return the default document parser;
+        return new EADParser();
+    }
     
     /**
      * createCollection parses the ead file attached to the top-level
@@ -52,7 +82,7 @@ public class CollectionBuilder {
      * @throws ParsingException 
      * @throws ValidityException 
      */
-    public static void createCollection(Work collectionWork, JsonNode collectionCfg, XmlDocumentParser parser, boolean validateXML) throws ValidityException, ParsingException, IOException{
+    public static void createCollection(Work collectionWork, JsonNode collectionCfg, XmlDocumentParser parser) throws ValidityException, ParsingException, IOException{
         // map metadata in the top-level work for the collection 
         if (collectionWork == null) {
             String errMsg = "Failed to create work collection as the input collection work is null.";
@@ -69,7 +99,7 @@ public class CollectionBuilder {
         File eadFile = eadCopy.getFile();
         
         String collectionName = eadFile.getFileName();
-        createCollection(collectionWork, collectionName, eadFile.openStream(), collectionCfg, parser, validateXML);
+        createCollection(collectionWork, collectionName, eadFile.openStream(), collectionCfg, parser);
     }
     
     /**
@@ -97,45 +127,92 @@ public class CollectionBuilder {
         Document doc = new Document(structure, content);
         
         // store the document as a copy to collectionWork.
-        if (storeCopy) {
-            // check and remove the previous copy
-            if (collectionWork.getCopy(CopyRole.FINDING_AID__VIEW_COPY) == null) {
-                Copy favEADCopy = collectionWork.addCopy();
-                favEADCopy.setCopyRole(CopyRole.FINDING_AID__VIEW_COPY.code());
-                favEADCopy.addFile(Writables.wrap(doc.toJson()), "application/json");   
-            }
-        }
+        if (storeCopy)
+            storeEADCopy(collectionWork, CopyRole.FINDING_AID__VIEW_COPY, doc.toJson(), "application/json");
         return doc;
     }
     
     /**
-     * attachComponentEAD: 
+     * attachFilteredEAD: filter the input EAD document, and attach the filtered EAD document as a FINDING_AID__FILTERED_COPY 
+     *                    to the top level collection work.
+     *                    
+     *                    The input EAD document will be filtered by all the EAD elements specified in the "excludes" section of
+     *                    the collectionCfg provided.
      * 
-     * Pre-condition: the method createCollection() need to be called before (to create component works)
-     *                before attachComponentEAD() method can be called to attach the component XML segment
-     *                from EAD to the specified componentWork as a FINDING_AID_VIEW_COPY.
+     * @param collectionWork
+     * @param doc
+     * @param parser
+     * @param storeCopy
+     * @return
+     * @throws IOException
+     */
+    protected static String attachFilteredEAD(Work collectionWork, XmlDocumentParser parser) throws IOException {
+        // filter EAD document
+        Node rootElement = parser.doc.getRootElement();
+        parser.filterEAD(rootElement);
+        String filteredEAD = rootElement.toXML();
+        
+        // update the parser to cache the filtered EAD xml document
+        nu.xom.Document document = parser.builder.getNodeFactory().startMakingDocument();
+        document.setRootElement((Element) rootElement);
+        parser.doc = document;
+        
+        // if storeCopy is set, also attach the filtered EAD xml document as a FINDING_AID__FILTERED_COPY to the collection level work
+        if (parser.storeCopy)
+            storeEADCopy(collectionWork, CopyRole.FINDING_AID__FILTERED_COPY, filteredEAD, "application/xml");
+        return filteredEAD;
+    }
+    
+    /**
+     * attachEADComponent: filter the input EAD xml node, and attach the (filtered) EAD node as a FINDING_AID__FILTERED_COPY to the
+     *                    input work within a top level collection which corresponds to an EAD component.
+     * 
+     *                    The input EAD xml node will be filtered by all the EAD elements specified in the "excludes" section of 
+     *                    the collectionCfg provided.
+     *                    
+     * Pre-condition: the method createCollection() and attachFilteredEAD() need to be called before (to create component works)
+     *                before attachFilteredEAD() method can be called to attach the component XML segment
+     *                from EAD to the specified componentWork as a FINDING_AID__FILTERED_COPY.
      * @param componentWork
      * @param storeCopy
      * @return
      * @throws IOException
      */
-    protected static String attachComponentEAD(Work componentWork, Node node, XmlDocumentParser parser, boolean storeCopy) throws IOException {
-        JsonNode segmentFilterCfg = parser.parsingCfg.get(CFG_EXCLUDE_ELEMENTS);
-      
-        Elements elements = ((Element) node).getChildElements();
-        if (elements != null) {
-            // TODO: 
-            for (int i = 0; i < elements.size(); i++) {
-                parser.parseComponent(elements.get(i), segmentFilterCfg);
-            }
+    protected static String attachEADComponent(Work componentWork, Node node, XmlDocumentParser parser) throws IOException {
+        // NOTE: as the EAD node has been filtered by the attachFilteredEAD() in the pre-condition
+        //       there's no need to filter this again.
+        String filteredEAD = node.toXML();
+        if (parser.storeCopy) {
+            storeEADCopy(componentWork, CopyRole.FINDING_AID__FILTERED_COPY, filteredEAD, "application/xml");
         }
-        return "";
+        return filteredEAD;
+    }
+       
+    private static void storeEADCopy(Work work, CopyRole copyRole, String content, String contentType) throws IOException {
+        Copy eadCopy;
+        if (work.getCopy(copyRole) == null) {
+            // add new EAD copy if none exists
+            eadCopy = work.addCopy();
+            eadCopy.setCopyRole(copyRole.code());
+        } else {
+            // check and remove the previous copy
+            eadCopy = work.getCopy(copyRole);
+            if (eadCopy.getFile() != null)
+                eadCopy.removeFile(eadCopy.getFile());
+        }
+        eadCopy.addFile(Writables.wrap(content), contentType);
     }
     
-    protected static void createCollection(Work collectionWork, String collectionName, InputStream in, JsonNode collectionCfg, XmlDocumentParser parser, boolean validateXML) throws ValidityException, ParsingException, IOException {
-        parser.init(in, collectionCfg, validateXML);
+    protected static void createCollection(Work collectionWork, String collectionName, InputStream in, JsonNode collectionCfg, XmlDocumentParser parser) throws ValidityException, ParsingException, IOException {
+        // initializing the parser
+        parser.init(in, collectionCfg);
+        
+        // update metadata in the collection work.
         collectionWork.setCollection(collectionName);
         mapCollectionMD(collectionWork, collectionCfg.get(CFG_COLLECTION_ELEMENT), parser);
+        
+        // filter out elements to be excluded during delivery from the EAD, and update the parser to cache the filtered EAD xml document.
+        attachFilteredEAD(collectionWork, parser);
         
         // traverse each work component under the top-level work, and map its metadata
         JsonNode subElementsCfg = collectionCfg.get(CFG_COLLECTION_ELEMENT).get(CFG_SUB_ELEMENTS);
