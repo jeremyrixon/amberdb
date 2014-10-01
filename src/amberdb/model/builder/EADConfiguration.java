@@ -19,7 +19,9 @@ public class EADConfiguration {
     protected JsonNode getCollectionCfg() {
         JsonNode collectionNode = mapper.createObjectNode();
         ((ObjectNode) collectionNode).put("cfg-doc", getCollectionCfgDoco());
-        ((ObjectNode) collectionNode).put("validateXML", "yes");
+        
+        // TODO: validateXML for EAD
+        ((ObjectNode) collectionNode).put("validateXML", "no");
         ((ObjectNode) collectionNode).put("storeCopy", "yes");
         ((ObjectNode) collectionNode).put("applicable-attributes-to-all-fields", getApplicableAttrsToAllFldsCfg());
         ((ObjectNode) collectionNode).put("fields", getMappedCollectionFieldsCfg());

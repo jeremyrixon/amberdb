@@ -2,10 +2,12 @@ package amberdb.model.builder;
 
 import static org.junit.Assert.*;
 
-import java.io.File;
+import java.nio.file.Files;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ByteArrayInputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -20,12 +22,12 @@ import javax.sql.DataSource;
 
 import nu.xom.Element;
 import nu.xom.Elements;
+import nu.xom.Node;
 import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -45,10 +47,7 @@ public class CollectionBuilderTest {
     private ObjectMapper objectMapper;
     private JsonNode collectCfg;
     private Path testEADPath;
-    private String[] testEADFiles = { "test/resources/1941original_AS_export-2.xml", 
-            "test/resources/5925.xml", "test/resources/6442.xml",
-            "test/resources/9982.xml",
-            "test/resources/nla.ms-ms2852_LordGowriev5_ead.xml" };
+    private String[] testEADFiles = { "test/resources/6442.xml" };
     private List<String> tagsList;
     private String[] tags = {"abstract",
             "accessrestrict",
@@ -167,8 +166,7 @@ public class CollectionBuilderTest {
         }
     }
     
-    //TODO: fix bug in attachedFilteredEAD...
-    @Ignore
+    @Test
     public void testCreateCollection() throws IOException, ValidityException, ParsingException {
         // Verify before creating collection, collectionWork does not have any sub-work attached
         try (AmberSession as = db.begin()) {
@@ -187,8 +185,7 @@ public class CollectionBuilderTest {
         }
     }
     
-    //TODO: fix bug in attachedEADComponent
-    @Ignore
+    @Test
     public void testGenerateJson() throws IOException, ValidityException, ParsingException {
         createCollection();
         try (AmberSession as = db.begin()) {
@@ -232,6 +229,72 @@ public class CollectionBuilderTest {
     }
     
     @Test
+    public void testFilterEAD() throws IOException, ValidityException, ParsingException {
+        try (AmberSession as = db.begin()) {
+           Work collectionWork = as.findWork(collectionWorkId);
+           XmlDocumentParser parser = CollectionBuilder.getDefaultXmlDocumentParser();
+           String filteredEAD = filterSampleEAD(collectionWork, parser);
+           InputStream eadIn = new ByteArrayInputStream(filteredEAD.getBytes());
+           JsonNode parserCfg = CollectionBuilder.getDefaultCollectionCfg();
+           ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
+           ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "no");
+           parser.init(eadIn, parserCfg);
+           List<String> filteredElementCfg = parser.parseFiltersCfg();
+           assertFalse(hasFilteredEADElement(parser.doc.getRootElement(), filteredElementCfg));
+        }
+    }
+    
+    private boolean hasFilteredEADElement(Node node, List<String> filterList) {
+        Elements elements = ((Element) node).getChildElements();
+        if (elements != null) {
+            for (int i = 0; i < elements.size(); i++) {
+                Element element = elements.get(i);
+                if (filterList.contains(element.getLocalName().toUpperCase())) {
+                    return true;
+                } else {
+                    return hasFilteredEADElement(element, filterList);
+                }
+            }
+        }
+        return false;
+    }
+
+    private String filterSampleEAD(Work collectionWork, XmlDocumentParser parser) throws FileNotFoundException, ValidityException,
+            ParsingException, IOException {
+        Path testEADPath = Paths.get("test/resources/9982.xml");
+        InputStream eadData = new FileInputStream(testEADPath.toFile());
+        JsonNode parserCfg = CollectionBuilder.getDefaultCollectionCfg();
+        ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
+        ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "no");
+        parser.init(eadData, parserCfg);
+        String filteredEAD = CollectionBuilder.filterEAD(collectionWork, parser);
+        return filteredEAD;
+    }
+    
+    @Test
+    public void testExtractFirstEADComponent() throws IOException, ValidityException, ParsingException {
+        try (AmberSession as = db.begin()) {
+            Work collectionWork = as.findWork(collectionWorkId);
+            Work componentWork = collectionWork.asEADWork().addEADWork();
+            XmlDocumentParser parser = CollectionBuilder.getDefaultXmlDocumentParser();
+            String filteredEAD = filterSampleEAD(collectionWork, parser);
+            Elements components = ((Element) parser.getElementsByXPath(parser.doc, "//ead:ead/ead:archdesc/ead:dsc").get(0)).getChildElements();
+            Element component = null;
+            for (int i = 0; i < components.size(); i++) {
+                System.out.println("component name is " + components.get(i).getLocalName());
+                if (components.get(i).getLocalName().toUpperCase().startsWith("C")) {
+                    component = components.get(i);
+                    break;
+                }
+            }
+            if (component != null) {
+                String componentEAD = CollectionBuilder.extractEADComponent(componentWork, component, parser);
+                assertTrue(componentEAD != null && !componentEAD.isEmpty());
+            }
+        }
+    }
+    
+    @Test
     public void testGetDefaultCollectionCfg() throws JsonGenerationException, JsonMappingException, IOException {
         // Verify the default collection configuration contains the expected configuration entries.
         JsonNode cfg = CollectionBuilder.getDefaultCollectionCfg();
@@ -244,7 +307,7 @@ public class CollectionBuilderTest {
         XmlDocumentParser parser = CollectionBuilder.getDefaultXmlDocumentParser();
         // Verify that the standard parsing configuration have validateXML and storeCopy set as true.
         parser.parsingCfg = cfg;
-        assertTrue(parser.validateXML());
+        assertFalse(parser.validateXML());
         assertTrue(parser.storeCopy());
         
         // Verify that the parsing configuration (collectCfg) used for other tests in this unit test class has

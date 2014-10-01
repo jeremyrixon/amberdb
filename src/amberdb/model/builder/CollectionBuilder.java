@@ -146,16 +146,11 @@ public class CollectionBuilder {
      * @return
      * @throws IOException
      */
-    protected static String attachFilteredEAD(Work collectionWork, XmlDocumentParser parser) throws IOException {
+    protected static String filterEAD(Work collectionWork, XmlDocumentParser parser) throws IOException {
         // filter EAD document
         Node rootElement = parser.doc.getRootElement();
         parser.filterEAD(rootElement);
-        String filteredEAD = rootElement.toXML();
-        
-        // update the parser to cache the filtered EAD xml document
-        nu.xom.Document document = parser.builder.getNodeFactory().startMakingDocument();
-        document.setRootElement((Element) rootElement);
-        parser.doc = document;
+        String filteredEAD = rootElement.getDocument().toXML();
         
         // if storeCopy is set, also attach the filtered EAD xml document as a FINDING_AID__FILTERED_COPY to the collection level work
         if (parser.storeCopy)
@@ -178,14 +173,14 @@ public class CollectionBuilder {
      * @return
      * @throws IOException
      */
-    protected static String attachEADComponent(Work componentWork, Node node, XmlDocumentParser parser) throws IOException {
+    protected static String extractEADComponent(Work componentWork, Node node, XmlDocumentParser parser) throws IOException {
         // NOTE: as the EAD node has been filtered by the attachFilteredEAD() in the pre-condition
         //       there's no need to filter this again.
-        String filteredEAD = node.toXML();
+        String componentEAD = node.toXML();
         if (parser.storeCopy) {
-            storeEADCopy(componentWork, CopyRole.FINDING_AID__FILTERED_COPY, filteredEAD, "application/xml");
+            storeEADCopy(componentWork, CopyRole.FINDING_AID__FILTERED_COPY, componentEAD, "application/xml");
         }
-        return filteredEAD;
+        return componentEAD;
     }
        
     private static void storeEADCopy(Work work, CopyRole copyRole, String content, String contentType) throws IOException {
@@ -212,7 +207,7 @@ public class CollectionBuilder {
         mapCollectionMD(collectionWork, collectionCfg.get(CFG_COLLECTION_ELEMENT), parser);
         
         // filter out elements to be excluded during delivery from the EAD, and update the parser to cache the filtered EAD xml document.
-        attachFilteredEAD(collectionWork, parser);
+        filterEAD(collectionWork, parser);
         
         // traverse each work component under the top-level work, and map its metadata
         JsonNode subElementsCfg = collectionCfg.get(CFG_COLLECTION_ELEMENT).get(CFG_SUB_ELEMENTS);
