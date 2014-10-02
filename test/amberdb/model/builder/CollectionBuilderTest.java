@@ -10,11 +10,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import javax.sql.DataSource;
 import nu.xom.Element;
 import nu.xom.Elements;
@@ -203,30 +200,7 @@ public class CollectionBuilderTest {
             assertEquals(9, i);
         }
     }
-    
-    @Test
-    public void testFindXPathsForEADWork1() throws IOException, ValidityException, ParsingException {
-        Map<String, List<String>> tagMaps = Collections.synchronizedSortedMap(new TreeMap<String, List<String>>());
-        for (String testEADFile : testEADFiles) {
-            log("parsing file " + testEADFile);
-            Path testEADPath = Paths.get(testEADFile);
-            InputStream in = new FileInputStream(testEADPath.toFile());
-            traverseDoc(tagMaps, in);    
-        }
         
-        for (String key : tagMaps.keySet()) {
-            List<String> paths = tagMaps.get(key);
-            if (paths == null)
-                log(key + ": not found");
-            else {
-                log("\"" + key + "\": ");
-                for (String path : paths) {
-                    log("\t\t" + "\"" + path + "\"");
-                }
-            }
-        }
-    }
-    
     @Test
     public void testFilterEAD() throws IOException, ValidityException, ParsingException {
         try (AmberSession as = db.begin()) {
@@ -316,39 +290,7 @@ public class CollectionBuilderTest {
         assertFalse(parser.validateXML());
         assertFalse(parser.storeCopy());
     }
-    
-    private void traverseDoc(Map<String, List<String>> tagMaps, InputStream in) throws ValidityException, ParsingException, IOException {
-        EADParser eadParser = new EADParser();
-        eadParser.init(in, collectCfg);
-        Element rootElement = eadParser.doc.getRootElement();
-        String qualifiedName = eadParser.qualifiedName;
-        String xpath = "//" + qualifiedName + ":" + qualifiedName;
-        log("xpath: " + xpath);
-        Elements childElements = rootElement.getChildElements();
-        traverseChildElements(tagMaps, xpath, qualifiedName, childElements);       
-    }
-    
-    private void traverseChildElements(Map<String, List<String>> tagMaps, String basePath, String qualifiedName, Elements childElements) {
-        if (childElements == null) return;
-        for (int i = 0; i < childElements.size(); i++) {
-            Element e = childElements.get(i);
-            String localName = e.getLocalName();
-            String xpath = basePath + "/" + qualifiedName + ":" + localName;
-            if (tagsList.contains(localName)) {
-                if (tagMaps.get(localName) == null) {
-                    List<String> paths = new ArrayList<>();
-                    paths.add(xpath);
-                    tagMaps.put(localName, paths);
-                } else {
-                    List<String> paths = tagMaps.get(localName);
-                    if (!paths.contains(xpath))
-                        paths.add(xpath);
-                }
-            }       
-            traverseChildElements(tagMaps, xpath, qualifiedName, e.getChildElements());
-        }
-    }
-    
+        
     private void createCollection() throws IOException, ValidityException, ParsingException {
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);

@@ -86,14 +86,13 @@ public class CollectionBuilder {
      * @throws ValidityException 
      */
     public static void createCollection(Work collectionWork, JsonNode collectionCfg, XmlDocumentParser parser) throws ValidityException, ParsingException, IOException{
-        // map metadata in the top-level work for the collection 
         if (collectionWork == null) {
             String errMsg = "Failed to create work collection as the input collection work is null.";
             log.error(errMsg);
             throw new IllegalArgumentException(errMsg);
         }
         
-        File eadFile = getFindingAIDCopy(collectionWork);
+        File eadFile = getFindingAIDFile(collectionWork);
         
         if (collectionCfg == null) {
             String warnMsg = "No configuration found for parsing the collection data, switched to use the default parsing configuration.";
@@ -111,7 +110,7 @@ public class CollectionBuilder {
         createCollection(collectionWork, collectionName, eadFile.openStream(), collectionCfg, parser);
     }
 
-    private static File getFindingAIDCopy(Work collectionWork) {
+    private static File getFindingAIDFile(Work collectionWork) {
         Copy eadCopy = collectionWork.getCopy(CopyRole.FINDING_AID_COPY);
         if (eadCopy == null || eadCopy.getFile() == null) {
             String errMsg = "Failed to create work collection as the input collection work " + collectionWork.getObjId() + " does not have a finding aid copy.";
@@ -190,9 +189,9 @@ public class CollectionBuilder {
             String warnMsg = "No parser found for parsing the collection data, switched to use the default parser";
             log.info(warnMsg);
             parser = getDefaultXmlDocumentParser();
-            parser.init(getFindingAIDCopy(collectionWork).openStream(), getDefaultCollectionCfg());
+            parser.init(getFindingAIDFile(collectionWork).openStream(), getDefaultCollectionCfg());
         } else {
-            parser.setInputStream(getFindingAIDCopy(collectionWork).openStream());
+            parser.setInputStream(getFindingAIDFile(collectionWork).openStream());
         }
         
         // filter EAD document
@@ -243,7 +242,7 @@ public class CollectionBuilder {
             String warnMsg = "No parser found for parsing the collection data, switched to use the default parser";
             log.info(warnMsg);
             parser = getDefaultXmlDocumentParser();
-            parser.init(getFindingAIDCopy(collectionWork).openStream(), getDefaultCollectionCfg());
+            parser.init(getFindingAIDFile(collectionWork).openStream(), getDefaultCollectionCfg());
         }
         
         String componentEAD = node.toXML();
@@ -276,7 +275,9 @@ public class CollectionBuilder {
         collectionWork.setCollection(collectionName);
         mapCollectionMD(collectionWork, collectionCfg.get(CFG_COLLECTION_ELEMENT), parser);
         
-        // filter out elements to be excluded during delivery from the EAD, and update the parser to cache the filtered EAD xml document.
+        // filter out elements to be excluded during delivery from the EAD, 
+        // and by default configuration, the filtered EAD document will be stored
+        // as the FINDING_AID__FILTERED_COPY of the top level collection work.
         filterEAD(collectionWork, parser);
         
         // traverse EAD components, and create work for each component under the top-level work, 
@@ -332,7 +333,6 @@ public class CollectionBuilder {
     
     protected static void mapWorkMD(EADWork workInCollection, Node eadElement, JsonNode elementCfg, XmlDocumentParser parser) {
         Map<String, Object> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));
-        // workInCollection.
         workInCollection.setSubType("Work");      
         workInCollection.setSubUnitType("Series");
         workInCollection.setForm("Manuscript");

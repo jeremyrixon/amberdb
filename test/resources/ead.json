@@ -1,5 +1,5 @@
 {"collection": {
-    "cfg-doc"  :                "TODO: document this configuration.  This configuration file currently specifies how ...",
+    "cfg-doc"  :                "This configuration specify the rules and fields for parsing EAD file to create a collection of works under the assigned top-level work.",
     "validateXML":              "no",
     "storeCopy":                "no",
     "applicable-attributes-to-all-fields": {
