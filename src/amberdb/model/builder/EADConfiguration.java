@@ -19,8 +19,6 @@ public class EADConfiguration {
     protected JsonNode getCollectionCfg() {
         JsonNode collectionNode = mapper.createObjectNode();
         ((ObjectNode) collectionNode).put("cfg-doc", getCollectionCfgDoco());
-        
-        // TODO: validateXML for EAD
         ((ObjectNode) collectionNode).put("validateXML", "no");
         ((ObjectNode) collectionNode).put("storeCopy", "yes");
         ((ObjectNode) collectionNode).put("applicable-attributes-to-all-fields", getApplicableAttrsToAllFldsCfg());
@@ -31,7 +29,6 @@ public class EADConfiguration {
     }
     
     protected String getCollectionCfgDoco() {
-        // TODO: expand on doco
         String cfgDoc = "This configuration specify the rules and fields for "
                       + "parsing EAD file to create a collection of works "
                       + "under the assigned top-level work.";

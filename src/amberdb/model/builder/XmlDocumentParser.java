@@ -50,6 +50,10 @@ public abstract class XmlDocumentParser {
         this.validateXML = validateXML();
         this.storeCopy = storeCopy();
         filters = parseFiltersCfg();
+        setInputStream(in);
+    }
+    
+    public void setInputStream(InputStream in) throws ValidityException, ParsingException, IOException {
         builder = new Builder(validateXML());
         doc = builder.build(in);
         qualifiedName = doc.getRootElement().getQualifiedName();
@@ -83,6 +87,9 @@ public abstract class XmlDocumentParser {
     }
     
     public boolean validateXML() {
+        if (parsingCfg == null) 
+            throw new RuntimeException("Missing document parsing configuration, including the validateXML(Yes/No) setting.");
+        
         String validateXMLCfg = parsingCfg.get(CFG_COLLECTION_ELEMENT).get(CFG_VALIDATE_XML).getTextValue();
         if (validateXMLCfg != null && (validateXMLCfg.equalsIgnoreCase("yes") 
                 || validateXMLCfg.equalsIgnoreCase("y") || validateXMLCfg.equalsIgnoreCase("true")))
@@ -91,6 +98,9 @@ public abstract class XmlDocumentParser {
     }
     
     public boolean storeCopy() {
+        if (parsingCfg == null) 
+            throw new RuntimeException("Missing document parsing configuration, including the validateXML(Yes/No) setting.");
+        
         String storeCopyCfg = parsingCfg.get(CFG_COLLECTION_ELEMENT).get(CFG_STORE_COPY).getTextValue();
         if (storeCopyCfg != null && (storeCopyCfg.equalsIgnoreCase("yes") 
                 || storeCopyCfg.equalsIgnoreCase("y") || storeCopyCfg.equalsIgnoreCase("true")))
@@ -144,7 +154,7 @@ public abstract class XmlDocumentParser {
     
     /**
      * Provide mapping of <field name, field value> of the root element of the document.
-     * The field value can be of type Integer, Long, String, etc. 
+     * The field value can be of type Integer, Long, String. 
      * 
      * @param doc - the input xml document.
      * @param collectionCfg - the fields config for mapping the top collection work
@@ -154,7 +164,7 @@ public abstract class XmlDocumentParser {
     
     /**
      * provide mapping of <field name, field value> of the input element.
-     * The field value can be of type Integer, Long, String, etc.
+     * The field value can be of type Integer, Long, String.
      * 
      * @param node - the input xml node.
      * @param elementCfg - the fields config for mapping the sub work item.
@@ -198,7 +208,7 @@ public abstract class XmlDocumentParser {
         if (node == null) return getBasePath(doc);
         
         String elementLocalName = ((Element) node).getLocalName();
-        System.out.println("elementPath : " + elementPath + ", element local name: " + elementLocalName);
+        log.debug("elementPath : " + elementPath + ", element local name: " + elementLocalName);
         String newPath = elementPath;
         if (elementPath.lastIndexOf('/') > 0)
             newPath = elementPath.substring(0, elementPath.lastIndexOf('/')) + "/" + qualifiedName + ":" + elementLocalName;

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
-import nu.xom.Element;
 import nu.xom.Node;
 import nu.xom.Nodes;
 import nu.xom.ParsingException;
@@ -29,7 +28,6 @@ import static amberdb.model.builder.XmlDocumentParser.CFG_COLLECTION_ELEMENT;
 import static amberdb.model.builder.XmlDocumentParser.CFG_SUB_ELEMENTS;
 import static amberdb.model.builder.XmlDocumentParser.CFG_BASE;
 import static amberdb.model.builder.XmlDocumentParser.CFG_REPEATABLE_ELEMENTS;
-import static amberdb.model.builder.XmlDocumentParser.CFG_ATTRIBUTE_PREFIX;
 
 public class CollectionBuilder {
     static final Logger log = LoggerFactory.getLogger(CollectionBuilder.class);
@@ -40,7 +38,7 @@ public class CollectionBuilder {
      * resolves to default collection JSON configuration and the default EAD parser in order to 
      * create the collection work structure under the top level collection work.
      * 
-     * @param collectionWork: the top-level collection work with EAD file attached.
+     * @param collectionWork: the top-level work of a collection with a FINDING_AID_COPY attached.
      * @throws IOException 
      * @throws ParsingException 
      * @throws ValidityException 
@@ -51,8 +49,11 @@ public class CollectionBuilder {
     
     /**
      * getDefaultCollectionCfg returns the default configuration for creating a hierarchy of works under
-     * the top level collection work.  The default configuration sets validateXML to be true and 
-     * storeCopy to be true.
+     * the top level collection work.  The default configuration currently sets:
+     *  - validateXML to be false, which means that EAD xml file will not be validated before parsing; maybe
+     *    later on, validation of EAD as valid xml can be introduced.  
+     *  - storeCopy to be true, which means the derived EAD json and filtered EAD xml which be stored as EAD copies
+     *    in amberdb.
      */
     public static JsonNode getDefaultCollectionCfg() {
         return new EADConfiguration().getConfig();
@@ -72,11 +73,13 @@ public class CollectionBuilder {
      * collection work with the input field mapping from collectionCfg, and 
      * create the collection work structure under the top level collection work. 
      * 
-     * @param collectionWork - the top level work to attach a collection of works to. 
-     * @param collectionCfg  - configuration for parsing attached EAD file for creating
+     * Pre-condition: the input collectionWork must already exist, and must already have a EAD file attached as
+     *                FINDING_AID_COPY.
+     *                
+     * @param collectionWork - the top level work of a collection with a FINDING_AID_COPY attached. 
+     * @param collectionCfg  - configuration for parsing attached EAD file in order to create
      *                         the collection.
      * @param parser         - the XML document parser for parsing the EAD. 
-     * @param validateXML    - flag whether or not to validate the input EAD as valid XML.
      * @return
      * @throws IOException 
      * @throws ParsingException 
@@ -90,6 +93,25 @@ public class CollectionBuilder {
             throw new IllegalArgumentException(errMsg);
         }
         
+        File eadFile = getFindingAIDCopy(collectionWork);
+        
+        if (collectionCfg == null) {
+            String warnMsg = "No configuration found for parsing the collection data, switched to use the default parsing configuration.";
+            log.info(warnMsg);
+            collectionCfg = getDefaultCollectionCfg();
+        }
+        
+        if (parser == null) {
+            String warnMsg = "No parser found for parsing the collection data, switched to use the default parser";
+            log.info(warnMsg);
+            parser = getDefaultXmlDocumentParser();
+        }
+        
+        String collectionName = eadFile.getFileName();
+        createCollection(collectionWork, collectionName, eadFile.openStream(), collectionCfg, parser);
+    }
+
+    private static File getFindingAIDCopy(Work collectionWork) {
         Copy eadCopy = collectionWork.getCopy(CopyRole.FINDING_AID_COPY);
         if (eadCopy == null || eadCopy.getFile() == null) {
             String errMsg = "Failed to create work collection as the input collection work " + collectionWork.getObjId() + " does not have a finding aid copy.";
@@ -97,28 +119,38 @@ public class CollectionBuilder {
             throw new IllegalArgumentException(errMsg);
         }
         File eadFile = eadCopy.getFile();
-        
-        String collectionName = eadFile.getFileName();
-        createCollection(collectionWork, collectionName, eadFile.openStream(), collectionCfg, parser);
+        return eadFile;
     }
     
     /**
      * generateJson generates a document in json format consist the mapping of the structure and
-     * an array of items with each item contains the detailed content required for the delivery,
-     * and if the storeCopy flag is set to true, stores the document as a finding aid view copy. 
+     * the content for top level collection metadata and its components and sub-components:
+     *  - the structure is a json tree with top node at collection level and branches and leaves
+     *    of components and sub-components. 
+     *  - the content is a json array of items (including the collection and its components and 
+     *    sub-components) in a flat structure, and each item within the array contains the required 
+     *    metadata for the delivery.
+     *    
+     * If the storeCopy flag is set to true, the generated Json document will be stored as a finding aid view copy
+     * of the top level collection work. 
      * 
-     * Pre-condition: if the collectionWork has already an existing finding aid view copy, and the 
-     *                copy must be deleted and the storeCopy must be set to true before the newly
-     *                generated view copy can be stored.
+     * Store Copy rule: if the collectionWork has already an existing finding aid view copy, and the existing
+     *                  copy will be deleted and the newly generated view copy will be stored.
      *                
-     * @param collectionWork - the top level work to attach a collection of works to.
-     * @param storeCopy    - flag whether or not to store the generated json as a finding aid
+     * @param collectionWork - the top level work of a collection with a FINDING_AID_COPY attached.
+     * @param storeCopy      - flag whether or not to store the generated json as a finding aid
      *                         view copy to the top level work.
      * @return Document      - the newly generated document containing structure and content json
      *                         nodes.
      * @throws IOException
      */
     public static Document generateJson(Work collectionWork, boolean storeCopy) throws IOException {
+        if (collectionWork == null) {
+            String errMsg = "Failed to generate collection json as the input collection work is null.";
+            log.error(errMsg);
+            throw new IllegalArgumentException(errMsg);
+        }
+        
         ObjectNode structure = mapper.createObjectNode();
         ObjectNode content = mapper.createObjectNode();
         
@@ -133,20 +165,36 @@ public class CollectionBuilder {
     }
     
     /**
-     * attachFilteredEAD: filter the input EAD document, and attach the filtered EAD document as a FINDING_AID__FILTERED_COPY 
-     *                    to the top level collection work.
-     *                    
-     *                    The input EAD document will be filtered by all the EAD elements specified in the "excludes" section of
-     *                    the collectionCfg provided.
+     * filterEAD: filter the input EAD document so that only elements required for delivery are retained in the EAD document.
      * 
-     * @param collectionWork
-     * @param doc
-     * @param parser
-     * @param storeCopy
-     * @return
+     *                    If the storeCopy flag is configured to be true in the parser, the filtered EAD document will be stored 
+     *                    as a FINDING_AID__FILTERED_COPY to the top level collection work.
+     *                    
+     *                    Note: the EAD elements not required for delivery are specified in the "excludes" section of the collectionCfg provided.
+     * 
+     * @param collectionWork - the top level work of a collection with a FINDING_AID_COPY attached.
+     * @param parser         - the XML document parser for parsing the EAD.
+     * @return String        - the XML string of the filtered EAD document
      * @throws IOException
+     * @throws ParsingException 
+     * @throws ValidityException 
      */
-    protected static String filterEAD(Work collectionWork, XmlDocumentParser parser) throws IOException {
+    protected static String filterEAD(Work collectionWork, XmlDocumentParser parser) throws IOException, ValidityException, ParsingException {
+        if (collectionWork == null) {
+            String errMsg = "Failed to find finding aid copy for to filter EAD as the input collection work is null.";
+            log.error(errMsg);
+            throw new IllegalArgumentException(errMsg);
+        }
+        
+        if (parser == null) {
+            String warnMsg = "No parser found for parsing the collection data, switched to use the default parser";
+            log.info(warnMsg);
+            parser = getDefaultXmlDocumentParser();
+            parser.init(getFindingAIDCopy(collectionWork).openStream(), getDefaultCollectionCfg());
+        } else {
+            parser.setInputStream(getFindingAIDCopy(collectionWork).openStream());
+        }
+        
         // filter EAD document
         Node rootElement = parser.doc.getRootElement();
         parser.filterEAD(rootElement);
@@ -159,23 +207,45 @@ public class CollectionBuilder {
     }
     
     /**
-     * attachEADComponent: filter the input EAD xml node, and attach the (filtered) EAD node as a FINDING_AID__FILTERED_COPY to the
-     *                    input work within a top level collection which corresponds to an EAD component.
+     * extractEADComponent: extract the xml segment for the input EAD component.
      * 
-     *                    The input EAD xml node will be filtered by all the EAD elements specified in the "excludes" section of 
-     *                    the collectionCfg provided.
+     *                      If the storeCopy flag is configured to be true in the parser, the extracted xml segment for the EAD component 
+     *                      will be stored as a FINDING_AID__FILTERED_COPY. 
+     *  
+     *                      Note: in the process of creating collection from EAD, and storing extracted xml segment as FINDING_AID__FILTERED_COPY,
+     *                            this method should be called after filterEAD() method is called so that only required EAD elements for
+     *                            delivery will be included in the extracted XML segment.
      *                    
-     * Pre-condition: the method createCollection() and attachFilteredEAD() need to be called before (to create component works)
-     *                before attachFilteredEAD() method can be called to attach the component XML segment
-     *                from EAD to the specified componentWork as a FINDING_AID__FILTERED_COPY.
-     * @param componentWork
-     * @param storeCopy
-     * @return
+     * @param collectionWork  - the top level work of a collection with a FINDING_AID_COPY attached   
+     * @param componentASId   - the Archive Space uuid for the EAD component.                
+     * @param componentWork   - the corresponding work for the EAD component. 
+     * @param node            - the document node for the EAD component
+     * @param parser          - the XML document parser for parsing EAD
+     * @return String         - the XML segment from EAD file for this component
      * @throws IOException
+     * @throws ParsingException 
+     * @throws ValidityException 
      */
-    protected static String extractEADComponent(Work componentWork, Node node, XmlDocumentParser parser) throws IOException {
-        // NOTE: as the EAD node has been filtered by the attachFilteredEAD() in the pre-condition
-        //       there's no need to filter this again.
+    protected static String extractEADComponent(Work collectionWork, String componentASId, Work componentWork, Node node, XmlDocumentParser parser) throws IOException, ValidityException, ParsingException {
+        if (collectionWork == null)
+            throw new IllegalArgumentException("Failed to return EAD segment, must supply the top level collection work.");
+            
+        if (componentASId == null)
+            throw new IllegalArgumentException("Failed to return EAD segment, must supply an valid Archive Space id as the component AS id.");
+        
+        if (componentWork == null)
+            throw new IllegalArgumentException("Failed to return EAD segment for collection: " + collectionWork.getObjId() + ", component: " + componentASId + " - no corresponding work found for this component.");
+        
+        if (node == null)
+            throw new IllegalArgumentException("Failed to return EAD segment for collection: " + collectionWork.getObjId() + ", component: " + componentASId + " - supplied document node is null.");
+        
+        if (parser == null) {
+            String warnMsg = "No parser found for parsing the collection data, switched to use the default parser";
+            log.info(warnMsg);
+            parser = getDefaultXmlDocumentParser();
+            parser.init(getFindingAIDCopy(collectionWork).openStream(), getDefaultCollectionCfg());
+        }
+        
         String componentEAD = node.toXML();
         if (parser.storeCopy) {
             storeEADCopy(componentWork, CopyRole.FINDING_AID__FILTERED_COPY, componentEAD, "application/xml");
@@ -209,18 +279,19 @@ public class CollectionBuilder {
         // filter out elements to be excluded during delivery from the EAD, and update the parser to cache the filtered EAD xml document.
         filterEAD(collectionWork, parser);
         
-        // traverse each work component under the top-level work, and map its metadata
+        // traverse EAD components, and create work for each component under the top-level work, 
+        // and map its metadata
         JsonNode subElementsCfg = collectionCfg.get(CFG_COLLECTION_ELEMENT).get(CFG_SUB_ELEMENTS);
         
         if (subElementsCfg != null) {
             String basePath = subElementsCfg.get(CFG_BASE).getTextValue();
             String repeatablePath = subElementsCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
             Nodes eadElements = parser.getElementsByXPath(parser.getDocument(), basePath);
-            System.out.println("sub elements found: " +  eadElements.size() + " for query " + basePath);
+            log.debug("sub elements found: " +  eadElements.size() + " for query " + basePath);
             if (eadElements != null && eadElements.size() > 0) {
                 for (int i = 0; i < eadElements.size(); i++) {
                     Nodes eadSubElements = parser.traverse(eadElements.get(i), repeatablePath);
-                    System.out.println("sub elements found: " +  eadSubElements.size() + " for query repeatable path " + repeatablePath);
+                    log.debug("sub elements found: " +  eadSubElements.size() + " for query repeatable path " + repeatablePath);
                     traverseEAD(collectionWork.asEADWork(), eadSubElements, subElementsCfg, parser);
                 }
             }
@@ -242,8 +313,8 @@ public class CollectionBuilder {
     
     protected static void mapCollectionMD(Work collectionWork, JsonNode collectionCfg, XmlDocumentParser parser) throws ValidityException, ParsingException, IOException {
         Map<String, Object> fieldsMap = parser.getFieldsMap(parser.getDocument(), collectionCfg, parser.getBasePath(parser.getDocument()));  
-        // System.out.println("collection config: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(collectionCfg));
-        // System.out.println("collection fieldMap: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(fieldsMap));
+        log.debug("collection config: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(collectionCfg));
+        log.debug("collection fieldMap: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(fieldsMap));
 
         collectionWork.setCreator(fieldsMap.get("creator").toString());
         collectionWork.setSubType("Work");
@@ -294,7 +365,7 @@ public class CollectionBuilder {
     protected static void traverseCollection (Iterable<Work> works, JsonNode structure, JsonNode content) {
         if (works == null || !works.iterator().hasNext()) return;
         ArrayNode arry = mapper.createArrayNode();
-        ((ObjectNode) structure).put("sub-element", arry);
+        ((ObjectNode) structure).put(XmlDocumentParser.CFG_SUB_ELEMENTS, arry);
         for (Work work : works) {
             JsonNode item = mapper.createObjectNode();
             arry.add(item);

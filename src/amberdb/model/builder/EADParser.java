@@ -43,6 +43,26 @@ public class EADParser extends XmlDocumentParser {
             return getFldsMapCfg(fields, recurse);
     }
     
+    /**
+     * Get a list of field mapping configurations.  
+     * 
+     * @param fields     - the JsonNode to extract the field mapping configuration from.
+     * @param recurse    - this option allow the method to get fields mapping grouped into
+     *                     sections like in the following example:
+     *                     
+     *                     "fields": {
+     *                        "collection-name":  "fileName",
+     *                        "summary": {
+     *                            "eadid":  "//ead:ead/ead:eadheader/ead:eadid",
+     *                            ...
+     *                        },
+     *                        "introduction": {
+     *                            "scope-n-content":    "//ead:ead/ead:archdesc/ead:scopecontent/ead:p",
+     *                            ...
+     *                        }
+     *                     }
+     * @return field mapping configuration.
+     */
     protected Map<String, Object> getFldsMapCfg(JsonNode fields, boolean recurse) {
         Map<String, Object> fldsCfg = new ConcurrentHashMap<>();
         Iterator<String> fldsNames = fields.getFieldNames();
@@ -53,6 +73,10 @@ public class EADParser extends XmlDocumentParser {
                 if (field.isTextual()) {
                     fldsCfg.put(fldName, field.getTextValue());
                 } else {
+                    // If the field is not a text field, then recurse down
+                    // to get the mapping of fields attached this node.
+                    // In this way, it allows the fields to be grouped 
+                    // into sections in the configuration.
                     fldsCfg.putAll(getFldsMapCfg(field, recurse));                  
                 }
             }
@@ -70,7 +94,7 @@ public class EADParser extends XmlDocumentParser {
             // set the value for the field
             String fldCfg = fldsCfg.get(fldName).toString();
             if (fldCfg != null && !fldCfg.isEmpty()) {
-                System.out.println("fldName : " + fldName + ", xpath: " + fldCfg);
+                log.debug("fldName : " + fldName + ", xpath: " + fldCfg);
                 if (queryAttribute(fldCfg)) {
                     fldsMap.put(fldName, getAttribute(node, fldCfg));
                 } else {
@@ -81,7 +105,7 @@ public class EADParser extends XmlDocumentParser {
             } 
         }
         try {
-            System.out.println("map from base path: " + basePath + ": " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(fldsMap));
+            log.debug("map from base path: " + basePath + ": " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(fldsMap));
         } catch ( IOException e) {
             e.printStackTrace();
         }

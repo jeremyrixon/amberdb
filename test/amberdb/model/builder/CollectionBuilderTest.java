@@ -1,8 +1,6 @@
 package amberdb.model.builder;
 
 import static org.junit.Assert.*;
-
-import java.nio.file.Files;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -17,15 +15,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
 import javax.sql.DataSource;
-
 import nu.xom.Element;
 import nu.xom.Elements;
 import nu.xom.Node;
 import nu.xom.ParsingException;
 import nu.xom.ValidityException;
-
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
@@ -34,22 +29,25 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import amberdb.AmberDb;
 import amberdb.AmberSession;
+import amberdb.enums.CopyRole;
 import amberdb.model.Work;
 
 public class CollectionBuilderTest {
-    private AmberDb db;
-    private String collectionWorkId;
-    private ObjectMapper objectMapper;
-    private JsonNode collectCfg;
-    private Path testEADPath;
-    private String[] testEADFiles = { "test/resources/6442.xml" };
-    private List<String> tagsList;
-    private String[] tags = {"abstract",
+    static final Logger log = LoggerFactory.getLogger(CollectionBuilderTest.class);
+    AmberDb db;
+    String collectionWorkId;
+    ObjectMapper objectMapper;
+    JsonNode collectCfg;
+    Path testEADPath;
+    String[] testEADFiles = { "test/resources/6442.xml" };
+    List<String> tagsList;
+    String[] tags = {"abstract",
             "accessrestrict",
             "acqinfo",
             "altformavail",
@@ -162,6 +160,7 @@ public class CollectionBuilderTest {
             collectionWork.asEADWork().setEADUpdateReviewRequired("Y");   
             collectionWork.asEADWork().setAccessConditions("Restricted");
             collectionWorkId = collectionWork.getObjId();
+            collectionWork.addCopy(Paths.get("test/resources/6442.xml"), CopyRole.FINDING_AID_COPY, "application/xml");
             as.commit();
         }
     }
@@ -192,7 +191,7 @@ public class CollectionBuilderTest {
             Work collectionWork = as.findWork(collectionWorkId);
             boolean storeCopy = false;
             Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
-            System.out.println("doc: " + doc.toJson());
+            log("doc: " + doc.toJson());
             JsonNode content = doc.getContent();
             Iterator<String> it = content.getFieldNames();
             assertTrue(it.hasNext());
@@ -209,7 +208,7 @@ public class CollectionBuilderTest {
     public void testFindXPathsForEADWork1() throws IOException, ValidityException, ParsingException {
         Map<String, List<String>> tagMaps = Collections.synchronizedSortedMap(new TreeMap<String, List<String>>());
         for (String testEADFile : testEADFiles) {
-            System.out.println("parsing file " + testEADFile);
+            log("parsing file " + testEADFile);
             Path testEADPath = Paths.get(testEADFile);
             InputStream in = new FileInputStream(testEADPath.toFile());
             traverseDoc(tagMaps, in);    
@@ -218,11 +217,11 @@ public class CollectionBuilderTest {
         for (String key : tagMaps.keySet()) {
             List<String> paths = tagMaps.get(key);
             if (paths == null)
-                System.out.println(key + ": not found");
+                log(key + ": not found");
             else {
-                System.out.println("\"" + key + "\": ");
+                log("\"" + key + "\": ");
                 for (String path : paths) {
-                    System.out.println("\t\t" + "\"" + path + "\"");
+                    log("\t\t" + "\"" + path + "\"");
                 }
             }
         }
@@ -261,7 +260,7 @@ public class CollectionBuilderTest {
 
     private String filterSampleEAD(Work collectionWork, XmlDocumentParser parser) throws FileNotFoundException, ValidityException,
             ParsingException, IOException {
-        Path testEADPath = Paths.get("test/resources/9982.xml");
+        Path testEADPath = Paths.get("test/resources/6442.xml");
         InputStream eadData = new FileInputStream(testEADPath.toFile());
         JsonNode parserCfg = CollectionBuilder.getDefaultCollectionCfg();
         ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
@@ -281,14 +280,15 @@ public class CollectionBuilderTest {
             Elements components = ((Element) parser.getElementsByXPath(parser.doc, "//ead:ead/ead:archdesc/ead:dsc").get(0)).getChildElements();
             Element component = null;
             for (int i = 0; i < components.size(); i++) {
-                System.out.println("component name is " + components.get(i).getLocalName());
+                log("component name is " + components.get(i).getLocalName());
                 if (components.get(i).getLocalName().toUpperCase().startsWith("C")) {
                     component = components.get(i);
                     break;
                 }
             }
             if (component != null) {
-                String componentEAD = CollectionBuilder.extractEADComponent(componentWork, component, parser);
+                String asId = component.getAttributeValue("id");
+                String componentEAD = CollectionBuilder.extractEADComponent(collectionWork, asId, componentWork, component, parser);
                 assertTrue(componentEAD != null && !componentEAD.isEmpty());
             }
         }
@@ -323,7 +323,7 @@ public class CollectionBuilderTest {
         Element rootElement = eadParser.doc.getRootElement();
         String qualifiedName = eadParser.qualifiedName;
         String xpath = "//" + qualifiedName + ":" + qualifiedName;
-        System.out.println("xpath: " + xpath);
+        log("xpath: " + xpath);
         Elements childElements = rootElement.getChildElements();
         traverseChildElements(tagMaps, xpath, qualifiedName, childElements);       
     }
@@ -357,5 +357,9 @@ public class CollectionBuilderTest {
             CollectionBuilder.createCollection(collectionWork, collectionName, in, collectCfg, new EADParser());
             as.commit();
         }
+    }
+    
+    private void log(String msg) {
+        log.info(msg);
     }
 }
