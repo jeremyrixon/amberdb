@@ -64,7 +64,6 @@ public class CollectionBuilder {
      * for the CollectionBuilder.
      */
     public static XmlDocumentParser getDefaultXmlDocumentParser() {
-        // return the default document parser;
         return new EADParser();
     }
     
