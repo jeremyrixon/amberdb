@@ -18,6 +18,11 @@ public interface VersionDao extends Transactional<VersionDao> {
             + "ORDER BY id")
     List<Long> getTransactionsSince(
             @Bind("time") Long time);
+
+    @SqlQuery("SELECT id "
+             + "FROM transaction "
+             + "WHERE time > :startTime and time < :endTime")
+    List<Long> getTransactionsBetween(@Bind("startTime") Long startTime, @Bind("endTime") Long endTime);
     
     
     void close();
