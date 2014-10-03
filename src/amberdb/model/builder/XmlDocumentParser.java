@@ -201,8 +201,6 @@ public abstract class XmlDocumentParser {
         return nodes;
     }
     
-    protected abstract void mapFields(Document doc, Node node, String fromPath, Map<String, Object> fldsMap);
-    
     protected String constructPath(Document doc, String elementPath, Node node) {
         String qualifiedName = doc.getRootElement().getQualifiedName();
         if (node == null) return getBasePath(doc);

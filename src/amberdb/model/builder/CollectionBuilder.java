@@ -158,7 +158,7 @@ public class CollectionBuilder {
         
         // store the document as a copy to collectionWork.
         if (storeCopy)
-            storeEADCopy(collectionWork, CopyRole.FINDING_AID__VIEW_COPY, doc.toJson(), "application/json");
+            storeEADCopy(collectionWork, CopyRole.FINDING_AID_VIEW_COPY, doc.toJson(), "application/json");
         return doc;
     }
     
@@ -200,7 +200,7 @@ public class CollectionBuilder {
         
         // if storeCopy is set, also attach the filtered EAD xml document as a FINDING_AID__FILTERED_COPY to the collection level work
         if (parser.storeCopy)
-            storeEADCopy(collectionWork, CopyRole.FINDING_AID__FILTERED_COPY, filteredEAD, "application/xml");
+            storeEADCopy(collectionWork, CopyRole.FINDING_AID_FILTERED_COPY, filteredEAD, "application/xml");
         return filteredEAD;
     }
     
@@ -246,7 +246,7 @@ public class CollectionBuilder {
         
         String componentEAD = node.toXML();
         if (parser.storeCopy) {
-            storeEADCopy(componentWork, CopyRole.FINDING_AID__FILTERED_COPY, componentEAD, "application/xml");
+            storeEADCopy(componentWork, CopyRole.FINDING_AID_FILTERED_COPY, componentEAD, "application/xml");
         }
         return componentEAD;
     }

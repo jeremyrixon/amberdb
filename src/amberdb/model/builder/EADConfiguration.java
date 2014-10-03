@@ -18,7 +18,7 @@ public class EADConfiguration {
     
     protected JsonNode getCollectionCfg() {
         JsonNode collectionNode = mapper.createObjectNode();
-        ((ObjectNode) collectionNode).put("cfg-doc", getCollectionCfgDoco());
+        ((ObjectNode) collectionNode).put("cfgDoc", getCollectionCfgDoco());
         ((ObjectNode) collectionNode).put("validateXML", "no");
         ((ObjectNode) collectionNode).put("storeCopy", "yes");
         ((ObjectNode) collectionNode).put("applicable-attributes-to-all-fields", getApplicableAttrsToAllFldsCfg());
@@ -31,7 +31,8 @@ public class EADConfiguration {
     protected String getCollectionCfgDoco() {
         String cfgDoc = "This configuration specify the rules and fields for "
                       + "parsing EAD file to create a collection of works "
-                      + "under the assigned top-level work.";
+                      + "under the assigned top-level work. "
+                      + "note: the name for each fields within a \"field\":{...} config segment must be unqiue.";
         return cfgDoc;
     }
     protected JsonNode getApplicableAttrsToAllFldsCfg() {
