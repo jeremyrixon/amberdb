@@ -34,6 +34,7 @@ import amberdb.sql.Lookups;
 import amberdb.sql.LookupsSchema;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberHistory;
+import amberdb.graph.AmberTransaction;
 
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.TransactionalGraph;
@@ -57,6 +58,26 @@ public class AmberSession implements AutoCloseable {
     private final BlobStore blobStore;
     private final TempDirectory tempDir;
     private DBI lookupsDbi;
+
+    private final static FramedGraphFactory framedGraphFactory =
+            new FramedGraphFactory(
+                new JavaHandlerModule(), 
+                new GremlinGroovyModule(), 
+                new TypedGraphModuleBuilder()
+                .withClass(Copy.class)
+                .withClass(File.class)
+                .withClass(ImageFile.class)
+                .withClass(SoundFile.class)
+                .withClass(Page.class)
+                .withClass(Section.class)
+                .withClass(Work.class)
+                .withClass(Description.class)
+                .withClass(IPTC.class)
+                .withClass(GeoCoding.class)
+                .withClass(CameraData.class)
+                .withClass(EADWork.class)
+                .build());
+
 
     /**
      * Constructs an in-memory AmberDb for testing with. Also creates a BlobStore in a temp dir 
@@ -191,21 +212,7 @@ public class AmberSession implements AutoCloseable {
     
     protected FramedGraph<TransactionalGraph> openGraph(TransactionalGraph graph) {
         TransactionalGraph g = new OwnedGraph(graph);
-        return new FramedGraphFactory(new JavaHandlerModule(), new GremlinGroovyModule(),
-                new TypedGraphModuleBuilder()
-            .withClass(Copy.class)
-            .withClass(File.class)
-            .withClass(ImageFile.class)
-            .withClass(SoundFile.class)
-            .withClass(Page.class)
-            .withClass(Section.class)
-            .withClass(Work.class)
-            .withClass(Description.class)
-            .withClass(IPTC.class)
-            .withClass(GeoCoding.class)
-            .withClass(CameraData.class)
-            .withClass(EADWork.class)
-            .build()).create(g);
+        return framedGraphFactory.create(g);
     }
 
     
@@ -462,6 +469,9 @@ public class AmberSession implements AutoCloseable {
         return getAmberHistory().getModifiedObjectIds(when);
     }
     
+    public AmberTransaction getTransaction(long id) {
+        return getAmberGraph().getTransaction(id);
+    }
 
     /**
      * Get the ids of works that have been modified since a given time. 
