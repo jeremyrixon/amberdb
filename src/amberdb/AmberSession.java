@@ -468,6 +468,9 @@ public class AmberSession implements AutoCloseable {
         return getAmberHistory().getModifiedObjectIds(when);
     }
     
+    public AmberTransaction getTransaction(long id) {
+        return getAmberGraph().getTransaction(id);
+    }
 
     /**
      * Get the ids of works that have been modified since a given time. 
