@@ -34,6 +34,7 @@ import amberdb.sql.Lookups;
 import amberdb.sql.LookupsSchema;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberHistory;
+import amberdb.graph.AmberTransaction;
 
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.TransactionalGraph;
@@ -468,6 +469,9 @@ public class AmberSession implements AutoCloseable {
         return getAmberHistory().getModifiedObjectIds(when);
     }
     
+    public AmberTransaction getTransaction(long id) {
+        return getAmberGraph().getTransaction(id);
+    }
 
     /**
      * Get the ids of works that have been modified since a given time. 
