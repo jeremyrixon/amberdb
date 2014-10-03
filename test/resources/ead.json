@@ -1,0 +1,63 @@
+{"collection": {
+    "cfg-doc"  :                "This configuration specify the rules and fields for parsing EAD file to create a collection of works under the assigned top-level work.",
+    "validateXML":              "no",
+    "storeCopy":                "no",
+    "applicable-attributes-to-all-fields": {
+      "access-attribute":       "@audience",
+      "render-attribute":       "@render" },
+    "fields": {    
+      "collection-name":          "fileName",
+      "summary": {
+        "uuid":               "notsupplied",
+        "eadid":              "//ead:ead/ead:eadheader/ead:eadid",
+        "collection-number":  "//ead:ead/ead:archdesc/ead:did/ead:unitid",
+        "creator":            "//ead:ead/ead:archdesc/ead:did/ead:origination/ead:persname",
+        "title":              "//ead:ead/ead:archdesc/ead:did/ead:unittitle",
+        "date-range":         "//ead:ead/ead:archdesc/ead:did/ead:unitdate",
+        "extent":             "//ead:ead/ead:archdesc/ead:did/ead:physdesc" },
+      "introduction": {
+        "scope-n-content":    "//ead:ead/ead:archdesc/ead:scopecontent/ead:p",
+        "arrangement":        "//ead:ead/ead:archdesc/ead:arrangement/ead:p",
+        "provenance":         "//ead:ead/ead:archdesc/ead:acqinfo",
+        "copying-publishing": "//ead:ead/ead:archdesc/ead:userestrict",
+        "preferred-citation": "//ead:ead/ead:archdesc/ead:prefercite" },
+      "bioghistory": {
+        "biographical-note":  "//ead:ead/ead:archdesc/ead:bioghist" }
+    },
+    "excludes": [
+      "arc",
+      "archdescgrp",
+      "bibseries",
+      "change",
+      "creation",
+      "descgrp",
+      "descrules",
+      "div",
+      "dscgrp",
+      "eadgrp",
+      "eadid",
+      "frontmatter",
+      "language",
+      "notestmt",
+      "profiledesc",
+      "publicationstmt",
+      "revisiondesc",
+      "runner",
+      "seriesstmt",
+      "titlepage"
+    ],
+    "sub-elements": {
+      "base":                 "//ead:ead/ead:archdesc/ead:dsc",
+      "fields": {                
+        "series": {
+          "title":              "ead:did/ead:unittitle",
+          "ord":                "ead:did/ead:unitid",
+          "date-range":         "ead:did/ead:unitdate",
+          "scope-n-content":    "ead:scopecontent/ead:p",
+          "sub-unit-type":      "@level",
+          "uuid":               "@id"}
+      },
+      "repeatable-element":   "ead:c"
+    }          
+ }           
+}

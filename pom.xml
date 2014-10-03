@@ -3,7 +3,7 @@
 
   <groupId>au.gov.nla</groupId>
   <artifactId>amberdb</artifactId>
-  <version>1.1.194-SNAPSHOT</version>
+  <version>1.1.195-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>amberdb</name>
@@ -198,6 +198,11 @@
       <groupId>com.drewnoakes</groupId>
       <artifactId>metadata-extractor</artifactId>
       <version>2.6.2</version>
+    </dependency>
+    <dependency>
+      <groupId>xom</groupId>
+      <artifactId>xom</artifactId>
+      <version>1.2.5</version>
     </dependency>
   </dependencies>
   <repositories>
