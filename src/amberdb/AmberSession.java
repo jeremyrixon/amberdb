@@ -34,6 +34,7 @@ import amberdb.sql.Lookups;
 import amberdb.sql.LookupsSchema;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberHistory;
+import amberdb.graph.AmberTransaction;
 
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.TransactionalGraph;
