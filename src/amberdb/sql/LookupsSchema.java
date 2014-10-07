@@ -787,6 +787,7 @@ public abstract class LookupsSchema {
       + "('subUnitType','Index'),"
       + "('subUnitType','Introduction'),"
       + "('subUnitType','Invitation'),"
+      + "('subUnitType','Issue'),"
       + "('subUnitType','Item'),"
       + "('subUnitType','Map'),"
       + "('subUnitType','Number'),"
