@@ -1,6 +1,9 @@
 package amberdb.version;
 
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -155,5 +158,33 @@ public class TElementDiff {
     
     public TTransition getTransition() {
         return transition;
+    }
+    
+    
+    public Map<String, Object[]> getDiffMap() {
+
+        Map<String, Object[]> diffMap = new HashMap<>();
+        Set<String> propertyKeys = new HashSet<>();
+        if(elem1 != null) propertyKeys.addAll(elem1.getPropertyKeys());
+        if(elem2 != null) propertyKeys.addAll(elem2.getPropertyKeys());
+
+        for (String name : propertyKeys) {
+
+            switch (transition) {
+            
+            case NEW: 
+                diffMap.put(name, new Object[] {null, elem2.getProperty(name)});
+                break;
+                
+            case DELETED: 
+                diffMap.put(name, new Object[] {elem1.getProperty(name), null});
+                break;
+
+            case MODIFIED: 
+            case UNCHANGED:
+                diffMap.put(name, new Object[] {elem1.getProperty(name), elem2.getProperty(name)});
+            }    
+        }
+        return diffMap;
     }
 }
