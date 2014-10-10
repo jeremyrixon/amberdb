@@ -87,7 +87,7 @@ public class VersionQuery {
         s.append(String.format(
 
         "INSERT INTO v0 (step, vid, eid, label, edge_order) \n"
-        + "SELECT 0, id, 0, 'root', 0 \n"
+        + "SELECT DISTINCT 0, id, 0, 'root', 0 \n"
         + "FROM vertex \n"
         + "WHERE id IN (%s); \n",
         numberListToStr(head)));
@@ -105,7 +105,7 @@ public class VersionQuery {
 
                 s.append(String.format(
                 "INSERT INTO %1$s (step, vid, eid, label, edge_order) \n"
-                + "SELECT %3$d, v.id, e.id, e.label, e.edge_order  \n"
+                + "SELECT DISTINCT %3$d, v.id, e.id, e.label, e.edge_order  \n"
                 + "FROM vertex v, edge e, %2$s \n"
                 + "WHERE 1=1 "
                 + labelsClause
@@ -118,7 +118,7 @@ public class VersionQuery {
 
                 s.append(String.format(
                 "INSERT INTO %1$s (step, vid, eid, label, edge_order) \n"
-                + "SELECT %3$d, v.id, e.id, e.label, e.edge_order  \n"
+                + "SELECT DISTINCT %3$d, v.id, e.id, e.label, e.edge_order  \n"
                 + "FROM vertex v, edge e, %2$s \n"
                 + "WHERE 1=1 "
                 + labelsClause
