@@ -2,6 +2,7 @@ package amberdb.model.builder;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
 
 import nu.xom.Node;
@@ -10,6 +11,9 @@ import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
@@ -108,16 +112,98 @@ public class CollectionBuilder {
         String collectionName = eadFile.getFileName();
         createCollection(collectionWork, collectionName, eadFile.openStream(), collectionCfg, parser);
     }
+    
+    /**
+     * mergeCollection parses the updated EAD file attached to the top-level
+     * collection work with the input field mapping from collectionCfg, and
+     * update the collection work structure under the top level collection by
+     * adding EAD work for each new EAD component; delete EAD work for an EAD
+     * component that was previously there but not included in the updated EAD
+     * file; update EAD work for an EAD component with modified metadata.
+     * 
+     * TODO: to confirm whether the merge operation should fail and throw an exception if an EAD work with copies
+     *       and files attached is required to be deleted??
+     * 
+     * mergeCollection also call generateJson(...) to regenerate the derivative Json to reflect the updated
+     * the mapping of the structure and the content for top level collection metadata and its components and 
+     * sub-components.
+     * 
+     * if any of the EAD work in the current collection work structure has copies and files
+     * attached to it, the copies and files will be re-attached to the corresponding
+     * node in the recreated collection work structure.
+     * 
+     * @param collectionWork - the top level work of a collection with a FINDING_AID_COPY attached.
+     * @param collectionCfg  - configuration for parsing attached EAD file in order to create the collection.
+     * @param parser         - the XML document parser for parsing the EAD.
+     * @throws IOException
+     */
+    public static void mergeCollection(Work collectionWork, JsonNode collectionCfg, XmlDocumentParser parser) throws IOException {
+        if (collectionWork == null) {
+            String errMsg = "Failed to merge work collection as the input collection work is null.";
+            log.error(errMsg);
+            throw new IllegalArgumentException(errMsg);
+        }
+        
+        File eadFile = getFindingAIDFile(collectionWork);
+        
+        if (collectionCfg == null) {
+            String warnMsg = "No configuration found for parsing the collection data, switched to use the default parsing configuration.";
+            log.info(warnMsg);
+            collectionCfg = getDefaultCollectionCfg();
+        }
+        
+        if (parser == null) {
+            String warnMsg = "No parser found for parsing the collection data, switched to use the default parser";
+            log.info(warnMsg);
+            parser = getDefaultXmlDocumentParser();
+        }
+        
+        String collectionName = eadFile.getFileName();
+        mergeCollection(collectionWork, collectionName, eadFile.openStream(), collectionCfg, parser);
+    }
+
+    private static void mergeCollection(Work collectionWork, String collectionName, InputStream openStream,
+            JsonNode collectionCfg, XmlDocumentParser parser) throws JsonProcessingException, IOException {
+        Map<String, String> currentDOs = digitalObjectsMap(collectionWork);
+        
+    }
+    
+    private static Map digitalObjectsMap(Work collectionWork) throws JsonParseException, JsonMappingException, IOException {
+        // Get a list of EAD works in the current collection work structure corresponding to EAD components
+        JsonNode content = getFindingAIDJsonDocument(collectionWork).getContent();
+        Map<String, String> uuidToPIMap = new HashMap<>();
+        
+        if (content != null && content.getFieldNames() != null) {
+            while (content.getFieldNames().hasNext()) {
+                String objId = content.getFieldNames().next();
+                String uuid = content.get(objId).get("localSystemNumber").getTextValue();
+                uuidToPIMap.put(uuid, objId);
+            }
+        }
+        return uuidToPIMap;
+    }
 
     private static File getFindingAIDFile(Work collectionWork) {
         Copy eadCopy = collectionWork.getCopy(CopyRole.FINDING_AID_COPY);
         if (eadCopy == null || eadCopy.getFile() == null) {
-            String errMsg = "Failed to create work collection as the input collection work " + collectionWork.getObjId() + " does not have a finding aid copy.";
+            String errMsg = "Failed to process work collection as the input collection work " + collectionWork.getObjId() + " does not have a finding aid copy.";
             log.error(errMsg);
             throw new IllegalArgumentException(errMsg);
         }
         File eadFile = eadCopy.getFile();
         return eadFile;
+    }
+    
+    private static Document getFindingAIDJsonDocument(Work collectionWork) throws JsonParseException, JsonMappingException, IOException {
+        Copy eadJsonCopy = collectionWork.getCopy(CopyRole.FINDING_AID_VIEW_COPY);
+        if (eadJsonCopy == null || eadJsonCopy.getFile() == null) {
+            String errMsg = "Failed to process work collection as the input collection work " + collectionWork.getObjId() + " does not have a finding aid json copy.";
+            log.error(errMsg);
+            throw new IllegalArgumentException(errMsg);
+        }
+        File eadJsonFile = eadJsonCopy.getFile();
+        Document doc = mapper.readValue(eadJsonFile.openStream(), Document.class);
+        return doc;
     }
     
     /**
