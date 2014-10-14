@@ -3,8 +3,6 @@ package amberdb;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +11,6 @@ import javax.sql.DataSource;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.h2.Driver;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
 
@@ -28,13 +25,17 @@ import amberdb.model.ImageFile;
 import amberdb.model.Page;
 import amberdb.model.Section;
 import amberdb.model.SoundFile;
+import amberdb.model.Tag;
 import amberdb.model.Work;
 import amberdb.sql.ListLu;
 import amberdb.sql.Lookups;
 import amberdb.sql.LookupsSchema;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberHistory;
+import amberdb.graph.AmberProperty;
+import amberdb.graph.AmberQueryGetVertices;
 import amberdb.graph.AmberTransaction;
+import amberdb.graph.AmberVertexQuery;
 
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.TransactionalGraph;
@@ -76,6 +77,7 @@ public class AmberSession implements AutoCloseable {
                 .withClass(GeoCoding.class)
                 .withClass(CameraData.class)
                 .withClass(EADWork.class)
+                .withClass(Tag.class)
                 .build());
 
 
@@ -143,22 +145,23 @@ public class AmberSession implements AutoCloseable {
     
     private AmberGraph init(DataSource dataSource, Long sessionId) {
 
-            // NLA specific lookup table config
-            lookupsDbi = new DBI(dataSource);
-            LookupsSchema luSchema = lookupsDbi.onDemand(LookupsSchema.class);
-            if (!luSchema.schemaTablesExist()) {
-                // maybe log something
-                luSchema.createLookupsSchema();
-                List<ListLu> list = getLookups().findActiveLookups();
-                luSchema.setupToolsAssociations(list);
-            }
-            
-            // Graph
-            AmberGraph amber = new AmberGraph(dataSource);
-            if (sessionId != null) amber.resume(sessionId);
-            
-            return amber;
-    }
+        // NLA specific lookup table config
+        lookupsDbi = new DBI(dataSource);
+        LookupsSchema luSchema = lookupsDbi.onDemand(LookupsSchema.class);
+        if (!luSchema.schemaTablesExist()) {
+            // maybe log something
+            luSchema.createLookupsSchema();
+            List<ListLu> list = getLookups().findActiveLookups();
+            luSchema.setupToolsAssociations(list);
+        }
+
+        // Graph
+        AmberGraph amber = new AmberGraph(dataSource);
+        if (sessionId != null)
+            amber.resume(sessionId);
+
+        return amber;
+    }    
     
     
     public AmberGraph getAmberGraph() {
@@ -498,5 +501,36 @@ public class AmberSession implements AutoCloseable {
      */
     public void removeSession(Long sessId) {
         getAmberGraph().destroySession(sessId);
+    }
+    
+    
+    public Tag addTag() {
+        return graph.addVertex(null, Tag.class);
+    }
+    
+    public Tag addTag(String name) {
+        Tag t = addTag();
+        t.setName(name);
+        return t;
+    }
+    
+    
+    public Tag findTag(String name) {
+        for (Tag t : getAllTags()) {
+            if (t.getName().equals(name)) {
+                return t;
+            }
+        }
+        return null;
+    }
+
+    
+    public Tag getTag(Long id) {
+        return findModelObjectById(id, Tag.class);
+    }
+    
+    
+    public Iterable<Tag> getAllTags() {
+        return graph.getVertices("type", "Tag", Tag.class);
     }
 }

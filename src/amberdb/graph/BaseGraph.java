@@ -73,12 +73,23 @@ public class BaseGraph implements Graph, TransactionalGraph {
      *
      */
     
+    private Long deriveId(Object o) {
+        if (o == null) return idGen.newId();
+        if (o instanceof Long) return (Long) o;
+        if (o instanceof String) {
+            try {
+                return Long.parseLong((String) o);
+            } catch (NumberFormatException e) {
+            }
+        }
+        return idGen.newId();
+    }
+    
     @Override
     public Edge addEdge(Object id, Vertex out, Vertex in, String label) {
         // argument guard
         if (label == null) throw new IllegalArgumentException("edge label cannot be null");
-        Long newId = idGen.newId();
-        BaseEdge edge = (BaseEdge) edgeFactory.newEdge(newId, label, (BaseVertex) out, (BaseVertex) in, null, this);
+        BaseEdge edge = (BaseEdge) edgeFactory.newEdge(deriveId(id), label, (BaseVertex) out, (BaseVertex) in, null, this);
         addEdgeToGraph(edge);
         return edge;
     }
@@ -93,8 +104,7 @@ public class BaseGraph implements Graph, TransactionalGraph {
     
     @Override
     public Vertex addVertex(Object id) {
-        long newId = idGen.newId();
-        Vertex vertex = vertexFactory.newVertex(newId, null, this);
+        Vertex vertex = vertexFactory.newVertex(deriveId(id), null, this);
         addVertexToGraph(vertex);
         return vertex;
     }
@@ -277,7 +287,7 @@ public class BaseGraph implements Graph, TransactionalGraph {
         features.supportsMixedListProperty = true;
         features.supportsPrimitiveArrayProperty = true;
         features.supportsMapProperty = true;
-        features.ignoresSuppliedIds = true;
+        features.ignoresSuppliedIds = false;
         features.supportsVertexProperties = true;
         features.supportsVertexIteration = true;
         features.supportsEdgeProperties = true;

@@ -36,9 +36,14 @@ public class AmberVertexQuery extends AmberQueryBase {
         combineWithOr = false;
     }
 
-    
-    protected AmberVertexQuery(String name, Object value, AmberGraph graph) {
+
+    protected AmberVertexQuery(AmberGraph graph) {
         super(graph);
+        initQuerySchema();
+    }
+    
+    
+    public void addCriteria(String name, Object value) {
         
         // guards
         if (name == null || name.isEmpty()) throw new IllegalArgumentException("Property must have a name");
@@ -46,36 +51,30 @@ public class AmberVertexQuery extends AmberQueryBase {
         
         AmberProperty ap = new AmberProperty(0, name, value);
         this.properties.add(ap);
-        initQuerySchema();
     }
 
     
-    protected AmberVertexQuery(AmberProperty property, AmberGraph graph) {
-        super(graph);
+    public void addCriteria(AmberProperty property) {
 
         // guard
         if (property == null) throw new IllegalArgumentException("Property query must specify a property");
-        
+
         this.properties.add(property);
-        initQuerySchema();
     }
     
     
-    protected AmberVertexQuery(List<AmberProperty> properties, AmberGraph graph) {
-        super(graph);
+    public void addCriteria(List<AmberProperty> properties) {
         
         // guards
         if (properties == null) throw new IllegalArgumentException("Property query must specify properties");
         properties.removeAll(Collections.singleton(null));
         if (properties.size() == 0) throw new IllegalArgumentException("Property query must specify properties");            
         
-        this.properties = properties;
-        initQuerySchema();
+        this.properties.addAll(properties);
     }
 
     
-    protected AmberVertexQuery(AmberProperty[] properties, AmberGraph graph) {
-        super(graph);
+    public void addCriteria(AmberProperty[] properties) {
 
         // guards
         if (properties == null) throw new IllegalArgumentException("Property query must specify properties");
@@ -83,8 +82,7 @@ public class AmberVertexQuery extends AmberQueryBase {
         props.removeAll(Collections.singleton(null));
         if (props.size() == 0) throw new IllegalArgumentException("Property query must specify properties");            
         
-        this.properties = props;
-        initQuerySchema();
+        this.properties.addAll(props);
     }
     
     

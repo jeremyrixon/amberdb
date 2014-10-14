@@ -106,7 +106,7 @@ public class AmberQueryBase {
             }
             AmberEdge edge = wrapper.edge; 
             
-            if (graph.graphEdges.containsKey(edge.getId())) {
+            if (graph.graphEdges.containsKey(edge.getId()) || graph.removedEdges.contains(edge)) {
                 continue;
             } 
             //edge.replaceProperties(propMaps.get((Long) edge.getId()));
@@ -134,7 +134,7 @@ public class AmberQueryBase {
             }
             AmberEdge edge = wrapper.edge; 
             
-            if (graph.graphEdges.containsKey(edge.getId())) {
+            if (graph.graphEdges.containsKey(edge.getId()) || graph.removedEdges.contains(edge)) {
                 continue;
             } 
             //edge.replaceProperties(propMaps.get((Long) edge.getId()));
