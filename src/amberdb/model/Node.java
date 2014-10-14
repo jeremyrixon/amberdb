@@ -14,6 +14,7 @@ import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberTransaction;
 import amberdb.graph.AmberVertex;
 import amberdb.relation.DescriptionOf;
+import amberdb.relation.Tags;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
@@ -155,6 +156,15 @@ public interface Node extends VertexFrame {
     
     @Adjacency(label = DescriptionOf.label, direction= Direction.IN)
     public Iterable<Description> getDescriptions();
+    
+    @Adjacency(label = Tags.label, direction = Direction.IN)
+    public Iterable<Tag> getTags();
+    
+    @Adjacency(label = Tags.label, direction = Direction.IN)
+    public void addTag(final Tag tag);
+
+    @Adjacency(label = Tags.label, direction = Direction.IN)
+    public void removeTag(final Tag tag);
     
     @JavaHandler
     public Description getDescription(String fmt);

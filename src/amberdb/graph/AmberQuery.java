@@ -4,7 +4,6 @@ package amberdb.graph;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,7 +13,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 
 
-public class AmberQuery {
+public class AmberQuery extends AmberQueryBase {
 
     /** starting vertex ids */
     List<Long> head;
@@ -24,11 +23,6 @@ public class AmberQuery {
      * result sub-graph. The first clause follows edges from the head vertices
      */
     List<QueryClause> clauses = new ArrayList<QueryClause>();
-
-    /**
-     * The graph associated with this query
-     */
-    private AmberGraph graph;
 
 
     /**
@@ -41,12 +35,13 @@ public class AmberQuery {
      * @param graph
      */
     protected AmberQuery(Long head, AmberGraph graph) {
+        super(graph);
+        
         // guard
         if (head == null) throw new IllegalArgumentException("Query must have starting vertices");
         
         this.head = new ArrayList<Long>();
         this.head.add(head);
-        this.graph = graph;
     }
 
 
@@ -60,6 +55,8 @@ public class AmberQuery {
      * @param graph
      */
     protected AmberQuery(List<Long> head, AmberGraph graph) {
+        super(graph);
+        
         // guards
         if (head == null)
             throw new IllegalArgumentException("Query must have starting vertices");
@@ -68,7 +65,6 @@ public class AmberQuery {
             throw new IllegalArgumentException("Query must have starting vertices");
 
         this.head = head;
-        this.graph = graph;
     }
     
     
@@ -299,7 +295,7 @@ public class AmberQuery {
              * 
              * IMPORTANT NOTE: Currently only Vertex properties are retrieved -
              * not edges. This is ok at the moment because we don't currently
-             * populate edge properties.
+             * populate edge properties. I guess this could change.
              */
             Map<Long, Map<String, Object>> propMaps = getVertexPropertyMaps(h);
             vertices = getVertices(h, graph, propMaps);
@@ -311,113 +307,5 @@ public class AmberQuery {
             }
         }
         return vertices;
-    }
-    
-    
-    private Map<Long, Map<String, Object>> getVertexPropertyMaps(Handle h) {
-        
-        List<AmberProperty> propList = h.createQuery(
-                "SELECT p.id, p.name, p.type, p.value "
-                + "FROM property p, v0 " 
-                + "WHERE p.id = v0.vid "
-                + "AND p.txn_end = 0")
-                .map(new PropertyMapper()).list();
-
-        Map<Long, Map<String, Object>> propertyMaps = new HashMap<Long, Map<String, Object>>();
-        for (AmberProperty prop : propList) {
-            Long id = prop.getId();
-            if (propertyMaps.get(id) == null) {
-                propertyMaps.put(id, new HashMap<String, Object>());
-            }
-            propertyMaps.get(id).put(prop.getName(), prop.getValue());
-        }
-        return propertyMaps;
-    }
-    
-    
-    private List<Vertex> getVertices(Handle h , AmberGraph graph, Map<Long, Map<String, Object>> propMaps) {
-
-        List<Vertex> vertices = new ArrayList<Vertex>();
-        List<AmberVertexWithState> wrappedVertices = h.createQuery(
-                "SELECT v.id, v.txn_start, v.txn_end, 'AMB' state "
-                + "FROM vertex v, v0 "
-                + "WHERE v.id = v0.vid "
-                + "AND v.txn_end = 0 "
-                + "ORDER BY v0.edge_order")
-                .map(new VertexMapper(graph)).list();
-
-        // add them to the graph
-        for (AmberVertexWithState wrapper : wrappedVertices) {
-            AmberVertex vertex = wrapper.vertex; 
-
-            if (graph.removedVertices.contains(vertex)) {
-                continue;
-            }
-            if (graph.graphVertices.containsKey(vertex.getId())) {
-                vertices.add(graph.graphVertices.get(vertex.getId()));
-            } else {
-                vertex.replaceProperties(propMaps.get((Long) vertex.getId()));
-                graph.addVertexToGraph(vertex);
-                vertices.add(vertex);
-            }
-        } 
-        
-        return vertices;
-    }
-    
-    
-    private void getEdges(Handle h , AmberGraph graph, Map<Long, Map<String, Object>> propMaps) {
-
-        List<AmberEdgeWithState> wrappedEdges;
-        wrappedEdges = h.createQuery(
-                "SELECT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order, 'AMB' state "
-                + "FROM edge e, v0 "
-                + "WHERE e.id = v0.eid "
-                + "AND e.txn_end = 0")
-                .map(new EdgeMapper(graph, true)).list();
-        
-        // add them to the graph
-        for (AmberEdgeWithState wrapper : wrappedEdges) {
-
-            if (wrapper == null) { // if either vertex doesn't exist 
-                continue;
-            }
-            AmberEdge edge = wrapper.edge; 
-            
-            if (graph.graphEdges.containsKey(edge.getId()) || graph.removedEdges.contains(edge)) {
-                continue;
-            } 
-            edge.replaceProperties(propMaps.get((Long) edge.getId()));
-            graph.addEdgeToGraph(edge);
-        }        
-    }
-
-    
-    private void getFillEdges(Handle h , AmberGraph graph, Map<Long, Map<String, Object>> propMaps) {
-
-        List<AmberEdgeWithState> wrappedEdges;
-        wrappedEdges = h.createQuery(
-                "SELECT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order, 'AMB' state "
-                + "FROM edge e, v0 vin, v1 vout "
-                + "WHERE e.v_in = vin.vid "
-                + "AND e.v_out = vout.vid "
-                + "AND e.txn_end = 0")
-                .map(new EdgeMapper(graph, true)).list();
-        
-        
-        // add them to the graph
-        for (AmberEdgeWithState wrapper : wrappedEdges) {
-
-            if (wrapper == null) { // if either vertex doesn't exist 
-                continue;
-            }
-            AmberEdge edge = wrapper.edge; 
-            
-            if (graph.graphEdges.containsKey(edge.getId()) || graph.removedEdges.contains(edge)) {
-                continue;
-            } 
-            edge.replaceProperties(propMaps.get((Long) edge.getId()));
-            graph.addEdgeToGraph(edge);
-        }        
     }
 }

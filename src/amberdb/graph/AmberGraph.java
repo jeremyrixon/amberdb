@@ -45,6 +45,8 @@ public class AmberGraph extends BaseGraph
     protected DBI dbi;
     private AmberDao dao;
 
+    String dbProduct;
+    
     protected Set<Edge> removedEdges = new HashSet<Edge>();
     protected Set<Vertex> removedVertices = new HashSet<Vertex>();
 
@@ -106,7 +108,6 @@ public class AmberGraph extends BaseGraph
     
     
     private AmberDao selectDao(DataSource dataSource) {
-        String dbProduct = "";
         try (Connection conn = dataSource.getConnection()) {
             dbProduct = conn.getMetaData().getDatabaseProductName();
             log.debug("Amber database type is {}", dbProduct);
@@ -140,7 +141,9 @@ public class AmberGraph extends BaseGraph
         
         dao.createPropertyIndex();
         dao.createPropertyNameIndex();
-        
+        if (dbProduct.equals("MySQL")) {
+            dao.createPropertyValueIndex();
+        }
         dao.createVertexTxnEndIndex();
         dao.createEdgeTxnEndIndex();
         dao.createPropertyTxnEndIndex();
@@ -577,7 +580,7 @@ public class AmberGraph extends BaseGraph
     @Override
     public Iterable<Vertex> getVertices() {
         if (!localMode) {  
-            new AmberVertexPropertyQuery(this).execute();
+            new AmberQueryGetVertices(this).execute();
         }
         return super.getVertices();
     }
@@ -585,8 +588,10 @@ public class AmberGraph extends BaseGraph
     
     @Override
     public Iterable<Vertex> getVertices(String key, Object value) {
-        if (!localMode) { 
-            new AmberVertexPropertyQuery(key, value, this).execute(); 
+        if (!localMode) {
+            AmberVertexQuery avq = new AmberVertexQuery(this); 
+            avq.addCriteria(key, value);
+            avq.execute(); 
         }
         return super.getVertices(key, value); 
     }
@@ -609,6 +614,11 @@ public class AmberGraph extends BaseGraph
 
     public AmberQuery newQuery(List<Long> ids) {
         return new AmberQuery(ids, this);
+    }
+    
+
+    public AmberVertexQuery newVertexQuery() {
+        return new AmberVertexQuery(this);
     }
     
     
