@@ -151,6 +151,12 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "ON property(name)")
     void createPropertyNameIndex();
 
+
+    @SqlUpdate(
+            "CREATE INDEX property_value_idx "
+            + "ON property(value(512))")
+    void createPropertyValueIndex();
+
     
     @SqlUpdate(
             "CREATE INDEX prop_txn_end_idx "

@@ -3,10 +3,14 @@ package amberdb;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.nio.file.Paths;
 import java.nio.file.Path;
+import java.sql.Driver;
+import java.sql.DriverManager;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
@@ -39,7 +43,7 @@ public class ChangedWorksTest {
     DataSource src;
     
     @Before
-    public void setup() throws MalformedURLException, IOException {
+    public void setup() throws MalformedURLException, IOException, Exception {
         System.out.println("Setting up graph");
         tempPath = Paths.get(tempFolder.getRoot().getAbsolutePath());
         src = JdbcConnectionPool.create("jdbc:h2:"+tempPath.toString()+"amber;auto_server=true","sess","sess");
@@ -105,9 +109,8 @@ public class ChangedWorksTest {
         
         changed = sess.getModifiedWorkIds(time6);
         assertEquals(changed.size(), 21); // 3 deleted pages + 1 modified book
-    
     }        
-    
+
     
     public static void s(String s) {
         System.out.println(s);
