@@ -3,6 +3,7 @@ package amberdb.model;
 import java.io.IOException;
 import java.util.List;
 
+import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 
@@ -68,6 +69,9 @@ public interface EADWork extends Work {
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public EADWork addEADWork();
     
+    @JavaHandler
+    public boolean isNewComponent(JsonNode component);
+    
     abstract class Impl extends Work.Impl implements JavaHandlerContext<Vertex>, EADWork {
         @Override
         public List<String> getFolder() throws JsonParseException, JsonMappingException, IOException {
@@ -77,6 +81,12 @@ public interface EADWork extends Work {
         @Override
         public void setFolder(List<String> folder) throws JsonParseException, JsonMappingException, IOException {
             setJSONFolder(serialiseToJSON(folder));
+        }
+        
+        @Override
+        public boolean isNewComponent(JsonNode component) {
+            // TODO
+            return true;
         }
     }
 }
