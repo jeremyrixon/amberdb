@@ -209,7 +209,9 @@ public class CollectionBuilderTest {
             Work collectionWork = as.findWork(collectionWorkId);
             InputStream in = new FileInputStream(testEADPath.toFile());
             String collectionName = testEADPath.getFileName().toString();
-            CollectionBuilder.createCollection(collectionWork, collectionName, in, collectCfg, new EADParser());
+            EADParser parser = new EADParser();
+            parser.init(in, collectCfg);
+            CollectionBuilder.processCollection(collectionWork, collectionName, in, collectCfg, parser);
             as.commit();
         }
     }
