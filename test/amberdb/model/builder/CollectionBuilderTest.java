@@ -1,6 +1,7 @@
 package amberdb.model.builder;
 
 import static org.junit.Assert.*;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -12,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+
 import javax.sql.DataSource;
 import nu.xom.Element;
 import nu.xom.Elements;
@@ -124,7 +127,7 @@ public class CollectionBuilderTest {
            JsonNode parserCfg = CollectionBuilder.getDefaultCollectionCfg();
            ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
            ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "no");
-           parser.init(eadIn, parserCfg);
+           parser.init(collectionWorkId, eadIn, parserCfg);
            List<String> filteredElementCfg = parser.parseFiltersCfg();
            assertFalse(hasFilteredEADElement(parser.doc.getRootElement(), filteredElementCfg));
         }
@@ -152,7 +155,7 @@ public class CollectionBuilderTest {
         JsonNode parserCfg = CollectionBuilder.getDefaultCollectionCfg();
         ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
         ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "no");
-        parser.init(eadData, parserCfg);
+        parser.init(collectionWorkId, eadData, parserCfg);
         String filteredEAD = CollectionBuilder.filterEAD(collectionWork, parser);
         return filteredEAD;
     }
@@ -203,6 +206,45 @@ public class CollectionBuilderTest {
         assertFalse(parser.validateXML());
         assertFalse(parser.storeCopy());
     }
+    
+    @Test
+    public void testComponentWorksMap() throws ValidityException, IOException, ParsingException {
+        createCollection();
+        try (AmberSession as = db.begin()) {
+            Work collectionWork = as.findWork(collectionWorkId);
+            boolean storeCopy = true;
+            Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
+            Map<String, String> componentWorksMap = CollectionBuilder.componentWorksMap(collectionWork);
+            assertTrue(!componentWorksMap.isEmpty());
+            assertEquals(componentWorksMap.size(), 9);
+        }
+    }
+    
+    @Test
+    public void testDigitalObjectsMap() throws ValidityException, IOException, ParsingException {
+        createCollection();
+        try (AmberSession as = db.begin()) {
+            Work collectionWork = as.findWork(collectionWorkId);
+            boolean storeCopy = true;
+            Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
+            List<String> currentDOs = CollectionBuilder.digitisedItemList(collectionWork);
+            assertTrue(!currentDOs.isEmpty());
+            assertEquals(currentDOs.size(), 1);
+            assertEquals(currentDOs.get(0), "");
+        }
+    }
+    
+    @Test
+    public void testParsingArchiveSpaceIDs() throws IOException, ValidityException, ParsingException {
+        try (AmberSession as = db.begin()) {
+            InputStream in = new FileInputStream(testEADPath.toFile());
+            EADParser parser = new EADParser();
+            parser.init(collectionWorkId, in, collectCfg);
+            List<String> uuids = parser.listUUIDs();
+            assertTrue(!uuids.isEmpty());
+            assertEquals(uuids.size(), 8);
+        }
+    }
         
     private void createCollection() throws IOException, ValidityException, ParsingException {
         try (AmberSession as = db.begin()) {
@@ -210,7 +252,7 @@ public class CollectionBuilderTest {
             InputStream in = new FileInputStream(testEADPath.toFile());
             String collectionName = testEADPath.getFileName().toString();
             EADParser parser = new EADParser();
-            parser.init(in, collectCfg);
+            parser.init(collectionWorkId, in, collectCfg);
             CollectionBuilder.processCollection(collectionWork, collectionName, in, collectCfg, parser);
             as.commit();
         }

@@ -3,7 +3,6 @@ package amberdb.model;
 import java.io.IOException;
 import java.util.List;
 
-import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 
@@ -15,6 +14,7 @@ import com.tinkerpop.frames.modules.javahandler.JavaHandler;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
+import amberdb.NoSuchObjectException;
 import amberdb.model.Work;
 import amberdb.relation.IsPartOf;
 
@@ -70,7 +70,10 @@ public interface EADWork extends Work {
     public EADWork addEADWork();
     
     @JavaHandler
-    public boolean isNewComponent(JsonNode component);
+    public boolean isNewComponent(String uuid);
+    
+    @JavaHandler
+    public EADWork getComponentWork(long objectId);
     
     abstract class Impl extends Work.Impl implements JavaHandlerContext<Vertex>, EADWork {
         @Override
@@ -84,9 +87,18 @@ public interface EADWork extends Work {
         }
         
         @Override
-        public boolean isNewComponent(JsonNode component) {
+        public boolean isNewComponent(String uuid) {
             // TODO
             return true;
+        }
+        
+        @Override
+        public EADWork getComponentWork(long objectId) {
+            EADWork component = this.g().getVertex(objectId, EADWork.class);
+            if (component == null) {
+                throw new NoSuchObjectException(objectId);
+            }
+            return component;
         }
     }
 }
