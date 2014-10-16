@@ -208,6 +208,21 @@ public class CollectionBuilderTest {
     }
     
     @Test
+    public void testReloadEADPreChecks() throws ValidityException, IOException, ParsingException {
+        createCollection();
+        try (AmberSession as = db.begin()) {
+            Work collectionWork = as.findWork(collectionWorkId);
+            boolean storeCopy = true;
+            Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
+            InputStream in = new FileInputStream(testEADPath.toFile());
+            EADParser parser = new EADParser();
+            parser.init(collectionWorkId, in, collectCfg);
+            List<String> componentsNotInEAD = CollectionBuilder.reloadEADPreChecks(collectionWork.asEADWork(), parser);
+            assertTrue(componentsNotInEAD.isEmpty());
+        }
+    }
+    
+    @Test
     public void testComponentWorksMap() throws ValidityException, IOException, ParsingException {
         createCollection();
         try (AmberSession as = db.begin()) {

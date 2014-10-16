@@ -141,7 +141,7 @@ public class CollectionBuilder {
         List<String> componentsNotInEAD = new ArrayList<String>();
         
         for (String asId : currentComponents.keySet()) {
-            if (!eadUUIDList.contains(asId)) {
+            if (asId != null && !asId.isEmpty() && !eadUUIDList.contains(asId)) {
                 if (currentDOs.contains(asId)) {
                     throw new EADValidationException("Cannot update collection " + parser.collectionObjId + " from EAD as component of Archive Space id " + asId + " contains digitised copies, but is not found in the EAD.");
                 } else {
