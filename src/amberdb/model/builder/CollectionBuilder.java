@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import nu.xom.Node;
 import nu.xom.Nodes;
@@ -530,6 +531,16 @@ public class CollectionBuilder {
     }
     
     protected static void processCollection(Work collectionWork, String collectionName, InputStream in, JsonNode collectionCfg, XmlDocumentParser parser) throws EADValidationException, ValidityException, ParsingException, IOException {
+        boolean newCollection = true;
+        Map<String, String> componentWorks;
+        
+        if (collectionWork.getChildren() != null && collectionWork.getChildren().iterator().hasNext()) {
+            newCollection = false;
+            componentWorks = componentWorksMap(collectionWork);
+        } else {
+            componentWorks = new ConcurrentHashMap<>();
+        }
+        
         // update metadata in the collection work.
         collectionWork.setCollection(collectionName);
         mapCollectionMD(collectionWork, collectionCfg.get(CFG_COLLECTION_ELEMENT), parser);
@@ -552,24 +563,35 @@ public class CollectionBuilder {
                 for (int i = 0; i < eadElements.size(); i++) {
                     Nodes eadSubElements = parser.traverse(eadElements.get(i), repeatablePath);
                     log.debug("sub elements found: " +  eadSubElements.size() + " for query repeatable path " + repeatablePath);
-                    traverseEAD(collectionWork.asEADWork(), eadSubElements, subElementsCfg, parser);
+                    traverseEAD(collectionWork.asEADWork(), collectionWork.asEADWork(), eadSubElements, subElementsCfg, parser, newCollection, componentWorks);
                 }
             }
         }
     }
     
-    protected static void traverseEAD(EADWork parentWork, Nodes eadElements, JsonNode elementCfg, XmlDocumentParser parser) {
+    protected static void traverseEAD(EADWork collectionWork, EADWork parentWork, Nodes eadElements, JsonNode elementCfg, XmlDocumentParser parser, 
+            boolean newCollection, Map<String, String> componentWorks) {
         for (int i = 0 ; i < eadElements.size(); i++) {
             Node eadElement = eadElements.get(i);
-            EADWork workInCollection = parentWork.addEADWork();
+            EADWork workInCollection;
+            if (newCollection) {
+               workInCollection = parentWork.addEADWork();
+            } else {
+               JsonNode component = ComponentBuilder.makeComponent(eadElement, elementCfg, parser);
+               String uuid = component.get("uuid").getTextValue();
+               if (componentWorks.get(uuid) != null) {
+                   ((ObjectNode) component).put("nlaObjId", componentWorks.get("uuid"));
+               }
+               workInCollection = ComponentBuilder.mergeComponent(collectionWork, parentWork, component);
+            }
             
             // TODO: replace the following with ComponentBuilder.mergeComponent(collection, component);
-            mapWorkMD(workInCollection, eadElement, elementCfg, parser);
+            mapWorkMD(workInCollection, eadElement, elementCfg, parser);                                 
             
             String repeatablePath = elementCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
             Nodes nextLevel = parser.traverse(eadElement, repeatablePath);
             if (nextLevel != null)
-                traverseEAD(workInCollection, nextLevel, elementCfg, parser);
+                traverseEAD(collectionWork, workInCollection, nextLevel, elementCfg, parser, newCollection, componentWorks);
         }
     }
     

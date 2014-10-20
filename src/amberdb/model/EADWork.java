@@ -70,9 +70,6 @@ public interface EADWork extends Work {
     public EADWork addEADWork();
     
     @JavaHandler
-    public boolean isNewComponent(String uuid);
-    
-    @JavaHandler
     public EADWork getComponentWork(long objectId);
     
     abstract class Impl extends Work.Impl implements JavaHandlerContext<Vertex>, EADWork {
@@ -84,12 +81,6 @@ public interface EADWork extends Work {
         @Override
         public void setFolder(List<String> folder) throws JsonParseException, JsonMappingException, IOException {
             setJSONFolder(serialiseToJSON(folder));
-        }
-        
-        @Override
-        public boolean isNewComponent(String uuid) {
-            // TODO
-            return true;
         }
         
         @Override
