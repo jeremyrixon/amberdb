@@ -127,14 +127,48 @@ public class CollectionBuilder {
      * @param collection - the top level work of a collection with the new updated EAD finding aid attached as
      *                     the FINDING_AID_COPY, and the FINDING_AID_VIEW_COPY containing json not yet containing 
      *                     updates from the new updated FINDING_AID_COPY.
-     * @param parser     - the XML document parser configured to parse the updated EAD.
-     * @return the json array containing details of the EADworks to be deleted.
+     * @return list of nla object ids for the EADworks to be deleted.
      * @throws EADValidationException when a component EADwork (in collection) to be purged has digital objects attach to it.
      * @throws IOException 
      * @throws JsonMappingException 
      * @throws JsonParseException 
+     * @throws ParsingException 
+     * @throws ValidityException 
      */
-    public static List<String> reloadEADPreChecks(EADWork collection, XmlDocumentParser parser) throws EADValidationException, JsonParseException, JsonMappingException, IOException {
+    public static List<String> reloadEADPreChecks(Work collectionWork) throws EADValidationException, JsonParseException, JsonMappingException, IOException, ValidityException, ParsingException {
+        return reloadEADPreChecks(collectionWork);
+    }
+    
+    /**
+     * reloadEADPreChecks checks each EADwork to be purged as whether there're any digitial objects attached to it, if so, EADValidationException is thrown.
+     * If no digital object is attached to any EADwork to be purged, a list of nla object ids for the EADworks to be purged is returned.
+     *   
+     * @param collection - the top level work of a collection with the new updated EAD finding aid attached as
+     *                     the FINDING_AID_COPY, and the FINDING_AID_VIEW_COPY containing json not yet containing 
+     *                     updates from the new updated FINDING_AID_COPY.
+     * @param parser     - the XML document parser configured to parse the updated EAD.
+     * @return list of nla object ids for the EADworks to be deleted.
+     * @throws EADValidationException when a component EADwork (in collection) to be purged has digital objects attach to it.
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
+     * @throws ParsingException 
+     * @throws ValidityException 
+     */
+    public static List<String> reloadEADPreChecks(EADWork collection, XmlDocumentParser parser) throws EADValidationException, JsonParseException, JsonMappingException, IOException, ValidityException, ParsingException {
+        if (collection == null) {
+            String errMsg = "Failed to perform EAD reload prechecks as the input collection work is null.";
+            log.error(errMsg);
+            throw new IllegalArgumentException(errMsg);
+        }
+        
+        if (parser == null) {
+            String warnMsg = "No parser found for parsing the collection data, switch to use the default parser";
+            log.info(warnMsg);
+            parser = getDefaultXmlDocumentParser();
+        }
+        
+        parser.init(collection.getObjId(), getFindingAIDFile(collection).openStream(), getDefaultCollectionCfg());
         Map<String, String> currentComponents = componentWorksMap(collection); 
         List<String> currentDOs = digitisedItemList(collection);
         List<String> eadUUIDList = parser.listUUIDs();
@@ -254,8 +288,36 @@ public class CollectionBuilder {
      * pre-requisite: reloadEADPreChecks() has been called, and all components intended for purging
      *                has been purged.
      *                
-     * TODO: to confirm whether the merge operation should fail and throw an exception if an EAD work with copies
-     *       and files attached is required to be deleted??
+     * reloadCollection also call generateJson(...) to regenerate the derivative Json to reflect the updated
+     * the mapping of the structure and the content for top level collection metadata and its components and 
+     * sub-components.
+     * 
+     * if any of the EAD work in the current collection work structure has copies and files
+     * attached to it, the copies and files will be re-attached to the corresponding
+     * node in the recreated collection work structure.
+     * 
+     * @param collectionWork - the top level work of a collection with the new updated EAD attached as the FINDING_AID_COPY, 
+     *                         and the FINDING_AID_VIEW_COPY containing json not yet containing updates from the new updated
+     *                         FINDING_AID_COPY.
+     * @throws EADValidationException
+     * @throws IOException
+     * @throws ParsingException 
+     * @throws ValidityException 
+     */
+    public static void reloadCollection(Work collectionWork) throws EADValidationException, IOException, ValidityException, ParsingException {
+        reloadCollection(collectionWork, null, null);
+    }
+    
+    /**
+     * reloadCollection parses the updated EAD file attached to the top-level
+     * collection work with the input field mapping from collectionCfg, and
+     * update the collection work structure under the top level collection by
+     * adding EAD work for each new EAD component; delete EAD work for an EAD
+     * component that was previously there but not included in the updated EAD
+     * file; update EAD work for an EAD component with modified metadata.
+     * 
+     * pre-requisite: reloadEADPreChecks() has been called, and all components intended for purging
+     *                has been purged.
      * 
      * reloadCollection also call generateJson(...) to regenerate the derivative Json to reflect the updated
      * the mapping of the structure and the content for top level collection metadata and its components and 
@@ -531,22 +593,14 @@ public class CollectionBuilder {
     }
     
     protected static void mapWorkMD(EADWork workInCollection, Node eadElement, JsonNode elementCfg, XmlDocumentParser parser) throws EADValidationException {
-        Map<String, Object> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));
-        workInCollection.setSubType("Work");      
-        workInCollection.setSubUnitType("Series");
-        workInCollection.setForm("Manuscript");
-        workInCollection.setBibLevel("Item");
-        workInCollection.setCollection("nla.ms");
-        workInCollection.setRecordSource("FA");
-        
+        Map<String, Object> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));        
         if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").toString().isEmpty())
             throw new EADValidationException("Failed to process collection " + parser.collectionObjId + " as no Archive Space id found for component work " + workInCollection.getObjId());
         
-        workInCollection.setLocalSystemNumber(fieldsMap.get("uuid").toString());
-        workInCollection.setRdsAcknowledgementType("Sponsor");
-        workInCollection.setRdsAcknowledgementReceiver("NLA");
-        workInCollection.setEADUpdateReviewRequired("Y"); 
-        workInCollection.setAccessConditions("Unrestricted");
+        // TODO: map subUnitType later on.
+        String subUnitType = "Series";
+        String uuid = fieldsMap.get("uuid").toString();
+        ComponentBuilder.mapWorkMD(workInCollection, uuid, subUnitType);
     }
     
     protected static void traverseCollection (Work work, JsonNode structure, JsonNode content) {

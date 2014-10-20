@@ -223,6 +223,11 @@ public class CollectionBuilderTest {
     }
     
     @Test
+    public void testReloadCollection() {
+        
+    }
+    
+    @Test
     public void testComponentWorksMap() throws ValidityException, IOException, ParsingException {
         createCollection();
         try (AmberSession as = db.begin()) {

@@ -66,16 +66,6 @@ public class ComponentBuilderTest {
     }
     
     @Test
-    public void testPurgePreChecks() {
-        
-    }
-    
-    @Test
-    public void testPurgeComponents() {
-        
-    }
-    
-    @Test
     public void testUpdateComponentData() {
         
     }
@@ -87,6 +77,11 @@ public class ComponentBuilderTest {
     
     @Test
     public void testMergeComponent() {
+        
+    }
+    
+    @Test
+    public void testMergeComponents() {
         
     }
     

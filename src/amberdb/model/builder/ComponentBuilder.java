@@ -90,13 +90,33 @@ public class ComponentBuilder {
     
     protected static EADWork updateComponentPath(EADWork collection, JsonNode component) {
         // TODO: check and update path to the component within the collection graph if changed.
+        String parentUUID = component.get("parentUUID").getTextValue();
+        if (collection.getLocalSystemNumber() != null && parentUUID != null 
+                && !collection.getLocalSystemNumber().equals(parentUUID)) {
+            
+        }
+        
         return null;
     }
     
     protected static EADWork updateComponentData(EADWork componentWork, JsonNode component) {
-        // TODO: Step 1: clearing any work properties populated from the EAD fields in the component json node.
-        
-        // TODO: Step 2: set corresp. work properties from the EAD fields in the component json node.
+        // TODO: map subUnitType later on.
+        String subUnitType = "Series";
+        mapWorkMD(componentWork, component.get("uuid").getTextValue(), subUnitType);
         return componentWork;
+    }
+    
+    protected static void mapWorkMD(EADWork componentWork, String uuid, String subUnitType) {
+        componentWork.setSubType("Work");      
+        componentWork.setSubUnitType(subUnitType);
+        componentWork.setForm("Manuscript");
+        componentWork.setBibLevel("Item");
+        componentWork.setCollection("nla.ms");
+        componentWork.setRecordSource("FA");        
+        componentWork.setLocalSystemNumber(uuid);
+        componentWork.setRdsAcknowledgementType("Sponsor");
+        componentWork.setRdsAcknowledgementReceiver("NLA");
+        componentWork.setEADUpdateReviewRequired("Y"); 
+        componentWork.setAccessConditions("Unrestricted");
     }
 }
