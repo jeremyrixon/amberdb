@@ -318,6 +318,36 @@ public class AmberSession implements AutoCloseable {
 
 
     /**
+     * Recursively delete a Work and all its children (including Copies, Files
+     * and Descriptions). Exception: recursive delete will not remove 'Set'
+     * bibLevel works encountered, nor their children.
+     * 
+     * @param work
+     */
+    public void deleteWorkRecursive(final Work topWork) {
+        
+        // guard
+        String bibLevel = topWork.getBibLevel();
+        if ("Set".equals(bibLevel)) {
+            return;
+        }
+        
+        // recurse through child works
+        for (Work work : topWork.getChildren()) {
+            deleteWorkRecursive(work);
+        }
+        
+        // delete copies
+        for (Copy copy : topWork.getCopies()) {
+            deleteCopy(copy);
+        }
+        
+        // finally, remove this work 
+        graph.removeVertex(topWork.asVertex());
+    }
+    
+    
+    /**
      * Delete all the vertices representing the copy, all its files and their descriptions.
      * @param copy
      */

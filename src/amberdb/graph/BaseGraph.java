@@ -140,10 +140,18 @@ public class BaseGraph implements Graph, TransactionalGraph {
     @Override
     public Iterable<Edge> getEdges(String key, Object value) {
         List<Edge> edges = new ArrayList<Edge>();
-        for (Edge edge : graphEdges.values()) {
-            Object o = edge.getProperty(key); 
-            if (o != null && o.equals(value)) {
-                edges.add(edge);
+        if (key.equals("label")) {
+            for (Edge edge : graphEdges.values()) {
+                if (edge.getLabel().equals(value)) {
+                    edges.add(edge);
+                }
+            }
+        } else {
+            for (Edge edge : graphEdges.values()) {
+                Object o = edge.getProperty(key);
+                if (o != null && o.equals(value)) {
+                    edges.add(edge);
+                }
             }
         }
         return edges;        
@@ -227,6 +235,12 @@ public class BaseGraph implements Graph, TransactionalGraph {
     
     @Override
     public void removeVertex(Vertex v) {
+
+        // guard
+        if (!graphVertices.containsKey(v.getId())) {
+            throw new IllegalStateException("Cannot remove non-existent vertex : " + v.getId());
+        }
+        
         BaseVertex bv = (BaseVertex) v;
         
         Set<Edge> inEdges = inEdgeSets.remove(bv.getId());
@@ -287,7 +301,7 @@ public class BaseGraph implements Graph, TransactionalGraph {
         features.supportsMixedListProperty = true;
         features.supportsPrimitiveArrayProperty = true;
         features.supportsMapProperty = true;
-        features.ignoresSuppliedIds = false;
+        features.ignoresSuppliedIds = true;
         features.supportsVertexProperties = true;
         features.supportsVertexIteration = true;
         features.supportsEdgeProperties = true;

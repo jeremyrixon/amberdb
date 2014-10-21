@@ -18,8 +18,6 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.tinkerpop.frames.Property;
-
 import amberdb.AmberSession;
 import amberdb.TestUtils;
 import amberdb.enums.CopyRole;

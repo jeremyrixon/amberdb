@@ -432,7 +432,7 @@ public class AmberGraph extends BaseGraph
             edges = h.createQuery(
                 "SELECT id, txn_start, txn_end, v_out, v_in, label, edge_order, state " + 
                 "FROM sess_edge " +
-                   "WHERE s_id = :sessId")
+                "WHERE s_id = :sessId")
                 .bind("sessId", sessId)
                 .map(new EdgeMapper(this, false)).list();
         }
@@ -471,6 +471,21 @@ public class AmberGraph extends BaseGraph
     public Vertex getVertex(Object id) {
         return getVertex(id, localMode);
     } 
+    
+
+    /**
+     * Currently, 'label' cannot be used as the key to return matching labeled
+     * edges.
+     */
+    @Override
+    public Iterable<Edge> getEdges(String key, Object value) {
+        if (!localMode) {
+            AmberEdgeQuery avq = new AmberEdgeQuery(this); 
+            avq.addCriteria(key, value);
+            avq.execute(); 
+        }
+        return super.getEdges(key, value); 
+    }
     
     
     protected Vertex getVertex(Object id, boolean localOnly) {

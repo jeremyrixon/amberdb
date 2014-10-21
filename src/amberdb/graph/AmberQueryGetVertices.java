@@ -23,16 +23,8 @@ public class AmberQueryGetVertices extends AmberQueryBase {
     List<AmberProperty> properties = new ArrayList<AmberProperty>();
 
 
-    private void initQuerySchema() {
-        this.VERTEX_ID_TABLE = "vp";
-        this.VERTEX_ID_COLUMN = "id";
-        this.VERTEX_ORDER_COLUMN = "id";
-    }
-    
-    
     protected AmberQueryGetVertices(AmberGraph graph) {
         super(graph);
-        initQuerySchema();
     }
     
 
@@ -67,8 +59,8 @@ public class AmberQueryGetVertices extends AmberQueryBase {
             h.commit();
 
             // and reap the rewards
-            Map<Long, Map<String, Object>> propMaps = getVertexPropertyMaps(h);
-            vertices = getVertices(h, graph, propMaps);
+            Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h, "vp", "id");
+            vertices = getVertices(h, graph, propMaps, "vp", "id", "id");
         }
         
         return vertices;

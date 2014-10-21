@@ -297,13 +297,13 @@ public class AmberQuery extends AmberQueryBase {
              * not edges. This is ok at the moment because we don't currently
              * populate edge properties. I guess this could change.
              */
-            Map<Long, Map<String, Object>> propMaps = getVertexPropertyMaps(h);
-            vertices = getVertices(h, graph, propMaps);
+            Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h, "v0", "vid");
+            vertices = getVertices(h, graph, propMaps, "v0", "vid", "edge_order");
             
             if (fillEdges) {
-                getFillEdges(h, graph, propMaps);
+                getFillEdges(h, graph, propMaps, "v0", "vid", "v1", "vid");
             } else {
-                getEdges(h, graph, propMaps);
+                getEdges(h, graph, propMaps, "v0", "eid");
             }
         }
         return vertices;

@@ -8,25 +8,12 @@ import java.util.Map;
 
 import org.skife.jdbi.v2.Handle;
 
+import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 
 
 public class AmberQueryBase {
 
-    /* Used for getVertices and getVertexPropertyMaps */ 
-    protected String VERTEX_ID_TABLE = "v0";
-    protected String VERTEX_ID_COLUMN = "vid";
-    protected String VERTEX_ORDER_COLUMN = "edge_order";
-    
-    /* Used for getEdges */
-    protected String EDGE_ID_TABLE = "v0";
-    protected String EDGE_ID_COLUMN = "eid";
-
-    /* Used for getFillEdges */
-    protected String FILL_IN_VERTEX_TABLE = "v0";
-    protected String FILL_IN_VERTEX_COLUMN = "vid";
-    protected String FILL_OUT_VERTEX_TABLE = "v1";
-    protected String FILL_OUT_VERTEX_COLUMN = "vid";
     
     /** The graph associated with this query */
     protected AmberGraph graph;
@@ -37,13 +24,14 @@ public class AmberQueryBase {
     }
     
     
-    protected Map<Long, Map<String, Object>> getVertexPropertyMaps(Handle h) {
+    protected Map<Long, Map<String, Object>> getElementPropertyMaps(Handle h, String elementIdTable, String elementIdColumn) {
         
-        List<AmberProperty> propList = h.createQuery(
+        List<AmberProperty> propList = h.createQuery(String.format(
                 "SELECT p.id, p.name, p.type, p.value "
-                + "FROM property p, " + VERTEX_ID_TABLE + " " 
-                + "WHERE p.id = " + VERTEX_ID_TABLE + "." + VERTEX_ID_COLUMN + " "
-                + "AND p.txn_end = 0")
+                + "FROM property p, %1$s " 
+                + "WHERE p.id = %1$s.%2$s "
+                + "AND p.txn_end = 0", 
+                elementIdTable, elementIdColumn))
                 .map(new PropertyMapper()).list();
 
         Map<Long, Map<String, Object>> propertyMaps = new HashMap<Long, Map<String, Object>>();
@@ -57,16 +45,18 @@ public class AmberQueryBase {
         return propertyMaps;
     }
     
-    
-    protected List<Vertex> getVertices(Handle h , AmberGraph graph, Map<Long, Map<String, Object>> propMaps) {
+        
+    protected List<Vertex> getVertices(Handle h , AmberGraph graph, Map<Long, Map<String, Object>> propMaps,
+            String vertexIdTable, String vertexIdColumn, String vertexOrderColumn) {
 
-        List<Vertex> vertices = new ArrayList<Vertex>();
-        List<AmberVertexWithState> wrappedVertices = h.createQuery(
+        List<Vertex> vertices = new ArrayList<>();
+        List<AmberVertexWithState> wrappedVertices = h.createQuery(String.format(
                 "SELECT v.id, v.txn_start, v.txn_end, 'AMB' state "
-                + "FROM vertex v, " + VERTEX_ID_TABLE + " "
-                + "WHERE v.id = " + VERTEX_ID_TABLE + "." + VERTEX_ID_COLUMN + " "
+                + "FROM vertex v, %1$s "
+                + "WHERE v.id = %1$s.%2$s "
                 + "AND v.txn_end = 0 "
-                + "ORDER BY " + VERTEX_ID_TABLE + "." + VERTEX_ORDER_COLUMN)
+                + "ORDER BY %1$s.%3$s", 
+                vertexIdTable, vertexIdColumn, vertexOrderColumn))
                 .map(new VertexMapper(graph)).list();
 
         // add them to the graph
@@ -88,17 +78,19 @@ public class AmberQueryBase {
     }
     
 
-    protected void getEdges(Handle h , AmberGraph graph, Map<Long, Map<String, Object>> propMaps) {
+    protected List<Edge> getEdges(Handle h , AmberGraph graph, Map<Long, Map<String, Object>> propMaps, 
+            String edgeIdTable, String edgeIdColumn) {
 
-        List<AmberEdgeWithState> wrappedEdges;
-        wrappedEdges = h.createQuery(
+        List<Edge> edges = new ArrayList<>();
+        List<AmberEdgeWithState> wrappedEdges = h.createQuery(String.format(
                 "SELECT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order, 'AMB' state "
-                + "FROM edge e, " + EDGE_ID_TABLE + " "
-                + "WHERE e.id = " + EDGE_ID_TABLE + "." + EDGE_ID_COLUMN + " "
-                + "AND e.txn_end = 0")
+                + "FROM edge e, %1$s "
+                + "WHERE e.id = %1$s.%2$s "
+                + "AND e.txn_end = 0",
+                edgeIdTable, edgeIdColumn))
                 .map(new EdgeMapper(graph, true)).list();
         
-        // add them to the graph
+        // don't add them to the graph
         for (AmberEdgeWithState wrapper : wrappedEdges) {
 
             if (wrapper == null) { // if either vertex doesn't exist 
@@ -109,21 +101,24 @@ public class AmberQueryBase {
             if (graph.graphEdges.containsKey(edge.getId()) || graph.removedEdges.contains(edge)) {
                 continue;
             } 
-            //edge.replaceProperties(propMaps.get((Long) edge.getId()));
+            edge.replaceProperties(propMaps.get((Long) edge.getId()));
             graph.addEdgeToGraph(edge);
+            edges.add(edge);
         }        
+        return edges;
     }
 
     
-    protected void getFillEdges(Handle h , AmberGraph graph, Map<Long, Map<String, Object>> propMaps) {
+    protected void getFillEdges(Handle h , AmberGraph graph, Map<Long, Map<String, Object>> propMaps,
+            String inVertexIdTable, String inVertexIdColumn, String outVertexIdTable, String outVertexIdColumn) {
 
-        List<AmberEdgeWithState> wrappedEdges;
-        wrappedEdges = h.createQuery(
+        List<AmberEdgeWithState> wrappedEdges = h.createQuery(String.format(
                 "SELECT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order, 'AMB' state "
-                + "FROM edge e, " + FILL_IN_VERTEX_TABLE + ", " + FILL_OUT_VERTEX_TABLE + " "
-                + "WHERE e.v_in = " + FILL_IN_VERTEX_TABLE + "." + FILL_IN_VERTEX_COLUMN + " "
-                + "AND e.v_out = " + FILL_OUT_VERTEX_TABLE + "." + FILL_OUT_VERTEX_COLUMN + " "
-                + "AND e.txn_end = 0")
+                + "FROM edge e, %1$s, %3$s "
+                + "WHERE e.v_in = %1$s.%2$s "
+                + "AND e.v_out = %3$s.%4$s "
+                + "AND e.txn_end = 0",
+                inVertexIdTable, inVertexIdColumn, outVertexIdTable, outVertexIdColumn))
                 .map(new EdgeMapper(graph, true)).list();
         
         // add them to the graph
