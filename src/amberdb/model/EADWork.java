@@ -14,6 +14,7 @@ import com.tinkerpop.frames.modules.javahandler.JavaHandler;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
+import amberdb.NoSuchObjectException;
 import amberdb.model.Work;
 import amberdb.relation.IsPartOf;
 
@@ -68,6 +69,9 @@ public interface EADWork extends Work {
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public EADWork addEADWork();
     
+    @JavaHandler
+    public EADWork getEADWork(long objectId);
+    
     abstract class Impl extends Work.Impl implements JavaHandlerContext<Vertex>, EADWork {
         @Override
         public List<String> getFolder() throws JsonParseException, JsonMappingException, IOException {
@@ -77,6 +81,15 @@ public interface EADWork extends Work {
         @Override
         public void setFolder(List<String> folder) throws JsonParseException, JsonMappingException, IOException {
             setJSONFolder(serialiseToJSON(folder));
+        }
+        
+        @Override
+        public EADWork getEADWork(long objectId) {
+            EADWork component = this.g().getVertex(objectId, EADWork.class);
+            if (component == null) {
+                throw new NoSuchObjectException(objectId);
+            }
+            return component;
         }
     }
 }
