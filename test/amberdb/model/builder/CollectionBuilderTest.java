@@ -227,19 +227,35 @@ public class CollectionBuilderTest {
     
     @Test
     public void testReloadCollection() throws ValidityException, IOException, ParsingException {
+        String updedCompASId = "aspace_7275d12ba178fcbb7cf926d0b7bf68cc";
+        
+        // create collection from EAD
         createCollection();
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
             boolean storeCopy = true;
             Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
+            
+            // verify the component of AS id (i.e updedCompASId) has collection work as its parent
+            Map<String, String> uuidToPIMap = CollectionBuilder.componentWorksMap(collectionWork);
+            Work componentToUpdate = as.findWork(uuidToPIMap.get(updedCompASId));
+            assertEquals(collectionWork, componentToUpdate.getParent());
+            
+            // attach the updated EAD copy to the collection work.
             Copy ead = collectionWork.getCopy(CopyRole.FINDING_AID_COPY);
             collectionWork.removeCopy(ead);
-            collectionWork.addCopy(testUpdedEADPath, CopyRole.FINDING_AID_COPY, "application/xml");
-        // TODO: to test    
-        //    CollectionBuilder.reloadCollection(collectionWork);
+            collectionWork.addCopy(testUpdedEADPath, CopyRole.FINDING_AID_COPY, "application/xml");  
+            
+            // reload collection from updated EAD
+            CollectionBuilder.reloadCollection(collectionWork);
             as.commit();
             
-            // TODO: assert
+            // verify the component of AS id (i.e. updatedCompAsId) is under the first component work 
+            // within the collection as per specified by the EAD
+            String fistCompASId = "aspace_d1ac0117fdba1b9dc09b68e8bb125948";
+            Work updatedComponent = as.findWork(uuidToPIMap.get(updedCompASId));
+            assertNotEquals(collectionWork, updatedComponent.getParent());
+            assertEquals(fistCompASId, updatedComponent.getParent().getLocalSystemNumber());
         }
     }
     

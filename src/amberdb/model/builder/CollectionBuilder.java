@@ -580,7 +580,7 @@ public class CollectionBuilder {
                JsonNode component = ComponentBuilder.makeComponent(eadElement, elementCfg, parser);
                String uuid = component.get("uuid").getTextValue();
                if (componentWorks.get(uuid) != null) {
-                   ((ObjectNode) component).put("nlaObjId", componentWorks.get("uuid"));
+                   ((ObjectNode) component).put("nlaObjId", componentWorks.get(uuid));
                }
                workInCollection = ComponentBuilder.mergeComponent(collectionWork, parentWork, component);
             }

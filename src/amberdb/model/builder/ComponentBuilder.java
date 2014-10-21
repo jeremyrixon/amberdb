@@ -60,6 +60,7 @@ public class ComponentBuilder {
             // new component
             componentWork = parentWork.addEADWork();
         } else {
+            System.out.println("The component nla object id is " + component.get("nlaObjId").getTextValue());
             componentWork = collectionWork.getComponentWork(PIUtil.parse(component.get("nlaObjId").getTextValue()));
             if (!parentWork.getObjId().equals(componentWork.getParent().getObjId())) {
                 // Update component path
