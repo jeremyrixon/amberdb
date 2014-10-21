@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import amberdb.AmberDb;
 import amberdb.AmberSession;
 import amberdb.enums.CopyRole;
+import amberdb.model.Copy;
 import amberdb.model.Work;
 
 public class CollectionBuilderTest {
@@ -45,12 +46,14 @@ public class CollectionBuilderTest {
     ObjectMapper objectMapper;
     JsonNode collectCfg;
     Path testEADPath;
+    Path testUpdedEADPath;
     String[] testEADFiles = { "test/resources/6442.xml" };
 
     @Before
     public void setUp() throws JsonProcessingException, IOException {
         testEADPath = Paths.get("test/resources/6442.xml");
-      
+        testUpdedEADPath = Paths.get("test/resources/6442_updated.xml");
+        
         objectMapper = new ObjectMapper();
         // collectCfg = objectMapper.readTree(new File("test/resources/ead.json"));
         collectCfg = CollectionBuilder.getDefaultCollectionCfg();
@@ -223,8 +226,21 @@ public class CollectionBuilderTest {
     }
     
     @Test
-    public void testReloadCollection() {
-        
+    public void testReloadCollection() throws ValidityException, IOException, ParsingException {
+        createCollection();
+        try (AmberSession as = db.begin()) {
+            Work collectionWork = as.findWork(collectionWorkId);
+            boolean storeCopy = true;
+            Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
+            Copy ead = collectionWork.getCopy(CopyRole.FINDING_AID_COPY);
+            collectionWork.removeCopy(ead);
+            collectionWork.addCopy(testUpdedEADPath, CopyRole.FINDING_AID_COPY, "application/xml");
+        // TODO: to test    
+        //    CollectionBuilder.reloadCollection(collectionWork);
+            as.commit();
+            
+            // TODO: assert
+        }
     }
     
     @Test
