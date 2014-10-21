@@ -576,6 +576,7 @@ public class CollectionBuilder {
             EADWork workInCollection;
             if (newCollection) {
                workInCollection = parentWork.addEADWork();
+               mapWorkMD(workInCollection, eadElement, elementCfg, parser); 
             } else {
                JsonNode component = ComponentBuilder.makeComponent(eadElement, elementCfg, parser);
                String uuid = component.get("uuid").getTextValue();
@@ -583,10 +584,7 @@ public class CollectionBuilder {
                    ((ObjectNode) component).put("nlaObjId", componentWorks.get(uuid));
                }
                workInCollection = ComponentBuilder.mergeComponent(collectionWork, parentWork, component);
-            }
-            
-            // TODO: replace the following with ComponentBuilder.mergeComponent(collection, component);
-            mapWorkMD(workInCollection, eadElement, elementCfg, parser);                                 
+            }                              
             
             String repeatablePath = elementCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
             Nodes nextLevel = parser.traverse(eadElement, repeatablePath);
