@@ -29,12 +29,14 @@ public abstract class XmlDocumentParser {
     public static final String CFG_BASE = "base";                      // base cfg tag, use for base path of an repeatable element type
     public static final String CFG_REPEATABLE_ELEMENTS = "repeatable-element"; // cfg tag to specify how to identify repeatable elements.
     public static final String CFG_ATTRIBUTE_PREFIX = "@";
+    public static final String CFG_ATTRIBUTE_UUID = "uuid";
     public static final String CFG_EXCLUDE_ELEMENTS = "excludes";
     public static final String CFG_VALIDATE_XML = "validateXML";
     public static final String CFG_STORE_COPY = "storeCopy";
     
     static final Logger log = LoggerFactory.getLogger(XmlDocumentParser.class);
     protected static ObjectMapper mapper = new ObjectMapper();
+    protected String collectionObjId;
     protected JsonNode parsingCfg;
     protected List<String> filters;
     protected boolean validateXML;
@@ -45,7 +47,8 @@ public abstract class XmlDocumentParser {
     protected String qualifiedName;
     protected String namespaceURI;
     
-    public void init(InputStream in, JsonNode parsingCfg) throws ValidityException, ParsingException, IOException {
+    public void init(String collectionObjId, InputStream in, JsonNode parsingCfg) throws ValidityException, ParsingException, IOException {
+        this.collectionObjId = collectionObjId;
         this.parsingCfg = parsingCfg;
         this.validateXML = validateXML();
         this.storeCopy = storeCopy();
@@ -146,6 +149,28 @@ public abstract class XmlDocumentParser {
             nodes = doc.query(localXPath, xc);
         }
         return nodes;
+    }
+    
+    public List<String> listUUIDs() {
+        List<String> eadUUIDList = new ArrayList<String>();
+        JsonNode collectionCfg = parsingCfg;
+        JsonNode subElementsCfg = collectionCfg.get(CFG_COLLECTION_ELEMENT).get(CFG_SUB_ELEMENTS);
+        String repeatablePath = subElementsCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
+        String componentBasePath = subElementsCfg.get(CFG_BASE).getTextValue();
+        Nodes baseComponents = getElementsByXPath(doc, componentBasePath);
+        if (baseComponents != null) {
+            for (int i = 0; i < baseComponents.size(); i++) {
+                Node baseComponent = baseComponents.get(i);
+                Nodes components = traverse(baseComponent, repeatablePath);
+                for (int j = 0; j < components.size(); j++) {
+                    Map<String, Object> fldsMap = getFieldsMap(components.get(j), subElementsCfg, componentBasePath);
+                    String uuid = fldsMap.get("uuid").toString();
+                    eadUUIDList.add(uuid);
+                }
+            }
+        }
+
+        return eadUUIDList;
     }
     
     public Document getDocument() {

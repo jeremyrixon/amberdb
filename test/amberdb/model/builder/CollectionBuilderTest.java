@@ -1,6 +1,7 @@
 package amberdb.model.builder;
 
 import static org.junit.Assert.*;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -12,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+
 import javax.sql.DataSource;
 import nu.xom.Element;
 import nu.xom.Elements;
@@ -33,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import amberdb.AmberDb;
 import amberdb.AmberSession;
 import amberdb.enums.CopyRole;
+import amberdb.model.Copy;
 import amberdb.model.Work;
 
 public class CollectionBuilderTest {
@@ -42,12 +46,14 @@ public class CollectionBuilderTest {
     ObjectMapper objectMapper;
     JsonNode collectCfg;
     Path testEADPath;
+    Path testUpdedEADPath;
     String[] testEADFiles = { "test/resources/6442.xml" };
 
     @Before
     public void setUp() throws JsonProcessingException, IOException {
         testEADPath = Paths.get("test/resources/6442.xml");
-      
+        testUpdedEADPath = Paths.get("test/resources/6442_updated.xml");
+        
         objectMapper = new ObjectMapper();
         // collectCfg = objectMapper.readTree(new File("test/resources/ead.json"));
         collectCfg = CollectionBuilder.getDefaultCollectionCfg();
@@ -124,7 +130,7 @@ public class CollectionBuilderTest {
            JsonNode parserCfg = CollectionBuilder.getDefaultCollectionCfg();
            ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
            ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "no");
-           parser.init(eadIn, parserCfg);
+           parser.init(collectionWorkId, eadIn, parserCfg);
            List<String> filteredElementCfg = parser.parseFiltersCfg();
            assertFalse(hasFilteredEADElement(parser.doc.getRootElement(), filteredElementCfg));
         }
@@ -152,7 +158,7 @@ public class CollectionBuilderTest {
         JsonNode parserCfg = CollectionBuilder.getDefaultCollectionCfg();
         ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
         ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "no");
-        parser.init(eadData, parserCfg);
+        parser.init(collectionWorkId, eadData, parserCfg);
         String filteredEAD = CollectionBuilder.filterEAD(collectionWork, parser);
         return filteredEAD;
     }
@@ -203,13 +209,122 @@ public class CollectionBuilderTest {
         assertFalse(parser.validateXML());
         assertFalse(parser.storeCopy());
     }
+    
+    @Test
+    public void testReloadEADPreChecks() throws ValidityException, IOException, ParsingException {
+        createCollection();
+        try (AmberSession as = db.begin()) {
+            Work collectionWork = as.findWork(collectionWorkId);
+            boolean storeCopy = true;
+            Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
+            InputStream in = new FileInputStream(testEADPath.toFile());
+            EADParser parser = new EADParser();
+            parser.init(collectionWorkId, in, collectCfg);
+            List<String> componentsNotInEAD = CollectionBuilder.reloadEADPreChecks(collectionWork.asEADWork(), parser);
+            assertTrue(componentsNotInEAD.isEmpty());
+        }
+    }
+    
+    @Test
+    public void testReloadCollection() throws ValidityException, IOException, ParsingException {
+        String updedCompASId = "aspace_7275d12ba178fcbb7cf926d0b7bf68cc";
+        
+        // create collection from EAD
+        createCollection();
+        try (AmberSession as = db.begin()) {
+            Work collectionWork = as.findWork(collectionWorkId);
+            boolean storeCopy = true;
+            Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
+            
+            // verify the component of AS id (i.e updedCompASId) has collection work as its parent
+            Map<String, String> uuidToPIMap = CollectionBuilder.componentWorksMap(collectionWork);
+            Work componentToUpdate = as.findWork(uuidToPIMap.get(updedCompASId));
+            assertEquals(collectionWork, componentToUpdate.getParent());
+            
+            //------------------------------------------------------------------------------------
+            // The reload collection from updated EAD process
+            //------------------------------------------------------------------------------------
+            // step 1: delete existing finding aid copy, and attach new finding aid copy to collection work.
+            Copy ead = collectionWork.getCopy(CopyRole.FINDING_AID_COPY);
+            collectionWork.removeCopy(ead);
+            collectionWork.addCopy(testUpdedEADPath, CopyRole.FINDING_AID_COPY, "application/xml");  
+            
+            // step 2: locate existing component works within the collection that are not in the updated EAD.
+            //         If any existing component work in the collection have any digital object attached,
+            //         an exception is then thrown, the reload process will be aborted.
+            //         Otherwise, a list of such component works will be returned, and the list of these works
+            //         will be deleted before proceed to adding new component works and update existing component
+            //         works from the updated EAD.
+            List<String> list = CollectionBuilder.reloadEADPreChecks(collectionWork);
+            System.out.println("collection work object id: " + collectionWork.getObjId());
+            for (String objId : list) {
+                System.out.println("Object id : " + objId);
+                Work work = as.findWork(objId);
+                System.out.println("Archive space id : " + work.getLocalSystemNumber());
+                as.deleteWork(work);
+            }
+            
+            // step 3: reload collection from updated EAD: 
+            //         - add new component works from the updated EAD.
+            //         - update existing component works from the updated EAD.
+            CollectionBuilder.reloadCollection(collectionWork);
+            as.commit();
+            
+            // verify the component of AS id (i.e. updatedCompAsId) is under the first component work 
+            // within the collection as per specified by the EAD
+            Map<String, String> newUUIDToPIMap = CollectionBuilder.componentWorksMap(collectionWork);
+            String fistCompASId = "aspace_d1ac0117fdba1b9dc09b68e8bb125948";
+            Work updatedComponent = as.findWork(newUUIDToPIMap.get(updedCompASId));
+            assertNotEquals(collectionWork, updatedComponent.getParent());
+            assertEquals(fistCompASId, updatedComponent.getParent().getLocalSystemNumber());
+        }
+    }
+    
+    @Test
+    public void testComponentWorksMap() throws ValidityException, IOException, ParsingException {
+        createCollection();
+        try (AmberSession as = db.begin()) {
+            Work collectionWork = as.findWork(collectionWorkId);
+            boolean storeCopy = true;
+            Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
+            Map<String, String> componentWorksMap = CollectionBuilder.componentWorksMap(collectionWork);
+            assertTrue(!componentWorksMap.isEmpty());
+            assertEquals(componentWorksMap.size(), 8);
+        }
+    }
+    
+    @Test
+    public void testDigitalObjectsMap() throws ValidityException, IOException, ParsingException {
+        createCollection();
+        try (AmberSession as = db.begin()) {
+            Work collectionWork = as.findWork(collectionWorkId);
+            boolean storeCopy = true;
+            Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
+            List<String> currentDOs = CollectionBuilder.digitisedItemList(collectionWork);
+            assertTrue(currentDOs.isEmpty());
+        }
+    }
+    
+    @Test
+    public void testParsingArchiveSpaceIDs() throws IOException, ValidityException, ParsingException {
+        try (AmberSession as = db.begin()) {
+            InputStream in = new FileInputStream(testEADPath.toFile());
+            EADParser parser = new EADParser();
+            parser.init(collectionWorkId, in, collectCfg);
+            List<String> uuids = parser.listUUIDs();
+            assertTrue(!uuids.isEmpty());
+            assertEquals(uuids.size(), 8);
+        }
+    }
         
     private void createCollection() throws IOException, ValidityException, ParsingException {
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
             InputStream in = new FileInputStream(testEADPath.toFile());
             String collectionName = testEADPath.getFileName().toString();
-            CollectionBuilder.createCollection(collectionWork, collectionName, in, collectCfg, new EADParser());
+            EADParser parser = new EADParser();
+            parser.init(collectionWorkId, in, collectCfg);
+            CollectionBuilder.processCollection(collectionWork, collectionName, in, collectCfg, parser);
             as.commit();
         }
     }
