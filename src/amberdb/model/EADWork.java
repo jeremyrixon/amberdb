@@ -70,7 +70,7 @@ public interface EADWork extends Work {
     public EADWork addEADWork();
     
     @JavaHandler
-    public EADWork getComponentWork(long objectId);
+    public EADWork getEADWork(long objectId);
     
     abstract class Impl extends Work.Impl implements JavaHandlerContext<Vertex>, EADWork {
         @Override
@@ -84,7 +84,7 @@ public interface EADWork extends Work {
         }
         
         @Override
-        public EADWork getComponentWork(long objectId) {
+        public EADWork getEADWork(long objectId) {
             EADWork component = this.g().getVertex(objectId, EADWork.class);
             if (component == null) {
                 throw new NoSuchObjectException(objectId);

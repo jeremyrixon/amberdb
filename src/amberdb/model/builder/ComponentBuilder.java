@@ -61,12 +61,16 @@ public class ComponentBuilder {
             componentWork = parentWork.addEADWork();
         } else {
             log.debug("The component nla object id is " + component.get("nlaObjId").getTextValue());
-            componentWork = collectionWork.getComponentWork(PIUtil.parse(component.get("nlaObjId").getTextValue()));
-            if (!parentWork.getObjId().equals(componentWork.getParent().getObjId())) {
-                // Update component path
-                Work fromParent = componentWork.getParent();
-                fromParent.removePart(componentWork);
-                componentWork.setParent(parentWork);
+            try {
+                componentWork = collectionWork.getEADWork(PIUtil.parse(component.get("nlaObjId").getTextValue()));
+                if (!parentWork.getObjId().equals(componentWork.getParent().getObjId())) {
+                    // Update component path
+                    Work fromParent = componentWork.getParent();
+                    fromParent.removePart(componentWork);
+                    componentWork.setParent(parentWork);
+                }
+            } catch (Exception e) {
+                componentWork = parentWork.addEADWork();
             }
         }
         // Update component data

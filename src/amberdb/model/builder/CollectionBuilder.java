@@ -137,7 +137,7 @@ public class CollectionBuilder {
      * @throws ValidityException 
      */
     public static List<String> reloadEADPreChecks(Work collectionWork) throws EADValidationException, JsonParseException, JsonMappingException, IOException, ValidityException, ParsingException {
-        return reloadEADPreChecks(collectionWork);
+        return reloadEADPreChecks(collectionWork.asEADWork(), null);
     }
     
     /**
@@ -211,9 +211,7 @@ public class CollectionBuilder {
                 if (content.get(objId).get("localSystemNumber") != null) {
                     String uuid = content.get(objId).get("localSystemNumber").getTextValue();
                     uuidToPIMap.put(uuid, objId);
-                } else {
-                    uuidToPIMap.put("", objId);
-                }
+                } 
             }
         }
         return uuidToPIMap;
@@ -245,19 +243,17 @@ public class CollectionBuilder {
             while (fieldNames.hasNext()) {
                 String objId = fieldNames.next();
                 // find the component work
-                EADWork component;
-                if (objId.equals(collectionWork.getObjId())) 
-                    component = collectionWork.asEADWork();
-                else
-                    component = collectionWork.asEADWork().getComponentWork(PIUtil.parse(objId));
-                
-                // add entry to digitalObjectsMap if the component has any copies attached
-                if (component != null && (component.getCopies() != null && component.getCopies().iterator().hasNext())) {
-                    if (content.get(objId).get("localSystemNumber") != null) {
-                        String uuid = content.get(objId).get("localSystemNumber").getTextValue();
-                        uuidList.add(uuid);
-                    } else {
-                        uuidList.add("");
+                if (!objId.equals(collectionWork.getObjId())) {
+                    EADWork component = collectionWork.asEADWork().getEADWork(PIUtil.parse(objId));
+
+                    // add entry to digitalObjectsMap if the component has any
+                    // copies attached
+                    if (component != null
+                            && (component.getCopies() != null && component.getCopies().iterator().hasNext())) {
+                        if (content.get(objId).get("localSystemNumber") != null) {
+                            String uuid = content.get(objId).get("localSystemNumber").getTextValue();
+                            uuidList.add(uuid);
+                        } 
                     }
                 }
             }

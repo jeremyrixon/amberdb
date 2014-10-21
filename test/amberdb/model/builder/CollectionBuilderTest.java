@@ -241,19 +241,40 @@ public class CollectionBuilderTest {
             Work componentToUpdate = as.findWork(uuidToPIMap.get(updedCompASId));
             assertEquals(collectionWork, componentToUpdate.getParent());
             
-            // attach the updated EAD copy to the collection work.
+            //------------------------------------------------------------------------------------
+            // The reload collection from updated EAD process
+            //------------------------------------------------------------------------------------
+            // step 1: delete existing finding aid copy, and attach new finding aid copy to collection work.
             Copy ead = collectionWork.getCopy(CopyRole.FINDING_AID_COPY);
             collectionWork.removeCopy(ead);
             collectionWork.addCopy(testUpdedEADPath, CopyRole.FINDING_AID_COPY, "application/xml");  
             
-            // reload collection from updated EAD
+            // step 2: locate existing component works within the collection that are not in the updated EAD.
+            //         If any existing component work in the collection have any digital object attached,
+            //         an exception is then thrown, the reload process will be aborted.
+            //         Otherwise, a list of such component works will be returned, and the list of these works
+            //         will be deleted before proceed to adding new component works and update existing component
+            //         works from the updated EAD.
+            List<String> list = CollectionBuilder.reloadEADPreChecks(collectionWork);
+            System.out.println("collection work object id: " + collectionWork.getObjId());
+            for (String objId : list) {
+                System.out.println("Object id : " + objId);
+                Work work = as.findWork(objId);
+                System.out.println("Archive space id : " + work.getLocalSystemNumber());
+                as.deleteWork(work);
+            }
+            
+            // step 3: reload collection from updated EAD: 
+            //         - add new component works from the updated EAD.
+            //         - update existing component works from the updated EAD.
             CollectionBuilder.reloadCollection(collectionWork);
             as.commit();
             
             // verify the component of AS id (i.e. updatedCompAsId) is under the first component work 
             // within the collection as per specified by the EAD
+            Map<String, String> newUUIDToPIMap = CollectionBuilder.componentWorksMap(collectionWork);
             String fistCompASId = "aspace_d1ac0117fdba1b9dc09b68e8bb125948";
-            Work updatedComponent = as.findWork(uuidToPIMap.get(updedCompASId));
+            Work updatedComponent = as.findWork(newUUIDToPIMap.get(updedCompASId));
             assertNotEquals(collectionWork, updatedComponent.getParent());
             assertEquals(fistCompASId, updatedComponent.getParent().getLocalSystemNumber());
         }
@@ -268,7 +289,7 @@ public class CollectionBuilderTest {
             Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
             Map<String, String> componentWorksMap = CollectionBuilder.componentWorksMap(collectionWork);
             assertTrue(!componentWorksMap.isEmpty());
-            assertEquals(componentWorksMap.size(), 9);
+            assertEquals(componentWorksMap.size(), 8);
         }
     }
     
@@ -280,9 +301,7 @@ public class CollectionBuilderTest {
             boolean storeCopy = true;
             Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
             List<String> currentDOs = CollectionBuilder.digitisedItemList(collectionWork);
-            assertTrue(!currentDOs.isEmpty());
-            assertEquals(currentDOs.size(), 1);
-            assertEquals(currentDOs.get(0), "");
+            assertTrue(currentDOs.isEmpty());
         }
     }
     
