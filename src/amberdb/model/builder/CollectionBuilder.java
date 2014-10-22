@@ -124,6 +124,7 @@ public class CollectionBuilder {
         // initializing the parser
         parser.init(collectionWork.getObjId(), eadFile.openStream(), collectionCfg);
         processCollection(collectionWork, collectionName, eadFile.openStream(), collectionCfg, parser);
+        generateJson(collectionWork, parser.storeCopy());
     }
     
     /**
