@@ -47,13 +47,18 @@ public class CollectionBuilder {
      * create the collection work structure under the top level collection work.
      * 
      * @param collectionWork: the top-level work of a collection with a FINDING_AID_COPY attached.
+     * @param validateEADXML: a flag to indicate whether to validate EAD in XML format to ensure 
+     *                        it's well formed. 
      * @throws EADValidationException
      * @throws IOException 
      * @throws ParsingException 
      * @throws ValidityException 
      */
-    public static void createCollection(Work collectionWork) throws EADValidationException, ValidityException, ParsingException, IOException {
-        createCollection(collectionWork, getDefaultCollectionCfg(), getDefaultXmlDocumentParser());
+    public static void createCollection(Work collectionWork, boolean validateEADXML) throws EADValidationException, ValidityException, ParsingException, IOException {
+        JsonNode collectCfg = getDefaultCollectionCfg();
+        String validateFlag = (validateEADXML)?"yes":"no";
+        ((ObjectNode) collectCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", validateFlag);
+        createCollection(collectionWork, collectCfg, getDefaultXmlDocumentParser());
     }
     
     /**
