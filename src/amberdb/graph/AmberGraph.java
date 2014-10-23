@@ -390,21 +390,26 @@ public class AmberGraph extends BaseGraph
         
         List<AmberEdgeWithState> edgeStateWrappers = resumeEdges(sessId);
         for (AmberEdgeWithState wrapper : edgeStateWrappers) {
-            AmberEdge edge = wrapper.edge; 
-            
-            String state = wrapper.state;
-            if (state.equals("DEL")) {
-                removedEdges.add(edge);
-                continue;
-            } 
-            
-            addEdgeToGraph(edge);
-            edge.replaceProperties(propertyMaps.get((Long) edge.getId()));
-            
-            if (state.equals("NEW")) {
-                newEdges.add(edge);
-            } else if (state.equals("MOD")) {
-                modifiedEdges.add(edge);
+            // only resume edges that are not deleted
+            // if wrapper is null, then it means the edge attempted to
+            // be wrapped is deleted and cannot be wrapped.
+            if (wrapper != null) {
+                AmberEdge edge = wrapper.edge;
+
+                String state = wrapper.state;
+                if (state.equals("DEL")) {
+                    removedEdges.add(edge);
+                    continue;
+                }
+
+                addEdgeToGraph(edge);
+                edge.replaceProperties(propertyMaps.get((Long) edge.getId()));
+
+                if (state.equals("NEW")) {
+                    newEdges.add(edge);
+                } else if (state.equals("MOD")) {
+                    modifiedEdges.add(edge);
+                }
             }
         }
         
