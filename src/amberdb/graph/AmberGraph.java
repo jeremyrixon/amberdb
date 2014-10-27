@@ -25,6 +25,7 @@ import amberdb.graph.dao.AmberDaoH2;
 import amberdb.graph.dao.AmberDaoMySql;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Graph;
@@ -472,17 +473,19 @@ public class AmberGraph extends BaseGraph
     } 
     
 
-    /**
-     * Currently, 'label' cannot be used as the key to return matching labeled
-     * edges.
-     */
     @Override
     public Iterable<Edge> getEdges() {
         if (!localMode) {
             AmberEdgeQuery avq = new AmberEdgeQuery(this); 
-            avq.execute(); 
+            List<Edge> amberEdges = avq.execute();
+            Set<Edge> edges = Sets.newHashSet(super.getEdges());
+            for (Edge e : amberEdges) {
+                edges.add(e);
+            }
+            return edges;
+        } else {
+            return super.getEdges();
         }
-        return super.getEdges(); 
     }
     
 
@@ -495,9 +498,15 @@ public class AmberGraph extends BaseGraph
         if (!localMode) {
             AmberEdgeQuery avq = new AmberEdgeQuery(this); 
             avq.addCriteria(key, value);
-            avq.execute(); 
-        }
-        return super.getEdges(key, value); 
+            List<Edge> amberEdges = avq.execute();
+            Set<Edge> edges = Sets.newHashSet(super.getEdges(key, value));
+            for (Edge e : amberEdges) {
+                edges.add(e);
+            }
+            return edges;
+        } else {
+            return super.getEdges(key, value);
+        }    
     }
 
     
