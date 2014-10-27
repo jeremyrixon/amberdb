@@ -168,6 +168,9 @@ public interface Node extends VertexFrame {
     
     @JavaHandler
     public Description getDescription(String fmt);
+    
+    @JavaHandler
+    public <T extends Description> List<T> getDescriptions(Class<T> returnClass);
         
     @JavaHandler
     public AmberGraph getAmberGraph();
@@ -279,6 +282,22 @@ public interface Node extends VertexFrame {
                 }
             }
             return null;
+        }
+        
+        @Override
+        public <T extends Description> List<T> getDescriptions(Class<T> returnClass) {
+            Iterable<Description> descriptions = this.getDescriptions();
+            if (descriptions == null)
+                return null;
+            List<T> entries = new ArrayList<>();
+            Iterator<Description> it = descriptions.iterator();
+            while (it.hasNext()) {
+                Description next = it.next();
+                if (next.getType() != null && next.getType().equals(returnClass.getName())) {
+                    entries.add(this.g().getVertex(next.asVertex().getId(), returnClass));
+                }
+            }
+            return entries;
         }
 
         @Override
