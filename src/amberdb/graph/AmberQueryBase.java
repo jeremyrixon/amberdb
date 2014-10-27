@@ -63,7 +63,7 @@ public class AmberQueryBase {
         for (AmberVertexWithState wrapper : wrappedVertices) {
             AmberVertex vertex = wrapper.vertex; 
 
-            if (graph.removedVertices.contains(vertex)) {
+            if (graph.removedVertices.containsKey(vertex.getId())) {
                 continue;
             }
             if (graph.graphVertices.containsKey(vertex.getId())) {
@@ -97,11 +97,12 @@ public class AmberQueryBase {
                 continue;
             }
             AmberEdge edge = wrapper.edge; 
+            Long edgeId = (Long) edge.getId();
             
-            if (graph.graphEdges.containsKey(edge.getId()) || graph.removedEdges.contains(edge)) {
+            if (graph.graphEdges.containsKey(edgeId) || graph.removedEdges.containsKey(edgeId)) {
                 continue;
             } 
-            edge.replaceProperties(propMaps.get((Long) edge.getId()));
+            edge.replaceProperties(propMaps.get(edgeId));
             graph.addEdgeToGraph(edge);
             edges.add(edge);
         }        
@@ -128,11 +129,12 @@ public class AmberQueryBase {
                 continue;
             }
             AmberEdge edge = wrapper.edge; 
+            Long edgeId = (Long) edge.getId();
             
-            if (graph.graphEdges.containsKey(edge.getId()) || graph.removedEdges.contains(edge)) {
+            if (graph.graphEdges.containsKey(edgeId) || graph.removedEdges.containsKey(edgeId)) {
                 continue;
             } 
-            //edge.replaceProperties(propMaps.get((Long) edge.getId()));
+            //edge.replaceProperties(propMaps.get(edgeId));
             graph.addEdgeToGraph(edge);
         }        
     }

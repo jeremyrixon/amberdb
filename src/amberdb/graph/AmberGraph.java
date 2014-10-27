@@ -47,9 +47,9 @@ public class AmberGraph extends BaseGraph
 
     String dbProduct;
     
-    protected Set<Edge> removedEdges = new HashSet<Edge>();
-    protected Set<Vertex> removedVertices = new HashSet<Vertex>();
-
+    protected Map<Object, Edge> removedEdges = new HashMap<>();
+    protected Map<Object, Vertex> removedVertices = new HashMap<>();
+    
     private Set<Edge> newEdges = new HashSet<Edge>();
     private Set<Vertex> newVertices = new HashSet<Vertex>();
 
@@ -206,14 +206,14 @@ public class AmberGraph extends BaseGraph
     
     @Override
     public void removeEdge(Edge e) {
-        removedEdges.add(e);
+        removedEdges.put(e.getId(), e);
         super.removeEdge(e);
     }
 
     
     @Override
     public void removeVertex(Vertex v) {
-        removedVertices.add(v);
+        removedVertices.put(v.getId(), v);
         super.removeVertex(v);
     }
     
@@ -265,7 +265,7 @@ public class AmberGraph extends BaseGraph
         log.debug("suspending edges -- deleted:{} new:{} modified:{}", 
                 removedEdges.size(), newEdges.size(), modifiedEdges.size());
         
-        for (Edge e : removedEdges) {
+        for (Edge e : removedEdges.values()) {
             modifiedEdges.remove(e);
             if (newEdges.remove(e)) continue;
             edges.add(new AmberEdgeWithState((AmberEdge) e, "DEL"));
@@ -291,7 +291,7 @@ public class AmberGraph extends BaseGraph
         log.debug("suspending verts -- deleted:{} new:{} modified:{} ", 
                 removedVertices.size(), newVertices.size(), modifiedVertices.size());
         
-        for (Vertex v : removedVertices) {
+        for (Vertex v : removedVertices.values()) {
             modifiedVertices.remove(v);
             if (newVertices.remove(v)) continue;
             vertices.add(new AmberVertexWithState((AmberVertex) v, "DEL"));
@@ -374,7 +374,7 @@ public class AmberGraph extends BaseGraph
             
             String state = wrapper.state;
             if (state.equals("DEL")) {
-                removedVertices.add(vertex);
+                removedVertices.put(vertex.getId(), vertex);
                 continue;
             } 
             
@@ -394,7 +394,7 @@ public class AmberGraph extends BaseGraph
             
             String state = wrapper.state;
             if (state.equals("DEL")) {
-                removedEdges.add(edge);
+                removedEdges.put(edge.getId(), edge);
                 continue;
             } 
             
@@ -456,7 +456,6 @@ public class AmberGraph extends BaseGraph
         dao.insertTransaction(txnId, new Date().getTime(), user, operation);
         dao.commit();
         clearChangeSets();
-
         return txnId;
     }
 
@@ -478,6 +477,20 @@ public class AmberGraph extends BaseGraph
      * edges.
      */
     @Override
+    public Iterable<Edge> getEdges() {
+        if (!localMode) {
+            AmberEdgeQuery avq = new AmberEdgeQuery(this); 
+            avq.execute(); 
+        }
+        return super.getEdges(); 
+    }
+    
+
+    /**
+     * Currently, 'label' cannot be used as the key to return matching labeled
+     * edges.
+     */
+    @Override
     public Iterable<Edge> getEdges(String key, Object value) {
         if (!localMode) {
             AmberEdgeQuery avq = new AmberEdgeQuery(this); 
@@ -486,7 +499,7 @@ public class AmberGraph extends BaseGraph
         }
         return super.getEdges(key, value); 
     }
-    
+
     
     protected Vertex getVertex(Object id, boolean localOnly) {
         
@@ -509,7 +522,7 @@ public class AmberGraph extends BaseGraph
 
             if (vs == null) return null;
             vertex = vs.vertex;
-            if (removedVertices.contains(vertex)) return null;
+            if (removedVertices.containsKey(vertex.getId())) return null;
 
             AmberVertex v = (AmberVertex) vertex;
             v.replaceProperties(getElementPropertyMap((Long) v.getId(), v.txnStart, h));
@@ -547,7 +560,7 @@ public class AmberGraph extends BaseGraph
 
             if (es == null) return null;
             edge = es.edge;
-            if (removedEdges.contains(edge)) return null;
+            if (removedEdges.containsKey(edge.getId())) return null;
         
             e = (AmberEdge) edge;
             e.replaceProperties(getElementPropertyMap((Long) e.getId(), e.txnStart, h));
@@ -595,7 +608,7 @@ public class AmberGraph extends BaseGraph
     @Override
     public Iterable<Vertex> getVertices() {
         if (!localMode) {  
-            new AmberQueryGetVertices(this).execute();
+            new AmberVertexQuery(this).execute();
         }
         return super.getVertices();
     }

@@ -130,6 +130,30 @@ public class AmberEdgeQuery extends AmberQueryBase {
         return s.toString();
     }
     
+
+    protected String generateAllQuery() {
+        StringBuilder s = new StringBuilder();
+        s.append("INSERT INTO ep (id) \n"
+                 + "SELECT e.id \n"
+                 + "FROM edge e \n"
+                 + "WHERE e.txn_end = 0 \n;");
+        return s.toString();
+    }
+
+    
+    protected String generateQuery() {
+        
+        if (properties.size() == 0) {
+            return generateAllQuery();
+        }
+        
+        if (combineWithOr) {
+            return generateOrQuery();
+        } else {
+            return generateAndQuery();        
+        }
+    }
+    
     
     public List<Edge> execute() {
 
@@ -139,7 +163,7 @@ public class AmberEdgeQuery extends AmberQueryBase {
             // run the generated query
             h.begin();
             h.execute("DROP TABLE IF EXISTS ep; CREATE TEMPORARY TABLE ep (id BIGINT);");
-            Update q = h.createStatement(combineWithOr ? generateOrQuery() : generateAndQuery());
+            Update q = h.createStatement(generateQuery());
             
             for (int i = 0; i < properties.size(); i++) {
                 q.bind("name"+i, properties.get(i).getName());

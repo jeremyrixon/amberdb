@@ -15,6 +15,9 @@ import com.tinkerpop.blueprints.Vertex;
 
 public class AmberVertexQuery extends AmberQueryBase {
 
+    // limit the number of vertices returned by a query without criteria
+    static final int MAX_VERTICES = 10000; 
+    
     List<AmberProperty> properties = new ArrayList<AmberProperty>();
     /* whether to combine criteria using 'and' or 'or' */
     private boolean combineWithOr = true; // default to 'or' 
@@ -119,6 +122,33 @@ public class AmberVertexQuery extends AmberQueryBase {
         return s.toString();
     }
     
+
+    protected String generateAllQuery() {
+        
+        StringBuilder s = new StringBuilder();
+        s.append("INSERT INTO vp (id) \n"
+                + "SELECT v.id \n"
+                + "FROM vertex v \n"
+                + "WHERE v.txn_end = 0 \n"
+                + "LIMIT " + MAX_VERTICES);
+
+        return s.toString();        
+    }
+    
+    
+    protected String generateQuery() {
+        
+        if (properties.size() == 0) {
+            return generateAllQuery();
+        }
+        
+        if (combineWithOr) {
+            return generateOrQuery();
+        } else {
+            return generateAndQuery();        
+        }
+    }
+    
     
     public List<Vertex> execute() {
 
@@ -128,7 +158,7 @@ public class AmberVertexQuery extends AmberQueryBase {
             // run the generated query
             h.begin();
             h.execute("DROP TABLE IF EXISTS vp; CREATE TEMPORARY TABLE vp (id BIGINT);");
-            Update q = h.createStatement(combineWithOr ? generateOrQuery() : generateAndQuery());
+            Update q = h.createStatement(generateQuery());
             
             for (int i = 0; i < properties.size(); i++) {
                 q.bind("name"+i, properties.get(i).getName());
