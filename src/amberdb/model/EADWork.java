@@ -1,6 +1,7 @@
 package amberdb.model;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.codehaus.jackson.JsonParseException;
@@ -16,6 +17,7 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
 import amberdb.NoSuchObjectException;
 import amberdb.model.Work;
+import amberdb.relation.DescriptionOf;
 import amberdb.relation.IsPartOf;
 
 @TypeValue("EADWork")
@@ -37,6 +39,34 @@ public interface EADWork extends Work {
     
     @Property("eadUpdateReviewRequired")
     public void setEADUpdateReviewRequired(String eadUpdateReviewRequired);
+    
+    /**
+     * 
+     * @return
+     */
+    @Property("scopeContent")
+    public String getScopeContent();
+    
+    /**
+     * 
+     * @param scopeContent
+     */
+    @Property("scopeContent")
+    public void setScopeContent(String scopeContent);
+    
+    /**
+     * 
+     * @return
+     */
+    @Property("dateRange")
+    public String getDateRange();
+    
+    /**
+     * 
+     * @param dateRange
+     */
+    @Property("dateRange")
+    public void setDateRange(String dateRange);
     
     /**
      * This property is encoded as a JSON Array - You probably want to use
@@ -72,6 +102,24 @@ public interface EADWork extends Work {
     @JavaHandler
     public EADWork getEADWork(long objectId);
     
+    @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
+    public EADEntity addEADEntity();
+    
+    @JavaHandler
+    public List<EADEntity> getEADEntities();
+    
+    @JavaHandler
+    public EADEntity getEADEntity(long objectId);
+    
+    @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
+    public EADFeature addEADFeature();
+    
+    @JavaHandler
+    public List<EADFeature> getEADFeatures();
+    
+    @JavaHandler
+    public EADFeature getEADFeature(long objectId);
+    
     abstract class Impl extends Work.Impl implements JavaHandlerContext<Vertex>, EADWork {
         @Override
         public List<String> getFolder() throws JsonParseException, JsonMappingException, IOException {
@@ -90,6 +138,26 @@ public interface EADWork extends Work {
                 throw new NoSuchObjectException(objectId);
             }
             return component;
+        }
+        
+        @Override
+        public List<EADEntity> getEADEntities() {
+            return this.getDescriptions(EADEntity.class);
+        }
+        
+        @Override
+        public EADEntity getEADEntity(long objectId) {
+            return this.g().getVertex(objectId, EADEntity.class);
+        }
+        
+        @Override
+        public List<EADFeature> getEADFeatures() {
+            return this.getDescriptions(EADFeature.class);
+        }
+        
+        @Override
+        public EADFeature getEADFeature(long objectId) {
+            return this.g().getVertex(objectId, EADFeature.class);
         }
     }
 }
