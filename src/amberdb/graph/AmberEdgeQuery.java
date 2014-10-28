@@ -35,27 +35,35 @@ public class AmberEdgeQuery extends AmberQueryBase {
         super(graph);
     }
     
-    
+
+    /**
+     * Add criteria of the form (property) name = value to the query. Notes:
+     * Criteria with a null value will be ignored. Multi-value, json encoded
+     * criteria will only match unreliably and probably shouldn't be used.
+     * 
+     * @param name
+     *            The name of a property
+     * @param value
+     *            The value the property must be for a vertex to meet the
+     *            criteria
+     */
     public void addCriteria(String name, Object value) {
         
         // guards
         if (name == null || name.isEmpty()) throw new IllegalArgumentException("Property must have a name");
-        if (value == null) throw new IllegalArgumentException("Property must have a non-null value");
         
         AmberProperty ap = new AmberProperty(0, name, value);
         this.properties.add(ap);
     }
 
     
-    public void addCriteria(AmberProperty property) {
-
-        // guard
-        if (property == null) throw new IllegalArgumentException("Property query must specify a property");
-
-        this.properties.add(property);
-    }
-    
-    
+    /**
+     * Add Property criteria to the query. Notes: Criteria with a null value
+     * will be ignored. Multi-value, json encoded criteria will only match
+     * unreliably and shouldn't be used for criteria.
+     * 
+     * @param properties A list of criteria properties
+     */
     public void addCriteria(List<AmberProperty> properties) {
         
         // guards
@@ -66,8 +74,15 @@ public class AmberEdgeQuery extends AmberQueryBase {
         this.properties.addAll(properties);
     }
 
-    
-    public void addCriteria(AmberProperty[] properties) {
+
+    /**
+     * Add Property criteria to the query. Notes: Criteria with a null value
+     * will be ignored. Multi-value, json encoded criteria will only match
+     * unreliably and shouldn't be used for criteria.
+     * 
+     * @param properties An array of criteria properties
+     */
+    public void addCriteria(AmberProperty... properties) {
 
         // guards
         if (properties == null) throw new IllegalArgumentException("Property query must specify properties");
