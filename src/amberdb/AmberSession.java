@@ -32,10 +32,7 @@ import amberdb.sql.Lookups;
 import amberdb.sql.LookupsSchema;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberHistory;
-import amberdb.graph.AmberProperty;
-import amberdb.graph.AmberQueryGetVertices;
 import amberdb.graph.AmberTransaction;
-import amberdb.graph.AmberVertexQuery;
 
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.TransactionalGraph;
@@ -317,6 +314,36 @@ public class AmberSession implements AutoCloseable {
     }
 
 
+    /**
+     * Recursively delete a Work and all its children (including Copies, Files
+     * and Descriptions). Exception: recursive delete will not remove 'Set'
+     * bibLevel works encountered, nor their children.
+     * 
+     * @param work
+     */
+    public void deleteWorkRecursive(final Work topWork) {
+        
+        // guard
+        String bibLevel = topWork.getBibLevel();
+        if ("Set".equals(bibLevel)) {
+            return;
+        }
+        
+        // recurse through child works
+        for (Work work : topWork.getChildren()) {
+            deleteWorkRecursive(work);
+        }
+        
+        // delete copies
+        for (Copy copy : topWork.getCopies()) {
+            deleteCopy(copy);
+        }
+        
+        // finally, remove this work 
+        graph.removeVertex(topWork.asVertex());
+    }
+    
+    
     /**
      * Delete all the vertices representing the copy, all its files and their descriptions.
      * @param copy

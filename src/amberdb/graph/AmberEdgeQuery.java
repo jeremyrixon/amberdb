@@ -10,14 +10,12 @@ import java.util.Map;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.Update;
 
+import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 
 
-public class AmberVertexQuery extends AmberQueryBase {
+public class AmberEdgeQuery extends AmberQueryBase {
 
-    // limit the number of vertices returned by a query without criteria
-    static final int MAX_VERTICES = 10000; 
-    
     List<AmberProperty> properties = new ArrayList<AmberProperty>();
     /* whether to combine criteria using 'and' or 'or' */
     private boolean combineWithOr = true; // default to 'or' 
@@ -33,7 +31,7 @@ public class AmberVertexQuery extends AmberQueryBase {
     }
 
 
-    protected AmberVertexQuery(AmberGraph graph) {
+    protected AmberEdgeQuery(AmberGraph graph) {
         super(graph);
     }
     
@@ -95,14 +93,16 @@ public class AmberVertexQuery extends AmberQueryBase {
         this.properties.addAll(props);
     }
     
-    
+
+    /* edge AND queries can't include labels currently */ 
     protected String generateAndQuery() {
         StringBuilder s = new StringBuilder();
-        s.append("INSERT INTO vp (id) \n" 
+        s.append("INSERT INTO ep (id) \n" 
                 + "SELECT p0.id \n"
                 + "FROM property p0 \n");
         
         for (int i = 1; i < properties.size(); i++) {
+            if (properties.get(i).getName().equals("label")) continue;
             s.append(String.format("INNER JOIN property p%1$d ON (p0.id = p%1$d.id AND p0.txn_start = p%1$d.txn_start) \n", i));
         }
         
@@ -123,14 +123,22 @@ public class AmberVertexQuery extends AmberQueryBase {
 
     protected String generateOrQuery() {
         StringBuilder s = new StringBuilder();
-        s.append("INSERT INTO vp (id) \n");
+        s.append("INSERT INTO ep (id) \n");
         for (int i = 0; i < properties.size(); i++) {
-            s.append("SELECT p.id \n"
-                    + "FROM property p \n"
-                    + "WHERE p.txn_end = 0 \n"
-                    + "AND p.name = :name" + i + " " 
-                    + "AND p.value = :value"+ i + " \n"
-                    + "UNION ALL \n");
+            if (properties.get(i).getName().equals("label")) {
+                s.append("SELECT e.id \n"
+                        + "FROM edge e \n"
+                        + "WHERE e.txn_end = 0 \n"
+                        + "AND e.label = :value"+ i + " \n"
+                        + "UNION ALL \n");
+            } else {
+                s.append("SELECT p.id \n"
+                        + "FROM property p \n"
+                        + "WHERE p.txn_end = 0 \n"
+                        + "AND p.name = :name" + i + " " 
+                        + "AND p.value = :value"+ i + " \n"
+                        + "UNION ALL \n");
+            }
         }
         s.setLength(s.length()-13);
         s.append(";\n");
@@ -139,17 +147,14 @@ public class AmberVertexQuery extends AmberQueryBase {
     
 
     protected String generateAllQuery() {
-        
         StringBuilder s = new StringBuilder();
-        s.append("INSERT INTO vp (id) \n"
-                + "SELECT v.id \n"
-                + "FROM vertex v \n"
-                + "WHERE v.txn_end = 0 \n"
-                + "LIMIT " + MAX_VERTICES);
-
-        return s.toString();        
+        s.append("INSERT INTO ep (id) \n"
+                 + "SELECT e.id \n"
+                 + "FROM edge e \n"
+                 + "WHERE e.txn_end = 0 \n;");
+        return s.toString();
     }
-    
+
     
     protected String generateQuery() {
         
@@ -165,14 +170,14 @@ public class AmberVertexQuery extends AmberQueryBase {
     }
     
     
-    public List<Vertex> execute() {
+    public List<Edge> execute() {
 
-        List<Vertex> vertices;
+        List<Edge> edges;
         try (Handle h = graph.dbi().open()) {
 
             // run the generated query
             h.begin();
-            h.execute("DROP TABLE IF EXISTS vp; CREATE TEMPORARY TABLE vp (id BIGINT);");
+            h.execute("DROP TABLE IF EXISTS ep; CREATE TEMPORARY TABLE ep (id BIGINT);");
             Update q = h.createStatement(generateQuery());
             
             for (int i = 0; i < properties.size(); i++) {
@@ -183,9 +188,9 @@ public class AmberVertexQuery extends AmberQueryBase {
             h.commit();
 
             // and reap the rewards
-            Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h, "vp", "id");
-            vertices = getVertices(h, graph, propMaps, "vp", "id", "id");
+            Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h, "ep", "id");
+            edges = getEdges(h, graph, propMaps, "ep", "id");
         }
-        return vertices;
+        return edges;
     }
 }
