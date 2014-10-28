@@ -5,9 +5,11 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.logging.Logger;
 
-//import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.tika.Tika;
 
 import com.drew.imaging.ImageMetadataReader;
@@ -46,7 +48,7 @@ import com.drew.metadata.exif.ExifIFD0Directory;
 */
 
 public class Jp2Converter {
-    private static final Logger log = Logger.getLogger("amberdb.util.Jp2Converter");
+    private static final Logger log = LoggerFactory.getLogger(Jp2Converter.class);
 
     Path imgConverter;
     Path jp2Converter;
@@ -117,7 +119,7 @@ public class Jp2Converter {
                 createJp2(fileToCreateJp2, dstFilePath);
             } catch (Exception e1) {
                 // It'd be good to send an email to someone so we know what's wrong!
-                log.info("Kakadu kdu_compress error: " + fileToCreateJp2.toString() + "\n" + e1.toString());
+                log.debug("Kakadu kdu_compress error: {}\n{}", fileToCreateJp2.toString(), e1.toString());
                 // Can't create jp2 with kakadu kdu_compress, try using imagemagick convert
                 createJp2ImageMagick(fileToCreateJp2, dstFilePath);
             }
@@ -130,17 +132,17 @@ public class Jp2Converter {
         }
 
         long endTime = System.currentTimeMillis();
-        log.info("***Convert " + srcFilePath.toString() + " to " + dstFilePath.toString() + " took " + (endTime - startTime) + " milliseconds");
+        log.debug("***Convert {} to {} took {} milliseconds", srcFilePath.toString(), dstFilePath.toString(), (endTime - startTime));
     }
 
     // Convert the bit depth of an image
     private void convertBitdepth(Path srcFilePath, Path dstFilePath, int bitDepth) throws Exception {
-        convertImage(srcFilePath, dstFilePath, "-depth", "" + bitDepth);
+        convertImage(srcFilePath, dstFilePath, "-compress", "None", "-depth", "" + bitDepth);
     }
 
     // Convert an image to true colour
     private void convertTrueColour(Path srcFilePath, Path dstFilePath) throws Exception {
-        convertImage(srcFilePath, dstFilePath, "-type", "TrueColor");
+        convertImage(srcFilePath, dstFilePath, "-compress", "None", "-type", "TrueColor");
     }
 
     // Uncompress an image
@@ -195,7 +197,7 @@ public class Jp2Converter {
     // Execute a command
     private void executeCmd(String[] cmd) throws Exception {
         // Log command
-        //log.info("Command: " + StringUtils.join(cmd, ' '));
+        log.debug("Run command: ", StringUtils.join(cmd, ' '));
 
         // Execute command
         ProcessBuilder builder = new ProcessBuilder(cmd);
