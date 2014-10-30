@@ -612,6 +612,17 @@ public class CollectionBuilder {
         collectionWork.asEADWork().setEADUpdateReviewRequired("Y");   
         collectionWork.setAccessConditions("Unrestricted");
         collectionWork.setTitle(fieldsMap.get("title").toString());
+        
+        Object scopeContent = fieldsMap.get("scope-n-content");
+        if (scopeContent != null && !scopeContent.toString().isEmpty()) {
+            log.debug("collection work " + collectionWork.getObjId() + ": scope and content: " + scopeContent.toString());
+            collectionWork.asEADWork().setScopeContent(scopeContent.toString());
+        }
+        Object dateRange = fieldsMap.get("date-range");
+        if (dateRange != null && !dateRange.toString().isEmpty()) {
+            log.debug("collection work " + collectionWork.getObjId() + ": date range: " + dateRange.toString());
+            collectionWork.asEADWork().setDateRange(dateRange.toString());
+        }
     }
     
     protected static void mapWorkMD(EADWork workInCollection, Node eadElement, JsonNode elementCfg, XmlDocumentParser parser) throws EADValidationException {
@@ -622,7 +633,7 @@ public class CollectionBuilder {
         // TODO: map subUnitType later on.
         String subUnitType = "Series";
         String uuid = fieldsMap.get("uuid").toString();
-        ComponentBuilder.mapWorkMD(workInCollection, uuid, subUnitType);
+        ComponentBuilder.mapWorkMD(workInCollection, uuid, subUnitType, fieldsMap);
     }
     
     protected static void traverseCollection (Work work, JsonNode structure, JsonNode content) {

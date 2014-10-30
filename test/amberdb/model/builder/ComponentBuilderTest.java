@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
@@ -98,7 +99,7 @@ public class ComponentBuilderTest {
             assertNull(componentWork.getAccessConditions());
 
             JsonNode firstComp = makeComponent(0);
-            ComponentBuilder.mapWorkMD(componentWork, firstComp.get("uuid").getTextValue(), "Series");
+            ComponentBuilder.mapWorkMD(componentWork, firstComp.get("uuid").getTextValue(), "Series", new ConcurrentHashMap<String, Object>());
             String expectedSubType = "Work";
             String expectedSubUnitType = "Series";
             String expectedForm = "Manuscript";
@@ -137,8 +138,8 @@ public class ComponentBuilderTest {
             Work collectionWork = as.findWork(collectionWorkId);
             EADWork componentWork1 = collectionWork.asEADWork().addEADWork();
             EADWork componentWork2 = collectionWork.asEADWork().addEADWork();
-            ComponentBuilder.mapWorkMD(componentWork1, comps[0].get("uuid").getTextValue(), "Series");
-            ComponentBuilder.mapWorkMD(componentWork2, comps[1].get("uuid").getTextValue(), "Series");
+            ComponentBuilder.mapWorkMD(componentWork1, comps[0].get("uuid").getTextValue(), "Series", new ConcurrentHashMap<String, Object>());
+            ComponentBuilder.mapWorkMD(componentWork2, comps[1].get("uuid").getTextValue(), "Series", new ConcurrentHashMap<String, Object>());
             componentWorksMap.put(componentWork1.getLocalSystemNumber(), componentWork1.getObjId());
             componentWorksMap.put(componentWork2.getLocalSystemNumber(), componentWork2.getObjId());
             as.commit();

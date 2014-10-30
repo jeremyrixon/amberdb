@@ -1,13 +1,17 @@
 package amberdb.model.builder;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import nu.xom.Element;
 import nu.xom.Node;
 
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
 import org.slf4j.Logger;
@@ -81,11 +85,18 @@ public class ComponentBuilder {
     protected static EADWork updateComponentData(EADWork componentWork, JsonNode component) {
         // TODO: map subUnitType later on.
         String subUnitType = "Series";
-        mapWorkMD(componentWork, component.get("uuid").getTextValue(), subUnitType);
+        Map<String, Object> fieldsMap = new ConcurrentHashMap<>();
+        // TODO: set the component fields scope-n-content and date-range during the reload
+        // if (component != null) {
+        //    fieldsMap.put("scope-n-content", component.get("scope-n-content"));
+        //    fieldsMap.put("date-range", component.get("date-range"));
+        // }
+        
+        mapWorkMD(componentWork, component.get("uuid").getTextValue(), subUnitType, fieldsMap);
         return componentWork;
     }
     
-    protected static void mapWorkMD(EADWork componentWork, String uuid, String subUnitType) {
+    protected static void mapWorkMD(EADWork componentWork, String uuid, String subUnitType, Map<String, Object> fieldsMap) {
         componentWork.setSubType("Work");      
         componentWork.setSubUnitType(subUnitType);
         componentWork.setForm("Manuscript");
@@ -97,6 +108,76 @@ public class ComponentBuilder {
         componentWork.setRdsAcknowledgementReceiver("NLA");
         componentWork.setEADUpdateReviewRequired("Y"); 
         componentWork.setAccessConditions("Unrestricted");
+        
+        Object unitTitle = fieldsMap.get("title");
+        if (unitTitle != null && !unitTitle.toString().isEmpty()) {
+            log.debug("component work " + componentWork.getObjId() + ": unit title: " + unitTitle.toString());
+            componentWork.setTitle(unitTitle.toString());
+        }
+        Object scopeContent = fieldsMap.get("scope-n-content");
+        if (scopeContent != null && !scopeContent.toString().isEmpty()) {
+            log.debug("component work " + componentWork.getObjId() + ": scope and content: " + scopeContent.toString());
+            componentWork.setScopeContent(scopeContent.toString());
+        }
+        Object dateRange = fieldsMap.get("date-range");
+        if (dateRange != null && !dateRange.toString().isEmpty()) {
+            log.debug("component work " + componentWork.getObjId() + ": date range: " + dateRange.toString());
+            componentWork.setDateRange(dateRange.toString());
+        }
+        
+        mapContainer(componentWork, fieldsMap);
+    }
+
+    protected static void mapContainer(EADWork componentWork, Map<String, Object> fieldsMap) {
+        Object containerNumber = fieldsMap.get("container-number");
+        Object containerLabel = fieldsMap.get("container-label");        
+        Object containerType = fieldsMap.get("container-type");
+        if (containerLabel != null) {
+            // if a single container is extracted for the component work
+            if (containerLabel instanceof String) {
+                if (!((String) containerLabel).isEmpty()) {
+                    String folder = "";
+                    if (containerType != null)
+                        folder = containerType.toString() + " " + containerNumber.toString() + ": " + containerLabel.toString();
+                    else
+                        folder = "container " + containerNumber.toString() + ": " + containerLabel.toString();
+                    log.debug("component work " + componentWork.getObjId() + ": container: " + folder);
+                    List<String> folders = new ArrayList<>();
+                    folders.add(folder);
+                    try {
+                        componentWork.setFolder(folders);
+                    } catch (IOException e) {
+                        log.error("Failed to extract container for component work: " + componentWork.getObjId());
+                    }
+                }
+                return;
+            }
+            
+            // if multiple containers are extracted for the component work
+            String[] containerLabels = (String[]) containerLabel;
+            String[] containerTypes = (String[]) containerType;
+            if (containerLabels.length > 0) {
+                List<String> folders = new ArrayList<>();
+                for (int i = 0; i < containerLabels.length; i++) {
+                    if (containerLabels[i] != null && !((String) containerLabels[i]).isEmpty()) {
+                        String folder = "";
+                        if (containerTypes != null && containerTypes[i] != null) {
+                            folder = containerTypes[i] + ": " + containerLabels[i];
+                        } else {
+                            folder = containerLabels[i];
+                        }
+                        log.debug("component work " + componentWork.getObjId() + ": container: " + folder);
+                        folders.add(folder);
+                    }
+                }
+                try {
+                    if (!folders.isEmpty())
+                        componentWork.setFolder(folders);
+                } catch (IOException e) {
+                    log.error("Failed to extract container for component work: " + componentWork.getObjId());
+                }
+            }
+        }
     }
     
     protected static JsonNode makeComponent(Node eadElement, JsonNode elementCfg, XmlDocumentParser parser) {

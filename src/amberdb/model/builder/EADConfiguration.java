@@ -120,6 +120,9 @@ public class EADConfiguration {
         ((ObjectNode) mappedFields).put("ord", "ead:did/ead:unitid");
         ((ObjectNode) mappedFields).put("date-range", "ead:did/ead:unitdate");
         ((ObjectNode) mappedFields).put("scope-n-content", "ead:scopecontent/ead:p");
+        ((ObjectNode) mappedFields).put("container-number", "ead:did/ead:container");
+        ((ObjectNode) mappedFields).put("container-label", "ead:did/ead:container/@label");
+        ((ObjectNode) mappedFields).put("container-type", "ead:did/ead:container/@type");
         ((ObjectNode) mappedFields).put("sub-unit-type", "@level");
         ((ObjectNode) mappedFields).put("uuid", "@id");
         return mappedFields;
