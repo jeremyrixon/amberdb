@@ -16,6 +16,8 @@ import org.codehaus.jackson.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import antlr.StringUtils;
+
 public class EADParser extends XmlDocumentParser {
     static final Logger log = LoggerFactory.getLogger(EADParser.class);
     static ObjectMapper mapper = new ObjectMapper();
@@ -120,14 +122,30 @@ public class EADParser extends XmlDocumentParser {
         return fldsMap;
     }
     
-    private String getAttribute(Node node, String xpath) {
+    private Object getAttribute(Node node, String xpath) {
         log.debug("getAttribute: xpath: " + xpath);
         if (node == null) return "";
         if (xpath.indexOf('@') >= 0) {
             String attribute = xpath.substring(xpath.indexOf('@') + 1);
-            log.debug("getAttribute: attribute: " + attribute);
-            log.debug("getAttribute: node: " + ((Element) node).getValue());
-            return ((Element) node).getAttributeValue(attribute);
+            if (xpath.indexOf('@') == 0) {
+                log.debug("getAttribute: attribute: " + attribute);
+                log.debug("getAttribute: node: " + ((Element) node).getValue());
+                return ((Element) node).getAttributeValue(attribute);
+            } else {
+                String subpath = xpath.substring(0, xpath.indexOf('@') - 1);
+                Nodes nodes = node.query(subpath, this.xc);
+                if (nodes != null && nodes.size() > 1) {
+                    String[] values = new String[nodes.size()];
+                    for (int i = 0; i < nodes.size(); i++) {
+                        values[i] = ((Element) nodes.get(i)).getAttributeValue(attribute);
+                    }
+                    return values;
+                } else if (nodes != null && nodes.size() == 1) {
+                    return ((Element) nodes.get(0)).getAttributeValue(attribute);
+                } else {
+                    return "";
+                }
+            }
         }
         return "";
     }

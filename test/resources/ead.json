@@ -54,6 +54,9 @@
           "ord":                "ead:did/ead:unitid",
           "date-range":         "ead:did/ead:unitdate",
           "scope-n-content":    "ead:scopecontent/ead:p",
+          "container-number":   "ead:did/ead:container",
+          "container-label":    "ead:did/ead:container/@label",
+          "container-type":     "ead:did/ead:container/@type",
           "sub-unit-type":      "@level",
           "uuid":               "@id"}
       },
