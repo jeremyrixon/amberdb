@@ -84,12 +84,7 @@ public class ComponentBuilder {
         // TODO: map subUnitType later on.
         String subUnitType = "Series";
         Map<String, Object> fieldsMap = new ConcurrentHashMap<>();
-        // TODO: set the component fields scope-n-content and date-range during the reload
-        // if (component != null) {
-        //    fieldsMap.put("scope-n-content", component.get("scope-n-content"));
-        //    fieldsMap.put("date-range", component.get("date-range"));
-        // }
-        
+        // TODO: set the component fields unit title, scope-n-content and date range during the reload    
         mapWorkMD(componentWork, component.get("uuid").getTextValue(), subUnitType, fieldsMap);
         return componentWork;
     }
