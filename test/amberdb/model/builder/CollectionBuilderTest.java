@@ -320,7 +320,6 @@ public class CollectionBuilderTest {
     private void createCollection() throws IOException, ValidityException, ParsingException {
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
-            System.out.println("test EAD path is " + testEADPath.getFileName());
             InputStream in = new FileInputStream(testEADPath.toFile());
             String collectionName = testEADPath.getFileName().toString();
             EADParser parser = new EADParser();
