@@ -106,6 +106,7 @@ public class ComponentBuilder {
         if (unitTitle != null && !unitTitle.toString().isEmpty()) {
             log.debug("component work " + componentWork.getObjId() + ": unit title: " + unitTitle.toString());
             componentWork.setTitle(unitTitle.toString());
+            componentWork.setUniformTitle(unitTitle.toString());
         }
         Object scopeContent = fieldsMap.get("scope-n-content");
         if (scopeContent != null && !scopeContent.toString().isEmpty()) {
