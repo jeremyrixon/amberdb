@@ -14,6 +14,7 @@ import nu.xom.Nodes;
 import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -578,6 +579,8 @@ public class CollectionBuilder {
             EADWork workInCollection;
             if (newCollection) {
                workInCollection = parentWork.addEADWork();
+               if (collectionWork.getRepository() != null)
+                   workInCollection.setRepository(collectionWork.getRepository());
                mapWorkMD(workInCollection, eadElement, elementCfg, parser); 
             } else {
                JsonNode component = ComponentBuilder.makeComponent(eadElement, elementCfg, parser);
@@ -586,6 +589,8 @@ public class CollectionBuilder {
                    ((ObjectNode) component).put("nlaObjId", componentWorks.get(uuid));
                }
                workInCollection = ComponentBuilder.mergeComponent(collectionWork, parentWork, component);
+               if (collectionWork.getRepository() != null)
+                   workInCollection.setRepository(collectionWork.getRepository());
             }                              
             
             String repeatablePath = elementCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
@@ -599,6 +604,21 @@ public class CollectionBuilder {
         Map<String, Object> fieldsMap = parser.getFieldsMap(parser.getDocument(), collectionCfg, parser.getBasePath(parser.getDocument()));  
         log.debug("collection config: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(collectionCfg));
         log.debug("collection fieldMap: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(fieldsMap));
+
+        if (fieldsMap.get("repository") != null)
+            collectionWork.asEADWork().setRepository(fieldsMap.get("repository").toString());
+        
+        if (fieldsMap.get("collection-number") != null)
+            collectionWork.asEADWork().setCollectionNumber(fieldsMap.get("collection-number").toString());
+        
+        Object extent = fieldsMap.get("extent");
+        if (extent != null && extent instanceof String) {
+            if (!extent.toString().isEmpty())
+                collectionWork.setExtent(extent.toString());
+        } else if (extent != null) {
+            List<String> extentList = (List<String>) extent;
+            collectionWork.setExtent(StringUtils.join(extentList, "; "));
+        }
 
         collectionWork.setCreator(fieldsMap.get("creator").toString());
         collectionWork.setSubType("Work");
@@ -666,9 +686,9 @@ public class CollectionBuilder {
     
     private static JsonNode mapWorkProperties(Work work) {
         JsonNode workProperties = mapper.createObjectNode();
-        String[] fields = { "creator", "title", "subType", "subUnitType", "form", "bibLevel", "collection", "recordSource", "localSystemNumber",
+        String[] fields = { "repository", "extent", "collectionNumber", "creator", "title", "subType", "subUnitType", "form", "bibLevel", "collection", "recordSource", "localSystemNumber",
                                "rdsAcknowledgementType", "rdsAcknowledgementReceiver", "eadUpdateReviewRequired", "accessConditions",
-                               "scopeContent", "dateRange", "folder"};
+                               "componentLevel", "componentNumber", "scopeContent", "dateRange", "folder"};
         for (String field : fields) {
             if (work.asVertex().getProperty(field) != null)
                 ((ObjectNode) workProperties).put(field, work.asVertex().getProperty(field).toString());

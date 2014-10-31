@@ -102,6 +102,18 @@ public class ComponentBuilder {
         componentWork.setEADUpdateReviewRequired("Y"); 
         componentWork.setAccessConditions("Unrestricted");
         
+        Object componentLevel = fieldsMap.get("component-level");
+        if (componentLevel != null && !componentLevel.toString().isEmpty()) {
+            // System.out.println("component work " + componentWork.getObjId() + ": componentLevel: " + componentLevel.toString());
+            componentWork.setComponentLevel(componentLevel.toString());
+        }
+        
+        Object componentNumber = fieldsMap.get("component-number");
+        if (componentNumber != null && !componentNumber.toString().isEmpty()) {
+            // System.out.println("component work " + componentWork.getObjId() + ": componentNumber: " + componentNumber.toString());
+            componentWork.setComponentNumber(componentNumber.toString());
+        }
+        
         Object unitTitle = fieldsMap.get("title");
         if (unitTitle != null && !unitTitle.toString().isEmpty()) {
             log.debug("component work " + componentWork.getObjId() + ": unit title: " + unitTitle.toString());

@@ -41,32 +41,74 @@ public interface EADWork extends Work {
     public void setEADUpdateReviewRequired(String eadUpdateReviewRequired);
     
     /**
-     * 
-     * @return
+     * scopeContent: scope of content (aka: abstract) for this EAD work.
      */
     @Property("scopeContent")
     public String getScopeContent();
     
     /**
-     * 
-     * @param scopeContent
+     * scopeContent: scope of content (aka: abstract) for this EAD work.
      */
     @Property("scopeContent")
     public void setScopeContent(String scopeContent);
     
     /**
-     * 
-     * @return
+     * dateRange: the time period covered in this EAD work.
      */
     @Property("dateRange")
     public String getDateRange();
     
     /**
-     * 
-     * @param dateRange
+     * dateRange: the time period covered in this EAD work.
      */
     @Property("dateRange")
     public void setDateRange(String dateRange);
+    
+    /**
+     * repository: the repository that holds the collection this EADWork belongs to.
+     */
+    @Property("repository")
+    public String getRepository();
+    
+    /**
+     * repository: the repository that holds the collection this EADWork belongs to.
+     */
+    @Property("repository")
+    public void setRepository(String repository);
+    
+    @Property("collectionNumber")
+    public String getCollectionNumber();
+    
+    @Property("collectionNumber")
+    public void setCollectionNumber(String collectionNumber);
+    
+    /**
+     * componentLevel: the level within the collection for this EAD work.
+     * Example component levels include series, subseries and file
+     */
+    @Property("componentLevel")
+    public String getComponentLevel();
+    
+    /**
+     * componentLevel: the level within the collection for this EAD work.
+     * Example component levels include series, subseries and file
+     */
+    @Property("componentLevel")
+    public void setComponentLevel(String componentLevel);
+    
+    /**
+     * componentNumber: components are numbered within each level e.g. 1, and the
+     *                  numbering may include linkage to parent e.g. 1.1
+     */
+    @Property("componentNumber")
+    public String getComponentNumber();
+    
+    /**
+     * componentNumber: components are numbered within each level e.g. 1, and the
+     *                  numbering may include linkage to parent e.g. 1.1
+     */
+    @Property("componentNumber")
+    public void setComponentNumber(String componentNumber);
     
     /**
      * This property is encoded as a JSON Array - You probably want to use
