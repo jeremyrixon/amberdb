@@ -4,6 +4,7 @@ package amberdb;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -325,26 +326,25 @@ public class AmberSession implements AutoCloseable {
      * 
      * @param work
      */
-    public void deleteWorkRecursive(final Work topWork) {
-        
-        // guard
-        String bibLevel = topWork.getBibLevel();
-        if ("Set".equals(bibLevel)) {
-            return;
-        }
+    public void deleteWorkRecursive(final Work work) {
         
         // recurse through child works
-        for (Work work : topWork.getChildren()) {
-            deleteWorkRecursive(work);
+        for (Work child : work.getChildren()) {
+            deleteWorkRecursive(child);
         }
         
         // delete copies
-        for (Copy copy : topWork.getCopies()) {
+        for (Copy copy : work.getCopies()) {
             deleteCopy(copy);
         }
         
+        // delete any descriptions
+        for (Description desc : work.getDescriptions()) {
+            graph.removeVertex(desc.asVertex());
+        }
+        
         // finally, remove this work 
-        graph.removeVertex(topWork.asVertex());
+        graph.removeVertex(work.asVertex());
     }
     
     
@@ -356,14 +356,9 @@ public class AmberSession implements AutoCloseable {
         Work work = copy.getWork();
         for (File file : copy.getFiles()) {
             for (Description desc : file.getDescriptions()) {
-                file.removeDescription(desc);
                 graph.removeVertex(desc.asVertex());
             }
-            copy.removeFile(file);
             graph.removeVertex(file.asVertex());
-        }
-        if (work != null) {
-            work.removeCopy(copy);
         }
         graph.removeVertex(copy.asVertex());
     }
@@ -563,5 +558,86 @@ public class AmberSession implements AutoCloseable {
     
     public Iterable<Tag> getAllTags() {
         return graph.getVertices("type", "Tag", Tag.class);
+    }
+    
+
+    /**
+     * Recursively delete a Work and all its children (including Copies, Files
+     * and Descriptions). Returns an updated count of the different object types
+     * deleted added to an existing map of keys to counters.
+     * 
+     * @param work
+     *            The work to be deleted
+     * @param counts
+     *            A map containing counts of the different object types deleted
+     */
+    public Map<String, Integer> deleteWorkWithAudit(final Work work, Map<String, Integer> counts) {
+        
+        // recurse through child works
+        for (Work child : work.getChildren()) {
+            deleteWorkWithAudit(child, counts);
+        }
+        
+        // delete copies
+        for (Copy copy : work.getCopies()) {
+            deleteCopyWithAudit(copy, counts);
+        }
+        
+        // delete any descriptions
+        for (Description desc : work.getDescriptions()) {
+            graph.removeVertex(desc.asVertex());
+            increment(counts, "Description");
+        }
+        
+        // finally, remove this work 
+        graph.removeVertex(work.asVertex());
+        increment(counts, "Work");
+
+        return counts;
+    }
+    
+
+    /**
+     * Delete all the vertices representing the copy, all its files and their
+     * descriptions. Returns an updated count of the different object types
+     * deleted added to an existing map of keys to counters.
+     * 
+     * @param copy
+     *            The copy to be deleted
+     * @param counts
+     *            A map of object type to number deleted
+     */
+    public Map<String, Integer> deleteCopyWithAudit(final Copy copy, Map<String, Integer> counts) {
+        for (File file : copy.getFiles()) {
+            for (Description desc : file.getDescriptions()) {
+                graph.removeVertex(desc.asVertex());
+                increment(counts, "Description");
+            }
+            graph.removeVertex(file.asVertex());
+            increment(counts, "File");
+        }
+        graph.removeVertex(copy.asVertex());
+        increment(counts, "Copy");
+
+        return counts;
+    }
+
+    
+    /**
+     * Convenience method to increment a count in a map of keys to counts
+     * 
+     * @param countMap
+     *            The map to update
+     * @param key
+     *            The key of the count to increment
+     */
+    private void increment(Map<String, Integer> countMap, String key) {
+        Integer count = countMap.get(key);
+        if (count == null) {
+            count = 1;
+        } else {
+            count = count + 1;
+        }
+        countMap.put(key, count);
     }
 }
