@@ -612,6 +612,7 @@ public class CollectionBuilder {
         collectionWork.asEADWork().setEADUpdateReviewRequired("Y");   
         collectionWork.setAccessConditions("Unrestricted");
         collectionWork.setTitle(fieldsMap.get("title").toString());
+        collectionWork.setUniformTitle(fieldsMap.get("title").toString());
         
         Object scopeContent = fieldsMap.get("scope-n-content");
         if (scopeContent != null && !scopeContent.toString().isEmpty()) {
@@ -666,7 +667,8 @@ public class CollectionBuilder {
     private static JsonNode mapWorkProperties(Work work) {
         JsonNode workProperties = mapper.createObjectNode();
         String[] fields = { "creator", "title", "subType", "subUnitType", "form", "bibLevel", "collection", "recordSource", "localSystemNumber",
-                               "rdsAcknowledgementType", "rdsAcknowledgementReceiver", "eadUpdateReviewRequired", "accessConditions" };
+                               "rdsAcknowledgementType", "rdsAcknowledgementReceiver", "eadUpdateReviewRequired", "accessConditions",
+                               "scopeContent", "dateRange", "folder"};
         for (String field : fields) {
             if (work.asVertex().getProperty(field) != null)
                 ((ObjectNode) workProperties).put(field, work.asVertex().getProperty(field).toString());
