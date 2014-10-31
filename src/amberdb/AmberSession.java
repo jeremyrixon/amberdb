@@ -4,8 +4,10 @@ package amberdb;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -36,6 +38,8 @@ import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberHistory;
 import amberdb.graph.AmberTransaction;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.TransactionalGraph;
 import com.tinkerpop.blueprints.Vertex;
@@ -325,26 +329,31 @@ public class AmberSession implements AutoCloseable {
      * 
      * @param work
      */
-    public void deleteWorkRecursive(final Work topWork) {
+    public void deleteWorkRecursive(final Work... works) {
         
-        // guard
-        String bibLevel = topWork.getBibLevel();
-        if ("Set".equals(bibLevel)) {
-            return;
-        }
-        
-        // recurse through child works
-        for (Work work : topWork.getChildren()) {
-            deleteWorkRecursive(work);
-        }
-        
-        // delete copies
-        for (Copy copy : topWork.getCopies()) {
-            deleteCopy(copy);
-        }
-        
-        // finally, remove this work 
-        graph.removeVertex(topWork.asVertex());
+        for (Work work : works) {
+            
+            /* first, get children works */
+            List<Work> children = Lists.newArrayList(work.getChildren());
+
+            /* to avoid cycles, next delete the work (plus all its sub-objects) */
+
+            // copies
+            for (Copy copy : work.getCopies()) {
+                deleteCopy(copy);
+            }
+            
+            // descriptions
+            for (Description desc : work.getDescriptions()) {
+                graph.removeVertex(desc.asVertex());
+            }
+            
+            // the work itself 
+            graph.removeVertex(work.asVertex());
+
+            /* finally, process the children */ 
+            deleteWorkRecursive(children.toArray(new Work[children.size()]));
+        }  
     }
     
     
@@ -356,14 +365,9 @@ public class AmberSession implements AutoCloseable {
         Work work = copy.getWork();
         for (File file : copy.getFiles()) {
             for (Description desc : file.getDescriptions()) {
-                file.removeDescription(desc);
                 graph.removeVertex(desc.asVertex());
             }
-            copy.removeFile(file);
             graph.removeVertex(file.asVertex());
-        }
-        if (work != null) {
-            work.removeCopy(copy);
         }
         graph.removeVertex(copy.asVertex());
     }
@@ -563,5 +567,92 @@ public class AmberSession implements AutoCloseable {
     
     public Iterable<Tag> getAllTags() {
         return graph.getVertices("type", "Tag", Tag.class);
+    }
+    
+
+    /**
+     * Recursively delete a Work and all its children (including Copies, Files
+     * and Descriptions). Returns an updated count of the different object types
+     * deleted added to an existing map of keys to counters.
+     * 
+     * @param counts
+     *            A map containing counts of the different object types deleted
+     * @param work
+     *            The work to be deleted
+     */
+    public Map<String, Integer> deleteWorkWithAudit(Map<String, Integer> counts, final Work... works) {
+
+        for (Work work : works) {
+            
+            /* first, get children works */
+            List<Work> children = Lists.newArrayList(work.getChildren());
+
+            /* next, to avoid cycles, delete the work (plus all its sub-objects) */
+            
+            // copies
+            for (Copy copy : work.getCopies()) {
+                deleteCopyWithAudit(counts, copy);
+            }
+            
+            // descriptions
+            for (Description desc : work.getDescriptions()) {
+                graph.removeVertex(desc.asVertex());
+                increment(counts, "Description");
+            }
+            
+            // the work itself 
+            graph.removeVertex(work.asVertex());
+            increment(counts, "Work");
+
+            /* finally, process the children */ 
+            deleteWorkWithAudit(counts, children.toArray(new Work[children.size()]));
+        }  
+
+        return counts;
+    }
+    
+
+    /**
+     * Delete all the vertices representing the copy, all its files and their
+     * descriptions. Returns an updated count of the different object types
+     * deleted added to an existing map of keys to counters.
+     * 
+     * @param counts
+     *            A map of object type to number deleted
+     * @param copy
+     *            The copy to be deleted
+     */
+    public Map<String, Integer> deleteCopyWithAudit(Map<String, Integer> counts, final Copy copy) {
+        for (File file : copy.getFiles()) {
+            for (Description desc : file.getDescriptions()) {
+                graph.removeVertex(desc.asVertex());
+                increment(counts, "Description");
+            }
+            graph.removeVertex(file.asVertex());
+            increment(counts, "File");
+        }
+        graph.removeVertex(copy.asVertex());
+        increment(counts, "Copy");
+
+        return counts;
+    }
+
+    
+    /**
+     * Convenience method to increment a count in a map of keys to counts
+     * 
+     * @param countMap
+     *            The map to update
+     * @param key
+     *            The key of the count to increment
+     */
+    private void increment(Map<String, Integer> countMap, String key) {
+        Integer count = countMap.get(key);
+        if (count == null) {
+            count = 1;
+        } else {
+            count = count + 1;
+        }
+        countMap.put(key, count);
     }
 }
