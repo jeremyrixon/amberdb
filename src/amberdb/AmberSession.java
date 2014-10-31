@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -37,6 +38,8 @@ import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberHistory;
 import amberdb.graph.AmberTransaction;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.TransactionalGraph;
 import com.tinkerpop.blueprints.Vertex;
@@ -326,25 +329,33 @@ public class AmberSession implements AutoCloseable {
      * 
      * @param work
      */
-    public void deleteWorkRecursive(final Work work) {
+    public void deleteWorkRecursive(final Work... works) {
         
-        // recurse through child works
-        for (Work child : work.getChildren()) {
-            deleteWorkRecursive(child);
-        }
-        
-        // delete copies
-        for (Copy copy : work.getCopies()) {
-            deleteCopy(copy);
-        }
-        
-        // delete any descriptions
-        for (Description desc : work.getDescriptions()) {
-            graph.removeVertex(desc.asVertex());
-        }
-        
-        // finally, remove this work 
-        graph.removeVertex(work.asVertex());
+        for (Work work : works) {
+            
+            /* first, get children works */
+            
+            List<Work> children = Lists.newArrayList(work.getChildren());
+
+            /* to avoid cycles, next delete the work (plus all its sub-objects) */
+            
+            // copies
+            for (Copy copy : work.getCopies()) {
+                deleteCopy(copy);
+            }
+            
+            // descriptions
+            for (Description desc : work.getDescriptions()) {
+                graph.removeVertex(desc.asVertex());
+            }
+            
+            // the work itself 
+            graph.removeVertex(work.asVertex());
+
+            /* finally, process the children */ 
+            
+            deleteWorkRecursive(children.toArray(new Work[children.size()]));
+        }  
     }
     
     
@@ -566,32 +577,40 @@ public class AmberSession implements AutoCloseable {
      * and Descriptions). Returns an updated count of the different object types
      * deleted added to an existing map of keys to counters.
      * 
-     * @param work
-     *            The work to be deleted
      * @param counts
      *            A map containing counts of the different object types deleted
+     * @param work
+     *            The work to be deleted
      */
-    public Map<String, Integer> deleteWorkWithAudit(final Work work, Map<String, Integer> counts) {
-        
-        // recurse through child works
-        for (Work child : work.getChildren()) {
-            deleteWorkWithAudit(child, counts);
-        }
-        
-        // delete copies
-        for (Copy copy : work.getCopies()) {
-            deleteCopyWithAudit(copy, counts);
-        }
-        
-        // delete any descriptions
-        for (Description desc : work.getDescriptions()) {
-            graph.removeVertex(desc.asVertex());
-            increment(counts, "Description");
-        }
-        
-        // finally, remove this work 
-        graph.removeVertex(work.asVertex());
-        increment(counts, "Work");
+    public Map<String, Integer> deleteWorkWithAudit(Map<String, Integer> counts, final Work... works) {
+
+        for (Work work : works) {
+            
+            /* --- first, get children works */
+            
+            List<Work> children = Lists.newArrayList(work.getChildren());
+
+            /* --- next, to avoid cycles, delete the work (plus all its sub-objects) */
+            
+            // copies
+            for (Copy copy : work.getCopies()) {
+                deleteCopyWithAudit(counts, copy);
+            }
+            
+            // descriptions
+            for (Description desc : work.getDescriptions()) {
+                graph.removeVertex(desc.asVertex());
+                increment(counts, "Description");
+            }
+            
+            // the work itself 
+            graph.removeVertex(work.asVertex());
+            increment(counts, "Work");
+
+            /* --- finally, process the children */ 
+            
+            deleteWorkWithAudit(counts, children.toArray(new Work[children.size()]));
+        }  
 
         return counts;
     }
@@ -602,12 +621,12 @@ public class AmberSession implements AutoCloseable {
      * descriptions. Returns an updated count of the different object types
      * deleted added to an existing map of keys to counters.
      * 
-     * @param copy
-     *            The copy to be deleted
      * @param counts
      *            A map of object type to number deleted
+     * @param copy
+     *            The copy to be deleted
      */
-    public Map<String, Integer> deleteCopyWithAudit(final Copy copy, Map<String, Integer> counts) {
+    public Map<String, Integer> deleteCopyWithAudit(Map<String, Integer> counts, final Copy copy) {
         for (File file : copy.getFiles()) {
             for (Description desc : file.getDescriptions()) {
                 graph.removeVertex(desc.asVertex());

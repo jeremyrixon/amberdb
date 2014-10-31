@@ -84,8 +84,9 @@ public class AmberSessionTest {
         Work bookAgain = sess.findWork(book.getId());
         assertNotNull(bookAgain);
         
-        Map<String, Integer> counts = sess.deleteWorkWithAudit(bookAgain, new HashMap<String, Integer>());
+        Map<String, Integer> counts = sess.deleteWorkWithAudit(new HashMap<String, Integer>(), bookAgain);
         assertEquals(numVertices(sess.getAmberGraph()), 0);
+        
         assertEquals(new Integer(5), counts.get("File"));
         assertEquals(new Integer(5), counts.get("Copy"));
         assertEquals(new Integer(7), counts.get("Work"));
@@ -103,7 +104,7 @@ public class AmberSessionTest {
         // check we have the 4 books
         assertEquals(numVertices(sess.getAmberGraph()), 68);
         
-        counts =  sess.deleteWorkWithAudit(book3, new HashMap<String, Integer>());
+        counts =  sess.deleteWorkWithAudit(new HashMap<String, Integer>(), book3);
         assertEquals(new Integer(15), counts.get("File"));
         assertEquals(new Integer(15), counts.get("Copy"));
         assertEquals(new Integer(21), counts.get("Work"));
@@ -164,6 +165,20 @@ public class AmberSessionTest {
         assertEquals(numVertices(sess.getAmberGraph()), 17);
     }        
 
+    @Test
+    public void testDeleteWithCycle() throws IOException {
+
+        Work book3 = makeBook();
+        Work book4 = makeBook();
+        Work book5 = makeBook();
+        
+        book3.addChild(book4);
+        book4.addChild(book5);
+        book5.addChild(book3);
+
+        sess.deleteWorkRecursive(book4);
+    }        
+    
     private static void s(String s) {
         System.out.println(s);
     }
