@@ -6,6 +6,9 @@ import static org.junit.Assert.assertNotNull;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.junit.After;
 import org.junit.Before;
@@ -50,6 +53,64 @@ public class AmberSessionTest {
     public void tearDown() throws IOException {
         if (sess != null) sess.close();
     }
+
+    @Test
+    public void testDeleteWorkWithAudit() throws IOException {
+
+        // create a test work and delete it
+        Work book = makeBook();
+        
+        // check our creation
+        int p = 0;
+        int c = 0;
+
+        // count pages, copies etc
+        for (Work page : book.getChildren()) {
+            p++;
+            for (Copy copy : page.getCopies()) {
+                c++;
+            }
+        }
+        // we expect 5 pages and 1 section = 6
+        assertEquals(p, 6);
+        // 5 copies (none for the section)
+        assertEquals(c, 5);
+
+        sess.commit();
+        sess.close();
+
+        sess = new AmberSession(LocalBlobStore.open(dossLocation));
+        
+        Work bookAgain = sess.findWork(book.getId());
+        assertNotNull(bookAgain);
+        
+        Map<String, Integer> counts = sess.deleteWorkWithAudit(bookAgain, new HashMap<String, Integer>());
+        assertEquals(numVertices(sess.getAmberGraph()), 0);
+        assertEquals(new Integer(5), counts.get("File"));
+        assertEquals(new Integer(5), counts.get("Copy"));
+        assertEquals(new Integer(7), counts.get("Work"));
+        
+        // check we don't delete Sets
+        Work book3 = makeBook();
+        Work book4 = makeBook();
+        Work book5 = makeBook();
+        Work book6 = makeBook();
+        
+        book3.addChild(book4);
+        book5.setBibLevel("Set");
+        book3.addChild(book5);
+        
+        // check we have the 4 books
+        assertEquals(numVertices(sess.getAmberGraph()), 68);
+        
+        counts =  sess.deleteWorkWithAudit(book3, new HashMap<String, Integer>());
+        assertEquals(new Integer(15), counts.get("File"));
+        assertEquals(new Integer(15), counts.get("Copy"));
+        assertEquals(new Integer(21), counts.get("Work"));
+
+        // we should have retained book6 as it's not in book3 hierarchy
+        assertEquals(numVertices(sess.getAmberGraph()), 17);
+    }        
     
     @Test
     public void testDeleteWorkRecursiveItem() throws IOException {
@@ -88,17 +149,18 @@ public class AmberSessionTest {
         Work book3 = makeBook();
         Work book4 = makeBook();
         Work book5 = makeBook();
+        Work book6 = makeBook();
         
         book3.addChild(book4);
         book5.setBibLevel("Set");
         book3.addChild(book5);
         
-        // check we have the 3 books
-        assertEquals(numVertices(sess.getAmberGraph()), 51);
+        // check we have the 4 books
+        assertEquals(numVertices(sess.getAmberGraph()), 68);
         
         sess.deleteWorkRecursive(book3);
         
-        // we should have retained book 5 because it's a Set
+        // we should have retained book6 as it's not in book3 hierarchy
         assertEquals(numVertices(sess.getAmberGraph()), 17);
     }        
 
