@@ -334,11 +334,10 @@ public class AmberSession implements AutoCloseable {
         for (Work work : works) {
             
             /* first, get children works */
-            
             List<Work> children = Lists.newArrayList(work.getChildren());
 
             /* to avoid cycles, next delete the work (plus all its sub-objects) */
-            
+
             // copies
             for (Copy copy : work.getCopies()) {
                 deleteCopy(copy);
@@ -353,7 +352,6 @@ public class AmberSession implements AutoCloseable {
             graph.removeVertex(work.asVertex());
 
             /* finally, process the children */ 
-            
             deleteWorkRecursive(children.toArray(new Work[children.size()]));
         }  
     }
@@ -586,11 +584,10 @@ public class AmberSession implements AutoCloseable {
 
         for (Work work : works) {
             
-            /* --- first, get children works */
-            
+            /* first, get children works */
             List<Work> children = Lists.newArrayList(work.getChildren());
 
-            /* --- next, to avoid cycles, delete the work (plus all its sub-objects) */
+            /* next, to avoid cycles, delete the work (plus all its sub-objects) */
             
             // copies
             for (Copy copy : work.getCopies()) {
@@ -607,8 +604,7 @@ public class AmberSession implements AutoCloseable {
             graph.removeVertex(work.asVertex());
             increment(counts, "Work");
 
-            /* --- finally, process the children */ 
-            
+            /* finally, process the children */ 
             deleteWorkWithAudit(counts, children.toArray(new Work[children.size()]));
         }  
 
