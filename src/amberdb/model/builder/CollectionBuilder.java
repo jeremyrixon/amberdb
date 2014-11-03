@@ -579,6 +579,7 @@ public class CollectionBuilder {
             EADWork workInCollection;
             if (newCollection) {
                workInCollection = parentWork.addEADWork();
+               workInCollection.getParentEdge().setRelOrder(i + 1);
                if (collectionWork.getRepository() != null)
                    workInCollection.setRepository(collectionWork.getRepository());
                mapWorkMD(workInCollection, eadElement, elementCfg, parser); 
