@@ -834,7 +834,15 @@ public interface Work extends Node {
      * To be published in the catalogue
      */
     @Property("publicNotes")
-    public void setPublicNotes(String publicNotes);    
+    public void setPublicNotes(String publicNotes);
+
+    @Property("australianContent")
+    public Boolean isAustralianContent();
+
+    @Property("australianContent")
+    public void setAustralianContent(Boolean australianContent);
+
+
 
     @Adjacency(label = IsPartOf.label)
     public void setParent(final Work parent);
