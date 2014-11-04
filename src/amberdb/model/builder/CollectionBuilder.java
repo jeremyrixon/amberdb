@@ -579,9 +579,10 @@ public class CollectionBuilder {
             EADWork workInCollection;
             if (newCollection) {
                workInCollection = parentWork.addEADWork();
-               workInCollection.getParentEdge().setRelOrder(i + 1);
                if (collectionWork.getRepository() != null)
                    workInCollection.setRepository(collectionWork.getRepository());
+               // inherit access conditions from the top-level collection work
+               workInCollection.setAccessConditions(collectionWork.getAccessConditions());
                mapWorkMD(workInCollection, eadElement, elementCfg, parser); 
             } else {
                JsonNode component = ComponentBuilder.makeComponent(eadElement, elementCfg, parser);
@@ -592,7 +593,8 @@ public class CollectionBuilder {
                workInCollection = ComponentBuilder.mergeComponent(collectionWork, parentWork, component);
                if (collectionWork.getRepository() != null)
                    workInCollection.setRepository(collectionWork.getRepository());
-            }                              
+            }      
+            workInCollection.getParentEdge().setRelOrder(i + 1);
             
             String repeatablePath = elementCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
             Nodes nextLevel = parser.traverse(eadElement, repeatablePath);
@@ -631,7 +633,11 @@ public class CollectionBuilder {
         collectionWork.asEADWork().setRdsAcknowledgementType("Sponsor");
         collectionWork.asEADWork().setRdsAcknowledgementReceiver("NLA");
         collectionWork.asEADWork().setEADUpdateReviewRequired("Y");   
-        collectionWork.setAccessConditions("Unrestricted");
+        
+        // default access conditions to Restricted if not set 
+        if (collectionWork.getAccessConditions() == null || collectionWork.getAccessConditions().isEmpty())
+            collectionWork.setAccessConditions("Restricted");
+        
         collectionWork.setTitle(fieldsMap.get("title").toString());
         collectionWork.setUniformTitle(fieldsMap.get("title").toString());
         
@@ -652,10 +658,8 @@ public class CollectionBuilder {
         if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").toString().isEmpty())
             throw new EADValidationException("Failed to process collection " + parser.collectionObjId + " as no Archive Space id found for component work " + workInCollection.getObjId());
         
-        // TODO: map subUnitType later on.
-        String subUnitType = "Series";
         String uuid = fieldsMap.get("uuid").toString();
-        ComponentBuilder.mapWorkMD(workInCollection, uuid, subUnitType, fieldsMap);
+        ComponentBuilder.mapWorkMD(workInCollection, uuid, fieldsMap);
     }
     
     protected static void traverseCollection (Work work, JsonNode structure, JsonNode content) {
