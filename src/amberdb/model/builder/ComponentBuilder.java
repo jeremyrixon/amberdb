@@ -81,17 +81,13 @@ public class ComponentBuilder {
     }
     
     protected static EADWork updateComponentData(EADWork componentWork, JsonNode component) {
-        // TODO: map subUnitType later on.
-        String subUnitType = "Series";
-        Map<String, Object> fieldsMap = new ConcurrentHashMap<>();
-        // TODO: set the component fields unit title, scope-n-content and date range during the reload    
-        mapWorkMD(componentWork, component.get("uuid").getTextValue(), subUnitType, fieldsMap);
+        Map<String, Object> fieldsMap = new ConcurrentHashMap<>();   
+        mapWorkMD(componentWork, component.get("uuid").getTextValue(), fieldsMap);
         return componentWork;
     }
     
-    protected static void mapWorkMD(EADWork componentWork, String uuid, String subUnitType, Map<String, Object> fieldsMap) {
+    protected static void mapWorkMD(EADWork componentWork, String uuid, Map<String, Object> fieldsMap) {
         componentWork.setSubType("Work");      
-        componentWork.setSubUnitType(subUnitType);
         componentWork.setForm("Manuscript");
         componentWork.setBibLevel("Item");
         componentWork.setCollection("nla.ms");
@@ -104,14 +100,19 @@ public class ComponentBuilder {
         
         Object componentLevel = fieldsMap.get("component-level");
         if (componentLevel != null && !componentLevel.toString().isEmpty()) {
-            // System.out.println("component work " + componentWork.getObjId() + ": componentLevel: " + componentLevel.toString());
+            log.debug("component work " + componentWork.getObjId() + ": componentLevel: " + componentLevel.toString());
             componentWork.setComponentLevel(componentLevel.toString());
+            componentWork.setSubUnitType(componentLevel.toString());
+            // determine bib level with business rule borrowed from DCM
+            String bibLevel = (componentLevel != null && componentLevel.toString().equalsIgnoreCase("item"))?"Item":"Set";
+            componentWork.setBibLevel(bibLevel);
         }
         
         Object componentNumber = fieldsMap.get("component-number");
         if (componentNumber != null && !componentNumber.toString().isEmpty()) {
-            // System.out.println("component work " + componentWork.getObjId() + ": componentNumber: " + componentNumber.toString());
+            log.debug("component work " + componentWork.getObjId() + ": componentNumber: " + componentNumber.toString());
             componentWork.setComponentNumber(componentNumber.toString());
+            componentWork.setSubUnitNo(componentNumber.toString());
         }
         
         Object unitTitle = fieldsMap.get("title");
@@ -192,7 +193,7 @@ public class ComponentBuilder {
         if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").toString().isEmpty())
             throw new EADValidationException("Failed to parse uuid for EAD element " + ((Element) eadElement).getLocalName() + " - " + eadElement.getValue());
         
-        // TODO: map subUnitType later on.
+        // Default subUnitType to Series, this may be overwritten later on by mapWorkMD.
         String subUnitType = "Series";
         String uuid = fieldsMap.get("uuid").toString();
         node.put("uuid", uuid);
