@@ -2,6 +2,7 @@ package amberdb.model.builder;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,6 +11,8 @@ import nu.xom.Element;
 import nu.xom.Node;
 
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
 import org.slf4j.Logger;
@@ -18,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import amberdb.PIUtil;
 import amberdb.model.EADWork;
 import amberdb.model.Work;
+import amberdb.util.DateParser;
 
 public class ComponentBuilder {
     static final Logger log = LoggerFactory.getLogger(CollectionBuilder.class);
@@ -29,8 +33,11 @@ public class ComponentBuilder {
      * @param parentWork
      * @param components
      * @return
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
      */
-    public static List<EADWork> mergeComponents(EADWork collectionWork, EADWork parentWork, JsonNode... components) {
+    public static List<EADWork> mergeComponents(EADWork collectionWork, EADWork parentWork, JsonNode... components) throws JsonParseException, JsonMappingException, IOException {
         List<EADWork> componentWorks = new ArrayList<>();
         for (JsonNode component : components) {
             componentWorks.add(mergeComponent(collectionWork, parentWork, component));
@@ -54,8 +61,11 @@ public class ComponentBuilder {
      *                     updated EAD finding aid yet) attached.
      * @param component  - a component from the new updated EAD finding aid.
      * @return the object Id of the updated component EADWork in the collection after the merge. 
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
      */
-    public static EADWork mergeComponent(EADWork collectionWork, EADWork parentWork, JsonNode component) {
+    public static EADWork mergeComponent(EADWork collectionWork, EADWork parentWork, JsonNode component) throws JsonParseException, JsonMappingException, IOException {
         EADWork componentWork;
         
         if (component.get("nlaObjId") == null) {
@@ -80,13 +90,13 @@ public class ComponentBuilder {
         return componentWork;
     }
     
-    protected static EADWork updateComponentData(EADWork componentWork, JsonNode component) {
+    protected static EADWork updateComponentData(EADWork componentWork, JsonNode component) throws JsonParseException, JsonMappingException, IOException {
         Map<String, Object> fieldsMap = new ConcurrentHashMap<>();   
         mapWorkMD(componentWork, component.get("uuid").getTextValue(), fieldsMap);
         return componentWork;
     }
     
-    protected static void mapWorkMD(EADWork componentWork, String uuid, Map<String, Object> fieldsMap) {
+    protected static void mapWorkMD(EADWork componentWork, String uuid, Map<String, Object> fieldsMap) throws JsonParseException, JsonMappingException, IOException {
         componentWork.setSubType("Work");      
         componentWork.setForm("Manuscript");
         componentWork.setBibLevel("Item");
@@ -129,7 +139,8 @@ public class ComponentBuilder {
         Object dateRange = fieldsMap.get("date-range");
         if (dateRange != null && !dateRange.toString().isEmpty()) {
             log.debug("component work " + componentWork.getObjId() + ": date range: " + dateRange.toString());
-            componentWork.setDateRange(dateRange.toString());
+            List<Date> dateList = DateParser.parseDateRange(dateRange);
+            componentWork.setDateRange(dateList);
         }
         
         mapContainer(componentWork, fieldsMap);

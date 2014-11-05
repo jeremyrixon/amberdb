@@ -3,6 +3,7 @@ package amberdb.model.builder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -32,6 +33,7 @@ import amberdb.model.Copy;
 import amberdb.model.EADWork;
 import amberdb.model.File;
 import amberdb.model.Work;
+import amberdb.util.DateParser;
 
 import static amberdb.model.builder.XmlDocumentParser.CFG_COLLECTION_ELEMENT;
 import static amberdb.model.builder.XmlDocumentParser.CFG_SUB_ELEMENTS;
@@ -573,7 +575,7 @@ public class CollectionBuilder {
     }
     
     protected static void traverseEAD(EADWork collectionWork, EADWork parentWork, Nodes eadElements, JsonNode elementCfg, XmlDocumentParser parser, 
-            boolean newCollection, Map<String, String> componentWorks) {
+            boolean newCollection, Map<String, String> componentWorks) throws JsonParseException, JsonMappingException, IOException {
         for (int i = 0 ; i < eadElements.size(); i++) {
             Node eadElement = eadElements.get(i);
             EADWork workInCollection;
@@ -649,11 +651,12 @@ public class CollectionBuilder {
         Object dateRange = fieldsMap.get("date-range");
         if (dateRange != null && !dateRange.toString().isEmpty()) {
             log.debug("collection work " + collectionWork.getObjId() + ": date range: " + dateRange.toString());
-            collectionWork.asEADWork().setDateRange(dateRange.toString());
+            List<Date> dateList = DateParser.parseDateRange(dateRange);
+            collectionWork.asEADWork().setDateRange(dateList);
         }
     }
     
-    protected static void mapWorkMD(EADWork workInCollection, Node eadElement, JsonNode elementCfg, XmlDocumentParser parser) throws EADValidationException {
+    protected static void mapWorkMD(EADWork workInCollection, Node eadElement, JsonNode elementCfg, XmlDocumentParser parser) throws EADValidationException, JsonParseException, JsonMappingException, IOException {
         Map<String, Object> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));        
         if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").toString().isEmpty())
             throw new EADValidationException("Failed to process collection " + parser.collectionObjId + " as no Archive Space id found for component work " + workInCollection.getObjId());
