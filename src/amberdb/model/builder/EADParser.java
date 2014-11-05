@@ -1,7 +1,9 @@
 package amberdb.model.builder;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -109,8 +111,19 @@ public class EADParser extends XmlDocumentParser {
                     fldsMap.put(fldName, getAttribute(node, fldCfg));
                 } else {
                     Nodes nodes = node.query(fldCfg, xc);
-                    if (nodes != null && nodes.size() > 0)
-                        fldsMap.put(fldName, nodes.get(0).getValue());
+                    if (nodes != null && nodes.size() > 0) {
+                        if (nodes.size() == 1)
+                            fldsMap.put(fldName, nodes.get(0).getValue());
+                        else {
+                            // cater for multi-valued field
+                            List<String> values = new ArrayList<>();
+                            for (int i = 0; i < nodes.size(); i++) {
+                                if (((Element) nodes.get(i)).getValue() != null)
+                                    values.add(nodes.get(i).getValue());
+                            }
+                            fldsMap.put(fldName, values);
+                        }
+                    }
                 }
             } 
         }

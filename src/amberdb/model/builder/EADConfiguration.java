@@ -55,16 +55,17 @@ public class EADConfiguration {
         JsonNode summaryFields = mapper.createObjectNode();
         ((ObjectNode) summaryFields).put("uuid", "notsuuplied");
         ((ObjectNode) summaryFields).put("eadid", "//ead:ead/ead:eadheader/ead:eadid");
-        ((ObjectNode) summaryFields).put("collection-number", "//ead:ead/ead:archdesc/ead:did/ead:unitid");
+        ((ObjectNode) summaryFields).put("collection-number", "//ead:ead/ead:eadheader/ead:filedesc/ead:titlestmt/ead:titleproper/ead:num");
         ((ObjectNode) summaryFields).put("creator", "//ead:ead/ead:archdesc/ead:did/ead:origination/ead:persname");
         ((ObjectNode) summaryFields).put("title", "//ead:ead/ead:archdesc/ead:did/ead:unittitle");
         ((ObjectNode) summaryFields).put("date-range", "//ead:ead/ead:archdesc/ead:did/ead:unitdate");
-        ((ObjectNode) summaryFields).put("extent", "//ead:ead/ead:archdesc/ead:did/ead:physdesc");
+        ((ObjectNode) summaryFields).put("extent", "//ead:ead/ead:archdesc/ead:did/ead:physdesc/ead:extent");
         return summaryFields;
     }
     
     protected JsonNode getMappedIntroductionFieldsCfg() {
         JsonNode introductionFields = mapper.createObjectNode();
+        ((ObjectNode) introductionFields).put("repository", "//ead:ead/ead:archdesc/ead:did/ead:repository/ead:corpname");
         ((ObjectNode) introductionFields).put("scope-n-content", "//ead:ead/ead:archdesc/ead:scopecontent/ead:p");
         ((ObjectNode) introductionFields).put("arrangement", "//ead:ead/ead:archdesc/ead:arrangement/ead:p");
         ((ObjectNode) introductionFields).put("provenance", "//ead:ead/ead:archdesc/ead:acqinfo");
@@ -117,13 +118,13 @@ public class EADConfiguration {
     protected JsonNode getMappedSubElementFieldsCfg() {
         JsonNode mappedFields = mapper.createObjectNode();
         ((ObjectNode) mappedFields).put("title", "ead:did/ead:unittitle");
-        ((ObjectNode) mappedFields).put("ord", "ead:did/ead:unitid");
         ((ObjectNode) mappedFields).put("date-range", "ead:did/ead:unitdate");
         ((ObjectNode) mappedFields).put("scope-n-content", "ead:scopecontent/ead:p");
         ((ObjectNode) mappedFields).put("container-number", "ead:did/ead:container");
         ((ObjectNode) mappedFields).put("container-label", "ead:did/ead:container/@label");
         ((ObjectNode) mappedFields).put("container-type", "ead:did/ead:container/@type");
-        ((ObjectNode) mappedFields).put("sub-unit-type", "@level");
+        ((ObjectNode) mappedFields).put("component-level", "@level");
+        ((ObjectNode) mappedFields).put("component-number", "ead:did/ead:unitid");
         ((ObjectNode) mappedFields).put("uuid", "@id");
         return mappedFields;
     }
