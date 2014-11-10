@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -20,20 +21,18 @@ public class DateParser {
     "MMM dd, yyyy",
     "EEE, MMM d, yyyy",
     "EEE, d MMM yyyy",
+    "yyy MM dd",
     "yyyy.MM.dd",
     "yyyy-MM-dd" };
     
-    static final Comparator<String> comparator = new Comparator<String>() {
-        public int compare(String one, String other) {
-            if (one.length() > other.length()) return 1;
-            if (one.length() == other.length()) return 0;
-            return -1;
-        }
-    };
+    static final String[] dateRangePattern = { 
+        "(\\d\\d\\d\\d)\\s*-\\s*(\\d\\d\\d\\d)",
+        "(\\d\\d\\d\\d)\\s*/\\s*(\\d\\d\\d\\d)",
+        "(\\w*)\\s*-\\s*(\\w*)",
+        "(\\w*)\\s*/\\s*(\\w*)"};
     
     static List<SimpleDateFormat> dateFormats = new ArrayList<>();
     {
-        Arrays.sort(datePatterns, comparator);
         for (String datePattern : datePatterns) {
             dateFormats.add(new SimpleDateFormat(datePattern));
         }
@@ -70,5 +69,4 @@ public class DateParser {
             return null;
         }
     }
-
 }
