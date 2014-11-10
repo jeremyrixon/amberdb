@@ -56,6 +56,32 @@ public interface EADWork extends Work {
     public void setScopeContent(String scopeContent);
     
     /**
+     * correspondenceIndex: provide summary of correspondence indexed to entities associated
+     * with this EADWork. 
+     */
+    @Property("correspondenceIndex")
+    public String getCorrespondenceIndex();
+    
+    /**
+     * correspondenceIndex: provide summary of correspondence indexed to entities associated
+     * with this EADWork.
+     */
+    @Property("correspondenceIndex")
+    public void setCorrespondenceIndex(String correspondenceIndex);
+    
+    @Property("provenance")
+    public String getProvenance();
+    
+    @Property("provenance")
+    public void setProvenance(String provenance);
+    
+    @Property("altform")
+    public String getAltForm();
+    
+    @Property("altform")
+    public void setAltForm(String altform);
+    
+    /**
      * dateRange: the time period covered in this EAD work.
      */
     @Property("dateRange")
