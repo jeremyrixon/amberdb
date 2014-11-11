@@ -1,6 +1,7 @@
 package amberdb.model.builder;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -139,7 +140,12 @@ public class ComponentBuilder {
         Object dateRange = fieldsMap.get("date-range");
         if (dateRange != null && !dateRange.toString().isEmpty()) {
             log.debug("component work " + componentWork.getObjId() + ": date range: " + dateRange.toString());
-            List<Date> dateList = DateParser.parseDateRange(dateRange);
+            List<Date> dateList;
+            try {
+                dateList = DateParser.parseDateRange(dateRange.toString());
+            } catch (ParseException e) {
+                throw new IOException(e);
+            }
             componentWork.setDateRange(dateList);
         }
         
