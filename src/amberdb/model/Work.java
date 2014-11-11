@@ -203,6 +203,12 @@ public interface Work extends Node {
     @Property("holdingNumber")
     public void setHoldingNumber(String holdingNumber);
 
+    @Property("locationNumber")
+    public String getLocationNumber();
+
+    @Property("locationNumber")
+    public void setLocationNumber(String locationNumber);
+
     @Property("issn")
     public String getISSN();
 
@@ -834,7 +840,15 @@ public interface Work extends Node {
      * To be published in the catalogue
      */
     @Property("publicNotes")
-    public void setPublicNotes(String publicNotes);    
+    public void setPublicNotes(String publicNotes);
+
+    @Property("australianContent")
+    public Boolean isAustralianContent();
+
+    @Property("australianContent")
+    public void setAustralianContent(Boolean australianContent);
+
+
 
     @Adjacency(label = IsPartOf.label)
     public void setParent(final Work parent);
