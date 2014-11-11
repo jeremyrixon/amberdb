@@ -4,7 +4,9 @@ import static org.junit.Assert.*;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Month;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -13,11 +15,11 @@ import org.junit.Test;
 
 public class DateParserTest {
     static final String[] testDateRangeExprs = {
-        "c. 1732 - 1799", // circa date
-        "1817 - 1916",
-        "1817/1916",
-        "Mar 1817 - Sep 1916",
-        "03.Mar.1817/09.Sep.1916"
+       "c. 1732 - 1799", // circa date
+       "1817 - 1916",
+       "1817/1916",
+       "Mar 1817 - Sep 1916",
+       "03.Mar.1817/09.Sep.1916"
     };
     
     static List<Date> expectedFromDate = new ArrayList<>();
@@ -43,8 +45,8 @@ public class DateParserTest {
         int i = 0;
         for (String dateRangeExpr : testDateRangeExprs) {
             List<Date> dateRange = DateParser.parseDateRange(dateRangeExpr);
-            assertEquals(expectedFromDate.get(i), dateRange.get(0));
-            assertEquals(expectedToDate.get(i), dateRange.get(1));
+            assertEquals(dateFmt.format(expectedFromDate.get(i)), dateFmt.format(dateRange.get(0)));
+            assertEquals(dateFmt.format(expectedToDate.get(i)), dateFmt.format(dateRange.get(1)));
             i++;
         }
     }

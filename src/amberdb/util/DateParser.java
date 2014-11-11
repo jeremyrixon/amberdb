@@ -2,8 +2,10 @@ package amberdb.util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -21,78 +23,27 @@ public class DateParser {
         "(.*)\\s*/\\s*(.*)"};
     
     static final String[] yearPatterns = {
-        "(\\d\\d\\d\\d)\\s+(.*)",
-        "(\\d\\d\\d\\d)\\s*-\\s*(.*)",
-        "(\\d\\d\\d\\d)\\s*/\\s*(.*)",
-        "(\\d\\d\\d\\d)\\s*.\\s*(.*)",
-        "(.*)\\s+(\\d\\d\\d\\d)",
-        "(.*)\\s*-\\s*(\\d\\d\\d\\d)",
-        "(.*)\\s*/\\s*(\\d\\d\\d\\d)",
-        "(.*)\\s*,\\s*(\\d\\d\\d\\d)",
-        "(.*)\\s*.\\s*(\\d\\d\\d\\d)"
+        "(\\d{3,4})\\s*[\\s\\-\\./](.*)", // which covers
+                                          // "(\\d\\d\\d)\\s+(.*)",
+                                          // "(\\d\\d\\d)\\s*-\\s*(.*)",
+                                          // "(\\d\\d\\d)\\s*/\\s*(.*)",
+                                          // "(\\d\\d\\d)\\s*.\\s*(.*)",
+                                          // "(\\d\\d\\d\\d)\\s+(.*)",
+                                          // "(\\d\\d\\d\\d)\\s*-\\s*(.*)",
+                                          // "(\\d\\d\\d\\d)\\s*/\\s*(.*)",
+                                          // "(\\d\\d\\d\\d)\\s*.\\s*(.*)",
+        "(.*)\\s*[,\\s\\-\\./](\\d{3,4})"
     };
     
     static final String[] datePatterns = {
-        "(\\d\\d)\\s*-\\s*(.*)",
-        "(\\d\\d)\\s*/\\s*(.*)",
-        "(\\d\\d)\\s*.\\s*(.*)",
-        "(\\d)\\s+(.*)",
-        "(\\d)\\s*-\\s*(.*)",
-        "(\\d)\\s*/\\s*(.*)",
-        "(\\d)\\s*.\\s*(.*)",
-        "(\\d\\d)\\s+(.*)",
-        "(.*)\\s+(\\d\\d)",
-        "(.*)\\s*-\\s*(\\d\\d)",
-        "(.*)\\s*/\\s*(\\d\\d)",
-        "(.*)\\s*,\\s*(\\d\\d)",
-        "(.*)\\s*.\\s*(\\d\\d)",
-        "(.*)\\s+(\\d)",
-        "(.*)\\s*-\\s*(\\d)",
-        "(.*)\\s*/\\s*(\\d)",
-        "(.*)\\s*,\\s*(\\d)",
-        "(.*)\\s*.\\s*(\\d)"
-    };
+        "(\\d{1,2})\\s*[\\s\\-\\./](.*)",
+        "(.*)\\s*[,\\s\\-\\./](\\d{1,2})"
+    }; 
     
-    static final String[] monthAbbr = {
-        "JANUARY", // "January",
-        "FEBURARY", // "Feburary",
-        "MARCH", // "March",
-        "APRIL", // "April",
-        "MAY", // "May",
-        "JUNE", // "June",
-        "JULY", // "July",
-        "AUGUST", // "August",
-        "SEPTEMBER", // "September",
-        "OCTOBER", // "October",
-        "NOVEMBER", // "November",
-        "DECEMBER", // "December",
-        "JAN", // "Jan",
-        "FEB", // "Feb",
-        "MAR", // "Mar",
-        "APR", // "Apr",
-        "MAY", // "May",
-        "JUN", // "Jun",
-        "JUL", // "Jul",
-        "AUG", // "Aug",
-        "SEP", // "Sep",
-        "OCT", // "Oct",
-        "NOV", // "Nov",
-        "DEC" // "Dec"
-    };
+    static String[] monthAbbr = new String[24];  
+    static Map<String, Month> monthLu = new ConcurrentHashMap<>();
     
-    static final String[] shortMnth = {
-        "FEBURARY", // "Feburary",
-        "APRIL", // "April",
-        "JUNE", // "June",
-        "SEPTEMBER", // "September",
-        "NOVEMBER", // "November",
-        "FEB",
-        "APR",
-        "JUN",
-        "SEP",
-        "NOV"
-    };
-    
+    static final Calendar cal = Calendar.getInstance();
     static final SimpleDateFormat dateFmt1 = new SimpleDateFormat("dd/MM/yyyy");
     static final SimpleDateFormat dateFmt2 = new SimpleDateFormat("dd/MMM/yyyy");
     static Pattern[] dtRangePatterns;
@@ -100,8 +51,18 @@ public class DateParser {
     static Pattern[] dtPatterns;
     
     static {
-        dtRangePatterns = new Pattern[dateRangePattern.length];
         int i = 0;
+        for (Month month : Month.values()) {
+            monthAbbr[i] = month.toString();
+            monthAbbr[i+1] = monthAbbr[i].substring(0,3);
+            monthLu.put(monthAbbr[i], month);
+            monthLu.put(monthAbbr[i+1], month);
+            i++;
+            i++;
+        }
+        
+        dtRangePatterns = new Pattern[dateRangePattern.length];
+        i = 0;
         for (String expr : dateRangePattern) {
             dtRangePatterns[i] = Pattern.compile(expr);
             i++;
@@ -183,6 +144,7 @@ public class DateParser {
         List<String> mnthAbbrList = Arrays.asList(monthAbbr);
         if (mnthAbbrList.contains(restExpr.toUpperCase())) {
             Date potentialDate = constructDate(isFromDate, year, restExpr, null, mnthAbbrList);
+            String ddStr = dateFmt2.format(potentialDate);
             if (potentialDate != null) return potentialDate;
         }
         
@@ -216,7 +178,7 @@ public class DateParser {
     private static Date constructDate(boolean isFromDate, String year, String month, String date,
             List<String> mnthAbbrList) throws ParseException {
         SimpleDateFormat dateFmt = (mnthAbbrList.contains(month.toUpperCase())) ? dateFmt2 : dateFmt1;
-        String fmttedMonth = (mnthAbbrList.contains(month.toUpperCase())) ? month.substring(0,3) : month;
+        String fmttedMonth = (mnthAbbrList.contains(month.toUpperCase())) ? month.toUpperCase().substring(0,3) : month.toUpperCase();
         
         if (date != null && !date.isEmpty())
             return dateFmt.parse(date + "/" + fmttedMonth + "/" + year);
@@ -224,11 +186,15 @@ public class DateParser {
         if (isFromDate)
             return dateFmt.parse("01/" + fmttedMonth + "/" + year);
         else {
-            if (month.toUpperCase().startsWith("FEB"))
-                return dateFmt.parse("28/" + fmttedMonth + "/" + year);           
-            if (Arrays.asList(shortMnth).contains(month.toUpperCase()))
-                return dateFmt.parse("30/" + fmttedMonth + "/" + year);
-            return dateFmt.parse("31/" + fmttedMonth + "/" + year);
+            cal.set(Calendar.YEAR, Integer.parseInt(year));
+            cal.set(Calendar.MONTH, monthLu.get(month.toUpperCase()).getValue());
+            // Note: not sure sometimes time is over clocked, hence the work around below
+            Date newTime = dateFmt.parse("" + cal.getActualMaximum(Calendar.DAY_OF_MONTH) + "/" + fmttedMonth + "/" + year);
+            SimpleDateFormat fmt = new SimpleDateFormat("MMM");
+            String monthInNewTime = fmt.format(newTime);
+            if (!monthInNewTime.toUpperCase().equals(fmttedMonth))
+                return new Date(newTime.getTime() - 2);            
+            return newTime;
         }
     }
     
@@ -253,7 +219,7 @@ public class DateParser {
     private static Map.Entry<Pattern, List<String>> getMatchedExprPair(String expr, Pattern...patterns) {
         Map<Pattern, List<String>> match = new ConcurrentHashMap<>();
         List<String> exprPair = new ArrayList<>();
-        String error = null;
+        IllegalStateException error = null;
         for (Pattern pattern : patterns) {
             try {
                 Matcher matcher = pattern.matcher(expr);
@@ -264,12 +230,16 @@ public class DateParser {
                 exprPair.add(to);
                 match.put(pattern, exprPair);
                 return match.entrySet().iterator().next();
-            } catch (Exception e) {
-                error = e.getMessage();
+            } catch (IllegalStateException e) {
+                // if landed this exception, then try to parse the expression with the next pattern
+                error = e;
             }
         }
+        
+        // ok, this expression does not match any pattern defined, need to report this expression in order
+        // to have its pattern defined.
         if (error != null) 
-            throw new RuntimeException("Failed to parse expr : " + expr);
+            throw new RuntimeException("Failed to parse expr : " + expr + " as "+ error.getMessage(), error);
         return null;
     }
 }
