@@ -2,7 +2,6 @@ package amberdb.util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Month;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -40,8 +39,33 @@ public class DateParser {
         "(.*)\\s*[,\\s\\-\\./](\\d{1,2})"
     }; 
     
-    static String[] monthAbbr = new String[24];  
-    static Map<String, Month> monthLu = new ConcurrentHashMap<>();
+    static final String[] monthAbbr = {
+        "JANUARY",
+        "FEBRUARY",
+        "MARCH",
+        "APRIL",
+        "MAY",
+        "JUNE",
+        "JULY",
+        "AUGUST",
+        "SEPTEMBER",
+        "OCTOBER",
+        "NOVEMBER",
+        "DECEMBER",
+        "JAN",
+        "FEB",
+        "MAR",
+        "APR",
+        "MAY",
+        "JUN",
+        "JUL",
+        "AUG",
+        "SEP",
+        "OCT",
+        "NOV",
+        "DEC"
+    };  
+    static Map<String, Integer> monthLu = new ConcurrentHashMap<>();
     
     static final Calendar cal = Calendar.getInstance();
     static final SimpleDateFormat dateFmt1 = new SimpleDateFormat("dd/MM/yyyy");
@@ -51,13 +75,10 @@ public class DateParser {
     static Pattern[] dtPatterns;
     
     static {
-        int i = 0;
-        for (Month month : Month.values()) {
-            monthAbbr[i] = month.toString();
-            monthAbbr[i+1] = monthAbbr[i].substring(0,3);
-            monthLu.put(monthAbbr[i], month);
-            monthLu.put(monthAbbr[i+1], month);
-            i++;
+        int i = 1;
+        for (String month : monthAbbr) {
+            int mnth = (i > 12)? i - 12 : i;
+            monthLu.put(month, i);
             i++;
         }
         
@@ -187,7 +208,7 @@ public class DateParser {
             return dateFmt.parse("01/" + fmttedMonth + "/" + year);
         else {
             cal.set(Calendar.YEAR, Integer.parseInt(year));
-            cal.set(Calendar.MONTH, monthLu.get(month.toUpperCase()).getValue());
+            cal.set(Calendar.MONTH, monthLu.get(month.toUpperCase()));
             // Note: not sure sometimes time is over clocked, hence the work around below
             Date newTime = dateFmt.parse("" + cal.getActualMaximum(Calendar.DAY_OF_MONTH) + "/" + fmttedMonth + "/" + year);
             SimpleDateFormat fmt = new SimpleDateFormat("MMM");
