@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,7 +32,8 @@ public class DateParser {
                                           // "(\\d\\d\\d\\d)\\s*-\\s*(.*)",
                                           // "(\\d\\d\\d\\d)\\s*/\\s*(.*)",
                                           // "(\\d\\d\\d\\d)\\s*.\\s*(.*)",
-        "(.*)\\s*[,\\s\\-\\./](\\d{3,4})"
+        "(.*)\\s*[,\\s\\-\\./](\\d{3,4})",
+        "(\\d{3,4})"
     };
     
     static final String[] datePatterns = {
@@ -109,8 +111,9 @@ public class DateParser {
      * @throws ParseException
      */
     public static List<Date> parseDateRange(String dateRangeExpr) throws ParseException {
-        List<Date> dateRange = new ArrayList<>();
+        if (dateRangeExpr == null || dateRangeExpr.trim().isEmpty()) return null;
         
+        List<Date> dateRange = new ArrayList<>();      
         // trim circa date
         dateRangeExpr = dateRangeExpr.trim();
         if (dateRangeExpr.startsWith("c."))
@@ -146,8 +149,9 @@ public class DateParser {
      * @throws ParseException
      */
     public static Date parseDate(String dateExpr, boolean isFromDate) throws ParseException {
+        if (dateExpr == null) return null;
         // parse year
-        Map.Entry<Pattern, List<String>> yearAndRestMatch = getMatchedExprPair(dateExpr, yrPatterns);
+        Map.Entry<Pattern, List<String>> yearAndRestMatch = getMatchedExprPair(dateExpr.trim(), yrPatterns);
         if (yearAndRestMatch == null) return null;
         
         String year = "";
@@ -163,6 +167,9 @@ public class DateParser {
         
         // parse month
         List<String> mnthAbbrList = Arrays.asList(monthAbbr);
+        if (restExpr == null || restExpr.isEmpty()) 
+            return constructDate(isFromDate, year, null, null, mnthAbbrList);
+        
         if (mnthAbbrList.contains(restExpr.toUpperCase())) {
             Date potentialDate = constructDate(isFromDate, year, restExpr, null, mnthAbbrList);
             String ddStr = dateFmt2.format(potentialDate);
@@ -198,6 +205,10 @@ public class DateParser {
      */
     private static Date constructDate(boolean isFromDate, String year, String month, String date,
             List<String> mnthAbbrList) throws ParseException {
+        if (month == null) {
+            month = (isFromDate)?"JAN":"DEC";
+        }
+       
         SimpleDateFormat dateFmt = (mnthAbbrList.contains(month.toUpperCase())) ? dateFmt2 : dateFmt1;
         String fmttedMonth = (mnthAbbrList.contains(month.toUpperCase())) ? month.toUpperCase().substring(0,3) : month.toUpperCase();
         
@@ -244,13 +255,22 @@ public class DateParser {
         for (Pattern pattern : patterns) {
             try {
                 Matcher matcher = pattern.matcher(expr);
-                matcher.find();
-                String from = matcher.group(1).trim();
-                String to = matcher.group(2).trim();
-                exprPair.add(from);
-                exprPair.add(to);
-                match.put(pattern, exprPair);
-                return match.entrySet().iterator().next();
+                if (matcher.find()) {
+                    MatchResult result = matcher.toMatchResult();
+                    String from = null;
+                    String to = null;
+                    if (result.groupCount() == 1) {
+                        from = matcher.toMatchResult().group(1).trim();
+                        to = null;
+                    } else if (result.groupCount() == 2) {
+                        from = matcher.toMatchResult().group(1).trim();
+                        to = matcher.toMatchResult().group(2).trim();
+                    }
+                    exprPair.add(from);
+                    exprPair.add(to);
+                    match.put(pattern, exprPair);
+                    return match.entrySet().iterator().next();
+                }
             } catch (IllegalStateException e) {
                 // if landed this exception, then try to parse the expression with the next pattern
                 error = e;
