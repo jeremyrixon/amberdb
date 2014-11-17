@@ -204,12 +204,6 @@ public interface Work extends Node {
     @Property("holdingNumber")
     public void setHoldingNumber(String holdingNumber);
 
-    @Property("locationNumber")
-    public String getLocationNumber();
-
-    @Property("locationNumber")
-    public void setLocationNumber(String locationNumber);
-
     @Property("issn")
     public String getISSN();
 
