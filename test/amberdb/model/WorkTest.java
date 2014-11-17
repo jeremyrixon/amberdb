@@ -249,13 +249,26 @@ public class WorkTest {
         // assert representedWorks has only one element
         assertFalse(representedIt.hasNext());
     }
+
+    @Test
+    public void testEmptyIterableNotNull() {
+        
+        Work work = db.addWork();
+        Copy c = work.addCopy();
+
+        // test if problem with empty iterable
+        for (Work w : c.getRepresentedWorks()) {
+            // noop
+        }
+    }
     
-    @Test(expected = CurrentlyRepresentingException.class)
-    public void testDeleteWorkRecursiveContainingRepresentativeCopy() {
+    @Test
+    public void testGetWorksRepresentedByCopiesOf() {
         Work newWork = db.addWork();
         Copy representativeCopy = workFrontCover.getCopy(CopyRole.MASTER_COPY);
         newWork.addRepresentation(representativeCopy);
-        db.deleteWorkRecursive(bookBlinkyBill);
+        Map<Long, Long> reps = db.getWorksRepresentedByCopiesOf(workFrontCover);
+        assertEquals((Long) reps.get(newWork.getId()), (Long) representativeCopy.getId());
     }
     
     @Test(expected = NoSuchObjectException.class)
