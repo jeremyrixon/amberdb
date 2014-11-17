@@ -9,6 +9,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.codehaus.jackson.JsonParseException;
@@ -23,6 +24,7 @@ import amberdb.relation.DescriptionOf;
 import amberdb.relation.IsCopyOf;
 import amberdb.relation.IsFileOf;
 import amberdb.relation.IsSourceCopyOf;
+import amberdb.relation.Represents;
 import amberdb.util.Jp2Converter;
 
 import com.tinkerpop.blueprints.Direction;
@@ -263,6 +265,9 @@ public interface Copy extends Node {
 
     @Adjacency(label = IsCopyOf.label)
     public Work getWork();
+    
+    @Adjacency(label = Represents.label)
+    public Iterable<Work> getRepresentedWorks();
     
     @JavaHandler
     @Deprecated

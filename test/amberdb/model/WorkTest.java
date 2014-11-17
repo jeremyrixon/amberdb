@@ -1,5 +1,6 @@
 package amberdb.model;
 
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -11,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -22,6 +24,7 @@ import org.junit.Test;
 import com.tinkerpop.blueprints.Direction;
 
 import amberdb.AmberSession;
+import amberdb.CurrentlyRepresentingException;
 import amberdb.InvalidSubtypeException;
 import amberdb.NoSuchObjectException;
 import amberdb.enums.CopyRole;
@@ -230,6 +233,31 @@ public class WorkTest {
         db.findWork(workVertexId);
     }
     
+    @Test
+    public void testRepresentWork() {
+        Work newWork = db.addWork();
+        Copy representativeCopy = workFrontCover.getCopy(CopyRole.MASTER_COPY);
+        newWork.addRepresentation(representativeCopy);
+        Iterable<Work> representedWorks = representativeCopy.getRepresentedWorks();
+        assertNotNull(representedWorks);
+
+        // assert representedWorks has at least one element
+        Iterator<Work> representedIt = representedWorks.iterator();
+        assertTrue(representedIt.hasNext());
+        assertEquals(newWork, representedIt.next());
+        
+        // assert representedWorks has only one element
+        assertFalse(representedIt.hasNext());
+    }
+    
+    @Test(expected = CurrentlyRepresentingException.class)
+    public void testDeleteWorkRecursiveContainingRepresentativeCopy() {
+        Work newWork = db.addWork();
+        Copy representativeCopy = workFrontCover.getCopy(CopyRole.MASTER_COPY);
+        newWork.addRepresentation(representativeCopy);
+        db.deleteWorkRecursive(bookBlinkyBill);
+    }
+    
     @Test(expected = NoSuchObjectException.class)
     public void testDeletePage() {  
        
@@ -253,6 +281,7 @@ public class WorkTest {
         db.deletePage(page);
         db.findWork(workVertexId);
     }
+    
 
     @Test
     public void testOrderChildren() {

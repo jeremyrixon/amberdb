@@ -21,6 +21,7 @@ import amberdb.enums.SubType;
 import amberdb.relation.DescriptionOf;
 import amberdb.relation.IsCopyOf;
 import amberdb.relation.IsPartOf;
+import amberdb.relation.Represents;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberQuery;
 import amberdb.graph.AmberVertex;
@@ -888,6 +889,9 @@ public interface Work extends Node {
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public void addCopy(final Copy copy);
+    
+    @Adjacency(label = Represents.label, direction = Direction.IN)
+    public void removeRepresentation(final Copy copy);
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public void removeCopy(final Copy copy);
@@ -916,6 +920,9 @@ public interface Work extends Node {
      */
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public void removePage(final Page page);
+    
+    @Adjacency(label = Represents.label, direction = Direction.IN)
+    public void addRepresentation(final Copy copy);
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public Copy addCopy();

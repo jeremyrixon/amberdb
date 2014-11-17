@@ -362,6 +362,16 @@ public class AmberSession implements AutoCloseable {
      * @param copy
      */
     public void deleteCopy(final Copy copy) {
+        Iterable<Work> representedWorks = copy.getRepresentedWorks();
+        if (representedWorks != null && representedWorks.iterator().hasNext()) {
+            String representedWorkIds = "";
+            for (Work w : representedWorks) {
+                if (w != null) representedWorkIds += w.getObjId();
+            }
+            if (!representedWorkIds.isEmpty())
+                throw new CurrentlyRepresentingException("Failed to delete copy " + copy.getObjId() + " as it's reprsenting works:" + representedWorkIds);
+        }
+        
         Work work = copy.getWork();
         for (File file : copy.getFiles()) {
             for (Description desc : file.getDescriptions()) {
