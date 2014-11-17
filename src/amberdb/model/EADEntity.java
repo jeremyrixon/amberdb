@@ -37,6 +37,12 @@ public interface EADEntity extends Description{
     @Property("correspondenceId")
     public void setJSONCorrespondenceId(String correspondenceId);
     
+    @Property("correspondenceRef")
+    public String getCorrespondencRef();
+    
+    @Property("correspondenceRef")
+    public void setCorrespondenceRef(String correspondenceRef);
+    
     @JavaHandler
     public List<String> getEntityName() throws JsonParseException, JsonMappingException, IOException;
     
