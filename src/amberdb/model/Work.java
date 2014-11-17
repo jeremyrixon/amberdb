@@ -927,6 +927,9 @@ public interface Work extends Node {
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public Copy addCopy();
 
+    @Adjacency(label = Represents.label, direction = Direction.IN)
+    public Iterable<Copy> getRepresentations();
+    
     /**
      * Adds a page Work and create a MASTER_COPY Copy Node with a File for it
      */

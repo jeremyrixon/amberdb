@@ -309,15 +309,25 @@ public class AmberSession implements AutoCloseable {
      */
     public void deleteWork(final Work work) {
         Work parent = work.getParent();
+        // detach work from parent
         if (parent != null) {
             parent.removePart(work);
         }
+        // delete copies of work
         Iterable<Copy> copies = work.getCopies();
         if (copies != null) {
             for (Copy copy : copies) {
                 deleteCopy(copy);
             }
         }
+        // detach representations from work
+        Iterable<Copy> representations = work.getRepresentations();
+        if (representations != null) {
+            for (Copy representation : representations) {
+                work.removeRepresentation(representation);
+            }
+        }
+        // delete work
         graph.removeVertex(work.asVertex());
     }
 

@@ -259,6 +259,28 @@ public class WorkTest {
     }
     
     @Test(expected = NoSuchObjectException.class)
+    public void testDeleteWorkRetainsRepresentation() {
+        // create new work and assign its representative copy
+        Work newWork = db.addWork();
+        String newWorkId = newWork.getObjId();
+        String workFrontCoverId = workFrontCover.getObjId();
+        Copy representativeCopy = workFrontCover.getCopy(CopyRole.MASTER_COPY);
+        newWork.addRepresentation(representativeCopy);
+        
+        // delete new work
+        db.deleteWork(newWork);
+        db.commit();
+        
+        // verify the representative copy still exist in db
+        Work foundWorkFrontCover = db.findWork(workFrontCoverId);
+        Copy afterDeleteCopy = foundWorkFrontCover.getCopy(CopyRole.MASTER_COPY);
+        assertEquals(representativeCopy, afterDeleteCopy);
+        
+        // verify the new work is deleted through NoSuchObjectException thrown
+        Work afterDeleteNewWork = db.findWork(newWorkId);
+    }
+    
+    @Test(expected = NoSuchObjectException.class)
     public void testDeletePage() {  
        
         Page page = workTitlePage;
