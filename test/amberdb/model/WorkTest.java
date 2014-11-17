@@ -259,7 +259,7 @@ public class WorkTest {
     }
     
     @Test(expected = NoSuchObjectException.class)
-    public void testDeleteWorkRetainsRepresentation() {
+    public void testDeleteWorkShouldNotDeleteCopyFromOtherWork() {
         // create new work and assign its representative copy
         Work newWork = db.addWork();
         String newWorkId = newWork.getObjId();
