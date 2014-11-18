@@ -158,8 +158,8 @@ public class TransactionQuery {
         s.append("DROP TABLE IF EXISTS v0;\n");
         s.append("DROP TABLE IF EXISTS e0;\n");
         
-        s.append("CREATE TEMPORARY TABLE v0 (id BIGINT);\n");
-        s.append("CREATE TEMPORARY TABLE e0 (id BIGINT);\n");
+        s.append("CREATE TEMPORARY TABLE v0 (id BIGINT) " + graph.tempTableEngine + ";\n");
+        s.append("CREATE TEMPORARY TABLE e0 (id BIGINT) " + graph.tempTableEngine + ";\n");
         
         s.append("INSERT INTO v0 (id) \n"
                + "SELECT id \n"
@@ -189,9 +189,9 @@ public class TransactionQuery {
         s.append("DROP TABLE IF EXISTS f0;\n");
         s.append("DROP TABLE IF EXISTS d0;\n");
 
-        s.append("CREATE TEMPORARY TABLE c0 (id BIGINT);\n"); // Copies
-        s.append("CREATE TEMPORARY TABLE f0 (id BIGINT);\n"); // Files
-        s.append("CREATE TEMPORARY TABLE d0 (id BIGINT);\n"); // Descriptions
+        s.append("CREATE TEMPORARY TABLE c0 (id BIGINT) " + graph.tempTableEngine + ";\n"); // Copies
+        s.append("CREATE TEMPORARY TABLE f0 (id BIGINT) " + graph.tempTableEngine + ";\n"); // Files
+        s.append("CREATE TEMPORARY TABLE d0 (id BIGINT) " + graph.tempTableEngine + ";\n"); // Descriptions
         
         return s.toString();
     }

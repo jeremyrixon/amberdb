@@ -47,6 +47,7 @@ public class AmberGraph extends BaseGraph
     private AmberDao dao;
 
     String dbProduct;
+    protected String tempTableEngine = "";
     
     protected Map<Object, Edge> removedEdges = new HashMap<>();
     protected Map<Object, Vertex> removedVertices = new HashMap<>();
@@ -118,6 +119,7 @@ public class AmberGraph extends BaseGraph
         }
 
         if (dbProduct.equals("MySQL")) {
+            tempTableEngine = "ENGINE=memory";
             return dbi.onDemand(AmberDaoMySql.class);
         } else if (dbProduct.equals("H2")) {
             return dbi.onDemand(AmberDaoH2.class);
@@ -198,7 +200,6 @@ public class AmberGraph extends BaseGraph
     public DBI dbi() {
         return dbi;
     }
-    
     
     public String toString() {
         return ("ambergraph");

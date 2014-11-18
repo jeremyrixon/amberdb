@@ -74,14 +74,14 @@ public class VersionQuery {
                 + "vid BIGINT, "
                 + "eid BIGINT, "
                 + "label VARCHAR(100), "
-                + "edge_order BIGINT);\n");
+                + "edge_order BIGINT) " + graph.tempTableEngine + ";\n");
         
         s.append("CREATE TEMPORARY TABLE v1 ("
                 + "step INT, "
                 + "vid BIGINT, "
                 + "eid BIGINT, "
                 + "label VARCHAR(100), "
-                + "edge_order BIGINT);\n");
+                + "edge_order BIGINT)" + graph.tempTableEngine + ";\n");
         
         // inject head
         s.append(String.format(
