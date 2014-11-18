@@ -2,6 +2,7 @@ package amberdb.version;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,6 +12,7 @@ import java.util.Set;
 
 import org.skife.jdbi.v2.Handle;
 
+import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
 
 
@@ -49,6 +51,15 @@ public class VersionQuery {
         return this;
     }
     
+    public VersionQuery branch(String label, Direction direction) {
+        clauses.add(new QueryClause(Arrays.asList(label), direction));
+       return this;
+   }
+    
+    public VersionQuery branch(String[] labels, Direction direction) {
+        clauses.add(new QueryClause(Lists.newArrayList(labels), direction));
+       return this;
+   }
     
     class QueryClause {
         List<String> labels;
