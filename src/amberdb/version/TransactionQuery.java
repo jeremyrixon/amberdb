@@ -93,6 +93,9 @@ public class TransactionQuery {
         // add them to the graph
         Map<Long, Set<TVertex>> vertexSets = new HashMap<>();
         for (TVertex vertex : vertices) {
+            
+System.out.println("XXXXXXVW+ERT "+ vertex);            
+            
             Long versId = vertex.getId().id;
             if (vertexSets.get(versId) == null) 
                 vertexSets.put(versId, new HashSet<TVertex>()); 
@@ -148,7 +151,7 @@ public class TransactionQuery {
 
         if (lastTxn == null) {
             txnWhereClause1 = "WHERE (txn_start = "+firstTxn+") \n";
-            txnWhereClause2 = "WHERE (txn_end <= "+firstTxn+") \n";
+            txnWhereClause2 = "WHERE (txn_end = "+firstTxn+") \n";
         } else {
             txnWhereClause1 = "WHERE (txn_start >= "+firstTxn+" AND txn_start <= "+lastTxn+") \n";
             txnWhereClause2 = "WHERE (txn_end >= "+firstTxn+" AND txn_end <= "+lastTxn+") \n";
@@ -162,20 +165,20 @@ public class TransactionQuery {
         s.append("CREATE TEMPORARY TABLE e0 (id BIGINT);\n");
         
         s.append("INSERT INTO v0 (id) \n"
-               + "SELECT id \n"
+               + "SELECT DISTINCT id \n"
                + "FROM vertex \n"
                + txnWhereClause1 + ";\n");
         s.append("INSERT INTO v0 (id) \n"
-               + "SELECT id \n"
+               + "SELECT DISTINCT id \n"
                + "FROM vertex \n"
                + txnWhereClause2 + ";\n");
         
         s.append("INSERT INTO e0 (id) \n"
-               + "SELECT id \n"
+               + "SELECT DISTINCT id \n"
                + "FROM edge \n" 
                + txnWhereClause1 + ";\n");
         s.append("INSERT INTO e0 (id) \n"
-               + "SELECT id \n"
+               + "SELECT DISTINCT id \n"
                + "FROM edge \n" 
                + txnWhereClause2 + ";\n");
 

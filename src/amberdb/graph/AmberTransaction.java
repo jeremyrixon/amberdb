@@ -5,7 +5,6 @@ import java.util.Date;
 
 public class AmberTransaction {
 
-    
     Long id;
     Long time;
     String user;

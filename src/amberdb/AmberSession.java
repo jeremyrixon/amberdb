@@ -4,10 +4,8 @@ package amberdb;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -38,8 +36,8 @@ import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberHistory;
 import amberdb.graph.AmberTransaction;
 
+
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.TransactionalGraph;
 import com.tinkerpop.blueprints.Vertex;
@@ -623,6 +621,7 @@ public class AmberSession implements AutoCloseable {
      *            The copy to be deleted
      */
     public Map<String, Integer> deleteCopyWithAudit(Map<String, Integer> counts, final Copy copy) {
+        
         for (File file : copy.getFiles()) {
             for (Description desc : file.getDescriptions()) {
                 graph.removeVertex(desc.asVertex());
