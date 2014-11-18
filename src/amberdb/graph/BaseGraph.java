@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.Lists;
+import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Features;
 import com.tinkerpop.blueprints.Graph;
@@ -222,6 +223,7 @@ public class BaseGraph implements Graph, TransactionalGraph {
     
     @Override
     public void removeEdge(Edge e) {
+
         BaseEdge be = (BaseEdge) e;
 
         inEdgeSets.get(be.outId).remove(e);
@@ -241,6 +243,12 @@ public class BaseGraph implements Graph, TransactionalGraph {
             throw new IllegalStateException("Cannot remove non-existent vertex : " + v.getId());
         }
         
+        removeVertexWithoutGuard(v);
+    }
+
+
+    protected void removeVertexWithoutGuard(Vertex v) {
+
         BaseVertex bv = (BaseVertex) v;
         
         Set<Edge> inEdges = inEdgeSets.remove(bv.getId());

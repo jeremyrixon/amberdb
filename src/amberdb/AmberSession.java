@@ -4,6 +4,7 @@ package amberdb;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +38,6 @@ import amberdb.graph.AmberHistory;
 import amberdb.graph.AmberTransaction;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.common.collect.Iterables;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.TransactionalGraph;
@@ -307,11 +307,6 @@ public class AmberSession implements AutoCloseable {
      * @param work
      */
     public void deleteWork(final Work work) {
-
-        Work parent = work.getParent();
-        if (parent != null) {
-            parent.removePart(work);
-        }
 
         // delete copies of work
         Iterable<Copy> copies = work.getCopies();

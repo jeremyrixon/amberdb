@@ -93,9 +93,6 @@ public class TransactionQuery {
         // add them to the graph
         Map<Long, Set<TVertex>> vertexSets = new HashMap<>();
         for (TVertex vertex : vertices) {
-            
-System.out.println("XXXXXXVW+ERT "+ vertex);            
-            
             Long versId = vertex.getId().id;
             if (vertexSets.get(versId) == null) 
                 vertexSets.put(versId, new HashSet<TVertex>()); 
