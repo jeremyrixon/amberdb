@@ -924,6 +924,12 @@ public interface Work extends Node {
     @Adjacency(label = Represents.label, direction = Direction.IN)
     public Iterable<Copy> getRepresentations();
     
+    @Property("hasRepresentation")
+    public Boolean getHasRepresenation();
+    
+    @Property("hasRepresentation")
+    public void setHasRepresentation(Boolean hasRepresentation);
+    
     /**
      * Adds a page Work and create a MASTER_COPY Copy Node with a File for it
      */
