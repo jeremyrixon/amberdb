@@ -1,5 +1,6 @@
 package amberdb.model;
 
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -11,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -230,6 +232,66 @@ public class WorkTest {
         db.findWork(workVertexId);
     }
     
+    @Test
+    public void testRepresentWork() {
+        Work newWork = db.addWork();
+        Copy representativeCopy = workFrontCover.getCopy(CopyRole.MASTER_COPY);
+        newWork.addRepresentation(representativeCopy);
+        Iterable<Work> representedWorks = representativeCopy.getRepresentedWorks();
+        assertNotNull(representedWorks);
+
+        // assert representedWorks has at least one element
+        Iterator<Work> representedIt = representedWorks.iterator();
+        assertTrue(representedIt.hasNext());
+        assertEquals(newWork, representedIt.next());
+        
+        // assert representedWorks has only one element
+        assertFalse(representedIt.hasNext());
+    }
+
+    @Test
+    public void testEmptyIterableNotNull() {
+        
+        Work work = db.addWork();
+        Copy c = work.addCopy();
+
+        // test if problem with empty iterable
+        for (Work w : c.getRepresentedWorks()) {
+            // noop
+        }
+    }
+    
+    @Test
+    public void testGetWorksRepresentedByCopiesOf() {
+        Work newWork = db.addWork();
+        Copy representativeCopy = workFrontCover.getCopy(CopyRole.MASTER_COPY);
+        newWork.addRepresentation(representativeCopy);
+        Map<Long, Long> reps = db.getWorksRepresentedByCopiesOf(workFrontCover);
+        assertEquals((Long) reps.get(newWork.getId()), (Long) representativeCopy.getId());
+    }
+    
+    @Test(expected = NoSuchObjectException.class)
+    public void testDeleteWorkShouldNotDeleteCopyFromOtherWork() {
+        // create new work and assign its representative copy
+        Work newWork = db.addWork();
+        String newWorkId = newWork.getObjId();
+        String workFrontCoverId = workFrontCover.getObjId();
+        Copy representativeCopy = workFrontCover.getCopy(CopyRole.MASTER_COPY);
+        newWork.addRepresentation(representativeCopy);
+        
+        // delete new work
+        db.deleteWork(newWork);
+        db.commit();
+        
+        // verify the representative copy still exist in db
+        Work foundWorkFrontCover = db.findWork(workFrontCoverId);
+        Copy afterDeleteCopy = foundWorkFrontCover.getCopy(CopyRole.MASTER_COPY);
+        assertEquals(representativeCopy, afterDeleteCopy);
+        
+        // verify the new work is deleted through NoSuchObjectException thrown
+        Work afterDeleteNewWork = db.findWork(newWorkId);
+    }
+    
     @Test(expected = NoSuchObjectException.class)
     public void testDeletePage() {  
        
@@ -253,6 +315,7 @@ public class WorkTest {
         db.deletePage(page);
         db.findWork(workVertexId);
     }
+    
 
     @Test
     public void testOrderChildren() {
