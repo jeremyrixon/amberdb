@@ -2,7 +2,9 @@ package amberdb.model.builder;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -14,6 +16,7 @@ import nu.xom.Nodes;
 import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -31,6 +34,7 @@ import amberdb.model.Copy;
 import amberdb.model.EADWork;
 import amberdb.model.File;
 import amberdb.model.Work;
+import amberdb.util.DateParser;
 
 import static amberdb.model.builder.XmlDocumentParser.CFG_COLLECTION_ELEMENT;
 import static amberdb.model.builder.XmlDocumentParser.CFG_SUB_ELEMENTS;
@@ -572,12 +576,16 @@ public class CollectionBuilder {
     }
     
     protected static void traverseEAD(EADWork collectionWork, EADWork parentWork, Nodes eadElements, JsonNode elementCfg, XmlDocumentParser parser, 
-            boolean newCollection, Map<String, String> componentWorks) {
+            boolean newCollection, Map<String, String> componentWorks) throws JsonParseException, JsonMappingException, IOException {
         for (int i = 0 ; i < eadElements.size(); i++) {
             Node eadElement = eadElements.get(i);
             EADWork workInCollection;
             if (newCollection) {
                workInCollection = parentWork.addEADWork();
+               if (collectionWork.getRepository() != null)
+                   workInCollection.setRepository(collectionWork.getRepository());
+               // inherit access conditions from the top-level collection work
+               workInCollection.setAccessConditions(collectionWork.getAccessConditions());
                mapWorkMD(workInCollection, eadElement, elementCfg, parser); 
             } else {
                JsonNode component = ComponentBuilder.makeComponent(eadElement, elementCfg, parser);
@@ -586,7 +594,10 @@ public class CollectionBuilder {
                    ((ObjectNode) component).put("nlaObjId", componentWorks.get(uuid));
                }
                workInCollection = ComponentBuilder.mergeComponent(collectionWork, parentWork, component);
-            }                              
+               if (collectionWork.getRepository() != null)
+                   workInCollection.setRepository(collectionWork.getRepository());
+            }      
+            workInCollection.getParentEdge().setRelOrder(i + 1);
             
             String repeatablePath = elementCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
             Nodes nextLevel = parser.traverse(eadElement, repeatablePath);
@@ -600,6 +611,21 @@ public class CollectionBuilder {
         log.debug("collection config: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(collectionCfg));
         log.debug("collection fieldMap: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(fieldsMap));
 
+        if (fieldsMap.get("repository") != null)
+            collectionWork.asEADWork().setRepository(fieldsMap.get("repository").toString());
+        
+        if (fieldsMap.get("collection-number") != null)
+            collectionWork.asEADWork().setCollectionNumber(fieldsMap.get("collection-number").toString());
+        
+        Object extent = fieldsMap.get("extent");
+        if (extent != null && extent instanceof String) {
+            if (!extent.toString().isEmpty())
+                collectionWork.setExtent(extent.toString());
+        } else if (extent != null) {
+            List<String> extentList = (List<String>) extent;
+            collectionWork.setExtent(StringUtils.join(extentList, "; "));
+        }
+
         collectionWork.setCreator(fieldsMap.get("creator").toString());
         collectionWork.setSubType("Work");
         collectionWork.setSubUnitType("Collection");
@@ -610,7 +636,11 @@ public class CollectionBuilder {
         collectionWork.asEADWork().setRdsAcknowledgementType("Sponsor");
         collectionWork.asEADWork().setRdsAcknowledgementReceiver("NLA");
         collectionWork.asEADWork().setEADUpdateReviewRequired("Y");   
-        collectionWork.setAccessConditions("Unrestricted");
+        
+        // default access conditions to Restricted if not set 
+        if (collectionWork.getAccessConditions() == null || collectionWork.getAccessConditions().isEmpty())
+            collectionWork.setAccessConditions("Restricted");
+        
         collectionWork.setTitle(fieldsMap.get("title").toString());
         collectionWork.setUniformTitle(fieldsMap.get("title").toString());
         
@@ -622,19 +652,23 @@ public class CollectionBuilder {
         Object dateRange = fieldsMap.get("date-range");
         if (dateRange != null && !dateRange.toString().isEmpty()) {
             log.debug("collection work " + collectionWork.getObjId() + ": date range: " + dateRange.toString());
-            collectionWork.asEADWork().setDateRange(dateRange.toString());
+            List<Date> dateList;
+            try {
+                dateList = DateParser.parseDateRange(dateRange.toString());
+            } catch (ParseException e) {
+                throw new IOException(e);
+            }
+            collectionWork.asEADWork().setDateRange(dateList);
         }
     }
     
-    protected static void mapWorkMD(EADWork workInCollection, Node eadElement, JsonNode elementCfg, XmlDocumentParser parser) throws EADValidationException {
+    protected static void mapWorkMD(EADWork workInCollection, Node eadElement, JsonNode elementCfg, XmlDocumentParser parser) throws EADValidationException, JsonParseException, JsonMappingException, IOException {
         Map<String, Object> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));        
         if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").toString().isEmpty())
             throw new EADValidationException("Failed to process collection " + parser.collectionObjId + " as no Archive Space id found for component work " + workInCollection.getObjId());
         
-        // TODO: map subUnitType later on.
-        String subUnitType = "Series";
         String uuid = fieldsMap.get("uuid").toString();
-        ComponentBuilder.mapWorkMD(workInCollection, uuid, subUnitType, fieldsMap);
+        ComponentBuilder.mapWorkMD(workInCollection, uuid, fieldsMap);
     }
     
     protected static void traverseCollection (Work work, JsonNode structure, JsonNode content) {
@@ -666,9 +700,9 @@ public class CollectionBuilder {
     
     private static JsonNode mapWorkProperties(Work work) {
         JsonNode workProperties = mapper.createObjectNode();
-        String[] fields = { "creator", "title", "subType", "subUnitType", "form", "bibLevel", "collection", "recordSource", "localSystemNumber",
+        String[] fields = { "repository", "extent", "collectionNumber", "creator", "title", "subType", "subUnitType", "form", "bibLevel", "collection", "recordSource", "localSystemNumber",
                                "rdsAcknowledgementType", "rdsAcknowledgementReceiver", "eadUpdateReviewRequired", "accessConditions",
-                               "scopeContent", "dateRange", "folder"};
+                               "componentLevel", "componentNumber", "scopeContent", "dateRange", "folder"};
         for (String field : fields) {
             if (work.asVertex().getProperty(field) != null)
                 ((ObjectNode) workProperties).put(field, work.asVertex().getProperty(field).toString());

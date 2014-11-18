@@ -21,6 +21,7 @@ import amberdb.enums.SubType;
 import amberdb.relation.DescriptionOf;
 import amberdb.relation.IsCopyOf;
 import amberdb.relation.IsPartOf;
+import amberdb.relation.Represents;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberQuery;
 import amberdb.graph.AmberVertex;
@@ -834,7 +835,15 @@ public interface Work extends Node {
      * To be published in the catalogue
      */
     @Property("publicNotes")
-    public void setPublicNotes(String publicNotes);    
+    public void setPublicNotes(String publicNotes);
+
+    @Property("australianContent")
+    public Boolean isAustralianContent();
+
+    @Property("australianContent")
+    public void setAustralianContent(Boolean australianContent);
+
+
 
     @Adjacency(label = IsPartOf.label)
     public void setParent(final Work parent);
@@ -874,6 +883,9 @@ public interface Work extends Node {
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public void addCopy(final Copy copy);
+    
+    @Adjacency(label = Represents.label, direction = Direction.IN)
+    public void removeRepresentation(final Copy copy);
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public void removeCopy(final Copy copy);
@@ -902,10 +914,16 @@ public interface Work extends Node {
      */
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public void removePage(final Page page);
+    
+    @Adjacency(label = Represents.label, direction = Direction.IN)
+    public void addRepresentation(final Copy copy);
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public Copy addCopy();
 
+    @Adjacency(label = Represents.label, direction = Direction.IN)
+    public Iterable<Copy> getRepresentations();
+    
     /**
      * Adds a page Work and create a MASTER_COPY Copy Node with a File for it
      */

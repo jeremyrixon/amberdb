@@ -1,7 +1,10 @@
 package amberdb.model;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import org.codehaus.jackson.JsonParseException;
@@ -41,32 +44,109 @@ public interface EADWork extends Work {
     public void setEADUpdateReviewRequired(String eadUpdateReviewRequired);
     
     /**
-     * 
-     * @return
+     * scopeContent: scope of content (aka: abstract) for this EAD work.
      */
     @Property("scopeContent")
     public String getScopeContent();
     
     /**
-     * 
-     * @param scopeContent
+     * scopeContent: scope of content (aka: abstract) for this EAD work.
      */
     @Property("scopeContent")
     public void setScopeContent(String scopeContent);
     
     /**
-     * 
-     * @return
+     * correspondenceIndex: provide summary of correspondence indexed to entities associated
+     * with this EADWork. 
      */
-    @Property("dateRange")
-    public String getDateRange();
+    @Property("correspondenceIndex")
+    public String getCorrespondenceIndex();
     
     /**
-     * 
-     * @param dateRange
+     * correspondenceIndex: provide summary of correspondence indexed to entities associated
+     * with this EADWork.
+     */
+    @Property("correspondenceIndex")
+    public void setCorrespondenceIndex(String correspondenceIndex);
+    
+    @Property("provenance")
+    public String getProvenance();
+    
+    @Property("provenance")
+    public void setProvenance(String provenance);
+    
+    @Property("altform")
+    public String getAltForm();
+    
+    @Property("altform")
+    public void setAltForm(String altform);
+    
+    /**
+     * dateRange: the time period covered in this EAD work.
      */
     @Property("dateRange")
-    public void setDateRange(String dateRange);
+    public String getJSONDateRange();
+    
+    /**
+     * dateRange: the time period covered in this EAD work.
+     */
+    @Property("dateRange")
+    public void setJSONDateRange(String dateRange);
+    
+    @JavaHandler
+    public List<Date> getDateRange() throws JsonParseException, JsonMappingException, IOException;
+    
+    @JavaHandler
+    public void setDateRange(List<Date> dateRange) throws JsonParseException, JsonMappingException, IOException;
+    
+    @JavaHandler
+    public String getFmttedDateRange() throws JsonParseException, JsonMappingException, IOException;
+    
+    /**
+     * repository: the repository that holds the collection this EADWork belongs to.
+     */
+    @Property("repository")
+    public String getRepository();
+    
+    /**
+     * repository: the repository that holds the collection this EADWork belongs to.
+     */
+    @Property("repository")
+    public void setRepository(String repository);
+    
+    @Property("collectionNumber")
+    public String getCollectionNumber();
+    
+    @Property("collectionNumber")
+    public void setCollectionNumber(String collectionNumber);
+    
+    /**
+     * componentLevel: the level within the collection for this EAD work.
+     * Example component levels include series, subseries and file
+     */
+    @Property("componentLevel")
+    public String getComponentLevel();
+    
+    /**
+     * componentLevel: the level within the collection for this EAD work.
+     * Example component levels include series, subseries and file
+     */
+    @Property("componentLevel")
+    public void setComponentLevel(String componentLevel);
+    
+    /**
+     * componentNumber: components are numbered within each level e.g. 1, and the
+     *                  numbering may include linkage to parent e.g. 1.1
+     */
+    @Property("componentNumber")
+    public String getComponentNumber();
+    
+    /**
+     * componentNumber: components are numbered within each level e.g. 1, and the
+     *                  numbering may include linkage to parent e.g. 1.1
+     */
+    @Property("componentNumber")
+    public void setComponentNumber(String componentNumber);
     
     /**
      * This property is encoded as a JSON Array - You probably want to use
@@ -121,6 +201,51 @@ public interface EADWork extends Work {
     public EADFeature getEADFeature(long objectId);
     
     abstract class Impl extends Work.Impl implements JavaHandlerContext<Vertex>, EADWork {
+        @Override
+        public List<Date> getDateRange() throws JsonParseException, JsonMappingException, IOException {
+            List<String> dateRangeStrs = deserialiseJSONString(getJSONDateRange());
+            if (dateRangeStrs == null) return null;
+            List<Date> dateRange = new ArrayList<>();
+            for (String dateRangeStr : dateRangeStrs) {
+                Date date = new Date(Long.parseLong(dateRangeStr));
+                dateRange.add(date);
+            }
+            return dateRange;
+        }
+        
+        @Override
+        public void setDateRange(List<Date> dateRange) throws JsonParseException, JsonMappingException, IOException {
+            if (dateRange == null || dateRange.isEmpty())
+                return;
+            Collections.sort(dateRange);
+            List<String> dateRangeStrs = new ArrayList<>();
+            for (Date date : dateRange) {
+                if (date != null) {
+                    Long time = date.getTime();
+                    dateRangeStrs.add("" + time);
+                }
+            }
+            setJSONDateRange(serialiseToJSON(dateRangeStrs));
+        }
+        
+        @Override
+        public String getFmttedDateRange() throws JsonParseException, JsonMappingException, IOException {
+            List<Date> dateRange = getDateRange();
+            if (dateRange == null || dateRange.isEmpty()) return "";
+            Date from = dateRange.get(0);
+            Date to = (dateRange.size() > 1)? dateRange.get(dateRange.size() - 1) : null;
+            
+            SimpleDateFormat dateFmt = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
+            SimpleDateFormat yearFmt = new SimpleDateFormat("yyyy");
+            String fmttedFrom = (from == null)?"":dateFmt.format(from);
+            String fmttedTo = (to == null)? "" : dateFmt.format(to);
+            if (fmttedFrom.startsWith("01/01") && fmttedFrom.endsWith("00:00:00"))
+                fmttedFrom = yearFmt.format(from);
+            if (fmttedTo.endsWith("31/12") && fmttedTo.endsWith("23:59:59"))
+                fmttedTo = yearFmt.format(to);
+            return fmttedFrom + " - " + fmttedTo;
+        }
+        
         @Override
         public List<String> getFolder() throws JsonParseException, JsonMappingException, IOException {
             return deserialiseJSONString(getJSONFolder());

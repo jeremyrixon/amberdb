@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public enum CopyType {
-    DIGITAL_COPY("d");
+    DIGITAL_COPY("d", "digitised");
     
     private String code;
+    private String name;
     
-    private CopyType(String code) {
+    private CopyType(String code, String name) {
         this.code = code;
+        this.name = name;
     }
     
     public static CopyType fromString(String code) {
@@ -26,7 +28,11 @@ public enum CopyType {
     public String code() {
         return code;
     }
-    
+
+    public String getName() {
+        return name;
+    }
+
     public static List<String> list() {
         List<String> list = new ArrayList<String>();
         for (CopyType lu : CopyType.values()) {

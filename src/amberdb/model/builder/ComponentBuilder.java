@@ -1,7 +1,9 @@
 package amberdb.model.builder;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,6 +12,8 @@ import nu.xom.Element;
 import nu.xom.Node;
 
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
 import org.slf4j.Logger;
@@ -18,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import amberdb.PIUtil;
 import amberdb.model.EADWork;
 import amberdb.model.Work;
+import amberdb.util.DateParser;
 
 public class ComponentBuilder {
     static final Logger log = LoggerFactory.getLogger(CollectionBuilder.class);
@@ -29,8 +34,11 @@ public class ComponentBuilder {
      * @param parentWork
      * @param components
      * @return
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
      */
-    public static List<EADWork> mergeComponents(EADWork collectionWork, EADWork parentWork, JsonNode... components) {
+    public static List<EADWork> mergeComponents(EADWork collectionWork, EADWork parentWork, JsonNode... components) throws JsonParseException, JsonMappingException, IOException {
         List<EADWork> componentWorks = new ArrayList<>();
         for (JsonNode component : components) {
             componentWorks.add(mergeComponent(collectionWork, parentWork, component));
@@ -54,8 +62,11 @@ public class ComponentBuilder {
      *                     updated EAD finding aid yet) attached.
      * @param component  - a component from the new updated EAD finding aid.
      * @return the object Id of the updated component EADWork in the collection after the merge. 
+     * @throws IOException 
+     * @throws JsonMappingException 
+     * @throws JsonParseException 
      */
-    public static EADWork mergeComponent(EADWork collectionWork, EADWork parentWork, JsonNode component) {
+    public static EADWork mergeComponent(EADWork collectionWork, EADWork parentWork, JsonNode component) throws JsonParseException, JsonMappingException, IOException {
         EADWork componentWork;
         
         if (component.get("nlaObjId") == null) {
@@ -80,18 +91,14 @@ public class ComponentBuilder {
         return componentWork;
     }
     
-    protected static EADWork updateComponentData(EADWork componentWork, JsonNode component) {
-        // TODO: map subUnitType later on.
-        String subUnitType = "Series";
-        Map<String, Object> fieldsMap = new ConcurrentHashMap<>();
-        // TODO: set the component fields unit title, scope-n-content and date range during the reload    
-        mapWorkMD(componentWork, component.get("uuid").getTextValue(), subUnitType, fieldsMap);
+    protected static EADWork updateComponentData(EADWork componentWork, JsonNode component) throws JsonParseException, JsonMappingException, IOException {
+        Map<String, Object> fieldsMap = new ConcurrentHashMap<>();   
+        mapWorkMD(componentWork, component.get("uuid").getTextValue(), fieldsMap);
         return componentWork;
     }
     
-    protected static void mapWorkMD(EADWork componentWork, String uuid, String subUnitType, Map<String, Object> fieldsMap) {
+    protected static void mapWorkMD(EADWork componentWork, String uuid, Map<String, Object> fieldsMap) throws JsonParseException, JsonMappingException, IOException {
         componentWork.setSubType("Work");      
-        componentWork.setSubUnitType(subUnitType);
         componentWork.setForm("Manuscript");
         componentWork.setBibLevel("Item");
         componentWork.setCollection("nla.ms");
@@ -101,6 +108,23 @@ public class ComponentBuilder {
         componentWork.setRdsAcknowledgementReceiver("NLA");
         componentWork.setEADUpdateReviewRequired("Y"); 
         componentWork.setAccessConditions("Unrestricted");
+        
+        Object componentLevel = fieldsMap.get("component-level");
+        if (componentLevel != null && !componentLevel.toString().isEmpty()) {
+            log.debug("component work " + componentWork.getObjId() + ": componentLevel: " + componentLevel.toString());
+            componentWork.setComponentLevel(componentLevel.toString());
+            componentWork.setSubUnitType(componentLevel.toString());
+            // determine bib level with business rule borrowed from DCM
+            String bibLevel = (componentLevel != null && componentLevel.toString().equalsIgnoreCase("item"))?"Item":"Set";
+            componentWork.setBibLevel(bibLevel);
+        }
+        
+        Object componentNumber = fieldsMap.get("component-number");
+        if (componentNumber != null && !componentNumber.toString().isEmpty()) {
+            log.debug("component work " + componentWork.getObjId() + ": componentNumber: " + componentNumber.toString());
+            componentWork.setComponentNumber(componentNumber.toString());
+            componentWork.setSubUnitNo(componentNumber.toString());
+        }
         
         Object unitTitle = fieldsMap.get("title");
         if (unitTitle != null && !unitTitle.toString().isEmpty()) {
@@ -116,7 +140,13 @@ public class ComponentBuilder {
         Object dateRange = fieldsMap.get("date-range");
         if (dateRange != null && !dateRange.toString().isEmpty()) {
             log.debug("component work " + componentWork.getObjId() + ": date range: " + dateRange.toString());
-            componentWork.setDateRange(dateRange.toString());
+            List<Date> dateList;
+            try {
+                dateList = DateParser.parseDateRange(dateRange.toString());
+            } catch (ParseException e) {
+                throw new IOException(e);
+            }
+            componentWork.setDateRange(dateList);
         }
         
         mapContainer(componentWork, fieldsMap);
@@ -180,7 +210,7 @@ public class ComponentBuilder {
         if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").toString().isEmpty())
             throw new EADValidationException("Failed to parse uuid for EAD element " + ((Element) eadElement).getLocalName() + " - " + eadElement.getValue());
         
-        // TODO: map subUnitType later on.
+        // Default subUnitType to Series, this may be overwritten later on by mapWorkMD.
         String subUnitType = "Series";
         String uuid = fieldsMap.get("uuid").toString();
         node.put("uuid", uuid);

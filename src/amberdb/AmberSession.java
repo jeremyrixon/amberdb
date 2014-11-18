@@ -36,8 +36,9 @@ import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberHistory;
 import amberdb.graph.AmberTransaction;
 
-
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.common.collect.Iterables;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.TransactionalGraph;
 import com.tinkerpop.blueprints.Vertex;
@@ -306,16 +307,26 @@ public class AmberSession implements AutoCloseable {
      * @param work
      */
     public void deleteWork(final Work work) {
+
         Work parent = work.getParent();
         if (parent != null) {
             parent.removePart(work);
         }
+
+        // delete copies of work
         Iterable<Copy> copies = work.getCopies();
         if (copies != null) {
             for (Copy copy : copies) {
                 deleteCopy(copy);
             }
         }
+
+        // descriptions
+        for (Description desc : work.getDescriptions()) {
+            graph.removeVertex(desc.asVertex());
+        }
+
+        // delete work
         graph.removeVertex(work.asVertex());
     }
 
@@ -360,7 +371,7 @@ public class AmberSession implements AutoCloseable {
      * @param copy
      */
     public void deleteCopy(final Copy copy) {
-        Work work = copy.getWork();
+
         for (File file : copy.getFiles()) {
             for (Description desc : file.getDescriptions()) {
                 graph.removeVertex(desc.asVertex());
@@ -576,7 +587,7 @@ public class AmberSession implements AutoCloseable {
      * @param counts
      *            A map containing counts of the different object types deleted
      * @param work
-     *            The work to be deleted
+     *            The works to be deleted
      */
     public Map<String, Integer> deleteWorkWithAudit(Map<String, Integer> counts, final Work... works) {
 
@@ -609,6 +620,38 @@ public class AmberSession implements AutoCloseable {
         return counts;
     }
     
+
+    private static final int MAX_DEPTH = 15;
+    /**
+     * Return a Map of Work ids for Works that are 'represented' by Copies that are 
+     * descendants of the given list of Works (ie: Copies of the listed Works or any 
+     * of their descendants). The Work id maps to its representing Copy id.
+     * 
+     * @param representedBy
+     *            A map with Work ids as the key mapping to their representing Copy's id
+     * @param depth
+     *            Used to prevent cycles while traversing the graph. Maximum depth set by MAX_DEPTH 
+     * @param works
+     *            The Works to be searched for representing Copies
+     */
+    protected Map<Long, Long> getWorksRepresentedByCopiesOf(Map<Long, Long> representedBy, int depth, final Work... works) {
+        if (depth >= MAX_DEPTH) return representedBy; // possibly throw Exception instead ?
+        for (Work work : works) {
+            // process this work's copies
+            for (Copy copy : work.getCopies()) {
+                for (Work rep : copy.getRepresentedWorks()) {
+                    representedBy.put(rep.getId(), copy.getId());
+                }
+            }
+            // process this work's descendant works 
+            getWorksRepresentedByCopiesOf(representedBy, depth+1, Iterables.toArray(work.getChildren(), Work.class));
+        }  
+        return representedBy;
+    }
+    public Map<Long, Long> getWorksRepresentedByCopiesOf(final Work... works) {
+        return getWorksRepresentedByCopiesOf(new HashMap<Long, Long>(), 0, works);
+    }
+
 
     /**
      * Delete all the vertices representing the copy, all its files and their
