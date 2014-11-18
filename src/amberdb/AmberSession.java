@@ -310,6 +310,11 @@ public class AmberSession implements AutoCloseable {
      */
     public void deleteWork(final Work work) {
 
+        Work parent = work.getParent();
+        if (parent != null) {
+            parent.removePart(work);
+        }
+
         // delete copies of work
         Iterable<Copy> copies = work.getCopies();
         if (copies != null) {
@@ -631,24 +636,18 @@ public class AmberSession implements AutoCloseable {
      * @param works
      *            The Works to be searched for representing Copies
      */
-    public Map<Long, Long> getWorksRepresentedByCopiesOf(Map<Long, Long> representedBy, int depth, final Work... works) {
-
+    protected Map<Long, Long> getWorksRepresentedByCopiesOf(Map<Long, Long> representedBy, int depth, final Work... works) {
         if (depth >= MAX_DEPTH) return representedBy; // possibly throw Exception instead ?
-
         for (Work work : works) {
-
-            // copies
+            // process this work's copies
             for (Copy copy : work.getCopies()) {
                 for (Work rep : copy.getRepresentedWorks()) {
                     representedBy.put(rep.getId(), copy.getId());
                 }
             }
-            
-            /* process the descendant works */ 
-            depth++;
-            getWorksRepresentedByCopiesOf(representedBy, depth, Iterables.toArray(work.getChildren(), Work.class));
+            // process this work's descendant works 
+            getWorksRepresentedByCopiesOf(representedBy, depth+1, Iterables.toArray(work.getChildren(), Work.class));
         }  
-
         return representedBy;
     }
     public Map<Long, Long> getWorksRepresentedByCopiesOf(final Work... works) {

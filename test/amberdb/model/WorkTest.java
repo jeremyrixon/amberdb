@@ -24,7 +24,6 @@ import org.junit.Test;
 import com.tinkerpop.blueprints.Direction;
 
 import amberdb.AmberSession;
-import amberdb.CurrentlyRepresentingException;
 import amberdb.InvalidSubtypeException;
 import amberdb.NoSuchObjectException;
 import amberdb.enums.CopyRole;
