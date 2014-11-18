@@ -335,7 +335,7 @@ public interface AmberDao extends Transactional<AmberDao> {
     @Mapper(EdgeMapper.class)
     List<AmberEdgeWithState> getEdgesByTransactionId(@Bind("id") Long id);
 
-
+    
     @SqlQuery("SELECT id, time, user, operation "
             + "FROM transaction "
             + "WHERE id = (" 

@@ -214,8 +214,17 @@ public class AmberGraph extends BaseGraph
     
     @Override
     public void removeVertex(Vertex v) {
+        
+        // guard
+        if (!graphVertices.containsKey(v.getId())) {
+            throw new IllegalStateException("Cannot remove non-existent vertex : " + v.getId());
+        }
+        
+        for (Edge e : v.getEdges(Direction.BOTH)) {
+            removedEdges.put(e.getId(), e);
+        }
         removedVertices.put(v.getId(), v);
-        super.removeVertex(v);
+        super.removeVertexWithoutGuard(v); // existence check already performed above
     }
     
     
