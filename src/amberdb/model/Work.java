@@ -925,10 +925,21 @@ public interface Work extends Node {
     public Iterable<Copy> getRepresentations();
     
     @Property("hasRepresentation")
-    public Boolean getHasRepresenation();
+    public String getHasRepresenation();
     
+    /**
+     * The boolean value in property is encoded as "y"/"n" string - You probably want to use
+     * setHasRepresentationIndicator to set this property
+     */
     @Property("hasRepresentation")
-    public void setHasRepresentation(Boolean hasRepresentation);
+    public void setHasRepresentation(String hasRepresentation);
+    
+    /**
+     * This method takes in a boolean value and store it as "y"/"n" string in the hasRepresentation 
+     * property 
+     */
+    @JavaHandler
+    public void setHasRepresentationIndicator(Boolean hasRepresentation);
     
     /**
      * Adds a page Work and create a MASTER_COPY Copy Node with a File for it
@@ -1352,6 +1363,17 @@ public interface Work extends Node {
         @Override
         public void setDcmAltPi(List<String> list) throws JsonParseException, JsonMappingException, IOException {
             setJSONDcmAltPi(serialiseToJSON(list));
+        }
+        
+        @Override
+        public void setHasRepresentationIndicator(Boolean hasRepresentation) {
+            if (hasRepresentation == null) {
+                setHasRepresentation(null);
+            } else if (hasRepresentation) {
+                setHasRepresentation("y");
+            } else {
+                setHasRepresentation("n");
+            }
         }
     }
 }
