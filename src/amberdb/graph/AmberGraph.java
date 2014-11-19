@@ -141,6 +141,8 @@ public class AmberGraph extends BaseGraph
         dao.createEdgeInVertexIndex();
         dao.createEdgeOutVertexIndex();
         dao.createEdgeLabelIndex();
+        dao.createEdgeInTraversalIndex();
+        dao.createEdgeOutTraversalIndex();
         
         dao.createPropertyIndex();
         dao.createPropertyNameIndex();

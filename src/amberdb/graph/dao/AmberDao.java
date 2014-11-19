@@ -181,6 +181,20 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "ON edge(v_out)")
     void createEdgeOutVertexIndex();
 
+	/*
+	 * Put all the columns we need for traversal into one index to save index
+	 * merging which is costing us 100ms+ in AmberQuery when a vertex has
+	 * a lot of outgoing edges.
+	 */
+	@SqlUpdate(
+			"CREATE INDEX edge_in_traversal_idx " 
+			+ "ON edge(txn_end, v_in, label, edge_order, v_out)")
+	void createEdgeInTraversalIndex();
+
+	@SqlUpdate(
+			"CREATE INDEX edge_out_traversal_idx "
+			+ "ON edge(txn_end, v_out, label, edge_order, v_in)")
+	void createEdgeOutTraversalIndex();
     
     @SqlUpdate(
             "CREATE INDEX sess_edge_idx "
@@ -199,7 +213,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "ON sess_property(s_id)")
     void createSessionPropertyIndex();
 
-    
+
     @SqlQuery(
             "SELECT (COUNT(table_name) = 8) "
             + "FROM information_schema.tables " 
