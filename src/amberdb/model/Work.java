@@ -925,7 +925,7 @@ public interface Work extends Node {
     public Iterable<Copy> getRepresentations();
     
     @Property("hasRepresentation")
-    public String getHasRepresenation();
+    public String getHasRepresentation();
     
     /**
      * The boolean value in property is encoded as "y"/"n" string - You probably want to use
@@ -939,7 +939,10 @@ public interface Work extends Node {
      * property 
      */
     @JavaHandler
-    public void setHasRepresentationIndicator(Boolean hasRepresentation);
+    public void setRepresented(Boolean represented);
+    
+    @JavaHandler
+    public boolean isRepresented();
     
     /**
      * Adds a page Work and create a MASTER_COPY Copy Node with a File for it
@@ -1366,14 +1369,16 @@ public interface Work extends Node {
         }
         
         @Override
-        public void setHasRepresentationIndicator(Boolean hasRepresentation) {
-            if (hasRepresentation == null) {
-                setHasRepresentation(null);
-            } else if (hasRepresentation) {
-                setHasRepresentation("y");
-            } else {
-                setHasRepresentation("n");
+        public void setRepresented(Boolean represented) {
+            if (represented != null) {
+                setHasRepresentation(represented?"y":"n");
             }
+        }
+        
+        @Override
+        public boolean isRepresented() {
+            String represented = getHasRepresentation();
+            return (represented == null)? false : ((represented.equalsIgnoreCase("y"))? true : false);
         }
     }
 }
