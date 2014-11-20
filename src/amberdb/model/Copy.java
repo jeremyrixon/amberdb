@@ -1,6 +1,8 @@
 package amberdb.model;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
@@ -12,10 +14,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import amberdb.AmberSession;
 import amberdb.NoSuchCopyException;
@@ -37,6 +42,7 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
 import doss.Blob;
 import doss.BlobStore;
+import doss.NoSuchBlobException;
 import doss.Writable;
 import doss.core.Writables;
 
@@ -276,8 +282,11 @@ public interface Copy extends Node {
     @JavaHandler
     Copy deriveJp2ImageCopy(Path jp2Converter, Path imgConverter) throws IllegalStateException, IOException, InterruptedException, Exception;
 
-
+    @JavaHandler
+    Copy derivePdfCopy(Path pdfConverter, Path stylesheet, Path altStylesheet) throws IllegalStateException, NoSuchBlobException, IOException, InterruptedException;
+    
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Copy {
+        static final Logger log = LoggerFactory.getLogger(Copy.class);
         static ObjectMapper mapper = new ObjectMapper();
         
         @Override
@@ -434,6 +443,124 @@ public interface Copy extends Node {
                     }
                 }
                 stage.toFile().delete();
+            }
+        }
+        
+        @Override
+        public Copy derivePdfCopy(Path pdfConverter, Path stylesheet, Path altStylesheet) throws IllegalStateException, NoSuchBlobException, IOException, InterruptedException {
+            File eadFile = this.getFile();
+            if (!eadFile.getMimeType().equals("application/xml")) {
+                throw new IllegalStateException("Failed to generate pdf from this copy. " + this.getWork().getObjId() + " " + getCopyRole() + " copy is not a xml file.");
+            }
+            Path stage = null;
+            try {
+                // create a temporary file processing location for generating pdf
+                stage = Files.createTempDirectory("amberdb-derivative");
+                
+                // assume this Copy is a FINDING_AID_COPY
+                Long blobId = this.getFile().getBlobId();
+                
+                // get this copy's blob store...
+                BlobStore doss = AmberSession.ownerOf(g()).getBlobStore();
+                
+                // pdf finally...
+                Path pdfPath = generatePdf(doss, pdfConverter, stylesheet, altStylesheet, stage, blobId);
+                
+                // add the derived pdf copy
+                Copy pc = null;
+                if (pdfPath != null) {
+                    EADWork work = this.getWork().asEADWork();
+                    pc = work.getCopy(CopyRole.FINDING_AID_PRINT_COPY);
+                    if (pc == null) {
+                        pc = work.addCopy(pdfPath, CopyRole.FINDING_AID_PRINT_COPY, "application/pdf");
+                        pc.setSourceCopy(this);
+                    } else {
+                        pc.getFile().put(pdfPath);
+                    }
+                    File pcf = pc.getFile();
+                    pcf.setFileFormat("pdf");
+                }
+                return pc;
+            } finally {
+                // clean up temporary working space
+                java.io.File[] files = stage.toFile().listFiles();
+                if (files != null) {
+                    for (java.io.File f : files)
+                        f.delete();
+                }
+                stage.toFile().delete();
+            }
+        }
+
+        private Path generatePdf(BlobStore doss, Path pdfConverter, Path stylesheet, Path altStylesheet, Path stage,
+                Long blobId) throws NoSuchBlobException, IOException, InterruptedException {
+            if (blobId == null)
+                throw new NoSuchCopyException(this.getWork().getId(), CopyRole.fromString(getCopyRole()));
+            
+            // prepare file for conversion
+            Path eadPath = stage.resolve(blobId + ".xml"); // where to put the ead xml from the amber
+            copyBlobToFile(doss.get(blobId), eadPath);
+            
+            // pdf file
+            Path pdfPath = stage.resolve(blobId + ".pdf"); // name the pdf derivative after the original blob id
+            
+            // Convert to pdf
+            convertToPDF(pdfConverter, stylesheet, altStylesheet, eadPath, pdfPath);
+            return pdfPath;
+        }
+
+        private void convertToPDF(Path pdfConverter, Path stylesheet, Path altStylesheet, Path eadPath, Path pdfPath) throws IOException, InterruptedException {
+            try {
+                executeCmd(new String[] {
+                        pdfConverter.toString(),
+                        "-xml",
+                        eadPath.toString(),
+                        "-xsl",
+                        stylesheet.toString(),
+                        "-pdf",
+                        pdfPath.toString()
+                });
+            } catch (IOException | InterruptedException e) {
+                executeCmd(new String[] {
+                        pdfConverter.toString(),
+                        "-xml",
+                        eadPath.toString(),
+                        "-xsl",
+                        altStylesheet.toString(),
+                        "-pdf",
+                        pdfPath.toString()
+                });
+            }
+            
+        }
+        
+        // Execute a command
+        private void executeCmd(String[] cmd) throws IOException, InterruptedException {
+            // Log command
+            log.debug("Run command: ", StringUtils.join(cmd, ' '));
+
+            // Execute command
+            ProcessBuilder builder = new ProcessBuilder(cmd);
+            Process p = builder.start();
+            p.waitFor();
+            int exitVal = p.exitValue();
+            String msg = "";
+            if (exitVal > 0) {
+                // Error - Read from error stream
+                StringBuffer sb = new StringBuffer();
+                String line;
+
+                BufferedReader br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                while ((line = br.readLine()) != null) {
+                    if (sb.length() > 0) {
+                        sb.append('\n');
+                    }
+                    sb.append(line);
+                }
+                br.close();
+
+                msg = sb.toString().trim();
+                throw new IOException(msg);
             }
         }
 
