@@ -204,21 +204,6 @@
       <artifactId>xom</artifactId>
       <version>1.2.5</version>
     </dependency>
-    <dependency>
-      <groupId>net.sourceforge.dynamicreports</groupId>
-      <artifactId>dynamicreports-core</artifactId>
-      <version>3.2.1</version>
-    </dependency>
-    <dependency>
-      <groupId>net.sf.jasperreports</groupId>
-      <artifactId>jasperreports</artifactId>
-      <version>5.5.1</version>
-    </dependency>
-    <dependency>
-      <groupId>com.lowagie</groupId>
-      <artifactId>itext</artifactId>
-      <version>4.2.1</version>
-    </dependency>
   </dependencies>
   <repositories>
     <repository>
