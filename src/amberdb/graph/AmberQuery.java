@@ -132,7 +132,7 @@ public class AmberQuery extends AmberQueryBase {
                 + "vid BIGINT, "
                 + "eid BIGINT, "
                 + "label VARCHAR(100), "
-                + "edge_order BIGINT);\n");
+                + "edge_order BIGINT) " + graph.tempTableEngine + ";\n");
 
         // double buffer table to get around mysql limitation
         // of not being able to open the same temporary table
@@ -143,7 +143,7 @@ public class AmberQuery extends AmberQueryBase {
                 + "vid BIGINT, "
                 + "eid BIGINT, "
                 + "label VARCHAR(100), "
-                + "edge_order BIGINT);\n");
+                + "edge_order BIGINT) " + graph.tempTableEngine + ";\n");
 
         
         // inject head
