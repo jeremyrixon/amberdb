@@ -924,6 +924,26 @@ public interface Work extends Node {
     @Adjacency(label = Represents.label, direction = Direction.IN)
     public Iterable<Copy> getRepresentations();
     
+    @Property("hasRepresentation")
+    public String getHasRepresentation();
+    
+    /**
+     * The boolean value in property is encoded as "y"/"n" string - You probably want to use
+     * setHasRepresentationIndicator to set this property
+     */
+    @Property("hasRepresentation")
+    public void setHasRepresentation(String hasRepresentation);
+    
+    /**
+     * This method takes in a boolean value and store it as "y"/"n" string in the hasRepresentation 
+     * property 
+     */
+    @JavaHandler
+    public void setRepresented(Boolean represented);
+    
+    @JavaHandler
+    public boolean isRepresented();
+    
     /**
      * Adds a page Work and create a MASTER_COPY Copy Node with a File for it
      */
@@ -1346,6 +1366,19 @@ public interface Work extends Node {
         @Override
         public void setDcmAltPi(List<String> list) throws JsonParseException, JsonMappingException, IOException {
             setJSONDcmAltPi(serialiseToJSON(list));
+        }
+        
+        @Override
+        public void setRepresented(Boolean represented) {
+            if (represented != null) {
+                setHasRepresentation(represented?"y":"n");
+            }
+        }
+        
+        @Override
+        public boolean isRepresented() {
+            String represented = getHasRepresentation();
+            return (represented == null)? false : ((represented.equalsIgnoreCase("y"))? true : false);
         }
     }
 }
