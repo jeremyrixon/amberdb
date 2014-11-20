@@ -1,6 +1,7 @@
 package amberdb.version;
 
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -36,8 +37,9 @@ public class VersionedGraph {
     public static final DataSource DEFAULT_DATASOURCE = 
             JdbcConnectionPool.create("jdbc:h2:mem:persist","pers","pers");
 
-    protected DBI dbi;
-    private VersionDao dao;
+    protected final DBI dbi;
+    protected final String tempTableEngine;
+    private final VersionDao dao;
 
     private boolean localMode = false;
     public void setLocalMode(boolean localModeOn) {
@@ -86,27 +88,30 @@ public class VersionedGraph {
 
     
     public VersionedGraph() {
-        initGraph(DEFAULT_DATASOURCE);
+        this(DEFAULT_DATASOURCE);
     }
 
     
     public VersionedGraph(DataSource dataSource) {
-        initGraph(dataSource);
+        this(new DBI(dataSource));
     }
 
     
     public VersionedGraph(DBI dbi) {
         this.dbi = dbi;
         dao = this.dbi.onDemand(VersionDao.class);
+        
+        try (Handle h = dbi.open()) {
+        	String dbProduct;
+        	try {
+        		dbProduct = h.getConnection().getMetaData().getDatabaseProductName();
+			} catch (SQLException e) {
+				throw new RuntimeException("Unable to get database product name", e);
+			}
+			tempTableEngine = "MySQL".equals(dbProduct) ? "ENGINE=memory" : "";
+        }
     }
-    
-    
-    private void initGraph(DataSource dataSource) {
-        dbi = new DBI(dataSource);
-        dao = dbi.onDemand(VersionDao.class);
-    }
-    
-    
+        
     public VersionDao dao() {
         return dao;
     }
