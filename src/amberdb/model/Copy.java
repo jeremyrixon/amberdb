@@ -2,6 +2,7 @@ package amberdb.model;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
@@ -31,7 +32,9 @@ import amberdb.relation.IsFileOf;
 import amberdb.relation.IsSourceCopyOf;
 import amberdb.relation.Represents;
 import amberdb.util.Jp2Converter;
+import amberdb.util.PdfTransformerFop;
 
+import com.google.common.base.Function;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.frames.Adjacency;
@@ -285,6 +288,9 @@ public interface Copy extends Node {
     @JavaHandler
     Copy derivePdfCopy(Path pdfConverter, Path stylesheet, Path altStylesheet) throws IllegalStateException, NoSuchBlobException, IOException, InterruptedException;
     
+    @JavaHandler
+    Copy derivePdfCopy(Function<InputStream, Writable> transformer, CopyRole copyRole) throws IOException;
+    
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Copy {
         static final Logger log = LoggerFactory.getLogger(Copy.class);
         static ObjectMapper mapper = new ObjectMapper();
@@ -444,6 +450,23 @@ public interface Copy extends Node {
                 }
                 stage.toFile().delete();
             }
+        }
+        
+        @Override
+        public Copy derivePdfCopy(Function<InputStream, Writable> transformer, CopyRole copyRole) throws IOException {
+            File file = this.getFile();
+            if (file == null)
+                throw new RuntimeException("Failed to generate pdf copy for work " + getWork().getObjId() + " as no file can be found for this copy " + getObjId());
+            if (!file.getMimeType().equals("application/xml")) {
+                throw new RuntimeException("Failed to generate pdf copy for work " + getWork().getObjId() + " as this copy " + getObjId() + " is not an xml file.");
+            }
+            
+            Writable pdfContent = transformer.apply(file.openStream());
+            Copy pdfCopy = this.getWork().addCopy();
+            pdfCopy.setCopyRole(copyRole.code());
+            pdfCopy.setSourceCopy(this);
+            pdfCopy.addFile(pdfContent, "application/pdf");
+            return pdfCopy;
         }
         
         @Override
