@@ -2,7 +2,6 @@ package amberdb.model;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
@@ -12,7 +11,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
@@ -34,7 +32,6 @@ import amberdb.relation.Represents;
 import amberdb.util.Jp2Converter;
 import amberdb.util.PdfTransformerFop;
 
-import com.google.common.base.Function;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.frames.Adjacency;
@@ -289,7 +286,7 @@ public interface Copy extends Node {
     Copy derivePdfCopy(Path pdfConverter, Path stylesheet, Path altStylesheet) throws IllegalStateException, NoSuchBlobException, IOException, InterruptedException;
     
     @JavaHandler
-    Copy derivePdfCopy(Function<InputStream, Writable> transformer, CopyRole copyRole) throws IOException;
+    Copy derivePdfCopy(CopyRole copyRole, Path... stylesheets) throws IOException;
     
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Copy {
         static final Logger log = LoggerFactory.getLogger(Copy.class);
@@ -453,7 +450,7 @@ public interface Copy extends Node {
         }
         
         @Override
-        public Copy derivePdfCopy(Function<InputStream, Writable> transformer, CopyRole copyRole) throws IOException {
+        public Copy derivePdfCopy(CopyRole copyRole, Path... stylesheets) throws IOException {
             File file = this.getFile();
             if (file == null)
                 throw new RuntimeException("Failed to generate pdf copy for work " + getWork().getObjId() + " as no file can be found for this copy " + getObjId());
@@ -461,11 +458,11 @@ public interface Copy extends Node {
                 throw new RuntimeException("Failed to generate pdf copy for work " + getWork().getObjId() + " as this copy " + getObjId() + " is not an xml file.");
             }
             
-            Writable pdfContent = transformer.apply(file.openStream());
             Copy pdfCopy = this.getWork().addCopy();
             pdfCopy.setCopyRole(copyRole.code());
             pdfCopy.setSourceCopy(this);
-            pdfCopy.addFile(pdfContent, "application/pdf");
+            byte[] pdfContent = PdfTransformerFop.transform(file.openStream(), stylesheets);
+            pdfCopy.addFile(Writables.wrap(pdfContent), "application/pdf");
             return pdfCopy;
         }
         
