@@ -11,7 +11,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
@@ -31,6 +30,7 @@ import amberdb.relation.IsFileOf;
 import amberdb.relation.IsSourceCopyOf;
 import amberdb.relation.Represents;
 import amberdb.util.Jp2Converter;
+import amberdb.util.PdfTransformerFop;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
@@ -285,6 +285,9 @@ public interface Copy extends Node {
     @JavaHandler
     Copy derivePdfCopy(Path pdfConverter, Path stylesheet, Path altStylesheet) throws IllegalStateException, NoSuchBlobException, IOException, InterruptedException;
     
+    @JavaHandler
+    Copy derivePdfCopy(CopyRole copyRole, Path... stylesheets) throws IOException;
+    
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Copy {
         static final Logger log = LoggerFactory.getLogger(Copy.class);
         static ObjectMapper mapper = new ObjectMapper();
@@ -444,6 +447,23 @@ public interface Copy extends Node {
                 }
                 stage.toFile().delete();
             }
+        }
+        
+        @Override
+        public Copy derivePdfCopy(CopyRole copyRole, Path... stylesheets) throws IOException {
+            File file = this.getFile();
+            if (file == null)
+                throw new RuntimeException("Failed to generate pdf copy for work " + getWork().getObjId() + " as no file can be found for this copy " + getObjId());
+            if (!file.getMimeType().equals("application/xml")) {
+                throw new RuntimeException("Failed to generate pdf copy for work " + getWork().getObjId() + " as this copy " + getObjId() + " is not an xml file.");
+            }
+            
+            Copy pdfCopy = this.getWork().addCopy();
+            pdfCopy.setCopyRole(copyRole.code());
+            pdfCopy.setSourceCopy(this);
+            byte[] pdfContent = PdfTransformerFop.transform(file.openStream(), stylesheets);
+            pdfCopy.addFile(Writables.wrap(pdfContent), "application/pdf");
+            return pdfCopy;
         }
         
         @Override

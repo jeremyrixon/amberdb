@@ -3,7 +3,7 @@
 
   <groupId>au.gov.nla</groupId>
   <artifactId>amberdb</artifactId>
-  <version>1.1.221-SNAPSHOT</version>
+  <version>1.1.222-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>amberdb</name>
@@ -203,6 +203,16 @@
       <groupId>xom</groupId>
       <artifactId>xom</artifactId>
       <version>1.2.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.avalon.framework</groupId>
+      <artifactId>avalon-framework-impl</artifactId>
+      <version>4.3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.xmlgraphics</groupId>
+      <artifactId>fop</artifactId>
+      <version>1.1</version>
     </dependency>
   </dependencies>
   <repositories>
