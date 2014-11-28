@@ -191,11 +191,13 @@ public interface AmberDao extends Transactional<AmberDao> {
 			+ "ON edge(txn_end, v_in, label, edge_order, v_out)")
 	void createEdgeInTraversalIndex();
 
+	
 	@SqlUpdate(
 			"CREATE INDEX edge_out_traversal_idx "
 			+ "ON edge(txn_end, v_out, label, edge_order, v_in)")
 	void createEdgeOutTraversalIndex();
     
+	
     @SqlUpdate(
             "CREATE INDEX sess_edge_idx "
             + "ON sess_edge(s_id)")

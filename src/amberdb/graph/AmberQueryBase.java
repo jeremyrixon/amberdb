@@ -138,4 +138,31 @@ public class AmberQueryBase {
             graph.addEdgeToGraph(edge);
         }        
     }
+    
+    
+    protected <T> String numberListToStr(List<T> numbers) {
+        StringBuilder s = new StringBuilder();
+        for (T n : numbers) {
+            s.append(n).append(',');
+        }
+        s.setLength(s.length()-1);
+        return s.toString();
+    }
+    
+    
+    protected String strListToStr(List<String> strs) {
+        StringBuilder s = new StringBuilder();
+        for (String str : strs) {
+            // dumbass sql injection protection (not real great)
+            s.append("'" + str.replaceAll("'", "\\'") + "',");
+        }
+        s.setLength(s.length()-1);
+        return s.toString();
+    }
+    
+    
+    protected String generateLabelsClause(List<String> labels) {
+        if (labels == null || labels.size() == 0) return "";
+        return " AND e.label IN (" + strListToStr(labels) + ") \n"; 
+    }
 }
