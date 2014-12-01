@@ -666,13 +666,13 @@ public class AmberGraph extends BaseGraph
     }
     
 
-    public AmberMultipartQuery newMultipartQuery(Long id) {
-        return new AmberMultipartQuery(id, this);
-    }
-
-
     public AmberMultipartQuery newMultipartQuery(List<Long> ids) {
-        return new AmberMultipartQuery(ids, this);
+        return new AmberMultipartQuery(this, ids);
+    }
+    
+    
+    public AmberMultipartQuery newMultipartQuery(Long... ids) {
+        return new AmberMultipartQuery(this, ids);
     }
     
     

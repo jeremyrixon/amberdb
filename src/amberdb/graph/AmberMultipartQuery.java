@@ -1,7 +1,6 @@
 package amberdb.graph;
 
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -20,26 +19,6 @@ public class AmberMultipartQuery extends AmberQueryBase implements AutoCloseable
     
 
     /**
-     * Create a query with single starting vertices. As branches are added the
-     * query will return the subgraph covered by traversing the branches
-     * specified in order.
-     * 
-     * @param head
-     *            The starting vertex
-     * @param graph
-     */
-    protected AmberMultipartQuery(Long head, AmberGraph graph) {
-        super(graph);
-        
-        // guard
-        if (head == null) throw new IllegalArgumentException("Query must have starting vertices");
-        
-        this.head = new ArrayList<Long>();
-        this.head.add(head);
-    }
-
-
-    /**
      * Create a query with a collection of starting vertices. As branches are
      * added the query will return the subgraph covered by traversing the
      * branches specified in order.
@@ -48,7 +27,7 @@ public class AmberMultipartQuery extends AmberQueryBase implements AutoCloseable
      *            The collection of starting vertices
      * @param graph
      */
-    protected AmberMultipartQuery(List<Long> head, AmberGraph graph) {
+    protected AmberMultipartQuery(AmberGraph graph, List<Long> head) {
         super(graph);
         
         // guards
@@ -57,8 +36,21 @@ public class AmberMultipartQuery extends AmberQueryBase implements AutoCloseable
         head.removeAll(Collections.singleton(null));
         if (head.size() == 0)
             throw new IllegalArgumentException("Query must have starting vertices");
-
         this.head = head;
+    }
+    
+    
+    protected AmberMultipartQuery(AmberGraph graph, Long... head) {
+        super(graph);
+        
+        // guards
+        if (head == null || head.length < 1)
+            throw new IllegalArgumentException("Query must have starting vertices");
+        List<Long> header = Arrays.asList(head);
+        header.removeAll(Collections.singleton(null));
+        if (header.size() == 0)
+            throw new IllegalArgumentException("Query must have starting vertices");
+        this.head = header;
     }
     
     
@@ -69,20 +61,34 @@ public class AmberMultipartQuery extends AmberQueryBase implements AutoCloseable
         List<Integer> branchList;
         BranchType branchType;
         
-        QueryClause(BranchType branchType, List<String> labels, Direction direction, List<Integer> branchList) {
+        public QueryClause(BranchType branchType, List<String> labels, Direction direction, List<Integer> branchList) {
             this.branchType = branchType;
             this.labels = labels;
             this.direction = direction;
             this.branchList = branchList;
         }
         
-        QueryClause(BranchType branchType, String[] labels, Direction direction, Integer[] branchList) {
+        public QueryClause(BranchType branchType, String[] labels, Direction direction, Integer[] branchList) {
             this.branchType = branchType;
             this.labels = Arrays.asList(labels);
             this.direction = direction;
             if (branchList != null) {
                 this.branchList = Arrays.asList(branchList);
             }
+        }
+        
+        public QueryClause(BranchType branchType, List<String> labels, Direction direction) {
+            this.branchType = branchType;
+            this.labels = labels;
+            this.direction = direction;
+            this.branchList = null;
+        }
+        
+        public QueryClause(BranchType branchType, String[] labels, Direction direction) {
+            this.branchType = branchType;
+            this.labels = Arrays.asList(labels);
+            this.direction = direction;
+            this.branchList = null;
         }
     }
 
@@ -174,7 +180,6 @@ public class AmberMultipartQuery extends AmberQueryBase implements AutoCloseable
                     + "FROM v0 \n"
                     + "WHERE v0.step = " + step + " ;\n");
         }
-
         return s.toString();
         // Draw from v1 for results
     }
