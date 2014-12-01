@@ -208,7 +208,7 @@ public class AmberQueryTest {
                     + "AND edge.label = 'isPartOf' " 
                     + "AND edge.txn_end = 0";
 
-            QueryClause qc = q.new QueryClause(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf" }, Direction.IN, null);
+            QueryClause qc = q.new QueryClause(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf" }, Direction.IN);
 
             boolean moreParts = true;
             int step = 0;
@@ -241,9 +241,9 @@ public class AmberQueryTest {
 
             // get all the copies, files etc
             q.continueWithCheck(null, new QueryClause[] { 
-                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "isCopyOf" }, Direction.IN, null), 
-                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "isFileOf" }, Direction.IN, null),
-                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "descriptionOf" }, Direction.IN, null), 
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "isCopyOf" }, Direction.IN), 
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "isFileOf" }, Direction.IN),
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "descriptionOf" }, Direction.IN), 
             });
             //mark("find copies files and descriptions");
 
