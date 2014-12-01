@@ -93,6 +93,12 @@ public interface EADWork extends Work {
     @Property("dateRange")
     public void setJSONDateRange(String dateRange);
     
+    @Property("dateRangeInAS")
+    public String getDateRangInAS();
+    
+    @Property("dateRangeInAS")
+    public void setDateRangeInAS(String dateRangeInAS);
+    
     @JavaHandler
     public List<Date> getDateRange() throws JsonParseException, JsonMappingException, IOException;
     

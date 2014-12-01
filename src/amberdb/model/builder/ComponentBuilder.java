@@ -140,13 +140,14 @@ public class ComponentBuilder {
         Object dateRange = fieldsMap.get("date-range");
         if (dateRange != null && !dateRange.toString().isEmpty()) {
             log.debug("component work " + componentWork.getObjId() + ": date range: " + dateRange.toString());
+            componentWork.setDateRangeInAS(dateRange.toString());
             List<Date> dateList;
             try {
                 dateList = DateParser.parseDateRange(dateRange.toString());
-            } catch (ParseException e) {
-                throw new IOException(e);
+                componentWork.setDateRange(dateList);
+            } catch (Exception e) {
+                log.info("Failed to parse date range for component work " + componentWork.getObjId());
             }
-            componentWork.setDateRange(dateList);
         }
         
         mapContainer(componentWork, fieldsMap);
