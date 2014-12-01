@@ -76,6 +76,20 @@ public class AmberMultipartQuery extends AmberQueryBase implements AutoCloseable
                 this.branchList = Arrays.asList(branchList);
             }
         }
+        
+        public QueryClause(BranchType branchType, List<String> labels, Direction direction) {
+            this.branchType = branchType;
+            this.labels = labels;
+            this.direction = direction;
+            this.branchList = null;
+        }
+        
+        public QueryClause(BranchType branchType, String[] labels, Direction direction) {
+            this.branchType = branchType;
+            this.labels = Arrays.asList(labels);
+            this.direction = direction;
+            this.branchList = null;
+        }
     }
 
     
