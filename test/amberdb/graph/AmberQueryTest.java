@@ -99,10 +99,9 @@ public class AmberQueryTest {
         q.branch(BRANCH_FROM_PREVIOUS, new String[] {"descriptionOf"}, Direction.IN);
         q.branch(BRANCH_FROM_LISTED, new String[] {"isPartOf"}, Direction.OUT, new Integer[] {0});
 
-        Date then = new Date();
+        initTimer();
         List<Vertex> results = q.execute(true);
-        Date now = new Date();
-        //s("MILLIS TO RUN: " + (now.getTime() - then.getTime()));
+        //mark("MILLIS TO RUN");
         
         graph.setLocalMode(true);
         
@@ -188,12 +187,12 @@ public class AmberQueryTest {
         book17.addEdge("isPartOf", book5);
         book18.addEdge("isPartOf", book5);
         
-        mark("before commit");
+        //mark("before commit");
         
         graph.commit("bookMaker", "made books");
         graph.clear();
 
-        mark("after commit");
+        //mark("after commit");
         
         List<Long> heads = new ArrayList<Long>();
         heads.add((Long) set.getId());
@@ -236,7 +235,7 @@ public class AmberQueryTest {
                     break;
                 default:    
                 }
-                mark("iteration " + step);
+                //mark("iteration " + step);
                 if (numParts.equals(0L)) moreParts = false;
             }    
 
@@ -246,11 +245,11 @@ public class AmberQueryTest {
                     q.new QueryClause(BRANCH_FROM_ALL, new String[] { "isFileOf" }, Direction.IN, null),
                     q.new QueryClause(BRANCH_FROM_ALL, new String[] { "descriptionOf" }, Direction.IN, null), 
             });
-            mark("find copies files and descriptions");
+            //mark("find copies files and descriptions");
 
             deletees = q.getResults();
             
-            mark("getting results");
+            //mark("getting results");
         }
         
         int i = 0;
@@ -261,10 +260,10 @@ public class AmberQueryTest {
         }
         graph.setLocalMode(false);
         assertEquals(i, 1299);
-        mark("delete in mem");
+        //mark("delete in mem");
 
         graph.commit("test", "kill them all");
-        mark("committed delete");
+        //mark("committed delete");
 
     }
     
