@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.nio.file.Path;
 
 import javax.xml.transform.Result;
@@ -35,7 +36,7 @@ public class PdfTransformerFop {
      * @return transformed pdf data
      * @throws IOException 
      */
-    public static byte[] transform(InputStream in, Path... stylesheets) throws IOException {
+    public static byte[] transform(InputStream in, Reader... stylesheets) throws IOException {
         return getTool(stylesheets).apply(in);
     }
     
@@ -45,7 +46,7 @@ public class PdfTransformerFop {
      * @return the generated PDF.
      * @throws IOException
      */
-    private static Function<InputStream, byte[]> getTool(final Path... stylesheets) throws IOException {
+    private static Function<InputStream, byte[]> getTool(final Reader... stylesheets) throws IOException {
         return new Function<InputStream, byte[]>() {
             @Override
             public byte[] apply(InputStream in) {
@@ -55,9 +56,9 @@ public class PdfTransformerFop {
                 try {
                     Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, out);
                     TransformerFactory factory = TransformerFactory.newInstance();
-                    for (Path stylesheet : stylesheets) {
+                    for (Reader stylesheet : stylesheets) {
                         try {
-                            Transformer transformer = factory.newTransformer(new StreamSource(stylesheet.toFile()));
+                            Transformer transformer = factory.newTransformer(new StreamSource(stylesheet));
                             Source src = new StreamSource(in);
                             Result res = new SAXResult(fop.getDefaultHandler());
                             transformer.transform(src, res);
