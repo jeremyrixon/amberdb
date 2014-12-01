@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.sql.DataSource;
@@ -14,14 +15,11 @@ import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
-
 import static org.junit.Assert.*;
 
-import org.junit.rules.TemporaryFolder;
-
 import amberdb.graph.AmberGraph;
+import amberdb.graph.AmberMultipartQuery.QueryClause;
 import static amberdb.graph.BranchType.*;
 
 import com.tinkerpop.blueprints.Direction;
@@ -31,17 +29,12 @@ import com.tinkerpop.blueprints.Vertex;
 
 public class AmberQueryTest {
 
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
-    
     public AmberGraph graph;
-    
     DataSource src;
     
     @Before
     public void setup() throws MalformedURLException, IOException {
-        String tempPath = tempFolder.getRoot().getAbsolutePath();
-        src = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"amber;auto_server=true","sess","sess");
+        src = JdbcConnectionPool.create("jdbc:h2:mem:","sess","sess");
         graph = new AmberGraph(src);
     }
 
@@ -62,7 +55,7 @@ public class AmberQueryTest {
         //s(q.generateFullSubGraphQuery());
     }
  
-    
+
     @Test
     public void testExecuteQuery() throws Exception {
 
@@ -118,6 +111,161 @@ public class AmberQueryTest {
         Vertex book = graph.getVertex(book2.getId());
         List<Vertex> pages = (List<Vertex>) book.getVertices(Direction.IN, "isPartOf");
         assertEquals(pages.size(), 51);
+    }
+    
+    Date then, now;
+    private void initTimer() { then = new Date(); }
+    private void mark(String msg) {
+        Date now = new Date();
+        s("-- " + msg + " : " + (now.getTime() - then.getTime()) + "ms");
+        then = now;
+    }
+
+    @Test
+    public void testContinuingQueryForDelete() throws Exception {
+
+        initTimer();
+        
+        // set up database
+
+        Vertex set = graph.addVertex(null);
+        set.setProperty("type", "Set");
+
+        Vertex setPart1 = graph.addVertex(null);
+        Vertex setPart2 = graph.addVertex(null);
+
+        setPart1.setProperty("type", "Set");
+        setPart2.setProperty("type", "Set");
+        
+        setPart1.addEdge("isPartOf", set);
+        setPart2.addEdge("isPartOf", set);
+        
+        Vertex book1 = makeBook("1-1", 10, 10);
+        Vertex book2 = makeBook("1-2", 10, 0);
+        Vertex book3 = makeBook("1-3", 10, 10);
+
+        Vertex book4 = makeBook("2-1", 10, 10);
+        Vertex book5 = makeBook("2-2", 10, 0);
+        Vertex book6 = makeBook("2-3", 10, 10);
+        
+        Vertex book7 = makeBook("1-1-1", 10, 10);
+        Vertex book8 = makeBook("1-1-2", 10, 0);
+        Vertex book9 = makeBook("1-1-3", 10, 10);
+
+        Vertex book10 = makeBook("1-1-1-1", 10, 10);
+        Vertex book11 = makeBook("1-1-1-2", 10, 0);
+        Vertex book12 = makeBook("1-1-1-3", 10, 10);
+
+        Vertex book13 = makeBook("1-2-1", 10, 10);
+        Vertex book14 = makeBook("1-2-2", 10, 0);
+        Vertex book15 = makeBook("1-2-3", 10, 10);
+
+        Vertex book16 = makeBook("2-2-1", 10, 10);
+        Vertex book17 = makeBook("2-2-2", 10, 0);
+        Vertex book18 = makeBook("2-2-3", 10, 10);
+        
+        book1.addEdge("isPartOf", setPart1);
+        book2.addEdge("isPartOf", setPart1);
+        book3.addEdge("isPartOf", setPart1);
+
+        book4.addEdge("isPartOf", setPart2);
+        book5.addEdge("isPartOf", setPart2);
+        book6.addEdge("isPartOf", setPart2);
+        
+        book7.addEdge("isPartOf", book1);
+        book8.addEdge("isPartOf", book1);
+        book9.addEdge("isPartOf", book1);
+        
+        book10.addEdge("isPartOf", book7);
+        book11.addEdge("isPartOf", book7);
+        book12.addEdge("isPartOf", book7);
+        
+        book13.addEdge("isPartOf", book2);
+        book14.addEdge("isPartOf", book2);
+        book15.addEdge("isPartOf", book2);
+        
+        book16.addEdge("isPartOf", book5);
+        book17.addEdge("isPartOf", book5);
+        book18.addEdge("isPartOf", book5);
+        
+        mark("before commit");
+        
+        graph.commit("bookMaker", "made books");
+        graph.clear();
+
+        mark("after commit");
+        
+        List<Long> heads = new ArrayList<Long>();
+        heads.add((Long) set.getId());
+        
+        List<Vertex> deletees;
+        try (AmberMultipartQuery q = graph.newMultipartQuery(heads)) {
+
+            String numKids = 
+                    "SELECT COUNT(edge.id) num " 
+                    + "FROM edge, v1 " 
+                    + "WHERE v1.step = %d " 
+                    + "AND v1.vid = edge.v_in " 
+                    + "AND edge.label = 'isPartOf' " 
+                    + "AND edge.txn_end = 0";
+
+            QueryClause qc = q.new QueryClause(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf" }, Direction.IN, null);
+
+            boolean moreParts = true;
+            int step = 0;
+            q.startQuery();
+            while (moreParts) {
+                step = q.step + 1; // add 1 because the checkQuery is run after the following step is executed
+                List<Map<String, Object>> thing = q.continueWithCheck(String.format(numKids, step), qc);
+                Long numParts = (Long) thing.get(0).get("num");
+                switch (step) {
+                case 1: 
+                    assertTrue(numParts.equals(6L));
+                    break;
+                case 2: 
+                    assertTrue(numParts.equals(75L));
+                    break;
+                case 3: 
+                    assertTrue(numParts.equals(102L));
+                    break;
+                case 4: 
+                    assertTrue(numParts.equals(33L));
+                    break;
+                case 5: 
+                    assertTrue(numParts.equals(0L));
+                    break;
+                default:    
+                }
+                mark("iteration " + step);
+                if (numParts.equals(0L)) moreParts = false;
+            }    
+
+            // get all the copies, files etc
+            q.continueWithCheck(null, new QueryClause[] { 
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "isCopyOf" }, Direction.IN, null), 
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "isFileOf" }, Direction.IN, null),
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "descriptionOf" }, Direction.IN, null), 
+            });
+            mark("find copies files and descriptions");
+
+            deletees = q.getResults();
+            
+            mark("getting results");
+        }
+        
+        int i = 0;
+        graph.setLocalMode(true);
+        for (Vertex v : deletees) {
+            graph.removeVertex(v);
+            i++;
+        }
+        graph.setLocalMode(false);
+        assertEquals(i, 1299);
+        mark("delete in mem");
+
+        graph.commit("test", "kill them all");
+        mark("committed delete");
+
     }
     
     

@@ -666,6 +666,16 @@ public class AmberGraph extends BaseGraph
     }
     
 
+    public AmberMultipartQuery newMultipartQuery(Long id) {
+        return new AmberMultipartQuery(id, this);
+    }
+
+
+    public AmberMultipartQuery newMultipartQuery(List<Long> ids) {
+        return new AmberMultipartQuery(ids, this);
+    }
+    
+    
     public AmberVertexQuery newVertexQuery() {
         return new AmberVertexQuery(this);
     }
