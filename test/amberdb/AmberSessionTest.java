@@ -84,14 +84,13 @@ public class AmberSessionTest {
         Work bookAgain = sess.findWork(book.getId());
         assertNotNull(bookAgain);
         
-        Map<String, Integer> counts = sess.deleteWorkWithAudit(new HashMap<String, Integer>(), bookAgain);
+        Map<String, Integer> counts = sess.deleteWorksFast(new HashMap<String, Integer>(), bookAgain);
         assertEquals(numVertices(sess.getAmberGraph()), 0);
         
         assertEquals(new Integer(5), counts.get("File"));
         assertEquals(new Integer(5), counts.get("Copy"));
         assertEquals(new Integer(7), counts.get("Work"));
         
-        // check we don't delete Sets
         Work book3 = makeBook();
         Work book4 = makeBook();
         Work book5 = makeBook();
@@ -104,7 +103,8 @@ public class AmberSessionTest {
         // check we have the 4 books
         assertEquals(numVertices(sess.getAmberGraph()), 68);
         
-        counts =  sess.deleteWorkWithAudit(new HashMap<String, Integer>(), book3);
+        counts = sess.deleteWorksFast(new HashMap<String, Integer>(), book3);
+        
         assertEquals(new Integer(15), counts.get("File"));
         assertEquals(new Integer(15), counts.get("Copy"));
         assertEquals(new Integer(21), counts.get("Work"));
@@ -143,7 +143,7 @@ public class AmberSessionTest {
         Work bookAgain = sess.findWork(book.getId());
         assertNotNull(bookAgain);
         
-        sess.deleteWorkRecursive(bookAgain);
+        sess.deleteWorks(bookAgain);
         assertEquals(numVertices(sess.getAmberGraph()), 0);
         
         // check we don't delete Sets
@@ -159,7 +159,7 @@ public class AmberSessionTest {
         // check we have the 4 books
         assertEquals(numVertices(sess.getAmberGraph()), 68);
         
-        sess.deleteWorkRecursive(book3);
+        sess.deleteWorks(book3);
         
         // we should have retained book6 as it's not in book3 hierarchy
         assertEquals(numVertices(sess.getAmberGraph()), 17);
@@ -176,7 +176,7 @@ public class AmberSessionTest {
         book4.addChild(book5);
         book5.addChild(book3);
 
-        sess.deleteWorkRecursive(book4);
+        sess.deleteWorks(book4);
     }        
     
     private static void s(String s) {
