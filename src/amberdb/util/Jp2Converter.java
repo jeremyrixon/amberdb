@@ -210,7 +210,7 @@ public class Jp2Converter {
             StringBuffer sb = new StringBuffer();
             String line;
             try {
-                BufferedReader br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                BufferedReader br = new BufferedReader(new InputStreamReader(p.getErrorStream(), "UTF-8"));
                 while ((line = br.readLine()) != null) {
                     if (sb.length() > 0) {
                         sb.append('\n');

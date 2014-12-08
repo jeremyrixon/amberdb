@@ -1,5 +1,6 @@
 package amberdb;
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 
@@ -61,7 +62,7 @@ public class JellyAmberPropertyMigrater {
         return sb.toString();
     }
     
-    public static void getPropertiesFromDescription(MysqlDataSource ds) {
+    public static void getPropertiesFromDescription(MysqlDataSource ds) throws UnsupportedEncodingException {
         
         DBI conn = new DBI(ds);
         
@@ -71,7 +72,7 @@ public class JellyAmberPropertyMigrater {
         
         for (Map row : result) {
             Long id = (Long) row.get("id");
-            String buff = new String((byte[]) row.get("value"));
+            String buff = new String((byte[]) row.get("value"), "UTF-8");
             s("" + id + ":" + buff);
             
             try {

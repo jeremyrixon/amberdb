@@ -571,7 +571,7 @@ public interface Copy extends Node {
                 StringBuffer sb = new StringBuffer();
                 String line;
 
-                BufferedReader br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                BufferedReader br = new BufferedReader(new InputStreamReader(p.getErrorStream(), "UTF-8"));
                 while ((line = br.readLine()) != null) {
                     if (sb.length() > 0) {
                         sb.append('\n');

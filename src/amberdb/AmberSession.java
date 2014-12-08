@@ -218,7 +218,7 @@ public class AmberSession implements AutoCloseable {
     public JsonNode serializeToJson() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         GraphSONWriter.outputGraph(graph.getBaseGraph(), bos);
-        return new ObjectMapper().reader().readTree(bos.toString());
+        return new ObjectMapper().reader().readTree(bos.toString("UTF-8"));
     }
 
     
