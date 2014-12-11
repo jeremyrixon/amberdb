@@ -311,7 +311,6 @@ public class AmberSession implements AutoCloseable {
      * within the session. This method will orphan any child works.
      * @param work
      */
-    @Deprecated
     public void deleteWork(final Work work) {
 
         // delete copies of work
