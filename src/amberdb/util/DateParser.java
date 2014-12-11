@@ -69,9 +69,8 @@ public class DateParser {
     };  
     static Map<String, Integer> monthLu = new ConcurrentHashMap<>();
     
-    static final Calendar cal = Calendar.getInstance();
-    static final SimpleDateFormat dateFmt1 = new SimpleDateFormat("dd/MM/yyyy");
-    static final SimpleDateFormat dateFmt2 = new SimpleDateFormat("dd/MMM/yyyy");
+    static final String DATE_PATTERN1 = "dd/MM/yyyy";
+    static final String DATE_PATTERN2 = "dd/MMM/yyyy";
     static Pattern[] dtRangePatterns;
     static Pattern[] yrPatterns;
     static Pattern[] dtPatterns;
@@ -122,6 +121,7 @@ public class DateParser {
             dateRangeExpr = dateRangeExpr.replace("c", "").trim();
         
         // parse the date range
+        SimpleDateFormat dateFmt1 = new SimpleDateFormat(DATE_PATTERN1);
         List<String> dateRangePair = getExprPair(dateRangeExpr, dtRangePatterns);
         if (dateRangePair != null && dateRangePair.size() == 2) {
             if (dateRangePair.get(0).length() == 4) {
@@ -172,7 +172,6 @@ public class DateParser {
         
         if (mnthAbbrList.contains(restExpr.toUpperCase())) {
             Date potentialDate = constructDate(isFromDate, year, restExpr, null, mnthAbbrList);
-            String ddStr = dateFmt2.format(potentialDate);
             if (potentialDate != null) return potentialDate;
         }
         
@@ -209,6 +208,8 @@ public class DateParser {
             month = (isFromDate)?"JAN":"DEC";
         }
        
+        SimpleDateFormat dateFmt1 = new SimpleDateFormat(DATE_PATTERN1);
+        SimpleDateFormat dateFmt2 = new SimpleDateFormat(DATE_PATTERN2);
         SimpleDateFormat dateFmt = (mnthAbbrList.contains(month.toUpperCase())) ? dateFmt2 : dateFmt1;
         String fmttedMonth = (mnthAbbrList.contains(month.toUpperCase())) ? month.toUpperCase().substring(0,3) : month.toUpperCase();
         
@@ -218,6 +219,7 @@ public class DateParser {
         if (isFromDate)
             return dateFmt.parse("01/" + fmttedMonth + "/" + year);
         else {
+            Calendar cal = Calendar.getInstance();
             cal.set(Calendar.YEAR, Integer.parseInt(year));
             cal.set(Calendar.MONTH, monthLu.get(month.toUpperCase()));
             // Note: not sure sometimes time is over clocked, hence the work around below

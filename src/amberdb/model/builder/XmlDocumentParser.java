@@ -35,7 +35,7 @@ public abstract class XmlDocumentParser {
     public static final String CFG_STORE_COPY = "storeCopy";
     
     static final Logger log = LoggerFactory.getLogger(XmlDocumentParser.class);
-    protected static ObjectMapper mapper = new ObjectMapper();
+    protected static final ObjectMapper mapper = new ObjectMapper();
     protected String collectionObjId;
     protected JsonNode parsingCfg;
     protected List<String> filters;

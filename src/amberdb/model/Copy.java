@@ -3,6 +3,7 @@ package amberdb.model;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
@@ -286,7 +287,7 @@ public interface Copy extends Node {
     Copy derivePdfCopy(Path pdfConverter, Path stylesheet, Path altStylesheet) throws IllegalStateException, NoSuchBlobException, IOException, InterruptedException;
     
     @JavaHandler
-    Copy derivePdfCopy(CopyRole copyRole, Path... stylesheets) throws IOException;
+    Copy derivePdfCopy(CopyRole copyRole, Reader... stylesheets) throws IOException;
     
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Copy {
         static final Logger log = LoggerFactory.getLogger(Copy.class);
@@ -450,7 +451,7 @@ public interface Copy extends Node {
         }
         
         @Override
-        public Copy derivePdfCopy(CopyRole copyRole, Path... stylesheets) throws IOException {
+        public Copy derivePdfCopy(CopyRole copyRole, Reader... stylesheets) throws IOException {
             File file = this.getFile();
             if (file == null)
                 throw new RuntimeException("Failed to generate pdf copy for work " + getWork().getObjId() + " as no file can be found for this copy " + getObjId());
@@ -570,7 +571,7 @@ public interface Copy extends Node {
                 StringBuffer sb = new StringBuffer();
                 String line;
 
-                BufferedReader br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                BufferedReader br = new BufferedReader(new InputStreamReader(p.getErrorStream(), "UTF-8"));
                 while ((line = br.readLine()) != null) {
                     if (sb.length() > 0) {
                         sb.append('\n');
