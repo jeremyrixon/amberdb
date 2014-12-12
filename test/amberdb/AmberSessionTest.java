@@ -229,6 +229,38 @@ public class AmberSessionTest {
         AmberGraph g3 = sess.getAmberGraph();
         assertEquals(numEdges(g3), 0);
     }
+
+    @Test
+    public void testDeleteParentWithSuspend() throws IOException {
+
+        // create a test work and delete its parent
+        Work book = makeBook();
+        
+        // check our creation
+        assertEquals(19, numEdges(sess.getAmberGraph()));
+        assertEquals(17, numVertices(sess.getAmberGraph()));
+
+        // now delete the parent and suspend
+        sess.deleteWork(book);
+        long sessId = sess.suspend();
+        sess.close();
+
+        // next recover the session
+        sess = new AmberSession(LocalBlobStore.open(dossLocation));
+        sess.recover(sessId);
+        
+        // check what's in the resumed session - should be 5 pages with 5 copies and 5 files, and 1 Section 
+        assertEquals(13, numEdges(sess.getAmberGraph()));
+        assertEquals(16, numVertices(sess.getAmberGraph()));
+        // now commit it
+        sess.commit();
+        sess.close();
+        
+        // then recover the session
+        sess = new AmberSession(LocalBlobStore.open(dossLocation));
+        assertEquals(13, numEdges(sess.getAmberGraph()));
+        assertEquals(16, numVertices(sess.getAmberGraph()));
+    }        
     
     private int numEdges(Graph g) {
         int i = 0;
