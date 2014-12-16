@@ -348,6 +348,11 @@ public interface Work extends Node {
     @Property("moreIlmsDetailsRequired")
     public void setMoreIlmsDetailsRequired(Boolean moreIlmsDetailsRequired);
 
+    @Property("allowHighResdownload")
+    public Boolean getAllowHighResdownload();
+
+    @Property("allowHighResdownload")
+    public void setAllowHighResdownload(Boolean allowHRdownload);
 
     @Property("ilmsSentDateTime")
     public Date getIlmsSentDateTime();
