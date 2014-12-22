@@ -392,24 +392,26 @@ public interface Copy extends Node {
 
         @Override
         public Copy deriveJp2ImageCopy(Path jp2Converter, Path imgConverter) throws IllegalStateException, IOException, InterruptedException, Exception {
-            ImageFile tiffImage = this.getImageFile();
-            if (!tiffImage.getMimeType().equals("image/tiff")) {
-                throw new IllegalStateException(this.getWork().getObjId() + " master is not a tiff.  You may not generate a jpeg2000 from anything but a tiff");
+            ImageFile imgFile = this.getImageFile();
+            String mimeType = imgFile.getMimeType();
+            // Do we need to check?
+            if (!(mimeType.equals("image/tiff") || mimeType.equals("image/jpeg"))) {
+                throw new IllegalStateException(this.getWork().getObjId() + " master is not a tiff or jpeg. You may not generate a jpeg2000 from anything but a tiff or a jpeg");
             }
 
             Path stage = null;
             try {
-                // create a temporary file processing location for deriving the jpeg2000 from the tiff
+                // create a temporary file processing location for deriving the jpeg2000 from the master/comaster
                 stage = Files.createTempDirectory("amberdb-derivative");
 
-                // assume this Copy is a tiff master copy and access the amber file
-                Long tiffBlobId = this.getFile().getBlobId();
+                // assume this Copy is a master copy and access the amber file
+                Long imgBlobId = this.getFile().getBlobId();
 
                 // get this copy's blob store ...
                 BlobStore doss = AmberSession.ownerOf(g()).getBlobStore();
 
                 // aaaaand generate the derivative ...
-                Path jp2ImgPath = generateJp2Image(doss, jp2Converter, imgConverter, stage, tiffBlobId);
+                Path jp2ImgPath = generateJp2Image(doss, jp2Converter, imgConverter, stage, imgBlobId);
 
                 // add the derived jp2 image to this Copy's work as an access copy
                 Copy ac = null;
@@ -429,9 +431,9 @@ public interface Copy extends Node {
 
                     // add image metadata based on the master image metadata
                     // this is used by some nla delivery systems eg: tarkine
-                    acf.setImageLength(tiffImage.getImageLength());
-                    acf.setImageWidth(tiffImage.getImageWidth());
-                    acf.setResolution(tiffImage.getResolution());
+                    acf.setImageLength(imgFile.getImageLength());
+                    acf.setImageWidth(imgFile.getImageWidth());
+                    acf.setResolution(imgFile.getResolution());
                     acf.setFileFormat("jpeg2000");
                 }
                 return ac;
@@ -661,17 +663,18 @@ public interface Copy extends Node {
             return jp2ImgPath;
         }
 
-        private Path generateJp2Image(BlobStore doss, Path jp2Converter, Path imgConverter, Path stage, Long tiffBlobId) throws IOException, InterruptedException, NoSuchCopyException, Exception {
-            if (tiffBlobId == null) {
+        private Path generateJp2Image(BlobStore doss, Path jp2Converter, Path imgConverter, Path stage, Long imgBlobId) throws IOException, InterruptedException, NoSuchCopyException, Exception {
+            if (imgBlobId == null) {
                 throw new NoSuchCopyException(this.getWork().getId(), CopyRole.fromString(this.getCopyRole()));
             }
 
             // prepare the files for conversion
-            Path tiffPath = stage.resolve(tiffBlobId + ".tif");   // where to put the tif retrieved from the amber blob
-            copyBlobToFile(doss.get(tiffBlobId), tiffPath);       // get the blob from amber
+            String imgFilename = this.getImageFile().getFileName();
+            Path srcImgPath = stage.resolve(imgBlobId + imgFilename.substring(imgFilename.lastIndexOf('.')));  // where to put the source retrieved from the amber blob
+            copyBlobToFile(doss.get(imgBlobId), srcImgPath);       // get the blob from amber
 
             // Jp2 file
-            Path jp2ImgPath = stage.resolve(tiffBlobId + ".jp2"); // name the jpeg2000 derivative after the original uncompressed blob
+            Path jp2ImgPath = stage.resolve(imgBlobId + ".jp2"); // name the jpeg2000 derivative after the original uncompressed blob
 
             // Convert to jp2
             Jp2Converter jp2c = new Jp2Converter(jp2Converter, imgConverter);
@@ -680,26 +683,28 @@ public interface Copy extends Node {
             // check 4 properties from ImageFile: compression, samplesPerPixel, bitsPerSample and photometric
             // If they all exist and have proper values, pass them in a Map to Jp2Converter.
             // Otherwise, let Jp2Converter find out from the source file.
+
             ImageFile imgFile = this.getImageFile();
-            if (imgFile != null) {
+            if (imgFile != null && "image/tiff".equals(imgFile.getMimeType())) {
+                // Only check image properties for tiff files
                 int compression = parseIntFromStr(imgFile.getCompression());
                 int samplesPerPixel = parseIntFromStr(imgFile.getSamplesPerPixel());
                 int bitsPerSample = parseIntFromStr(imgFile.getBitDepth());
                 int photometric = parseIntFromStr(imgFile.getPhotometric());
-
                 if (compression >= 0 && samplesPerPixel >= 0 && bitsPerSample >= 0 && photometric >= 0) {
-                    Map<String, Integer> imgInfoMap = new HashMap<String, Integer>();
-                    imgInfoMap.put("compression", compression);
-                    imgInfoMap.put("samplesPerPixel", samplesPerPixel);
-                    imgInfoMap.put("bitsPerSample", bitsPerSample);
-                    imgInfoMap.put("photometric", photometric);
-                    jp2c.convertFile(tiffPath, jp2ImgPath, imgInfoMap);
+                    Map<String, String> imgInfoMap = new HashMap<String, String>();
+                    imgInfoMap.put("mimeType", imgFile.getMimeType());
+                    imgInfoMap.put("compression", "" + compression);
+                    imgInfoMap.put("samplesPerPixel", "" + samplesPerPixel);
+                    imgInfoMap.put("bitsPerSample", "" + bitsPerSample);
+                    imgInfoMap.put("photometric", "" + photometric);
+                    jp2c.convertFile(srcImgPath, jp2ImgPath, imgInfoMap);
                 } else {
-                    jp2c.convertFile(tiffPath, jp2ImgPath);
+                    jp2c.convertFile(srcImgPath, jp2ImgPath);
                 }
             } else {
-                // No image file
-                jp2c.convertFile(tiffPath, jp2ImgPath);
+                // No image file or not a tiff tile
+                jp2c.convertFile(srcImgPath, jp2ImgPath);
             }
 
             // NOTE: to return null at this point to cater for TiffEcho and JP2Echo test cases running in Travis env.
