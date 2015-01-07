@@ -394,6 +394,7 @@ public interface Copy extends Node {
         public Copy deriveJp2ImageCopy(Path jp2Converter, Path imgConverter) throws IllegalStateException, IOException, InterruptedException, Exception {
             ImageFile imgFile = this.getImageFile();
             String mimeType = imgFile.getMimeType();
+                       
             // Do we need to check?
             if (!(mimeType.equals("image/tiff") || mimeType.equals("image/jpeg"))) {
                 throw new IllegalStateException(this.getWork().getObjId() + " master is not a tiff or jpeg. You may not generate a jpeg2000 from anything but a tiff or a jpeg");
@@ -405,7 +406,7 @@ public interface Copy extends Node {
                 stage = Files.createTempDirectory("amberdb-derivative");
 
                 // assume this Copy is a master copy and access the amber file
-                Long imgBlobId = this.getFile().getBlobId();
+                Long imgBlobId = (this.getFile() == null)? null: this.getFile().getBlobId();
 
                 // get this copy's blob store ...
                 BlobStore doss = AmberSession.ownerOf(g()).getBlobStore();

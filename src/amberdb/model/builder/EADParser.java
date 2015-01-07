@@ -106,7 +106,6 @@ public class EADParser extends XmlDocumentParser {
             // set the value for the field
             String fldCfg = fldsCfg.get(fldName).toString();
             if (fldCfg != null && !fldCfg.isEmpty()) {
-                log.debug("fldName : " + fldName + ", xpath: " + fldCfg);
                 if (queryAttribute(fldCfg)) {
                     fldsMap.put(fldName, getAttribute(node, fldCfg));
                 } else {
@@ -125,6 +124,7 @@ public class EADParser extends XmlDocumentParser {
                         }
                     }
                 }
+                log.debug("fldName : " + fldName + ", xpath: " + fldCfg + ", value: " + fldsMap.get(fldName));
             } 
         }
         try {
