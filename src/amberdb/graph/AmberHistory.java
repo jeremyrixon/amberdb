@@ -89,29 +89,29 @@ public class AmberHistory {
         VersionedGraph vGraph = loadChangedGraphForPeriod(txn1, txn2);
         Set<VersionedVertex> vertices = getChangedVertices(vGraph, txn1, txn2);
         Set<VersionedEdge> edges = getChangedEdges(vGraph, txn1, txn2);
-        
+
         for (VersionedVertex v : vertices) {
             TVertexDiff diff = v.getDiff(txn1, txn2);
             TTransition change = diff.getTransition();
             TId id = diff.getId()[0];
             
             // Deletion trumps all changes - don't replace
-            if (modifiedIds.get(id) != null 
+            if (modifiedIds.get(id) != null
                     && modifiedIds.get(id).equals(TTransition.DELETED.toString())) {
                 continue;
             }
             modifiedIds.put(id.getId(), change.toString());
         }
         
-        // find and return the vertices for any changed edge 
+        // find and return the vertices for any changed edge
         Long id;
         for (VersionedEdge e : edges) {
             id = (Long) e.getVertex(Direction.IN).getId();
-            if (!(TTransition.DELETED.toString().equals(modifiedIds.get(id)))) {
+            if (!modifiedIds.containsKey(id) && !(TTransition.DELETED.toString().equals(modifiedIds.get(id)))) {
                 modifiedIds.put(id, TTransition.MODIFIED.toString());
             }
             id = (Long) e.getVertex(Direction.OUT).getId();
-            if (!(TTransition.DELETED.toString().equals(modifiedIds.get(id)))) {
+            if (!modifiedIds.containsKey(id) && !(TTransition.DELETED.toString().equals(modifiedIds.get(id)))) {
                 modifiedIds.put(id, TTransition.MODIFIED.toString());
             }
         }
