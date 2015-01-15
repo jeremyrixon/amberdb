@@ -889,7 +889,21 @@ public interface Work extends Node {
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public void addCopy(final Copy copy);
     
+    /**
+     * This method is intended for internal amberdb use, to be called by the
+     * removeRepresentation() method.  You probably want to use removeRepresentation()
+     * method to remove a representative image.
+     * @param copy
+     */
     @Adjacency(label = Represents.label, direction = Direction.IN)
+    public void removeRepresentative(final Copy copy);
+    
+    /**
+     * This method calls removeRepresentative() to remove a representative image,
+     * and update the hasRepresentation flag which is a shortcut for delivery.
+     * @param copy
+     */
+    @JavaHandler
     public void removeRepresentation(final Copy copy);
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
@@ -920,7 +934,21 @@ public interface Work extends Node {
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public void removePage(final Page page);
     
+    /**
+     * This method is intended for internal amberdb use, to be called by the 
+     * addRepresentation() method.  You probably want to use addRepresentation()
+     * method to add a representative image.
+     * @param copy
+     */
     @Adjacency(label = Represents.label, direction = Direction.IN)
+    public void addRepresentative(final Copy copy);
+    
+    /**
+     * This method calls addRepresentative() to add a representative image,
+     * and update the hasRepresentation flag which is a shortcut for delivery.
+     * @param copy
+     */
+    @JavaHandler
     public void addRepresentation(final Copy copy);
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
@@ -933,6 +961,7 @@ public interface Work extends Node {
     public String getHasRepresentation();
     
     /**
+     * This flag is used as a shortcut for delivery of the represented image for a work.
      * The boolean value in property is encoded as "y"/"n" string - You probably want to use
      * setHasRepresentationIndicator to set this property
      */
@@ -940,6 +969,7 @@ public interface Work extends Node {
     public void setHasRepresentation(String hasRepresentation);
     
     /**
+     * This flag is used as a shortcut for delivery of the represented image for a work.
      * This method takes in a boolean value and store it as "y"/"n" string in the hasRepresentation 
      * property 
      */
@@ -1384,6 +1414,18 @@ public interface Work extends Node {
         public boolean isRepresented() {
             String represented = getHasRepresentation();
             return (represented == null)? false : ((represented.equalsIgnoreCase("y"))? true : false);
+        }
+        
+        @Override
+        public void removeRepresentation(final Copy copy) {
+            removeRepresentative(copy);
+            setHasRepresentation("n");
+        }
+        
+        @Override
+        public void addRepresentation(final Copy copy) {
+            addRepresentative(copy);
+            setHasRepresentation("y");
         }
     }
 }
