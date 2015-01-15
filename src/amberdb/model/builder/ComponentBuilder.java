@@ -1,12 +1,11 @@
 package amberdb.model.builder;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import nu.xom.Element;
 import nu.xom.Node;
@@ -16,6 +15,7 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
+import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,7 +92,8 @@ public class ComponentBuilder {
     }
     
     protected static EADWork updateComponentData(EADWork componentWork, JsonNode component) throws JsonParseException, JsonMappingException, IOException {
-        Map<String, Object> fieldsMap = new ConcurrentHashMap<>();   
+        String compJson = mapper.writeValueAsString(component);
+        Map<String, Object> fieldsMap = mapper.readValue(compJson, new TypeReference<HashMap<String, Object>>(){});
         mapWorkMD(componentWork, component.get("uuid").getTextValue(), fieldsMap);
         return componentWork;
     }
@@ -100,6 +101,7 @@ public class ComponentBuilder {
     protected static void mapWorkMD(EADWork componentWork, String uuid, Map<String, Object> fieldsMap) throws JsonParseException, JsonMappingException, IOException {
         componentWork.setSubType("Work");      
         componentWork.setForm("Manuscript");
+      
         componentWork.setBibLevel("Item");
         componentWork.setCollection("nla.ms");
         componentWork.setRecordSource("FA");        
@@ -115,7 +117,7 @@ public class ComponentBuilder {
             componentWork.setComponentLevel(componentLevel.toString());
             componentWork.setSubUnitType(componentLevel.toString());
             // determine bib level with business rule borrowed from DCM
-            String bibLevel = (componentLevel != null && componentLevel.toString().equalsIgnoreCase("item"))?"Item":"Set";
+            String bibLevel = mapBibLevel(componentLevel);
             componentWork.setBibLevel(bibLevel);
         }
         
@@ -132,6 +134,7 @@ public class ComponentBuilder {
             componentWork.setTitle(unitTitle.toString());
             componentWork.setUniformTitle(unitTitle.toString());
         }
+        
         Object scopeContent = fieldsMap.get("scope-n-content");
         if (scopeContent != null && !scopeContent.toString().isEmpty()) {
             log.debug("component work " + componentWork.getObjId() + ": scope and content: " + scopeContent.toString());
@@ -151,6 +154,17 @@ public class ComponentBuilder {
         }
         
         mapContainer(componentWork, fieldsMap);
+    }
+
+    private static String mapBibLevel(Object componentLevel) {
+        String bibLevel = "Set";
+        if (componentLevel != null) {
+            if (componentLevel.toString().equalsIgnoreCase("item")) 
+                bibLevel = "Item";
+            else if (componentLevel.toString().equalsIgnoreCase("part"))
+                bibLevel = "Part";
+        }
+        return bibLevel;
     }
 
     protected static void mapContainer(EADWork componentWork, Map<String, Object> fieldsMap) {
@@ -206,16 +220,39 @@ public class ComponentBuilder {
     }
     
     protected static JsonNode makeComponent(Node eadElement, JsonNode elementCfg, XmlDocumentParser parser) {
-        ObjectNode node = parser.mapper.createObjectNode();
+        ObjectNode node = mapper.createObjectNode();
         Map<String, Object> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));        
         if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").toString().isEmpty())
             throw new EADValidationException("Failed to parse uuid for EAD element " + ((Element) eadElement).getLocalName() + " - " + eadElement.getValue());
         
-        // Default subUnitType to Series, this may be overwritten later on by mapWorkMD.
-        String subUnitType = "Series";
         String uuid = fieldsMap.get("uuid").toString();
         node.put("uuid", uuid);
-        node.put("subUnitType", subUnitType);
+        Object componentLevel = fieldsMap.get("component-level");
+        if (componentLevel != null) {
+            node.put("subUnitType", componentLevel.toString());
+            node.put("component-level", componentLevel.toString());
+        }
+        Object componentNumber = fieldsMap.get("component-number");
+        if (componentNumber != null)
+            node.put("component-number", componentNumber.toString());
+        Object unitTitle = fieldsMap.get("title");
+        if (unitTitle != null)
+            node.put("title", unitTitle.toString());
+        Object scopeContent = fieldsMap.get("scope-n-content");
+        if (scopeContent != null)
+            node.put("scope-n-content", scopeContent.toString());
+        Object dateRange = fieldsMap.get("date-range");
+        if (dateRange != null)
+            node.put("date-range", dateRange.toString());
+        Object containerType = fieldsMap.get("container-type");
+        if (containerType != null)
+            node.put("container-type", containerType.toString());
+        Object containerLabel = fieldsMap.get("container-label");
+        if (containerLabel != null)
+            node.put("container-label", containerLabel.toString());
+        Object containerNumber = fieldsMap.get("container-number");
+        if (containerNumber != null)
+            node.put("container-number", containerNumber.toString());
         return node;
     }
 }

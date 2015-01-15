@@ -17,7 +17,7 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
 
 /*
- * This class is to convert an image (only tiff for now) to jpeg 2000 (.jp2),
+ * This class is to convert an image (tiff or jpeg for now) to jpeg 2000 (.jp2),
  * and to make sure that the jp2 file can be delivered by the IIP image server.
  * For some reason, the IIP image server can't deliver, or deliver incorrectly a number of jp2 files
  * created by kakadu kdu_compress, and even imagemagick convert. They are:
@@ -65,15 +65,15 @@ public class Jp2Converter {
         convertFile(srcFilePath,  new ImageInfo(srcFilePath), dstFilePath);
     }
 
-    public void convertFile(Path srcFilePath, Path dstFilePath, Map<String, Integer> imgInfoMap) throws Exception {
+    public void convertFile(Path srcFilePath, Path dstFilePath, Map<String, String> imgInfoMap) throws Exception {
         // Image info of the source image is passed in as a map
         convertFile(srcFilePath,  new ImageInfo(imgInfoMap), dstFilePath);
     }
 
-    public void convertFile(Path srcFilePath, Path dstFilePath,
+    public void convertFile(Path srcFilePath, Path dstFilePath, String mimeType,
                             int compression, int samplesPerPixel, int bitsPerSample, int photometric) throws Exception {
-        // Image info of the source image is passed in as a list of integers
-        convertFile(srcFilePath, new ImageInfo(compression, samplesPerPixel, bitsPerSample, photometric), dstFilePath);
+        // Image info of the source image is passed in as a list of values
+        convertFile(srcFilePath, new ImageInfo(mimeType, compression, samplesPerPixel, bitsPerSample, photometric), dstFilePath);
     }
 
     private void convertFile(Path srcFilePath, ImageInfo imgInfo, Path dstFilePath) throws Exception {
@@ -83,10 +83,9 @@ public class Jp2Converter {
             throw new Exception("Jpeg2000 file (" + dstFilePath.toString() + ") must end with .jp2");
         }
 
-        // For now, only convert tiff to jp2
-        String contentType = new Tika().detect(srcFilePath.toFile());
-        if (!"image/tiff".equals(contentType)) {
-            throw new Exception("Not a tiff file");
+        // For now, only convert tiff or jpeg to jp2
+        if (!("image/tiff".equals(imgInfo.mimeType) || "image/jpeg".equals(imgInfo.mimeType))) {
+            throw new Exception("Not a tiff or a jpeg file");
         }
 
         long startTime = System.currentTimeMillis();
@@ -94,7 +93,10 @@ public class Jp2Converter {
         Path tmpFilePath = dstFilePath.getParent().resolve("tmp_" + dstFilePath.getFileName() + ".tif");
 
         try {
-            if (imgInfo.samplesPerPixel == 1 && imgInfo.bitsPerSample == 1) {
+            if ("image/jpeg".equals(imgInfo.mimeType)) {
+                // Jpeg - Convert to tiff
+                convertUncompress(srcFilePath, tmpFilePath);
+            } else if (imgInfo.samplesPerPixel == 1 && imgInfo.bitsPerSample == 1) {
                 // Bitonal image - Convert to greyscale (8 bit depth)
                 convertBitdepth(srcFilePath, tmpFilePath, 8);
             } else if (imgInfo.samplesPerPixel > 3) {
@@ -107,7 +109,7 @@ public class Jp2Converter {
                 // Image has colour palette - Convert to 3 TrueColor
                 convertTrueColour(srcFilePath, tmpFilePath);
             } else if (imgInfo.compression > 1) {
-                // Uncompress image as kakadu can't process compressed tiff
+                // Uncompress image as the demo app kdu_compress can't process compressed tiff
                 convertUncompress(srcFilePath, tmpFilePath);
             }
 
@@ -228,41 +230,49 @@ public class Jp2Converter {
     }
 
     class ImageInfo {
+        String mimeType;
         int compression, samplesPerPixel, bitsPerSample, photometric;
 
-        public ImageInfo(int compression, int samplesPerPixel, int bitsPerSample, int photometric) throws Exception {
+        public ImageInfo(String mimeType, int compression, int samplesPerPixel, int bitsPerSample, int photometric) throws Exception {
+            this.mimeType = mimeType;
             this.compression = compression;
             this.samplesPerPixel = samplesPerPixel;
             this.bitsPerSample = bitsPerSample;
             this.photometric = photometric;
         }
 
-        public ImageInfo(Map<String, Integer> imgInfoMap) throws Exception {
-            this.compression = imgInfoMap.get("compression");
-            this.samplesPerPixel = imgInfoMap.get("samplesPerPixel");
-            this.bitsPerSample = imgInfoMap.get("bitsPerSample");
-            this.photometric = imgInfoMap.get("photometric");
+        public ImageInfo(Map<String, String> imgInfoMap) throws Exception {
+            this.mimeType  = imgInfoMap.get("mimeType");
+            this.compression = Integer.parseInt(imgInfoMap.get("compression"), 10);
+            this.samplesPerPixel = Integer.parseInt(imgInfoMap.get("samplesPerPixel"), 10);
+            this.bitsPerSample = Integer.parseInt(imgInfoMap.get("bitsPerSample"), 10);
+            this.photometric = Integer.parseInt(imgInfoMap.get("photometric"), 10);
         }
 
         public ImageInfo(Path filePath) throws Exception {
-            // Read image metadata using metadata-extractor
-            Metadata metadata = ImageMetadataReader.readMetadata(filePath.toFile());
-            ExifIFD0Directory directory = metadata.getDirectory(ExifIFD0Directory.class);
-            if (directory == null) {
-                throw new Exception("Missing ExifIFD0Directory: " + filePath.toString());
+            this.mimeType = tika.detect(filePath.toFile());
+            if ("image/tiff".equals(mimeType)) {
+                // Read image metadata using metadata-extractor - only for tiff
+                Metadata metadata = ImageMetadataReader.readMetadata(filePath.toFile());
+                ExifIFD0Directory directory = metadata.getDirectory(ExifIFD0Directory.class);
+                if (directory == null) {
+                    throw new Exception("Missing ExifIFD0Directory: " + filePath.toString());
+                }
+
+                // Compression (259)
+                this.compression = getTagValue(directory, 259);
+
+                // Samples per pixel (277)
+                this.samplesPerPixel = getTagValue(directory, 277);
+
+                // Bits per sample (258)
+                this.bitsPerSample = getTagValue(directory, 258);
+
+                // Photometric (262)
+                this.photometric = getTagValue(directory, 262);
+            } else {
+                this.compression = this.samplesPerPixel = this.bitsPerSample = this.photometric = -1;
             }
-
-            // Compression (259)
-            this.compression = getTagValue(directory, 259);
-
-            // Samples per pixel (277)
-            this.samplesPerPixel = getTagValue(directory, 277);
-
-            // Bits per sample (258)
-            this.bitsPerSample = getTagValue(directory, 258);
-
-            // Photometric (262)
-            this.photometric = getTagValue(directory, 262);
         }
 
         private int getTagValue(ExifIFD0Directory directory, int tagNo) {
