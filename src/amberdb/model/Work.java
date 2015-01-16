@@ -1404,13 +1404,13 @@ public interface Work extends Node {
         @Override
         public void removeRepresentation(final Copy copy) {
             removeRepresentative(copy);
-            setHasRepresentation(true);
+            setHasRepresentation(false);
         }
         
         @Override
         public void addRepresentation(final Copy copy) {
             addRepresentative(copy);
-            setHasRepresentation(false);
+            setHasRepresentation(true);
         }
     }
 }
