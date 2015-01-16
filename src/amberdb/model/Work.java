@@ -958,7 +958,7 @@ public interface Work extends Node {
     public Iterable<Copy> getRepresentations();
     
     @Property("hasRepresentation")
-    public String getHasRepresentation();
+    public Boolean getHasRepresentation();
     
     /**
      * This flag is used as a shortcut for delivery of the represented image for a work.
@@ -966,15 +966,7 @@ public interface Work extends Node {
      * setHasRepresentationIndicator to set this property
      */
     @Property("hasRepresentation")
-    public void setHasRepresentation(String hasRepresentation);
-    
-    /**
-     * This flag is used as a shortcut for delivery of the represented image for a work.
-     * This method takes in a boolean value and store it as "y"/"n" string in the hasRepresentation 
-     * property 
-     */
-    @JavaHandler
-    public void setRepresented(Boolean represented);
+    public void setHasRepresentation(Boolean hasRepresentation);
     
     @JavaHandler
     public boolean isRepresented();
@@ -1404,28 +1396,21 @@ public interface Work extends Node {
         }
         
         @Override
-        public void setRepresented(Boolean represented) {
-            if (represented != null) {
-                setHasRepresentation(represented?"y":"n");
-            }
-        }
-        
-        @Override
         public boolean isRepresented() {
-            String represented = getHasRepresentation();
-            return (represented == null)? false : ((represented.equalsIgnoreCase("y"))? true : false);
+            Boolean represented = getHasRepresentation();
+            return (represented == null)? false : represented;
         }
         
         @Override
         public void removeRepresentation(final Copy copy) {
             removeRepresentative(copy);
-            setHasRepresentation("n");
+            setHasRepresentation(true);
         }
         
         @Override
         public void addRepresentation(final Copy copy) {
             addRepresentative(copy);
-            setHasRepresentation("y");
+            setHasRepresentation(false);
         }
     }
 }
