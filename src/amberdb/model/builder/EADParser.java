@@ -107,7 +107,9 @@ public class EADParser extends XmlDocumentParser {
             String fldCfg = fldsCfg.get(fldName).toString();
             if (fldCfg != null && !fldCfg.isEmpty()) {
                 if (queryAttribute(fldCfg)) {
-                    fldsMap.put(fldName, getAttribute(node, fldCfg));
+                    Object attr = getAttribute(node, fldCfg);
+                    if (attr != null)
+                        fldsMap.put(fldName, attr);
                 } else {
                     Nodes nodes = node.query(fldCfg, xc);
                     if (nodes != null && nodes.size() > 0) {
