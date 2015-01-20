@@ -19,7 +19,8 @@ import amberdb.sql.LookupsSchema;
 public class LookupRefresh {
     static final Logger log = LoggerFactory.getLogger(LookupRefresh.class);
     public static List<ListLu> synchronizeLookups(AmberSession db) {
-        DataSource ds = JdbcConnectionPool.create("jdbc:h2:mem:cache", "refresh", "lookups");
+        Lookups destLookups = db.getLookups();
+        DataSource ds = JdbcConnectionPool.create("jdbc:h2:mem:cache", "store", "collection");
         DBI lookupsDbi = new DBI(ds);
         LookupsSchema luSchema = lookupsDbi.onDemand(LookupsSchema.class);
         if (!luSchema.schemaTablesExist()) {
@@ -28,7 +29,7 @@ public class LookupRefresh {
         
         List<ListLu> fromLu = lookupsDbi.onDemand(Lookups.class).findActiveLookups();
         Map<String, ListLu> fromMap = indexLookups(fromLu);
-        Map<String, ListLu> toMap = indexLookups(db.getLookups().findActiveLookups());
+        Map<String, ListLu> toMap = indexLookups(destLookups.findActiveLookups());
         for (String nameCode : fromMap.keySet()) {
             if (toMap.get(nameCode) == null) {               
                 String name = nameCode.substring(0, nameCode.indexOf('_') - 1);
@@ -37,15 +38,16 @@ public class LookupRefresh {
                 log.debug("adding lookups for name: " + name + ", code: " + code + ", value: " + value);
                 
                 // add new lookup entry
-                db.getLookups().addLookup(fromMap.get(nameCode));
+                destLookups.addLookup(fromMap.get(nameCode));
             } else {
                 // update an existing lookup entry
-                System.out.println("updating lookups for " + nameCode);
                 Long id = toMap.get(nameCode).getId();
-                db.getLookups().updateLookup(id, fromMap.get(nameCode).getValue());
+                String value = fromMap.get(nameCode).getValue();
+                log.debug("adding lookups for name_code: " + nameCode + ", value: " + value);
+                destLookups.updateLookup(id, fromMap.get(nameCode).getValue());
             }
         }
-        db.commit();
+        destLookups.commit();
         return fromLu;
     }
 

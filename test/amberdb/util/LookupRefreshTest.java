@@ -15,6 +15,7 @@ import org.junit.Test;
 import amberdb.AmberDb;
 import amberdb.AmberSession;
 import amberdb.sql.ListLu;
+import amberdb.util.LookupRefresh;
 
 public class LookupRefreshTest {
 
