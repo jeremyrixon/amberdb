@@ -8,6 +8,8 @@ import javax.sql.DataSource;
 
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import amberdb.AmberSession;
 import amberdb.sql.ListLu;
@@ -15,23 +17,24 @@ import amberdb.sql.Lookups;
 import amberdb.sql.LookupsSchema;
 
 public class LookupRefresh {
-
-    public void synchronizeLookups(AmberSession db) {
+    static final Logger log = LoggerFactory.getLogger(LookupRefresh.class);
+    public static List<ListLu> synchronizeLookups(AmberSession db) {
         DataSource ds = JdbcConnectionPool.create("jdbc:h2:mem:cache", "refresh", "lookups");
         DBI lookupsDbi = new DBI(ds);
         LookupsSchema luSchema = lookupsDbi.onDemand(LookupsSchema.class);
         if (!luSchema.schemaTablesExist()) {
             luSchema.createLookupsSchema();
         }
-
-        Map<String, ListLu> fromMap = indexLookups(lookupsDbi.onDemand(Lookups.class).findActiveLookups());
+        
+        List<ListLu> fromLu = lookupsDbi.onDemand(Lookups.class).findActiveLookups();
+        Map<String, ListLu> fromMap = indexLookups(fromLu);
         Map<String, ListLu> toMap = indexLookups(db.getLookups().findActiveLookups());
         for (String nameCode : fromMap.keySet()) {
             if (toMap.get(nameCode) == null) {               
                 String name = nameCode.substring(0, nameCode.indexOf('_') - 1);
                 String code = nameCode.substring(nameCode.indexOf('_') + 1);
                 String value = fromMap.get(nameCode).getValue();
-                System.out.println("adding lookups for name: " + name + ", code: " + code + ", value: " + value);
+                log.debug("adding lookups for name: " + name + ", code: " + code + ", value: " + value);
                 
                 // add new lookup entry
                 db.getLookups().addLookup(fromMap.get(nameCode));
@@ -43,9 +46,10 @@ public class LookupRefresh {
             }
         }
         db.commit();
+        return fromLu;
     }
 
-    Map<String, ListLu> indexLookups(List<ListLu> lookups) {
+    protected static Map<String, ListLu> indexLookups(List<ListLu> lookups) {
         Map<String, ListLu> index = new HashMap<>();
         if (lookups == null) return index;
         for (ListLu entry : lookups) {
