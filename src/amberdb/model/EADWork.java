@@ -56,6 +56,31 @@ public interface EADWork extends Work {
     public void setScopeContent(String scopeContent);
     
     /**
+     * bibliography: bibliography info for a person.
+     */
+    @Property("bibliography")
+    public String getBibliography();
+    
+    /**
+     * bibliography: bibliography info for a person.
+     */
+    @Property("bibliography")
+    public void setBibliography(String bibliography);
+    
+    /**
+     * adminInfo: administrative info for an origanisation.
+     */
+    @Property("adminInfo")
+    public String getAdminInfo();
+    
+    /**
+     * adminInfo: administrative info for an origanisation.
+     */
+    @Property("adminInfo")
+    public void setAdminInfo(String adminInfo);
+
+    
+    /**
      * correspondenceIndex: provide summary of correspondence indexed to entities associated
      * with this EADWork. 
      */

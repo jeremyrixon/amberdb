@@ -700,8 +700,8 @@ public class CollectionBuilder {
     
     private static JsonNode mapWorkProperties(Work work) {
         JsonNode workProperties = mapper.createObjectNode();
-        String[] fields = { "repository", "extent", "collectionNumber", "creator", "title", "subType", "subUnitType", "form", "bibLevel", "collection", "recordSource", "localSystemNumber",
-                               "rdsAcknowledgementType", "rdsAcknowledgementReceiver", "eadUpdateReviewRequired", "accessConditions",
+        String[] fields = { "repository", "extent", "collectionNumber", "creator", "title", "subType", "subUnitType", "form", "bibLevel", "collection", "bibliography", "adminInfo", 
+                            "recordSource", "localSystemNumber", "rdsAcknowledgementType", "rdsAcknowledgementReceiver", "eadUpdateReviewRequired", "accessConditions",
                                "componentLevel", "componentNumber", "scopeContent", "dateRange", "folder"};
         for (String field : fields) {
             if (work.asVertex().getProperty(field) != null)
