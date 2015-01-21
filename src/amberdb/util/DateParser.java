@@ -22,6 +22,10 @@ public class DateParser {
         "(.*)\\s*-\\s*(.*)",
         "(.*)\\s*/\\s*(.*)"};
     
+    static final String[] bulkDateRangePattern = {
+        "\\(bulk (.*)\\s*-\\s*(.*)\\)"
+    };
+    
     static final String[] yearPatterns = {
         "(\\d{3,4})\\s*[\\s\\-\\./](.*)", // which covers
                                           // "(\\d\\d\\d)\\s+(.*)",

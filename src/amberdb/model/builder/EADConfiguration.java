@@ -48,12 +48,14 @@ public class EADConfiguration {
         ((ObjectNode) collectionFields).put("summary", getMappedSummaryFieldsCfg());
         ((ObjectNode) collectionFields).put("introduction", getMappedIntroductionFieldsCfg());
         ((ObjectNode) collectionFields).put("bioghistory", getMappedBioghistoryFieldsCfg());
+        ((ObjectNode) collectionFields).put("adminInfo", getMappedAdminInfoFieldsCfg());
         return collectionFields;
     }
     
     protected JsonNode getMappedSummaryFieldsCfg() {
         JsonNode summaryFields = mapper.createObjectNode();
         ((ObjectNode) summaryFields).put("uuid", "notsuuplied");
+        ((ObjectNode) summaryFields).put("dcmpi", "//ead:ead/ead:archdesc/ead:did/ead:materialspec");
         ((ObjectNode) summaryFields).put("eadid", "//ead:ead/ead:eadheader/ead:eadid");
         ((ObjectNode) summaryFields).put("collection-number", "//ead:ead/ead:eadheader/ead:filedesc/ead:titlestmt/ead:titleproper/ead:num");
         ((ObjectNode) summaryFields).put("creator", "//ead:ead/ead:archdesc/ead:did/ead:origination/ead:persname");
@@ -77,7 +79,24 @@ public class EADConfiguration {
     protected JsonNode getMappedBioghistoryFieldsCfg() {
         JsonNode biogHistoryFields = mapper.createObjectNode();
         ((ObjectNode) biogHistoryFields).put("biographical-note", "//ead:ead/ead:archdesc/ead:bioghist");
+        ((ObjectNode) biogHistoryFields).put("bibliography", "//ead:ead/ead:archdesc/ead:bibliography");
         return biogHistoryFields;
+    }
+    
+    protected JsonNode getMappedAdminInfoFieldsCfg() {
+        JsonNode adminInfoFields = mapper.createObjectNode();
+        ((ObjectNode) adminInfoFields).put("publicationstmt", "//ead:ead/ead:eadheader/ead:filedesc/ead:publicationstmt");
+        ((ObjectNode) adminInfoFields).put("revisiondesc", "//ead:ead/ead:eadheader/ead:revisiondesc");
+        ((ObjectNode) adminInfoFields).put("accessrestrict", "//ead:ead/ead:archdesc/ead:accessrestrict");
+        ((ObjectNode) adminInfoFields).put("userestrict", "//ead:ead/ead:archdesc/ead:userestrict");
+        ((ObjectNode) adminInfoFields).put("custodhist", "//ead:ead/ead:archdesc/ead:custodhist");
+        ((ObjectNode) adminInfoFields).put("accruals", "//ead:ead/ead:archdesc/ead:accruals");
+        ((ObjectNode) adminInfoFields).put("acqinfo", "//ead:ead/ead:archdesc/ead:acqinfo");
+        ((ObjectNode) adminInfoFields).put("processinfo", "//ead:ead/ead:archdesc/ead:processinfo");
+        ((ObjectNode) adminInfoFields).put("appraisal", "//ead:ead/ead:archdesc/ead:appraisal");
+        ((ObjectNode) adminInfoFields).put("altformavail", "//ead:ead/ead:archdesc/ead:altformavail");
+        ((ObjectNode) adminInfoFields).put("originalsloc", "//ead:ead/ead:archdesc/ead:originalsloc");
+        return adminInfoFields;
     }
     
     protected ArrayNode getExcludedElementsCfg() {
@@ -117,6 +136,7 @@ public class EADConfiguration {
     
     protected JsonNode getMappedSubElementFieldsCfg() {
         JsonNode mappedFields = mapper.createObjectNode();
+        ((ObjectNode) mappedFields).put("dcmpi", "ead:did/ead:materialspec");
         ((ObjectNode) mappedFields).put("title", "ead:did/ead:unittitle");
         ((ObjectNode) mappedFields).put("date-range", "ead:did/ead:unitdate");
         ((ObjectNode) mappedFields).put("scope-n-content", "ead:scopecontent/ead:p");
