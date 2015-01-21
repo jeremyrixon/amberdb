@@ -1,6 +1,7 @@
 package amberdb.model;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -232,14 +233,23 @@ public interface EADWork extends Work {
     public EADFeature getEADFeature(long objectId);
     
     abstract class Impl extends Work.Impl implements JavaHandlerContext<Vertex>, EADWork {
+        SimpleDateFormat dateFmt = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
+        
         @Override
         public List<Date> getDateRange() throws JsonParseException, JsonMappingException, IOException {
             List<String> dateRangeStrs = deserialiseJSONString(getJSONDateRange());
             if (dateRangeStrs == null) return null;
             List<Date> dateRange = new ArrayList<>();
             for (String dateRangeStr : dateRangeStrs) {
-                Date date = new Date(Long.parseLong(dateRangeStr));
-                dateRange.add(date);
+                // Date date = new Date(Long.parseLong(dateRangeStr));
+                // dateRange.add(date);
+                Date date = null;
+                try {
+                    date = dateFmt.parse(dateRangeStr);
+                    dateRange.add(date);
+                } catch (ParseException e) {
+                    dateRange.add(null);
+                }
             }
             return dateRange;
         }
@@ -252,8 +262,10 @@ public interface EADWork extends Work {
             List<String> dateRangeStrs = new ArrayList<>();
             for (Date date : dateRange) {
                 if (date != null) {
-                    Long time = date.getTime();
-                    dateRangeStrs.add("" + time);
+                    // TODO: check why parsing long, is it for text indexing?
+                    // Long time = date.getTime();
+                    // dateRangeStrs.add("" + time);
+                    dateRangeStrs.add(dateFmt.format(date));
                 }
             }
             setJSONDateRange(serialiseToJSON(dateRangeStrs));
@@ -266,7 +278,7 @@ public interface EADWork extends Work {
             Date from = dateRange.get(0);
             Date to = (dateRange.size() > 1)? dateRange.get(dateRange.size() - 1) : null;
             
-            SimpleDateFormat dateFmt = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
+            // SimpleDateFormat dateFmt = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
             SimpleDateFormat yearFmt = new SimpleDateFormat("yyyy");
             String fmttedFrom = (from == null)?"":dateFmt.format(from);
             String fmttedTo = (to == null)? "" : dateFmt.format(to);
