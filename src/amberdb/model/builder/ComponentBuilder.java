@@ -153,6 +153,11 @@ public class ComponentBuilder {
             }
         }
         
+        Object dcmWorkPID = fieldsMap.get("dcmpi");
+        if (dcmWorkPID != null)
+            componentWork.setDcmWorkPid(dcmWorkPID.toString());
+        
+        // TODO: debug this
         mapContainer(componentWork, fieldsMap);
     }
 
@@ -235,6 +240,9 @@ public class ComponentBuilder {
         Object componentNumber = fieldsMap.get("component-number");
         if (componentNumber != null)
             node.put("component-number", componentNumber.toString());
+        Object dcmWorkPID = fieldsMap.get("dcmpi");
+        if (dcmWorkPID != null)
+            node.put("dcmWorkPid", dcmWorkPID.toString());
         Object unitTitle = fieldsMap.get("title");
         if (unitTitle != null)
             node.put("title", unitTitle.toString());
