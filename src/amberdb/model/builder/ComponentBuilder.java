@@ -172,50 +172,39 @@ public class ComponentBuilder {
     }
 
     protected static void mapContainer(EADWork componentWork, Map<String, Object> fieldsMap) {
+        Object containerId = fieldsMap.get("container-uuid");
+        Object containerParent = fieldsMap.get("container-parent");
         Object containerNumber = fieldsMap.get("container-number");
         Object containerLabel = fieldsMap.get("container-label");        
         Object containerType = fieldsMap.get("container-type");
-        if (containerLabel != null) {
-            // if a single container is extracted for the component work
-            if (containerLabel instanceof String) {
-                if (!((String) containerLabel).isEmpty()) {
-                    String folder = "";
-                    if (containerType != null)
-                        folder = containerType.toString() + " " + containerNumber.toString() + ": " + containerLabel.toString();
-                    else
-                        folder = "container " + containerNumber.toString() + ": " + containerLabel.toString();
-                    log.debug("component work " + componentWork.getObjId() + ": container: " + folder);
-                    List<String> folders = new ArrayList<>();
-                    folders.add(folder);
-                    try {
-                        componentWork.setFolder(folders);
-                    } catch (IOException e) {
-                        log.error("Failed to extract container for component work: " + componentWork.getObjId());
-                    }
-                }
-                return;
-            }
-            
-            // if multiple containers are extracted for the component work
-            String[] containerLabels = (String[]) containerLabel;
-            String[] containerTypes = (String[]) containerType;
-            if (containerLabels.length > 0) {
+
+        if (containerId != null) {
+            if (containerId instanceof String && !((String) containerId).isEmpty()) {
                 List<String> folders = new ArrayList<>();
-                for (int i = 0; i < containerLabels.length; i++) {
-                    if (containerLabels[i] != null && !((String) containerLabels[i]).isEmpty()) {
-                        String folder = "";
-                        if (containerTypes != null && containerTypes[i] != null) {
-                            folder = containerTypes[i] + ": " + containerLabels[i];
-                        } else {
-                            folder = containerLabels[i];
-                        }
-                        log.debug("component work " + componentWork.getObjId() + ": container: " + folder);
+                if (((String) containerId).length() == 39) {
+                    String folder = "container " + ((containerType == null || containerType.toString().isEmpty()) ? "" : containerType.toString()) + " "
+                            + ((containerNumber == null) ? "" : containerNumber.toString()) + "(id:"
+                            + containerId.toString() + ")";
+                    folder += (containerLabel == null || containerLabel.toString().isEmpty()) ? "" : ":" + containerLabel.toString();
+                    folder += (containerParent == null || containerParent.toString().isEmpty()) ? "" : "(parent: " + containerParent.toString() + ")";
+                    folders.add(folder);
+                } else {
+                    String[] containerIds = (String[]) containerId;
+                    String[] containerParents = (containerParent == null)? null : (String[]) containerParent;
+                    String[] containerNumbers = (containerNumber == null)? null : (String[]) containerNumber;
+                    String[] containerLabels = (containerLabel == null)? null : (String[]) containerLabel;
+                    String[] containerTypes = (containerType == null)? null : (String[]) containerType;
+                    for (int i = 0; i < containerIds.length; i++) {
+                        String folder = "container " + ((containerTypes[i] == null || containerTypes[i].toString().isEmpty()) ? "" : containerTypes[i].toString()) + " "
+                                + ((containerNumbers[i] == null) ? "" : containerNumbers[i].toString()) + "(id:"
+                                + containerIds[i].toString() + ")";
+                        folder += (containerLabels[i] == null || containerLabels[i].toString().isEmpty()) ? "" : ":" + containerLabels[i].toString();
+                        folder += (containerParents[i] == null || containerParents[i].toString().isEmpty()) ? "" : "(parent: " + containerParents[i].toString() + ")";
                         folders.add(folder);
                     }
                 }
                 try {
-                    if (!folders.isEmpty())
-                        componentWork.setFolder(folders);
+                    componentWork.setFolder(folders);
                 } catch (IOException e) {
                     log.error("Failed to extract container for component work: " + componentWork.getObjId());
                 }
