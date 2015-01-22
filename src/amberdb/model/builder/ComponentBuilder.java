@@ -156,8 +156,7 @@ public class ComponentBuilder {
         Object dcmWorkPID = fieldsMap.get("dcmpi");
         if (dcmWorkPID != null)
             componentWork.setDcmWorkPid(dcmWorkPID.toString());
-        
-        // TODO: debug this
+
         mapContainer(componentWork, fieldsMap);
     }
 
