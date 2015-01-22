@@ -607,6 +607,9 @@ public class CollectionBuilder {
     }
     
     protected static void mapCollectionMD(Work collectionWork, JsonNode collectionCfg, XmlDocumentParser parser) throws ValidityException, ParsingException, IOException {
+        if (!(collectionWork instanceof EADWork)) {
+            collectionWork.asVertex().setProperty("type", EADWork.class.getSimpleName());
+        }
         Map<String, Object> fieldsMap = parser.getFieldsMap(parser.getDocument(), collectionCfg, parser.getBasePath(parser.getDocument()));  
         log.debug("collection config: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(collectionCfg));
         log.debug("collection fieldMap: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(fieldsMap));
@@ -641,8 +644,19 @@ public class CollectionBuilder {
         if (collectionWork.getAccessConditions() == null || collectionWork.getAccessConditions().isEmpty())
             collectionWork.setAccessConditions("Restricted");
         
+        // setting the dcm work pid
+        Object dcmPI = fieldsMap.get("dcmpi");
+        if (dcmPI != null)
+            collectionWork.setDcmWorkPid(dcmPI.toString());
+        
         collectionWork.setTitle(fieldsMap.get("title").toString());
         collectionWork.setUniformTitle(fieldsMap.get("title").toString());
+        
+        // setting the admin info
+        mapAdminInfo(collectionWork, collectionCfg, fieldsMap);
+        
+        // setting the bibiography
+        mapBibliography(collectionWork, fieldsMap);
         
         Object scopeContent = fieldsMap.get("scope-n-content");
         if (scopeContent != null && !scopeContent.toString().isEmpty()) {
@@ -659,6 +673,31 @@ public class CollectionBuilder {
                 throw new IOException(e);
             }
             collectionWork.asEADWork().setDateRange(dateList);
+        }
+    }
+
+    private static void mapAdminInfo(Work collectionWork, JsonNode collectionCfg, Map<String, Object> fieldsMap) {
+        String adminInfo = "";
+        Iterator<String>  fields = collectionCfg.getFieldNames();
+        while (fields.hasNext()) {
+            String fldName = fields.next();
+            Object value = fieldsMap.get(fldName);
+            if (value != null) {
+                adminInfo += fldName + ": " + value;
+            }
+        }
+        collectionWork.asEADWork().setAdminInfo(adminInfo);
+    }
+    
+    private static void mapBibliography(Work collectionWork, Map<String, Object> fieldsMap) {
+        Object biliography = fieldsMap.get("bibliography");
+        if (biliography != null)
+            collectionWork.asEADWork().setBibliography(biliography.toString());
+        else {
+            Object biographicalNote = fieldsMap.get("biographical-note");
+            if (biographicalNote != null) {
+                collectionWork.asEADWork().setBibliography(biographicalNote.toString());
+            }
         }
     }
     
@@ -700,12 +739,27 @@ public class CollectionBuilder {
     
     private static JsonNode mapWorkProperties(Work work) {
         JsonNode workProperties = mapper.createObjectNode();
-        String[] fields = { "repository", "extent", "collectionNumber", "creator", "title", "subType", "subUnitType", "form", "bibLevel", "collection", "recordSource", "localSystemNumber",
-                               "rdsAcknowledgementType", "rdsAcknowledgementReceiver", "eadUpdateReviewRequired", "accessConditions",
+        String[] fields = { "repository", "extent", "collectionNumber", "dcmWorkPid", "creator", "title", "subType", "subUnitType", "form", "bibLevel", "collection", "bibliography", "adminInfo", 
+                            "recordSource", "localSystemNumber", "rdsAcknowledgementType", "rdsAcknowledgementReceiver", "eadUpdateReviewRequired", "accessConditions",
                                "componentLevel", "componentNumber", "scopeContent", "dateRange", "folder"};
+        String background = null;
+        // map general work properties
         for (String field : fields) {
             if (work.asVertex().getProperty(field) != null)
                 ((ObjectNode) workProperties).put(field, work.asVertex().getProperty(field).toString());
+        }
+        // map background
+        String bibliography = work.asEADWork().getBibliography();
+        if (bibliography != null && !bibliography.isEmpty()) {
+            background = bibliography;
+        } else {
+            String adminInfo = work.asEADWork().getAdminInfo();
+            if (adminInfo != null && !adminInfo.isEmpty()) {
+                background = adminInfo;
+            }
+        }
+        if (background != null) {
+            ((ObjectNode) workProperties).put("background", background);
         }
         return workProperties;
     }

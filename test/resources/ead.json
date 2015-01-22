@@ -9,6 +9,7 @@
       "collection-name":          "fileName",
       "summary": {
         "uuid":               "notsupplied",
+        "dcmpi":              "//ead:ead/ead:archdesc/ead:did/ead:materialspec",
         "eadid":              "//ead:ead/ead:eadheader/ead:eadid",
         "collection-number":  "//ead:ead/ead:eadheader/ead:filedesc/ead:titlestmt/ead:titleproper/ead:num",
         "creator":            "//ead:ead/ead:archdesc/ead:did/ead:origination/ead:persname",
@@ -23,7 +24,22 @@
         "copying-publishing": "//ead:ead/ead:archdesc/ead:userestrict",
         "preferred-citation": "//ead:ead/ead:archdesc/ead:prefercite" },
       "bioghistory": {
-        "biographical-note":  "//ead:ead/ead:archdesc/ead:bioghist" }
+        "biographical-note":  "//ead:ead/ead:archdesc/ead:bioghist",
+        "bibliography":       "//ead:ead/ead:archdesc/ead:bibliography"
+      },
+      "administrative-info": {
+        "publicationstmt":    "//ead:ead/ead:eadheader/ead:filedesc/ead:publicationstmt",
+        "revisiondesc":       "//ead:ead/ead:eadheader/ead:revisiondesc",
+        "accessrestrict":     "//ead:ead/ead:archdesc/ead:accessrestrict",
+        "userestrict":        "//ead:ead/ead:archdesc/ead:userestrict",
+        "custodhist":         "//ead:ead/ead:archdesc/ead:custodhist",
+        "accruals":           "//ead:ead/ead:archdesc/ead:accruals",
+        "acqinfo":            "//ead:ead/ead:archdesc/ead:acqinfo",
+        "processinfo":        "//ead:ead/ead:archdesc/ead:processinfo",
+        "appraisal":          "//ead:ead/ead:archdesc/ead:appraisal",
+        "altformavail":       "//ead:ead/ead:archdesc/ead:altformavail",
+        "originalsloc":       "//ead:ead/ead:archdesc/ead:originalsloc"
+      }
     },
     "excludes": [
       "arc",
@@ -51,6 +67,7 @@
       "base":                 "//ead:ead/ead:archdesc/ead:dsc",
       "fields": {                
         "series": {
+          "dcmpi":              "ead:did/ead:materialspec",
           "title":              "ead:did/ead:unittitle",
           "date-range":         "ead:did/ead:unitdate",
           "scope-n-content":    "ead:scopecontent/ead:p",

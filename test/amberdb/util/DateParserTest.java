@@ -7,6 +7,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.MatchResult;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -26,6 +29,14 @@ public class DateParserTest {
        "03.Mar.1817/09.Sep.1916",
        "1732.Mar",
        "1732.Mar.9"
+    };
+    
+    static final String[] dateRangePattern = { 
+        "(.*)\\s*-\\s*(.*)",
+        "(.*)\\s*/\\s*(.*)"};
+    
+    static final String[] bulkDateRangePattern = {
+        "\\s*\\(bulk (.*)\\s*-\\s*(.*)\\)"
     };
     
     static List<Date> expectedFromDate = new ArrayList<>();
@@ -59,6 +70,16 @@ public class DateParserTest {
         expectedToDate.add(dateFmt.parse("30/09/1916"));
         expectedToDate.add(dateFmt.parse("09/09/1916"));
         expectedToDate.add(null);
+    }
+    
+    @Test 
+    public void testBulkDateRangePattern() throws ParseException {
+        String testBulkDateRangeExprs = "1894-1935 (bulk 1919-1935)";
+        String expectedFromDate = "01/01/1894";
+        String expectedToDate = "31/12/1935";
+        List<Date> dateRange = DateParser.parseDateRange(testBulkDateRangeExprs);
+        assertEquals(expectedFromDate, dateFmt.format(dateRange.get(0)));
+        assertEquals(expectedToDate, dateFmt.format(dateRange.get(1)));
     }
     
     @Test
