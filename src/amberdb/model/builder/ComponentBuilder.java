@@ -107,9 +107,20 @@ public class ComponentBuilder {
         componentWork.setRecordSource("FA");        
         componentWork.setLocalSystemNumber(uuid);
         componentWork.setRdsAcknowledgementType("Sponsor");
-        componentWork.setRdsAcknowledgementReceiver("NLA");
+        if (fieldsMap.get("sponsor") != null)
+            componentWork.asEADWork().setRdsAcknowledgementReceiver(fieldsMap.get("sponsor"));
+        else    
+            componentWork.asEADWork().setRdsAcknowledgementReceiver("NLA");
         componentWork.setEADUpdateReviewRequired("Y"); 
-        componentWork.setAccessConditions("Unrestricted");
+        
+        if (componentWork.getParent() == null)
+            System.out.println("component work " + componentWork.getObjId() + "'s parent is null.");
+        String accessConditions = componentWork.getParent().getAccessConditions();
+        if (accessConditions != null && !accessConditions.isEmpty())
+            componentWork.setAccessConditions(accessConditions);
+        else
+            componentWork.setAccessConditions("Restricted");
+        componentWork.setDigitalStatus("Not Captured");
         
         Object componentLevel = fieldsMap.get("component-level");
         if (componentLevel != null && !componentLevel.toString().isEmpty()) {
@@ -132,7 +143,6 @@ public class ComponentBuilder {
         if (unitTitle != null && !unitTitle.toString().isEmpty()) {
             log.debug("component work " + componentWork.getObjId() + ": unit title: " + unitTitle.toString());
             componentWork.setTitle(unitTitle.toString());
-            componentWork.setUniformTitle(unitTitle.toString());
         }
         
         Object scopeContent = fieldsMap.get("scope-n-content");

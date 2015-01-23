@@ -85,6 +85,7 @@ public class ComponentBuilderTest {
     public void testUpdateComponentData() throws IOException {
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
+            collectionWork.setAccessConditions("Unrestricted");
             EADWork componentWork = collectionWork.asEADWork().addEADWork();
             assertNull(componentWork.getSubType());
             assertNull(componentWork.getSubUnitType());
@@ -138,8 +139,6 @@ public class ComponentBuilderTest {
             EADWork component4 = component3.addEADWork();
             Map<String, String> map = new ConcurrentHashMap<>();
             map.put("component-level", "collection");
-            ComponentBuilder.mapWorkMD(collectionWork.asEADWork(), null, map);
-            assertEquals("Set", collectionWork.getBibLevel());
             
             Map<String, String> map1 = new ConcurrentHashMap<>();
             map1.put("component-level", "series");

@@ -58,6 +58,7 @@ public class EADConfiguration {
         ((ObjectNode) summaryFields).put("dcmpi", "//ead:ead/ead:archdesc/ead:did/ead:materialspec");
         ((ObjectNode) summaryFields).put("eadid", "//ead:ead/ead:eadheader/ead:eadid");
         ((ObjectNode) summaryFields).put("collection-number", "//ead:ead/ead:eadheader/ead:filedesc/ead:titlestmt/ead:titleproper/ead:num");
+        ((ObjectNode) summaryFields).put("sponsor", "//ead:ead/ead:eadheader/ead:filedesc/ead:titlestmt/ead:sponsor");
         ((ObjectNode) summaryFields).put("creator", "//ead:ead/ead:archdesc/ead:did/ead:origination/ead:persname");
         ((ObjectNode) summaryFields).put("title", "//ead:ead/ead:archdesc/ead:did/ead:unittitle");
         ((ObjectNode) summaryFields).put("date-range", "//ead:ead/ead:archdesc/ead:did/ead:unitdate");

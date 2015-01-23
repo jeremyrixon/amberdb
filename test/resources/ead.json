@@ -12,6 +12,7 @@
         "dcmpi":              "//ead:ead/ead:archdesc/ead:did/ead:materialspec",
         "eadid":              "//ead:ead/ead:eadheader/ead:eadid",
         "collection-number":  "//ead:ead/ead:eadheader/ead:filedesc/ead:titlestmt/ead:titleproper/ead:num",
+        "sponsor":            "//ead:ead/ead:eadheader/ead:filedesc/ead:titlestmt/ead:sponsor",
         "creator":            "//ead:ead/ead:archdesc/ead:did/ead:origination/ead:persname",
         "title":              "//ead:ead/ead:archdesc/ead:did/ead:unittitle",
         "date-range":         "//ead:ead/ead:archdesc/ead:did/ead:unitdate",
