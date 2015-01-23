@@ -669,13 +669,13 @@ public class CollectionBuilder {
         String dateRange = fieldsMap.get("date-range");
         if (dateRange != null && !dateRange.isEmpty()) {
             log.debug("collection work " + collectionWork.getObjId() + ": date range: " + dateRange);
+            collectionWork.asEADWork().setDateRangeInAS(dateRange.toString());
             List<Date> dateList;
             try {
                 dateList = DateParser.parseDateRange(dateRange);
             } catch (ParseException e) {
                 throw new IOException(e);
             }
-            collectionWork.asEADWork().setDateRange(dateList);
             if (dateList != null && dateList.size() > 0) {
                 collectionWork.setStartDate(dateList.get(0));
                 if (dateList.size() > 1)
@@ -750,7 +750,7 @@ public class CollectionBuilder {
         JsonNode workProperties = mapper.createObjectNode();
         String[] fields = { "repository", "extent", "collectionNumber", "dcmWorkPid", "creator", "title", "subType", "subUnitType", "form", "bibLevel", "collection", "bibliography", "adminInfo", 
                             "recordSource", "localSystemNumber", "rdsAcknowledgementType", "rdsAcknowledgementReceiver", "eadUpdateReviewRequired", "accessConditions",
-                               "componentLevel", "componentNumber", "scopeContent", "dateRange", "folder"};
+                               "subUnitType", "subUnitNo", "scopeContent", "dateRangeInAS", "folder"};
         String background = null;
         // map general work properties
         for (String field : fields) {

@@ -2,6 +2,7 @@ package amberdb.model.builder;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -122,20 +123,18 @@ public class ComponentBuilder {
             componentWork.setAccessConditions("Restricted");
         componentWork.setDigitalStatus("Not Captured");
         
-        Object componentLevel = fieldsMap.get("component-level");
-        if (componentLevel != null && !componentLevel.toString().isEmpty()) {
+        String componentLevel = fieldsMap.get("component-level");
+        if (componentLevel != null && !componentLevel.isEmpty()) {
             log.debug("component work " + componentWork.getObjId() + ": componentLevel: " + componentLevel.toString());
-            componentWork.setComponentLevel(componentLevel.toString());
             componentWork.setSubUnitType(componentLevel.toString());
             // determine bib level with business rule borrowed from DCM
             String bibLevel = mapBibLevel(componentLevel);
             componentWork.setBibLevel(bibLevel);
         }
         
-        Object componentNumber = fieldsMap.get("component-number");
-        if (componentNumber != null && !componentNumber.toString().isEmpty()) {
+        String componentNumber = fieldsMap.get("component-number");
+        if (componentNumber != null && !componentNumber.isEmpty()) {
             log.debug("component work " + componentWork.getObjId() + ": componentNumber: " + componentNumber.toString());
-            componentWork.setComponentNumber(componentNumber.toString());
             componentWork.setSubUnitNo(componentNumber.toString());
         }
         
@@ -157,7 +156,11 @@ public class ComponentBuilder {
             List<Date> dateList;
             try {
                 dateList = DateParser.parseDateRange(dateRange.toString());
-                componentWork.setDateRange(dateList);
+                if (dateList != null && dateList.size() > 0) {
+                    componentWork.setStartDate(dateList.get(0));
+                    if (dateList.size() > 1)
+                        componentWork.setEndDate(dateList.get(1));
+                }
             } catch (Exception e) {
                 log.info("Failed to parse date range for component work " + componentWork.getObjId());
             }
@@ -191,24 +194,34 @@ public class ComponentBuilder {
         if (containerId != null) {
             if (containerId instanceof String && !((String) containerId).isEmpty()) {
                 List<String> folders = new ArrayList<>();
+                List<String> folderTypes = new ArrayList<>();
+                List<String> folderNumbers = new ArrayList<>();
                 if (((String) containerId).length() == 39) {
-                    String folder = "container " + ((containerType == null || containerType.toString().isEmpty()) ? "" : containerType.toString()) + " "
-                            + ((containerNumber == null) ? "" : containerNumber.toString()) + "(id:"
-                            + containerId.toString() + ")";
+                    String folderType = (containerType == null || containerType.toString().isEmpty()) ? "" : containerType.toString();
+                    String folderNumber = (containerNumber == null) ? "" : containerNumber.toString();
+                    String folder = "container " + folderType + " " + folderNumber + "(id:" + containerId.toString() + ")";
                     folder += (containerLabel == null || containerLabel.toString().isEmpty()) ? "" : ":" + containerLabel.toString();
                     folder += (containerParent == null || containerParent.toString().isEmpty()) ? "" : "(parent: " + containerParent.toString() + ")";
                     folders.add(folder);
+                    folderTypes.add(folderType);
+                    folderNumbers.add(folderNumber);
                 } else {
                     try {
                         String[] containerIds = mapper.readValue(containerId, new TypeReference<String[]>() {});
                         String[] containerParents = null;
                         if (containerParent != null) containerParents = mapper.readValue(containerParent, new TypeReference<String[]>() {});
                         String[] containerNumbers = null;
-                        if (containerNumber != null) containerNumbers = mapper.readValue(containerNumber, new TypeReference<String[]>() {});
+                        if (containerNumber != null) {
+                            containerNumbers = mapper.readValue(containerNumber, new TypeReference<String[]>() {});
+                            folderNumbers = Arrays.asList(containerNumbers);
+                        }
                         String[] containerLabels = null;
                         if (containerLabel != null) containerLabels = mapper.readValue(containerLabel, new TypeReference<String[]>() {});
                         String[] containerTypes = null;
-                        if (containerType != null) containerTypes = mapper.readValue(containerType, new TypeReference<String[]>() {});
+                        if (containerType != null) {
+                            containerTypes = mapper.readValue(containerType, new TypeReference<String[]>() {});
+                            folderTypes = Arrays.asList(containerTypes);
+                        }
                         for (int i = 0; i < containerIds.length; i++) {
                             String folder = "container " + ((containerTypes[i] == null || containerTypes[i].toString().isEmpty()) ? "" : containerTypes[i].toString()) + " "
                                     + ((containerNumbers[i] == null) ? "" : containerNumbers[i].toString()) + "(id:"
@@ -222,6 +235,8 @@ public class ComponentBuilder {
                     }
                 }
                 try {
+                    componentWork.setFolderType(folderTypes);
+                    componentWork.setFolderNumber(folderNumbers);
                     componentWork.setFolder(folders);
                 } catch (IOException e) {
                     log.error("Failed to extract container for component work: " + componentWork.getObjId());
