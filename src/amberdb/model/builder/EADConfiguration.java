@@ -139,6 +139,7 @@ public class EADConfiguration {
         JsonNode mappedFields = mapper.createObjectNode();
         ((ObjectNode) mappedFields).put("dcmpi", "ead:did/ead:materialspec");
         ((ObjectNode) mappedFields).put("title", "ead:did/ead:unittitle");
+        ((ObjectNode) mappedFields).put("extent", "ead:did/ead:physdesc/ead:extent");
         ((ObjectNode) mappedFields).put("date-range", "ead:did/ead:unitdate");
         ((ObjectNode) mappedFields).put("scope-n-content", "ead:scopecontent/ead:p");
         ((ObjectNode) mappedFields).put("container-number", "ead:did/ead:container");

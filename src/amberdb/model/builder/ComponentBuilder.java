@@ -11,6 +11,7 @@ import java.util.Map;
 import nu.xom.Element;
 import nu.xom.Node;
 
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -21,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import amberdb.PIUtil;
+import amberdb.enums.DigitalStatus;
 import amberdb.model.EADWork;
 import amberdb.model.Work;
 import amberdb.util.DateParser;
@@ -104,7 +106,9 @@ public class ComponentBuilder {
         componentWork.setForm("Manuscript");
       
         componentWork.setBibLevel("Item");
-        componentWork.setCollection("nla.ms");
+        
+        String collection = componentWork.getParent().getCollection();
+        componentWork.setCollection(collection);
         componentWork.setRecordSource("FA");        
         componentWork.setLocalSystemNumber(uuid);
         componentWork.setRdsAcknowledgementType("Sponsor");
@@ -121,8 +125,22 @@ public class ComponentBuilder {
             componentWork.setAccessConditions(accessConditions);
         else
             componentWork.setAccessConditions("Restricted");
-        componentWork.setDigitalStatus("Not Captured");
+        componentWork.setDigitalStatus(DigitalStatus.NON_DIGITISED.code());
         
+        List<String> constraints = componentWork.getParent().getConstraint();
+        componentWork.setConstraint(constraints);
+        
+        Date expiryDate = componentWork.getParent().getExpiryDate();
+        componentWork.setExpiryDate(expiryDate);
+        
+        String internalAccessConditions = "open";
+        if (componentWork.getCollection().equalsIgnoreCase("nla.ms"))
+            internalAccessConditions = "restricted";
+        componentWork.setInternalAccessConditions(internalAccessConditions);
+        
+        componentWork.setCopyrightPolicy("Perpetual");
+        componentWork.setSensitiveMaterial("No");
+              
         String componentLevel = fieldsMap.get("component-level");
         if (componentLevel != null && !componentLevel.isEmpty()) {
             log.debug("component work " + componentWork.getObjId() + ": componentLevel: " + componentLevel.toString());
@@ -142,6 +160,15 @@ public class ComponentBuilder {
         if (unitTitle != null && !unitTitle.toString().isEmpty()) {
             log.debug("component work " + componentWork.getObjId() + ": unit title: " + unitTitle.toString());
             componentWork.setTitle(unitTitle.toString());
+        }
+        
+        Object extent = fieldsMap.get("extent");
+        if (extent != null && extent instanceof String) {
+            if (!extent.toString().isEmpty())
+                componentWork.setExtent(extent.toString());
+        } else if (extent != null) {
+            List<String> extentList = (List<String>) extent;
+            componentWork.setExtent(StringUtils.join(extentList, "; "));
         }
         
         Object scopeContent = fieldsMap.get("scope-n-content");

@@ -70,6 +70,7 @@
         "series": {
           "dcmpi":              "ead:did/ead:materialspec",
           "title":              "ead:did/ead:unittitle",
+          "extent":             "ead:did/ead:physdesc/ead:extent",
           "date-range":         "ead:did/ead:unitdate",
           "scope-n-content":    "ead:scopecontent/ead:p",
           "container-number":   "ead:did/ead:container",

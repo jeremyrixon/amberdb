@@ -534,6 +534,9 @@ public class CollectionBuilder {
                 eadCopy.removeFile(eadCopy.getFile());
         }
         eadCopy.addFile(Writables.wrap(content), contentType);
+        eadCopy.setMaterialType("Text");
+        eadCopy.setCopyType("b");
+        eadCopy.setCarrier("Online");
     }
     
     protected static void processCollection(Work collectionWork, String collectionName, InputStream in, JsonNode collectionCfg, XmlDocumentParser parser) throws EADValidationException, ValidityException, ParsingException, IOException {
@@ -633,7 +636,6 @@ public class CollectionBuilder {
         collectionWork.setSubType("Work");
         collectionWork.setForm("Manuscript");
         collectionWork.setBibLevel("Set");
-        collectionWork.setCollection("nla.ms");
         collectionWork.setRecordSource("FA");
         collectionWork.asEADWork().setRdsAcknowledgementType("Sponsor");
         
