@@ -134,7 +134,7 @@ public class ComponentBuilder {
         componentWork.setExpiryDate(expiryDate);
         
         String internalAccessConditions = "open";
-        if (componentWork.getCollection().equalsIgnoreCase("nla.ms"))
+        if (componentWork.getCollection() != null && componentWork.getCollection().equalsIgnoreCase("nla.ms"))
             internalAccessConditions = "restricted";
         componentWork.setInternalAccessConditions(internalAccessConditions);
         

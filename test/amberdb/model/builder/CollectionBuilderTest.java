@@ -232,6 +232,7 @@ public class CollectionBuilderTest {
         createCollection();
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
+            collectionWork.setCollection("nla.ms");
             boolean storeCopy = true;
             Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
             

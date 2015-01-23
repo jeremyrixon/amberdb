@@ -61,7 +61,7 @@ public class ComponentBuilderTest {
             collectionWork.setSubUnitType("Collection");
             collectionWork.setForm("Manuscript");
             collectionWork.setBibLevel("Set");
-            collectionWork.setCollection("nla.ms-ms6442");
+            collectionWork.setCollection("nla.ms");
             collectionWork.setRecordSource("FA");
             collectionWork.asEADWork().setRdsAcknowledgementType("Sponsor");
             collectionWork.asEADWork().setRdsAcknowledgementReceiver("NLA");
@@ -85,6 +85,7 @@ public class ComponentBuilderTest {
     public void testUpdateComponentData() throws IOException {
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
+            collectionWork.setCollection("nla.ms");
             collectionWork.setAccessConditions("Unrestricted");
             EADWork componentWork = collectionWork.asEADWork().addEADWork();
             assertNull(componentWork.getSubType());
