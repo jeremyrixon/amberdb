@@ -93,12 +93,12 @@ public class ComponentBuilder {
     
     protected static EADWork updateComponentData(EADWork componentWork, JsonNode component) throws JsonParseException, JsonMappingException, IOException {
         String compJson = mapper.writeValueAsString(component);
-        Map<String, Object> fieldsMap = mapper.readValue(compJson, new TypeReference<HashMap<String, Object>>(){});
+        Map<String, String> fieldsMap = mapper.readValue(compJson, new TypeReference<HashMap<String, String>>(){});
         mapWorkMD(componentWork, component.get("uuid").getTextValue(), fieldsMap);
         return componentWork;
     }
     
-    protected static void mapWorkMD(EADWork componentWork, String uuid, Map<String, Object> fieldsMap) throws JsonParseException, JsonMappingException, IOException {
+    protected static void mapWorkMD(EADWork componentWork, String uuid, Map<String, String> fieldsMap) throws JsonParseException, JsonMappingException, IOException {
         componentWork.setSubType("Work");      
         componentWork.setForm("Manuscript");
       
@@ -171,12 +171,12 @@ public class ComponentBuilder {
         return bibLevel;
     }
 
-    protected static void mapContainer(EADWork componentWork, Map<String, Object> fieldsMap) {
-        Object containerId = fieldsMap.get("container-uuid");
-        Object containerParent = fieldsMap.get("container-parent");
-        Object containerNumber = fieldsMap.get("container-number");
-        Object containerLabel = fieldsMap.get("container-label");        
-        Object containerType = fieldsMap.get("container-type");
+    protected static void mapContainer(EADWork componentWork, Map<String, String> fieldsMap) {
+        String containerId = fieldsMap.get("container-uuid");
+        String containerParent = fieldsMap.get("container-parent");
+        String containerNumber = fieldsMap.get("container-number");
+        String containerLabel = fieldsMap.get("container-label");        
+        String containerType = fieldsMap.get("container-type");
 
         if (containerId != null) {
             if (containerId instanceof String && !((String) containerId).isEmpty()) {
@@ -189,18 +189,27 @@ public class ComponentBuilder {
                     folder += (containerParent == null || containerParent.toString().isEmpty()) ? "" : "(parent: " + containerParent.toString() + ")";
                     folders.add(folder);
                 } else {
-                    String[] containerIds = (String[]) containerId;
-                    String[] containerParents = (containerParent == null)? null : (String[]) containerParent;
-                    String[] containerNumbers = (containerNumber == null)? null : (String[]) containerNumber;
-                    String[] containerLabels = (containerLabel == null)? null : (String[]) containerLabel;
-                    String[] containerTypes = (containerType == null)? null : (String[]) containerType;
-                    for (int i = 0; i < containerIds.length; i++) {
-                        String folder = "container " + ((containerTypes[i] == null || containerTypes[i].toString().isEmpty()) ? "" : containerTypes[i].toString()) + " "
-                                + ((containerNumbers[i] == null) ? "" : containerNumbers[i].toString()) + "(id:"
-                                + containerIds[i].toString() + ")";
-                        folder += (containerLabels[i] == null || containerLabels[i].toString().isEmpty()) ? "" : ":" + containerLabels[i].toString();
-                        folder += (containerParents[i] == null || containerParents[i].toString().isEmpty()) ? "" : "(parent: " + containerParents[i].toString() + ")";
-                        folders.add(folder);
+                    try {
+                        String[] containerIds = mapper.readValue(containerId, new TypeReference<String[]>() {});
+                        String[] containerParents = null;
+                        if (containerParent != null) containerParents = mapper.readValue(containerParent, new TypeReference<String[]>() {});
+                        String[] containerNumbers = null;
+                        if (containerNumber != null) containerNumbers = mapper.readValue(containerNumber, new TypeReference<String[]>() {});
+                        String[] containerLabels = null;
+                        if (containerLabel != null) containerLabels = mapper.readValue(containerLabel, new TypeReference<String[]>() {});
+                        String[] containerTypes = null;
+                        if (containerType != null) containerTypes = mapper.readValue(containerType, new TypeReference<String[]>() {});
+                        for (int i = 0; i < containerIds.length; i++) {
+                            String folder = "container " + ((containerTypes[i] == null || containerTypes[i].toString().isEmpty()) ? "" : containerTypes[i].toString()) + " "
+                                    + ((containerNumbers[i] == null) ? "" : containerNumbers[i].toString()) + "(id:"
+                                    + containerIds[i].toString() + ")";
+                            folder += (containerLabels[i] == null || containerLabels[i].toString().isEmpty()) ? "" : ":" + containerLabels[i].toString();
+                            folder += (containerParents[i] == null || containerParents[i].toString().isEmpty()) ? "" : "(parent: " + containerParents[i].toString() + ")";
+                            folders.add(folder);
+                        }
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
                     }
                 }
                 try {
@@ -214,7 +223,7 @@ public class ComponentBuilder {
     
     protected static JsonNode makeComponent(Node eadElement, JsonNode elementCfg, XmlDocumentParser parser) {
         ObjectNode node = mapper.createObjectNode();
-        Map<String, Object> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));        
+        Map<String, String> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));        
         if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").toString().isEmpty())
             throw new EADValidationException("Failed to parse uuid for EAD element " + ((Element) eadElement).getLocalName() + " - " + eadElement.getValue());
         

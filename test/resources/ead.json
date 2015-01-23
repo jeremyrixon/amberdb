@@ -74,6 +74,8 @@
           "container-number":   "ead:did/ead:container",
           "container-label":    "ead:did/ead:container/@label",
           "container-type":     "ead:did/ead:container/@type",
+          "container-uuid":     "ead:did/ead:container/@id",
+          "container-parent":   "ead:did/ead:container/@parent",
           "component-level":      "@level",
           "component-number":    "ead:did/ead:unitid",
           "uuid":               "@id"}
