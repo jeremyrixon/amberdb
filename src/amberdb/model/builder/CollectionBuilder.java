@@ -707,7 +707,7 @@ public class CollectionBuilder {
             throw new EADValidationException("Failed to process collection " + parser.collectionObjId + " as no Archive Space id found for component work " + workInCollection.getObjId());
         
         String uuid = fieldsMap.get("uuid").toString();
-        System.out.println("fieldsMap: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(fieldsMap));
+        log.debug("fieldsMap: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(fieldsMap));
         ComponentBuilder.mapWorkMD(workInCollection, uuid, fieldsMap);
     }
     

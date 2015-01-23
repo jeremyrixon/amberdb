@@ -208,8 +208,7 @@ public class ComponentBuilder {
                             folders.add(folder);
                         }
                     } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
+                        log.error("unable to map containers for work " + componentWork.getObjId());
                     }
                 }
                 try {

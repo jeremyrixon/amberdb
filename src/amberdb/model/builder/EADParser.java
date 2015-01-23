@@ -11,18 +11,11 @@ import nu.xom.Document;
 import nu.xom.Element;
 import nu.xom.Node;
 import nu.xom.Nodes;
-import nu.xom.XPathContext;
 
-import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
-import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import antlr.StringUtils;
 
 public class EADParser extends XmlDocumentParser {
     static final Logger log = LoggerFactory.getLogger(EADParser.class);
@@ -133,7 +126,6 @@ public class EADParser extends XmlDocumentParser {
                                 String valueList;
                                 try {
                                     valueList = mapper.writer().writeValueAsString(values);
-                                    System.out.println("field name is " + fldName + ", value list is " + valueList);
                                     fldsMap.put(fldName, valueList);
                                 } catch (IOException e) {
                                     log.error("unable to serialize values extracted for field: " + fldName);
@@ -143,17 +135,6 @@ public class EADParser extends XmlDocumentParser {
                     }
                 }
                 log.debug("fldName : " + fldName + ", xpath: " + fldCfg + ", value: " + fldsMap.get(fldName).toString());
-                System.out.println("fldName : " + fldName + ", xpath: " + fldCfg + ", value: " + fldsMap.get(fldName).toString());
-                if (fldName.startsWith("container")) {
-                    if (fldsMap.get(fldName) != null) {                       
-                        try {
-                            String list = fldsMap.get(fldName);
-                            System.out.println("fldName : " + fldName + ", xpath: " + fldCfg + ", value: " + list);
-                        } catch (Exception e) {
-                            // e.printStackTrace();
-                        }
-                    }
-                }
             } 
         }
         try {
