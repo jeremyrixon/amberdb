@@ -610,7 +610,7 @@ public class CollectionBuilder {
         if (!(collectionWork instanceof EADWork)) {
             collectionWork.asVertex().setProperty("type", EADWork.class.getSimpleName());
         }
-        Map<String, Object> fieldsMap = parser.getFieldsMap(parser.getDocument(), collectionCfg, parser.getBasePath(parser.getDocument()));  
+        Map<String, String> fieldsMap = parser.getFieldsMap(parser.getDocument(), collectionCfg, parser.getBasePath(parser.getDocument()));  
         log.debug("collection config: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(collectionCfg));
         log.debug("collection fieldMap: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(fieldsMap));
 
@@ -676,7 +676,7 @@ public class CollectionBuilder {
         }
     }
 
-    private static void mapAdminInfo(Work collectionWork, JsonNode collectionCfg, Map<String, Object> fieldsMap) {
+    private static void mapAdminInfo(Work collectionWork, JsonNode collectionCfg, Map<String, String> fieldsMap) {
         String adminInfo = "";
         Iterator<String>  fields = collectionCfg.getFieldNames();
         while (fields.hasNext()) {
@@ -689,7 +689,7 @@ public class CollectionBuilder {
         collectionWork.asEADWork().setAdminInfo(adminInfo);
     }
     
-    private static void mapBibliography(Work collectionWork, Map<String, Object> fieldsMap) {
+    private static void mapBibliography(Work collectionWork, Map<String, String> fieldsMap) {
         Object biliography = fieldsMap.get("bibliography");
         if (biliography != null)
             collectionWork.asEADWork().setBibliography(biliography.toString());
@@ -702,11 +702,12 @@ public class CollectionBuilder {
     }
     
     protected static void mapWorkMD(EADWork workInCollection, Node eadElement, JsonNode elementCfg, XmlDocumentParser parser) throws EADValidationException, JsonParseException, JsonMappingException, IOException {
-        Map<String, Object> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));        
+        Map<String, String> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));        
         if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").toString().isEmpty())
             throw new EADValidationException("Failed to process collection " + parser.collectionObjId + " as no Archive Space id found for component work " + workInCollection.getObjId());
         
         String uuid = fieldsMap.get("uuid").toString();
+        log.debug("fieldsMap: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(fieldsMap));
         ComponentBuilder.mapWorkMD(workInCollection, uuid, fieldsMap);
     }
     

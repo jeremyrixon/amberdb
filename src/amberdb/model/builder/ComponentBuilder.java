@@ -93,12 +93,12 @@ public class ComponentBuilder {
     
     protected static EADWork updateComponentData(EADWork componentWork, JsonNode component) throws JsonParseException, JsonMappingException, IOException {
         String compJson = mapper.writeValueAsString(component);
-        Map<String, Object> fieldsMap = mapper.readValue(compJson, new TypeReference<HashMap<String, Object>>(){});
+        Map<String, String> fieldsMap = mapper.readValue(compJson, new TypeReference<HashMap<String, String>>(){});
         mapWorkMD(componentWork, component.get("uuid").getTextValue(), fieldsMap);
         return componentWork;
     }
     
-    protected static void mapWorkMD(EADWork componentWork, String uuid, Map<String, Object> fieldsMap) throws JsonParseException, JsonMappingException, IOException {
+    protected static void mapWorkMD(EADWork componentWork, String uuid, Map<String, String> fieldsMap) throws JsonParseException, JsonMappingException, IOException {
         componentWork.setSubType("Work");      
         componentWork.setForm("Manuscript");
       
@@ -171,51 +171,48 @@ public class ComponentBuilder {
         return bibLevel;
     }
 
-    protected static void mapContainer(EADWork componentWork, Map<String, Object> fieldsMap) {
-        Object containerNumber = fieldsMap.get("container-number");
-        Object containerLabel = fieldsMap.get("container-label");        
-        Object containerType = fieldsMap.get("container-type");
-        if (containerLabel != null) {
-            // if a single container is extracted for the component work
-            if (containerLabel instanceof String) {
-                if (!((String) containerLabel).isEmpty()) {
-                    String folder = "";
-                    if (containerType != null)
-                        folder = containerType.toString() + " " + containerNumber.toString() + ": " + containerLabel.toString();
-                    else
-                        folder = "container " + containerNumber.toString() + ": " + containerLabel.toString();
-                    log.debug("component work " + componentWork.getObjId() + ": container: " + folder);
-                    List<String> folders = new ArrayList<>();
-                    folders.add(folder);
-                    try {
-                        componentWork.setFolder(folders);
-                    } catch (IOException e) {
-                        log.error("Failed to extract container for component work: " + componentWork.getObjId());
-                    }
-                }
-                return;
-            }
-            
-            // if multiple containers are extracted for the component work
-            String[] containerLabels = (String[]) containerLabel;
-            String[] containerTypes = (String[]) containerType;
-            if (containerLabels.length > 0) {
+    protected static void mapContainer(EADWork componentWork, Map<String, String> fieldsMap) {
+        String containerId = fieldsMap.get("container-uuid");
+        String containerParent = fieldsMap.get("container-parent");
+        String containerNumber = fieldsMap.get("container-number");
+        String containerLabel = fieldsMap.get("container-label");        
+        String containerType = fieldsMap.get("container-type");
+
+        if (containerId != null) {
+            if (containerId instanceof String && !((String) containerId).isEmpty()) {
                 List<String> folders = new ArrayList<>();
-                for (int i = 0; i < containerLabels.length; i++) {
-                    if (containerLabels[i] != null && !((String) containerLabels[i]).isEmpty()) {
-                        String folder = "";
-                        if (containerTypes != null && containerTypes[i] != null) {
-                            folder = containerTypes[i] + ": " + containerLabels[i];
-                        } else {
-                            folder = containerLabels[i];
+                if (((String) containerId).length() == 39) {
+                    String folder = "container " + ((containerType == null || containerType.toString().isEmpty()) ? "" : containerType.toString()) + " "
+                            + ((containerNumber == null) ? "" : containerNumber.toString()) + "(id:"
+                            + containerId.toString() + ")";
+                    folder += (containerLabel == null || containerLabel.toString().isEmpty()) ? "" : ":" + containerLabel.toString();
+                    folder += (containerParent == null || containerParent.toString().isEmpty()) ? "" : "(parent: " + containerParent.toString() + ")";
+                    folders.add(folder);
+                } else {
+                    try {
+                        String[] containerIds = mapper.readValue(containerId, new TypeReference<String[]>() {});
+                        String[] containerParents = null;
+                        if (containerParent != null) containerParents = mapper.readValue(containerParent, new TypeReference<String[]>() {});
+                        String[] containerNumbers = null;
+                        if (containerNumber != null) containerNumbers = mapper.readValue(containerNumber, new TypeReference<String[]>() {});
+                        String[] containerLabels = null;
+                        if (containerLabel != null) containerLabels = mapper.readValue(containerLabel, new TypeReference<String[]>() {});
+                        String[] containerTypes = null;
+                        if (containerType != null) containerTypes = mapper.readValue(containerType, new TypeReference<String[]>() {});
+                        for (int i = 0; i < containerIds.length; i++) {
+                            String folder = "container " + ((containerTypes[i] == null || containerTypes[i].toString().isEmpty()) ? "" : containerTypes[i].toString()) + " "
+                                    + ((containerNumbers[i] == null) ? "" : containerNumbers[i].toString()) + "(id:"
+                                    + containerIds[i].toString() + ")";
+                            folder += (containerLabels[i] == null || containerLabels[i].toString().isEmpty()) ? "" : ":" + containerLabels[i].toString();
+                            folder += (containerParents[i] == null || containerParents[i].toString().isEmpty()) ? "" : "(parent: " + containerParents[i].toString() + ")";
+                            folders.add(folder);
                         }
-                        log.debug("component work " + componentWork.getObjId() + ": container: " + folder);
-                        folders.add(folder);
+                    } catch (IOException e) {
+                        log.error("unable to map containers for work " + componentWork.getObjId());
                     }
                 }
                 try {
-                    if (!folders.isEmpty())
-                        componentWork.setFolder(folders);
+                    componentWork.setFolder(folders);
                 } catch (IOException e) {
                     log.error("Failed to extract container for component work: " + componentWork.getObjId());
                 }
@@ -225,7 +222,7 @@ public class ComponentBuilder {
     
     protected static JsonNode makeComponent(Node eadElement, JsonNode elementCfg, XmlDocumentParser parser) {
         ObjectNode node = mapper.createObjectNode();
-        Map<String, Object> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));        
+        Map<String, String> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));        
         if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").toString().isEmpty())
             throw new EADValidationException("Failed to parse uuid for EAD element " + ((Element) eadElement).getLocalName() + " - " + eadElement.getValue());
         

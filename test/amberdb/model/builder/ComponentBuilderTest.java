@@ -99,7 +99,7 @@ public class ComponentBuilderTest {
             assertNull(componentWork.getAccessConditions());
 
             JsonNode firstComp = makeComponent(0);
-            Map<String, Object> map = new ConcurrentHashMap<>();
+            Map<String, String> map = new ConcurrentHashMap<>();
             map.put("component-level", "Series");
             ComponentBuilder.mapWorkMD(componentWork, firstComp.get("uuid").getTextValue(), map);
             String expectedSubType = "Work";
@@ -136,30 +136,30 @@ public class ComponentBuilderTest {
             EADWork component2 = component1.addEADWork();
             EADWork component3 = component2.addEADWork();
             EADWork component4 = component3.addEADWork();
-            Map<String, Object> map = new ConcurrentHashMap<>();
+            Map<String, String> map = new ConcurrentHashMap<>();
             map.put("component-level", "collection");
             ComponentBuilder.mapWorkMD(collectionWork.asEADWork(), null, map);
             assertEquals("Set", collectionWork.getBibLevel());
             
-            Map<String, Object> map1 = new ConcurrentHashMap<>();
+            Map<String, String> map1 = new ConcurrentHashMap<>();
             map1.put("component-level", "series");
             String localSystemNumber1 = "aspace_1";
             ComponentBuilder.mapWorkMD(component1, localSystemNumber1, map1);
             assertEquals("Set", component1.getBibLevel());
             
-            Map<String, Object> map2 = new ConcurrentHashMap<>();
+            Map<String, String> map2 = new ConcurrentHashMap<>();
             map2.put("component-level", "subseries");
             String localSystemNumber2 = "aspace_2";
             ComponentBuilder.mapWorkMD(component2, localSystemNumber2, map2);
             assertEquals("Set", component2.getBibLevel());
             
-            Map<String, Object> map3 = new ConcurrentHashMap<>();
+            Map<String, String> map3 = new ConcurrentHashMap<>();
             map3.put("component-level", "file");
             String localSystemNumber3 = "aspace_3";
             ComponentBuilder.mapWorkMD(component3, localSystemNumber3, map3);
             assertEquals("Set", component3.getBibLevel());
             
-            Map<String, Object> map4 = new ConcurrentHashMap<>();
+            Map<String, String> map4 = new ConcurrentHashMap<>();
             map4.put("component-level", "item");
             String localSystemNumber4 = "aspace_4";
             ComponentBuilder.mapWorkMD(component4, localSystemNumber4, map4);
@@ -179,8 +179,8 @@ public class ComponentBuilderTest {
             Work collectionWork = as.findWork(collectionWorkId);
             EADWork componentWork1 = collectionWork.asEADWork().addEADWork();
             EADWork componentWork2 = collectionWork.asEADWork().addEADWork();
-            ComponentBuilder.mapWorkMD(componentWork1, comps[0].get("uuid").getTextValue(), new ConcurrentHashMap<String, Object>());
-            ComponentBuilder.mapWorkMD(componentWork2, comps[1].get("uuid").getTextValue(), new ConcurrentHashMap<String, Object>());
+            ComponentBuilder.mapWorkMD(componentWork1, comps[0].get("uuid").getTextValue(), new ConcurrentHashMap<String, String>());
+            ComponentBuilder.mapWorkMD(componentWork2, comps[1].get("uuid").getTextValue(), new ConcurrentHashMap<String, String>());
             componentWorksMap.put(componentWork1.getLocalSystemNumber(), componentWork1.getObjId());
             componentWorksMap.put(componentWork2.getLocalSystemNumber(), componentWork2.getObjId());
             as.commit();

@@ -11,25 +11,22 @@ import nu.xom.Document;
 import nu.xom.Element;
 import nu.xom.Node;
 import nu.xom.Nodes;
-import nu.xom.XPathContext;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import antlr.StringUtils;
-
 public class EADParser extends XmlDocumentParser {
     static final Logger log = LoggerFactory.getLogger(EADParser.class);
     static ObjectMapper mapper = new ObjectMapper();
     
-    public Map<String, Object> getFieldsMap(Document doc, JsonNode collectionCfg) {       
+    public Map<String, String> getFieldsMap(Document doc, JsonNode collectionCfg) {       
         boolean isRootElement = true;
         return mapFields(doc.getRootElement(), getFldsMapCfg(collectionCfg), getBasePath(doc), isRootElement);
     }
        
-    public Map<String, Object> getFieldsMap(Node node, JsonNode elementCfg, String basePath) {
+    public Map<String, String> getFieldsMap(Node node, JsonNode elementCfg, String basePath) {
         boolean isRootElement = false;
         return mapFields(node, getFldsMapCfg(elementCfg), basePath, isRootElement);
     }
@@ -92,8 +89,8 @@ public class EADParser extends XmlDocumentParser {
         return fldsCfg;
     }
     
-    protected Map<String, Object> mapFields(Node node, Map<String, Object> fldsCfg, String basePath, boolean rootElement) {
-        Map<String, Object> fldsMap = new ConcurrentHashMap<>();
+    protected Map<String, String> mapFields(Node node, Map<String, Object> fldsCfg, String basePath, boolean rootElement) {
+        Map<String, String> fldsMap = new ConcurrentHashMap<>();
         if (fldsCfg == null) {
             String errMsg = "Failed to map element " + ((Element) node).getLocalName() + "under path " + basePath + ", cannot read fields mapping configuration.";
             log.error(errMsg);
@@ -109,7 +106,7 @@ public class EADParser extends XmlDocumentParser {
                 if (queryAttribute(fldCfg)) {
                     Object attr = getAttribute(node, fldCfg);
                     if (attr != null)
-                        fldsMap.put(fldName, attr);
+                        fldsMap.put(fldName, (String) attr);
                 } else {
                     Nodes nodes = node.query(fldCfg, xc);
                     if (nodes != null && nodes.size() > 0) {
@@ -121,12 +118,23 @@ public class EADParser extends XmlDocumentParser {
                             for (int i = 0; i < nodes.size(); i++) {
                                 if (((Element) nodes.get(i)).getValue() != null)
                                     values.add(nodes.get(i).getValue());
+                                else
+                                    values.add("");
                             }
-                            fldsMap.put(fldName, values);
+                            
+                            if (!values.isEmpty()) {
+                                String valueList;
+                                try {
+                                    valueList = mapper.writer().writeValueAsString(values);
+                                    fldsMap.put(fldName, valueList);
+                                } catch (IOException e) {
+                                    log.error("unable to serialize values extracted for field: " + fldName);
+                                }
+                            }
                         }
                     }
                 }
-                log.debug("fldName : " + fldName + ", xpath: " + fldCfg + ", value: " + fldsMap.get(fldName));
+                log.debug("fldName : " + fldName + ", xpath: " + fldCfg + ", value: " + fldsMap.get(fldName).toString());
             } 
         }
         try {
@@ -137,7 +145,7 @@ public class EADParser extends XmlDocumentParser {
         return fldsMap;
     }
     
-    private Object getAttribute(Node node, String xpath) {
+    private String getAttribute(Node node, String xpath) {
         log.debug("getAttribute: xpath: " + xpath);
         if (node == null) return "";
         if (xpath.indexOf('@') >= 0) {
@@ -154,7 +162,11 @@ public class EADParser extends XmlDocumentParser {
                     for (int i = 0; i < nodes.size(); i++) {
                         values[i] = ((Element) nodes.get(i)).getAttributeValue(attribute);
                     }
-                    return values;
+                    try {
+                        return mapper.writer().writeValueAsString(values); 
+                    } catch (IOException e) {
+                        log.error("unable to serialize values extrcted for attribute: " + attribute);
+                    }
                 } else if (nodes != null && nodes.size() == 1) {
                     return ((Element) nodes.get(0)).getAttributeValue(attribute);
                 } else {

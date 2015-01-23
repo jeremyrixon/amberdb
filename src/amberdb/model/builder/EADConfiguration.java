@@ -143,6 +143,8 @@ public class EADConfiguration {
         ((ObjectNode) mappedFields).put("container-number", "ead:did/ead:container");
         ((ObjectNode) mappedFields).put("container-label", "ead:did/ead:container/@label");
         ((ObjectNode) mappedFields).put("container-type", "ead:did/ead:container/@type");
+        ((ObjectNode) mappedFields).put("container-uuid", "ead:did/ead:container/@id");
+        ((ObjectNode) mappedFields).put("container-parent", "ead:did/ead:container/@parent");
         ((ObjectNode) mappedFields).put("component-level", "@level");
         ((ObjectNode) mappedFields).put("component-number", "ead:did/ead:unitid");
         ((ObjectNode) mappedFields).put("uuid", "@id");
