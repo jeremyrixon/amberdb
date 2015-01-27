@@ -236,6 +236,7 @@ public class CollectionBuilderTest {
             collectionWork.setCollection("nla.ms");
             boolean storeCopy = true;
             Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
+            System.out.println("EAD doc is " + doc.toJson());
             
             // verify the component of AS id (i.e updedCompASId) has collection work as its parent
             Map<String, String> uuidToPIMap = CollectionBuilder.componentWorksMap(collectionWork);
@@ -250,6 +251,7 @@ public class CollectionBuilderTest {
             collectionWork.removeCopy(ead);
             collectionWork.addCopy(testUpdedEADPath, CopyRole.FINDING_AID_COPY, "application/xml");  
             
+            /*
             // step 2: locate existing component works within the collection that are not in the updated EAD.
             //         If any existing component work in the collection have any digital object attached,
             //         an exception is then thrown, the reload process will be aborted.
@@ -264,6 +266,7 @@ public class CollectionBuilderTest {
                 System.out.println("Archive space id : " + work.getLocalSystemNumber());
                 as.deleteWork(work);
             }
+            */
             
             // step 3: reload collection from updated EAD: 
             //         - add new component works from the updated EAD.

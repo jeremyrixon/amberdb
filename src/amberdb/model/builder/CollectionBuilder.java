@@ -31,6 +31,7 @@ import doss.core.Writables;
 import amberdb.PIUtil;
 import amberdb.enums.AccessCondition;
 import amberdb.enums.CopyRole;
+import amberdb.enums.DigitalStatus;
 import amberdb.model.Copy;
 import amberdb.model.EADWork;
 import amberdb.model.File;
@@ -224,13 +225,13 @@ public class CollectionBuilder {
     }
     
     /**
-     * digitisedItemList provides a list of uuid of each EAD works within collectionWork (including the collectionWork)
+     * digitisedItemList provides a list of objId of each EAD works within collectionWork (including the collectionWork)
      * which has any digital object attach to it.
      * 
      * @param collectionWork - the top level work of a collection with the new updated EAD finding aid attached as
      *                         the FINDING_AID_COPY, and the FINDING_AID_VIEW_COPY containing json not yet containing 
      *                         updates from the new updated FINDING_AID_COPY.
-     * @return a list of uuid of each EAD works within collectionWork (including the collectionWork) which has any digital
+     * @return a list of objId of each EAD works within collectionWork (including the collectionWork) which has any digital
      *         object attach to it.
      *         
      * @throws JsonParseException
@@ -242,7 +243,7 @@ public class CollectionBuilder {
         // Get a list of EAD component works in the current collection work
         // structure which has digital objects attached
         JsonNode content = getFindingAIDJsonDocument(collectionWork).getContent();
-        List<String> uuidList = new ArrayList<>();
+        List<String> objIdList = new ArrayList<>();
 
         if (content != null && content.getFieldNames() != null) {
             Iterator<String> fieldNames = content.getFieldNames();
@@ -250,21 +251,23 @@ public class CollectionBuilder {
                 String objId = fieldNames.next();
                 // find the component work
                 if (!objId.equals(collectionWork.getObjId())) {
+                    try {
+                    System.out.println("objId is " + objId);
                     EADWork component = collectionWork.asEADWork().getEADWork(PIUtil.parse(objId));
 
                     // add entry to digitalObjectsMap if the component has any
                     // copies attached
                     if (component != null
                             && (component.getCopies() != null && component.getCopies().iterator().hasNext())) {
-                        if (content.get(objId).get("localSystemNumber") != null) {
-                            String uuid = content.get(objId).get("localSystemNumber").getTextValue();
-                            uuidList.add(uuid);
-                        } 
+                        objIdList.add(objId); 
+                    }
+                    } catch (Exception e) {
+                        System.out.println("objId " + objId + " is not found");
                     }
                 }
             }
         }
-        return uuidList;
+        return objIdList;
     }
     
     protected static Document getFindingAIDJsonDocument(Work collectionWork) throws JsonParseException, JsonMappingException, IOException {
@@ -364,7 +367,7 @@ public class CollectionBuilder {
         String collectionName = collectionWork.getCollection();
         // precheck
         List<String> list = CollectionBuilder.reloadEADPreChecks(collectionWork);
-        // TODO: Map<String, String> currentDOs = digitisedItemList(collectionWork);  // objId, digitalStatus
+        List<String> currentDOs = digitisedItemList(collectionWork);  // objId, digitalStatus
         
         // map out digital status of the objects
         
@@ -382,17 +385,15 @@ public class CollectionBuilder {
         
         // mark the list of EAD works which requires review
         for (String objId : list) {
-            // TODO:
-            // Work work = db.findWork(objId);
-            // work.asEADWork().setEADUpdateReviewRequired("Y");
+            EADWork eadWork = collectionWork.asEADWork().getEADWork(PIUtil.parse(objId));
+            eadWork.setEADUpdateReviewRequired("Y");
         }
         
-        // TODO: reset the digital status of digitised items
-        // for (String objId : currentDOs) {
-            // TODO:
-            // Work work = db.findWork(objId);
-            // work.asEADWork().setDigitalStatus(currentDOs.get(objId));
-        // }
+        // reset the digital status of digitised items
+        for (String objId : currentDOs) {
+            EADWork eadWork = collectionWork.asEADWork().getEADWork(PIUtil.parse(objId));
+            eadWork.setDigitalStatus(DigitalStatus.DIGITISED.code());
+        }
     }
     
     private static File getFindingAIDFile(Work collectionWork) {
