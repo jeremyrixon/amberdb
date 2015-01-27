@@ -361,7 +361,13 @@ public class CollectionBuilder {
             parser = getDefaultXmlDocumentParser();
         }
         
-        String collectionName = eadFile.getFileName();      
+        String collectionName = collectionWork.getCollection();
+        // precheck
+        List<String> list = CollectionBuilder.reloadEADPreChecks(collectionWork);
+        // TODO: Map<String, String> currentDOs = digitisedItemList(collectionWork);  // objId, digitalStatus
+        
+        // map out digital status of the objects
+        
         // initializing the parser
         parser.init(collectionWork.getObjId(), eadFile.openStream(), collectionCfg);
         
@@ -373,6 +379,20 @@ public class CollectionBuilder {
         
         // Step 2: generate the FINDING_AID_VIEW_COPY json from the updated FINDING_AID_COPY EAD attached to collectionWork
         generateJson(collectionWork, parser.storeCopy);
+        
+        // mark the list of EAD works which requires review
+        for (String objId : list) {
+            // TODO:
+            // Work work = db.findWork(objId);
+            // work.asEADWork().setEADUpdateReviewRequired("Y");
+        }
+        
+        // TODO: reset the digital status of digitised items
+        // for (String objId : currentDOs) {
+            // TODO:
+            // Work work = db.findWork(objId);
+            // work.asEADWork().setDigitalStatus(currentDOs.get(objId));
+        // }
     }
     
     private static File getFindingAIDFile(Work collectionWork) {
