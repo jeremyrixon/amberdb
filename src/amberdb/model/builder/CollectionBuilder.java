@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import doss.core.Writables;
 
 import amberdb.PIUtil;
+import amberdb.enums.AccessCondition;
 import amberdb.enums.CopyRole;
 import amberdb.model.Copy;
 import amberdb.model.EADWork;
@@ -648,7 +649,7 @@ public class CollectionBuilder {
         
         // default access conditions to Restricted if not set 
         if (collectionWork.getAccessConditions() == null || collectionWork.getAccessConditions().isEmpty())
-            collectionWork.setAccessConditions("Restricted");
+            collectionWork.setAccessConditions(AccessCondition.RESTRICTED.code());
         
         // setting the dcm work pid
         String dcmPI = fieldsMap.get("dcmpi");

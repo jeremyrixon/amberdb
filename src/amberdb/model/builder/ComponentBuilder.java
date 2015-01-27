@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import amberdb.PIUtil;
+import amberdb.enums.AccessCondition;
 import amberdb.enums.DigitalStatus;
 import amberdb.model.EADWork;
 import amberdb.model.Work;
@@ -122,7 +123,7 @@ public class ComponentBuilder {
         if (accessConditions != null && !accessConditions.isEmpty())
             componentWork.setAccessConditions(accessConditions);
         else
-            componentWork.setAccessConditions("Restricted");
+            componentWork.setAccessConditions(AccessCondition.RESTRICTED.code());
         componentWork.setDigitalStatus(DigitalStatus.NON_DIGITISED.code());
         
         List<String> constraints = componentWork.getParent().getConstraint();
@@ -131,9 +132,9 @@ public class ComponentBuilder {
         Date expiryDate = componentWork.getParent().getExpiryDate();
         componentWork.setExpiryDate(expiryDate);
         
-        String internalAccessConditions = "open";
+        String internalAccessConditions = AccessCondition.OPEN.code();
         if (componentWork.getCollection() != null && componentWork.getCollection().equalsIgnoreCase("nla.ms"))
-            internalAccessConditions = "restricted";
+            internalAccessConditions = AccessCondition.RESTRICTED.code();
         componentWork.setInternalAccessConditions(internalAccessConditions);
         
         componentWork.setCopyrightPolicy("Perpetual");

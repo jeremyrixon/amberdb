@@ -26,6 +26,7 @@ import org.junit.Test;
 
 import amberdb.AmberDb;
 import amberdb.AmberSession;
+import amberdb.enums.AccessCondition;
 import amberdb.enums.CopyRole;
 import amberdb.model.EADWork;
 import amberdb.model.Work;
@@ -66,7 +67,7 @@ public class ComponentBuilderTest {
             collectionWork.asEADWork().setRdsAcknowledgementType("Sponsor");
             collectionWork.asEADWork().setRdsAcknowledgementReceiver("NLA");
             collectionWork.asEADWork().setEADUpdateReviewRequired("Y");   
-            collectionWork.asEADWork().setAccessConditions("Restricted");
+            collectionWork.asEADWork().setAccessConditions(AccessCondition.RESTRICTED.code());
             collectionWorkId = collectionWork.getObjId();
             collectionWork.addCopy(Paths.get("test/resources/6442.xml"), CopyRole.FINDING_AID_COPY, "application/xml");
             as.commit();
@@ -86,7 +87,7 @@ public class ComponentBuilderTest {
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
             collectionWork.setCollection("nla.ms");
-            collectionWork.setAccessConditions("Unrestricted");
+            collectionWork.setAccessConditions(AccessCondition.UNRESTRICTED.code());
             EADWork componentWork = collectionWork.asEADWork().addEADWork();
             assertNull(componentWork.getSubType());
             assertNull(componentWork.getSubUnitType());
@@ -114,7 +115,7 @@ public class ComponentBuilderTest {
             String expectedRdsAcknowledgementType = "Sponsor";
             String expectedRdsAcknowledgementReceiver = "NLA";
             String expectedEADUpdateReviewRequired = "Y";
-            String expectedAccessConditions = "Unrestricted";
+            String expectedAccessConditions = AccessCondition.UNRESTRICTED.code();
             
             assertEquals(expectedSubType, componentWork.getSubType());
             assertEquals(expectedSubUnitType, componentWork.getSubUnitType());
