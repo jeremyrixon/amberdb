@@ -22,6 +22,10 @@ public class DateParser {
         "(.*)\\s*-\\s*(.*)",
         "(.*)\\s*/\\s*(.*)"};
     
+    static final String[] bulkDateRangePattern = {
+        "\\s*\\(bulk (.*)\\s*-\\s*(.*)\\)"
+    };
+    
     static final String[] yearPatterns = {
         "(\\d{3,4})\\s*[\\s\\-\\./](.*)", // which covers
                                           // "(\\d\\d\\d)\\s+(.*)",
@@ -83,11 +87,12 @@ public class DateParser {
             i++;
         }
         
-        dtRangePatterns = new Pattern[dateRangePattern.length];
+        dtRangePatterns = new Pattern[dateRangePattern.length*2];
         i = 0;
         for (String expr : dateRangePattern) {
-            dtRangePatterns[i] = Pattern.compile(expr);
-            i++;
+            dtRangePatterns[i] = Pattern.compile(expr + bulkDateRangePattern[0]);
+            dtRangePatterns[i+1] = Pattern.compile(expr);
+            i=i+2;
         }
         yrPatterns = new Pattern[yearPatterns.length];
         i = 0;
@@ -123,6 +128,7 @@ public class DateParser {
         // parse the date range
         SimpleDateFormat dateFmt1 = new SimpleDateFormat(DATE_PATTERN1);
         List<String> dateRangePair = getExprPair(dateRangeExpr, dtRangePatterns);
+        
         if (dateRangePair != null && dateRangePair.size() == 2) {
             if (dateRangePair.get(0).length() == 4) {
                 dateRange.add(dateFmt1.parse("01/01/" + dateRangePair.get(0)));
@@ -264,7 +270,7 @@ public class DateParser {
                     if (result.groupCount() == 1) {
                         from = matcher.toMatchResult().group(1).trim();
                         to = null;
-                    } else if (result.groupCount() == 2) {
+                    } else if (result.groupCount() > 1) {
                         from = matcher.toMatchResult().group(1).trim();
                         to = matcher.toMatchResult().group(2).trim();
                     }
