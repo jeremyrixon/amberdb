@@ -552,7 +552,6 @@ public class CollectionBuilder {
         }
         
         // update metadata in the collection work.
-        collectionWork.setCollection(collectionName);
         mapCollectionMD(collectionWork, collectionCfg.get(CFG_COLLECTION_ELEMENT), parser);
         
         // filter out elements to be excluded during delivery from the EAD, 
