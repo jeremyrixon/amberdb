@@ -117,7 +117,7 @@ public class ComponentBuilder {
             componentWork.asEADWork().setRdsAcknowledgementReceiver(fieldsMap.get("sponsor"));
         else    
             componentWork.asEADWork().setRdsAcknowledgementReceiver("NLA");
-        componentWork.setEADUpdateReviewRequired("Y"); 
+        componentWork.setEADUpdateReviewRequired("N"); 
         
         String accessConditions = componentWork.getParent().getAccessConditions();
         if (accessConditions != null && !accessConditions.isEmpty())

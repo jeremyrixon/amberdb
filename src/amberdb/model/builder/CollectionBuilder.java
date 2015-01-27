@@ -182,17 +182,12 @@ public class CollectionBuilder {
         
         parser.init(collection.getObjId(), getFindingAIDFile(collection).openStream(), getDefaultCollectionCfg());
         Map<String, String> currentComponents = componentWorksMap(collection); 
-        List<String> currentDOs = digitisedItemList(collection);
         List<String> eadUUIDList = parser.listUUIDs();
         List<String> componentsNotInEAD = new ArrayList<String>();
         
         for (String asId : currentComponents.keySet()) {
             if (asId != null && !asId.isEmpty() && !eadUUIDList.contains(asId)) {
-                if (currentDOs.contains(asId)) {
-                    throw new EADValidationException("Cannot update collection " + parser.collectionObjId + " from EAD as component of Archive Space id " + asId + " contains digitised copies, but is not found in the EAD.");
-                } else {
-                    componentsNotInEAD.add(currentComponents.get(asId));
-                }
+                componentsNotInEAD.add(currentComponents.get(asId));
             }
         }
         return componentsNotInEAD;
@@ -644,7 +639,7 @@ public class CollectionBuilder {
         else    
             collectionWork.asEADWork().setRdsAcknowledgementReceiver("NLA");
         
-        collectionWork.asEADWork().setEADUpdateReviewRequired("Y");   
+        collectionWork.asEADWork().setEADUpdateReviewRequired("N");   
         
         // default access conditions to Restricted if not set 
         if (collectionWork.getAccessConditions() == null || collectionWork.getAccessConditions().isEmpty())
