@@ -251,8 +251,6 @@ public class CollectionBuilder {
                 String objId = fieldNames.next();
                 // find the component work
                 if (!objId.equals(collectionWork.getObjId())) {
-                    try {
-                    System.out.println("objId is " + objId);
                     EADWork component = collectionWork.asEADWork().getEADWork(PIUtil.parse(objId));
 
                     // add entry to digitalObjectsMap if the component has any
@@ -260,9 +258,6 @@ public class CollectionBuilder {
                     if (component != null
                             && (component.getCopies() != null && component.getCopies().iterator().hasNext())) {
                         objIdList.add(objId); 
-                    }
-                    } catch (Exception e) {
-                        System.out.println("objId " + objId + " is not found");
                     }
                 }
             }
