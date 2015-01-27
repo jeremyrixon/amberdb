@@ -244,10 +244,14 @@ public interface EADWork extends Work {
             SimpleDateFormat yearFmt = new SimpleDateFormat("yyyy");
             String fmttedFrom = (from == null)?"":dateFmt.format(from);
             String fmttedTo = (to == null)? "" : dateFmt.format(to);
-            if (fmttedFrom.startsWith("01/01") && fmttedFrom.endsWith("00:00:00"))
+                      
+            if (fmttedFrom.startsWith("01/01") && (fmttedFrom.endsWith("00:00:00") || fmttedFrom.endsWith("12:00:00"))) {
                 fmttedFrom = yearFmt.format(from);
-            if (fmttedTo.endsWith("31/12") && fmttedTo.endsWith("23:59:59"))
+            }
+
+            if (fmttedTo.startsWith("31/12") && (fmttedTo.endsWith("23:59:59") || fmttedTo.endsWith("12:00:00"))) {
                 fmttedTo = yearFmt.format(to);
+            }
             return fmttedFrom + " - " + fmttedTo;
         }
         
@@ -311,3 +315,4 @@ public interface EADWork extends Work {
         }
     }
 }
+
