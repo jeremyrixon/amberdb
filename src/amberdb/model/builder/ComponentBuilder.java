@@ -118,8 +118,6 @@ public class ComponentBuilder {
             componentWork.asEADWork().setRdsAcknowledgementReceiver("NLA");
         componentWork.setEADUpdateReviewRequired("Y"); 
         
-        if (componentWork.getParent() == null)
-            System.out.println("component work " + componentWork.getObjId() + "'s parent is null.");
         String accessConditions = componentWork.getParent().getAccessConditions();
         if (accessConditions != null && !accessConditions.isEmpty())
             componentWork.setAccessConditions(accessConditions);
