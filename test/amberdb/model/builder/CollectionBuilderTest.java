@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import amberdb.AmberDb;
 import amberdb.AmberSession;
+import amberdb.enums.AccessCondition;
 import amberdb.enums.CopyRole;
 import amberdb.model.Copy;
 import amberdb.model.Work;
@@ -73,7 +74,7 @@ public class CollectionBuilderTest {
             collectionWork.asEADWork().setRdsAcknowledgementType("Sponsor");
             collectionWork.asEADWork().setRdsAcknowledgementReceiver("NLA");
             collectionWork.asEADWork().setEADUpdateReviewRequired("Y");   
-            collectionWork.asEADWork().setAccessConditions("Restricted");
+            collectionWork.asEADWork().setAccessConditions(AccessCondition.RESTRICTED.code());
             collectionWorkId = collectionWork.getObjId();
             collectionWork.addCopy(Paths.get("test/resources/6442.xml"), CopyRole.FINDING_AID_COPY, "application/xml");
             as.commit();
@@ -232,6 +233,7 @@ public class CollectionBuilderTest {
         createCollection();
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
+            collectionWork.setCollection("nla.ms");
             boolean storeCopy = true;
             Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
             

@@ -12,6 +12,7 @@
         "dcmpi":              "//ead:ead/ead:archdesc/ead:did/ead:materialspec",
         "eadid":              "//ead:ead/ead:eadheader/ead:eadid",
         "collection-number":  "//ead:ead/ead:eadheader/ead:filedesc/ead:titlestmt/ead:titleproper/ead:num",
+        "sponsor":            "//ead:ead/ead:eadheader/ead:filedesc/ead:titlestmt/ead:sponsor",
         "creator":            "//ead:ead/ead:archdesc/ead:did/ead:origination/ead:persname",
         "title":              "//ead:ead/ead:archdesc/ead:did/ead:unittitle",
         "date-range":         "//ead:ead/ead:archdesc/ead:did/ead:unitdate",
@@ -69,6 +70,7 @@
         "series": {
           "dcmpi":              "ead:did/ead:materialspec",
           "title":              "ead:did/ead:unittitle",
+          "extent":             "ead:did/ead:physdesc/ead:extent",
           "date-range":         "ead:did/ead:unitdate",
           "scope-n-content":    "ead:scopecontent/ead:p",
           "container-number":   "ead:did/ead:container",
