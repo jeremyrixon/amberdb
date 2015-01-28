@@ -362,9 +362,7 @@ public class CollectionBuilder {
         String collectionName = collectionWork.getCollection();
         // precheck
         List<String> list = CollectionBuilder.reloadEADPreChecks(collectionWork);
-        List<String> currentDOs = digitisedItemList(collectionWork);  // objId, digitalStatus
-        
-        // map out digital status of the objects
+        List<String> currentDOs = digitisedItemList(collectionWork);
         
         // initializing the parser
         parser.init(collectionWork.getObjId(), eadFile.openStream(), collectionCfg);
