@@ -29,7 +29,9 @@ import org.slf4j.LoggerFactory;
 import doss.core.Writables;
 
 import amberdb.PIUtil;
+import amberdb.enums.AccessCondition;
 import amberdb.enums.CopyRole;
+import amberdb.enums.DigitalStatus;
 import amberdb.model.Copy;
 import amberdb.model.EADWork;
 import amberdb.model.File;
@@ -181,17 +183,12 @@ public class CollectionBuilder {
         
         parser.init(collection.getObjId(), getFindingAIDFile(collection).openStream(), getDefaultCollectionCfg());
         Map<String, String> currentComponents = componentWorksMap(collection); 
-        List<String> currentDOs = digitisedItemList(collection);
         List<String> eadUUIDList = parser.listUUIDs();
         List<String> componentsNotInEAD = new ArrayList<String>();
         
         for (String asId : currentComponents.keySet()) {
             if (asId != null && !asId.isEmpty() && !eadUUIDList.contains(asId)) {
-                if (currentDOs.contains(asId)) {
-                    throw new EADValidationException("Cannot update collection " + parser.collectionObjId + " from EAD as component of Archive Space id " + asId + " contains digitised copies, but is not found in the EAD.");
-                } else {
-                    componentsNotInEAD.add(currentComponents.get(asId));
-                }
+                componentsNotInEAD.add(currentComponents.get(asId));
             }
         }
         return componentsNotInEAD;
@@ -228,13 +225,13 @@ public class CollectionBuilder {
     }
     
     /**
-     * digitisedItemList provides a list of uuid of each EAD works within collectionWork (including the collectionWork)
+     * digitisedItemList provides a list of objId of each EAD works within collectionWork (including the collectionWork)
      * which has any digital object attach to it.
      * 
      * @param collectionWork - the top level work of a collection with the new updated EAD finding aid attached as
      *                         the FINDING_AID_COPY, and the FINDING_AID_VIEW_COPY containing json not yet containing 
      *                         updates from the new updated FINDING_AID_COPY.
-     * @return a list of uuid of each EAD works within collectionWork (including the collectionWork) which has any digital
+     * @return a list of objId of each EAD works within collectionWork (including the collectionWork) which has any digital
      *         object attach to it.
      *         
      * @throws JsonParseException
@@ -246,7 +243,7 @@ public class CollectionBuilder {
         // Get a list of EAD component works in the current collection work
         // structure which has digital objects attached
         JsonNode content = getFindingAIDJsonDocument(collectionWork).getContent();
-        List<String> uuidList = new ArrayList<>();
+        List<String> objIdList = new ArrayList<>();
 
         if (content != null && content.getFieldNames() != null) {
             Iterator<String> fieldNames = content.getFieldNames();
@@ -260,15 +257,12 @@ public class CollectionBuilder {
                     // copies attached
                     if (component != null
                             && (component.getCopies() != null && component.getCopies().iterator().hasNext())) {
-                        if (content.get(objId).get("localSystemNumber") != null) {
-                            String uuid = content.get(objId).get("localSystemNumber").getTextValue();
-                            uuidList.add(uuid);
-                        } 
+                        objIdList.add(objId); 
                     }
                 }
             }
         }
-        return uuidList;
+        return objIdList;
     }
     
     protected static Document getFindingAIDJsonDocument(Work collectionWork) throws JsonParseException, JsonMappingException, IOException {
@@ -365,7 +359,11 @@ public class CollectionBuilder {
             parser = getDefaultXmlDocumentParser();
         }
         
-        String collectionName = eadFile.getFileName();      
+        String collectionName = collectionWork.getCollection();
+        // precheck
+        List<String> list = CollectionBuilder.reloadEADPreChecks(collectionWork);
+        List<String> currentDOs = digitisedItemList(collectionWork);
+        
         // initializing the parser
         parser.init(collectionWork.getObjId(), eadFile.openStream(), collectionCfg);
         
@@ -377,6 +375,18 @@ public class CollectionBuilder {
         
         // Step 2: generate the FINDING_AID_VIEW_COPY json from the updated FINDING_AID_COPY EAD attached to collectionWork
         generateJson(collectionWork, parser.storeCopy);
+        
+        // mark the list of EAD works which requires review
+        for (String objId : list) {
+            EADWork eadWork = collectionWork.asEADWork().getEADWork(PIUtil.parse(objId));
+            eadWork.setEADUpdateReviewRequired("Y");
+        }
+        
+        // reset the digital status of digitised items
+        for (String objId : currentDOs) {
+            EADWork eadWork = collectionWork.asEADWork().getEADWork(PIUtil.parse(objId));
+            eadWork.setDigitalStatus(DigitalStatus.DIGITISED.code());
+        }
     }
     
     private static File getFindingAIDFile(Work collectionWork) {
@@ -534,6 +544,9 @@ public class CollectionBuilder {
                 eadCopy.removeFile(eadCopy.getFile());
         }
         eadCopy.addFile(Writables.wrap(content), contentType);
+        eadCopy.setMaterialType("Text");
+        eadCopy.setCopyType("b");
+        eadCopy.setCarrier("Online");
     }
     
     protected static void processCollection(Work collectionWork, String collectionName, InputStream in, JsonNode collectionCfg, XmlDocumentParser parser) throws EADValidationException, ValidityException, ParsingException, IOException {
@@ -548,7 +561,6 @@ public class CollectionBuilder {
         }
         
         // update metadata in the collection work.
-        collectionWork.setCollection(collectionName);
         mapCollectionMD(collectionWork, collectionCfg.get(CFG_COLLECTION_ELEMENT), parser);
         
         // filter out elements to be excluded during delivery from the EAD, 
@@ -607,15 +619,18 @@ public class CollectionBuilder {
     }
     
     protected static void mapCollectionMD(Work collectionWork, JsonNode collectionCfg, XmlDocumentParser parser) throws ValidityException, ParsingException, IOException {
-        Map<String, Object> fieldsMap = parser.getFieldsMap(parser.getDocument(), collectionCfg, parser.getBasePath(parser.getDocument()));  
+        if (!(collectionWork instanceof EADWork)) {
+            collectionWork.asVertex().setProperty("type", EADWork.class.getSimpleName());
+        }
+        Map<String, String> fieldsMap = parser.getFieldsMap(parser.getDocument(), collectionCfg, parser.getBasePath(parser.getDocument()));  
         log.debug("collection config: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(collectionCfg));
         log.debug("collection fieldMap: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(fieldsMap));
 
         if (fieldsMap.get("repository") != null)
-            collectionWork.asEADWork().setRepository(fieldsMap.get("repository").toString());
+            collectionWork.asEADWork().setRepository(fieldsMap.get("repository"));
         
         if (fieldsMap.get("collection-number") != null)
-            collectionWork.asEADWork().setCollectionNumber(fieldsMap.get("collection-number").toString());
+            collectionWork.asEADWork().setCollectionNumber(fieldsMap.get("collection-number"));
         
         Object extent = fieldsMap.get("extent");
         if (extent != null && extent instanceof String) {
@@ -626,48 +641,90 @@ public class CollectionBuilder {
             collectionWork.setExtent(StringUtils.join(extentList, "; "));
         }
 
-        collectionWork.setCreator(fieldsMap.get("creator").toString());
+        collectionWork.setCreator(fieldsMap.get("creator"));
         collectionWork.setSubType("Work");
-        collectionWork.setSubUnitType("Collection");
         collectionWork.setForm("Manuscript");
         collectionWork.setBibLevel("Set");
-        collectionWork.setCollection("nla.ms");
         collectionWork.setRecordSource("FA");
         collectionWork.asEADWork().setRdsAcknowledgementType("Sponsor");
-        collectionWork.asEADWork().setRdsAcknowledgementReceiver("NLA");
-        collectionWork.asEADWork().setEADUpdateReviewRequired("Y");   
+        
+        if (fieldsMap.get("sponsor") != null)
+            collectionWork.asEADWork().setRdsAcknowledgementReceiver(fieldsMap.get("sponsor"));
+        else    
+            collectionWork.asEADWork().setRdsAcknowledgementReceiver("NLA"); 
         
         // default access conditions to Restricted if not set 
         if (collectionWork.getAccessConditions() == null || collectionWork.getAccessConditions().isEmpty())
-            collectionWork.setAccessConditions("Restricted");
+            collectionWork.setAccessConditions(AccessCondition.RESTRICTED.code());
         
-        collectionWork.setTitle(fieldsMap.get("title").toString());
-        collectionWork.setUniformTitle(fieldsMap.get("title").toString());
+        // setting the dcm work pid
+        String dcmPI = fieldsMap.get("dcmpi");
+        if (dcmPI != null)
+            collectionWork.setDcmWorkPid(dcmPI);
         
-        Object scopeContent = fieldsMap.get("scope-n-content");
-        if (scopeContent != null && !scopeContent.toString().isEmpty()) {
-            log.debug("collection work " + collectionWork.getObjId() + ": scope and content: " + scopeContent.toString());
-            collectionWork.asEADWork().setScopeContent(scopeContent.toString());
+        collectionWork.setTitle(fieldsMap.get("title"));
+        
+        // setting the admin info
+        mapAdminInfo(collectionWork, collectionCfg, fieldsMap);
+        
+        // setting the bibiography
+        mapBibliography(collectionWork, fieldsMap);
+        
+        String scopeContent = fieldsMap.get("scope-n-content");
+        if (scopeContent != null && !scopeContent.isEmpty()) {
+            log.debug("collection work " + collectionWork.getObjId() + ": scope and content: " + scopeContent);
+            collectionWork.asEADWork().setScopeContent(scopeContent);
         }
-        Object dateRange = fieldsMap.get("date-range");
-        if (dateRange != null && !dateRange.toString().isEmpty()) {
-            log.debug("collection work " + collectionWork.getObjId() + ": date range: " + dateRange.toString());
+        String dateRange = fieldsMap.get("date-range");
+        if (dateRange != null && !dateRange.isEmpty()) {
+            log.debug("collection work " + collectionWork.getObjId() + ": date range: " + dateRange);
+            collectionWork.asEADWork().setDateRangeInAS(dateRange.toString());
             List<Date> dateList;
             try {
-                dateList = DateParser.parseDateRange(dateRange.toString());
+                dateList = DateParser.parseDateRange(dateRange);
             } catch (ParseException e) {
                 throw new IOException(e);
             }
-            collectionWork.asEADWork().setDateRange(dateList);
+            if (dateList != null && dateList.size() > 0) {
+                collectionWork.setStartDate(dateList.get(0));
+                if (dateList.size() > 1)
+                    collectionWork.setEndDate(dateList.get(1));
+            }
+        }
+    }
+
+    private static void mapAdminInfo(Work collectionWork, JsonNode collectionCfg, Map<String, String> fieldsMap) {
+        String adminInfo = "";
+        Iterator<String>  fields = collectionCfg.getFieldNames();
+        while (fields.hasNext()) {
+            String fldName = fields.next();
+            Object value = fieldsMap.get(fldName);
+            if (value != null) {
+                adminInfo += fldName + ": " + value;
+            }
+        }
+        collectionWork.asEADWork().setAdminInfo(adminInfo);
+    }
+    
+    private static void mapBibliography(Work collectionWork, Map<String, String> fieldsMap) {
+        String biliography = fieldsMap.get("bibliography");
+        if (biliography != null)
+            collectionWork.asEADWork().setBibliography(biliography);
+        else {
+            String biographicalNote = fieldsMap.get("biographical-note");
+            if (biographicalNote != null) {
+                collectionWork.asEADWork().setBibliography(biographicalNote);
+            }
         }
     }
     
     protected static void mapWorkMD(EADWork workInCollection, Node eadElement, JsonNode elementCfg, XmlDocumentParser parser) throws EADValidationException, JsonParseException, JsonMappingException, IOException {
-        Map<String, Object> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));        
-        if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").toString().isEmpty())
+        Map<String, String> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));        
+        if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").isEmpty())
             throw new EADValidationException("Failed to process collection " + parser.collectionObjId + " as no Archive Space id found for component work " + workInCollection.getObjId());
         
-        String uuid = fieldsMap.get("uuid").toString();
+        String uuid = fieldsMap.get("uuid");
+        log.debug("fieldsMap: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(fieldsMap));
         ComponentBuilder.mapWorkMD(workInCollection, uuid, fieldsMap);
     }
     
@@ -700,12 +757,27 @@ public class CollectionBuilder {
     
     private static JsonNode mapWorkProperties(Work work) {
         JsonNode workProperties = mapper.createObjectNode();
-        String[] fields = { "repository", "extent", "collectionNumber", "creator", "title", "subType", "subUnitType", "form", "bibLevel", "collection", "recordSource", "localSystemNumber",
-                               "rdsAcknowledgementType", "rdsAcknowledgementReceiver", "eadUpdateReviewRequired", "accessConditions",
-                               "componentLevel", "componentNumber", "scopeContent", "dateRange", "folder"};
+        String[] fields = { "repository", "extent", "collectionNumber", "dcmWorkPid", "creator", "title", "subType", "subUnitType", "form", "bibLevel", "collection", "bibliography", "adminInfo", 
+                            "recordSource", "localSystemNumber", "rdsAcknowledgementType", "rdsAcknowledgementReceiver", "eadUpdateReviewRequired", "accessConditions",
+                               "subUnitType", "subUnitNo", "scopeContent", "dateRangeInAS", "folder"};
+        String background = null;
+        // map general work properties
         for (String field : fields) {
             if (work.asVertex().getProperty(field) != null)
                 ((ObjectNode) workProperties).put(field, work.asVertex().getProperty(field).toString());
+        }
+        // map background
+        String bibliography = work.asEADWork().getBibliography();
+        if (bibliography != null && !bibliography.isEmpty()) {
+            background = bibliography;
+        } else {
+            String adminInfo = work.asEADWork().getAdminInfo();
+            if (adminInfo != null && !adminInfo.isEmpty()) {
+                background = adminInfo;
+            }
+        }
+        if (background != null) {
+            ((ObjectNode) workProperties).put("background", background);
         }
         return workProperties;
     }

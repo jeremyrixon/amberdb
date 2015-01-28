@@ -12,10 +12,13 @@ import org.skife.jdbi.v2.sqlobject.CreateSqlObject;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
+import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
+import amberdb.graph.dao.AmberDao;
 
-public abstract class Tools {   
+
+public abstract class Tools implements Transactional<Tools>{   
 
     @RegisterMapper(Tools.ToolsLuMapper.class)
     @SqlQuery(

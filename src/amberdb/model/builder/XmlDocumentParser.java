@@ -163,7 +163,7 @@ public abstract class XmlDocumentParser {
                 Node baseComponent = baseComponents.get(i);
                 Nodes components = traverse(baseComponent, repeatablePath);
                 for (int j = 0; j < components.size(); j++) {
-                    Map<String, Object> fldsMap = getFieldsMap(components.get(j), subElementsCfg, componentBasePath);
+                    Map<String, String> fldsMap = getFieldsMap(components.get(j), subElementsCfg, componentBasePath);
                     String uuid = fldsMap.get("uuid").toString();
                     eadUUIDList.add(uuid);
                 }
@@ -185,7 +185,7 @@ public abstract class XmlDocumentParser {
      * @param collectionCfg - the fields config for mapping the top collection work
      * @return field mapping of the root element of the document
      */
-    public abstract Map<String, Object> getFieldsMap(Document doc, JsonNode collectionCfg);
+    public abstract Map<String, String> getFieldsMap(Document doc, JsonNode collectionCfg);
     
     /**
      * provide mapping of <field name, field value> of the input element.
@@ -196,7 +196,7 @@ public abstract class XmlDocumentParser {
      * @param basePath - the xpath for the input xml node.
      * @return field mapping of the input element.
      */
-    public abstract Map<String, Object> getFieldsMap(Node node, JsonNode elementCfg, String basePath);
+    public abstract Map<String, String> getFieldsMap(Node node, JsonNode elementCfg, String basePath);
     
     protected String getQualifiedXPath(String xpath) {
         String qualifiedXPath = xpath.replace("//", "");
