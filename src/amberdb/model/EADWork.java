@@ -76,6 +76,50 @@ public interface EADWork extends Work {
     public void setBibliography(String bibliography);
     
     /**
+     * arrangement: the arrangement for the collection in hierarchical components
+     */
+    @Property("arrangement")
+    public String getArrangement();
+    
+    /**
+     * arrangement: the arrangement for the collection in hierarchical components
+     */
+    @Property("arrangement")
+    public void setArrangement(String arrangement);
+    
+    @Property("access")
+    public String getAccess();
+    
+    @Property("access")
+    public void setAccess(String access);
+    
+    @Property("copyingPublishing")
+    public String getCopyingPublishing();
+    
+    @Property("copyingPublishing")
+    public void setCopyingPublishing(String copyingPublishing);
+    
+    @Property("preferredCitation")
+    public String getPreferredCitation();
+    
+    @Property("preferredCitation")
+    public void setPreferredCitation(String preferredCitation);
+    
+    @Property("relatedMaterial")
+    public String getRelatedMaterial();
+    
+    @Property("relatedMaterial")
+    public void setRelatedMaterial(String relatedMaterial);
+    
+    // TODO: this might be just the scope of content in component work
+    @Property("seriesDescription")
+    public String getSeriesDescription();
+    
+    // TODO: this might be just the scope of content in component work
+    @Property("seriesDescription")
+    public void setSeriesDescription(String seriesDescription);
+    
+    /**
      * adminInfo: administrative info for an origanisation.
      */
     @Property("adminInfo")

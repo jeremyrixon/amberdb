@@ -74,6 +74,8 @@ public class EADConfiguration {
         ((ObjectNode) introductionFields).put("provenance", "//ead:ead/ead:archdesc/ead:acqinfo");
         ((ObjectNode) introductionFields).put("copying-publishing", "//ead:ead/ead:archdesc/ead:userestrict");
         ((ObjectNode) introductionFields).put("preferred-citation", "//ead:ead/ead:archdesc/ead:prefercite");
+        ((ObjectNode) introductionFields).put("related-material", "//ead:ead/ead:archdesc/ead:relatedmaterial");
+        ((ObjectNode) introductionFields).put("separated-material", "//ead:ead/ead:archdesc/ead:separatedmaterial");
         return introductionFields;
     }
     

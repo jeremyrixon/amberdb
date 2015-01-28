@@ -691,6 +691,52 @@ public class CollectionBuilder {
                     collectionWork.setEndDate(dateList.get(1));
             }
         }
+        
+        // setting Arrangement
+        String arrangement = fieldsMap.get("arrangement");
+        if (arrangement != null && !arrangement.isEmpty()) {
+            System.out.println("arrangement:");
+            System.out.println(arrangement);
+            collectionWork.asEADWork().setArrangement(arrangement);
+        }
+        
+        // setting Provenance
+        String provenance = fieldsMap.get("provenance");
+        if (provenance != null && !provenance.isEmpty()) {
+            System.out.println("provenance:");
+            System.out.println(provenance);
+            collectionWork.asEADWork().setProvenance(provenance);
+        }
+        
+        // setting Copying Publishing
+        String copyingPublishing = fieldsMap.get("copying-publishing");
+        if (copyingPublishing != null && !copyingPublishing.isEmpty()) {
+            System.out.println("Copying Publishing:");
+            System.out.println(copyingPublishing);
+            collectionWork.asEADWork().setCopyingPublishing(copyingPublishing);
+        }
+        
+        // setting Preferred Citation
+        String preferredCitation = fieldsMap.get("preferred-citation");
+        if (preferredCitation != null && !preferredCitation.isEmpty()) {
+            System.out.println("preferred citation:");
+            System.out.println(preferredCitation);
+            collectionWork.asEADWork().setPreferredCitation(preferredCitation);
+        }
+        
+        // setting Related Material
+        String relatedMaterial = fieldsMap.get("related-material");
+        if (relatedMaterial != null && !relatedMaterial.isEmpty()) {
+            System.out.println("relatedMaterial:");
+            System.out.println(relatedMaterial);
+            collectionWork.asEADWork().setRelatedMaterial(relatedMaterial);
+        } else {
+            String separatedMaterial = fieldsMap.get("separated-material");
+            if (separatedMaterial != null && !separatedMaterial.isEmpty())
+                System.out.println("separatedMaterial:");
+                System.out.println(separatedMaterial);
+                collectionWork.asEADWork().setRelatedMaterial(separatedMaterial);
+        }
     }
 
     private static void mapAdminInfo(Work collectionWork, JsonNode collectionCfg, Map<String, String> fieldsMap) {
@@ -701,6 +747,9 @@ public class CollectionBuilder {
             Object value = fieldsMap.get(fldName);
             if (value != null) {
                 adminInfo += fldName + ": " + value;
+                if (fldName.equals("accessrestrict")) {
+                    collectionWork.asEADWork().setAccess(value.toString());
+                }
             }
         }
         collectionWork.asEADWork().setAdminInfo(adminInfo);
@@ -757,7 +806,8 @@ public class CollectionBuilder {
     
     private static JsonNode mapWorkProperties(Work work) {
         JsonNode workProperties = mapper.createObjectNode();
-        String[] fields = { "repository", "extent", "collectionNumber", "dcmWorkPid", "creator", "title", "subType", "subUnitType", "form", "bibLevel", "collection", "bibliography", "adminInfo", 
+        String[] fields = { "repository", "extent", "collectionNumber", "dcmWorkPid", "arrangement", "access", "copyingPublising", "preferredCitation", "relatedMaterial", 
+                            "provenance", "creator", "title", "subType", "subUnitType", "form", "bibLevel", "collection", "bibliography", "adminInfo", 
                             "recordSource", "localSystemNumber", "rdsAcknowledgementType", "rdsAcknowledgementReceiver", "eadUpdateReviewRequired", "accessConditions",
                                "subUnitType", "subUnitNo", "scopeContent", "dateRangeInAS", "folder"};
         String background = null;
