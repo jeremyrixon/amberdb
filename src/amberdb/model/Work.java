@@ -1053,6 +1053,18 @@ public interface Work extends Node {
     @JavaHandler
     public void orderParts(List<Work> parts);
 
+
+    /**
+     *
+     * Returns the work that contains the access copy to be used for this work's representative image.
+     *
+     * @return The work with the image copy that should be used to represent this work, or null if no image is
+     * specified.
+     *
+     */
+    @JavaHandler
+    public Work getRepresentativeImageWork();
+
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {
         static ObjectMapper mapper = new ObjectMapper();
 
@@ -1411,6 +1423,21 @@ public interface Work extends Node {
         public void addRepresentation(final Copy copy) {
             addRepresentative(copy);
             setHasRepresentation(true);
+        }
+
+        @Override
+        public Work getRepresentativeImageWork() {
+            Iterator<Copy> representations = getRepresentations().iterator();
+            if (representations.hasNext()) return representations.next().getWork();
+            Copy accessCopy = getCopy(CopyRole.ACCESS_COPY);
+            if (accessCopy != null && accessCopy.getImageFile() != null) return this;
+
+            Iterable<Work> children = getChildren();
+            for (Work child : children) {
+                Work thumbnailWork = child.getRepresentativeImageWork();
+                if (thumbnailWork != null) return thumbnailWork;
+            }
+            return null;
         }
     }
 }
