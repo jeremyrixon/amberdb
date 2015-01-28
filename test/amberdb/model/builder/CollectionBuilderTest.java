@@ -72,8 +72,7 @@ public class CollectionBuilderTest {
             collectionWork.setCollection("nla.ms-ms6442");
             collectionWork.setRecordSource("FA");
             collectionWork.asEADWork().setRdsAcknowledgementType("Sponsor");
-            collectionWork.asEADWork().setRdsAcknowledgementReceiver("NLA");
-            collectionWork.asEADWork().setEADUpdateReviewRequired("Y");   
+            collectionWork.asEADWork().setRdsAcknowledgementReceiver("NLA"); 
             collectionWork.asEADWork().setAccessConditions(AccessCondition.RESTRICTED.code());
             collectionWorkId = collectionWork.getObjId();
             collectionWork.addCopy(Paths.get("test/resources/6442.xml"), CopyRole.FINDING_AID_COPY, "application/xml");
@@ -250,22 +249,7 @@ public class CollectionBuilderTest {
             collectionWork.removeCopy(ead);
             collectionWork.addCopy(testUpdedEADPath, CopyRole.FINDING_AID_COPY, "application/xml");  
             
-            // step 2: locate existing component works within the collection that are not in the updated EAD.
-            //         If any existing component work in the collection have any digital object attached,
-            //         an exception is then thrown, the reload process will be aborted.
-            //         Otherwise, a list of such component works will be returned, and the list of these works
-            //         will be deleted before proceed to adding new component works and update existing component
-            //         works from the updated EAD.
-            List<String> list = CollectionBuilder.reloadEADPreChecks(collectionWork);
-            System.out.println("collection work object id: " + collectionWork.getObjId());
-            for (String objId : list) {
-                System.out.println("Object id : " + objId);
-                Work work = as.findWork(objId);
-                System.out.println("Archive space id : " + work.getLocalSystemNumber());
-                as.deleteWork(work);
-            }
-            
-            // step 3: reload collection from updated EAD: 
+            // step 2: reload collection from updated EAD: 
             //         - add new component works from the updated EAD.
             //         - update existing component works from the updated EAD.
             CollectionBuilder.reloadCollection(collectionWork);

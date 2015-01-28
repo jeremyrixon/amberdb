@@ -65,8 +65,7 @@ public class ComponentBuilderTest {
             collectionWork.setCollection("nla.ms");
             collectionWork.setRecordSource("FA");
             collectionWork.asEADWork().setRdsAcknowledgementType("Sponsor");
-            collectionWork.asEADWork().setRdsAcknowledgementReceiver("NLA");
-            collectionWork.asEADWork().setEADUpdateReviewRequired("Y");   
+            collectionWork.asEADWork().setRdsAcknowledgementReceiver("NLA");  
             collectionWork.asEADWork().setAccessConditions(AccessCondition.RESTRICTED.code());
             collectionWorkId = collectionWork.getObjId();
             collectionWork.addCopy(Paths.get("test/resources/6442.xml"), CopyRole.FINDING_AID_COPY, "application/xml");
@@ -114,7 +113,7 @@ public class ComponentBuilderTest {
             String expectedLocalSystemNumber = "aspace_d1ac0117fdba1b9dc09b68e8bb125948";
             String expectedRdsAcknowledgementType = "Sponsor";
             String expectedRdsAcknowledgementReceiver = "NLA";
-            String expectedEADUpdateReviewRequired = "Y";
+            String expectedEADUpdateReviewRequired = "N";
             String expectedAccessConditions = AccessCondition.UNRESTRICTED.code();
             
             assertEquals(expectedSubType, componentWork.getSubType());
