@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import amberdb.PIUtil;
 import amberdb.enums.AccessCondition;
 import amberdb.enums.DigitalStatus;
+import amberdb.enums.SubUnitType;
 import amberdb.model.EADWork;
 import amberdb.model.Work;
 import amberdb.util.DateParser;
@@ -117,6 +118,8 @@ public class ComponentBuilder {
             componentWork.asEADWork().setRdsAcknowledgementReceiver(fieldsMap.get("sponsor"));
         else    
             componentWork.asEADWork().setRdsAcknowledgementReceiver("NLA");
+        
+        // eadUpdateReviewRequired appears on the child levels only
         componentWork.setEADUpdateReviewRequired("N"); 
         
         String accessConditions = componentWork.getParent().getAccessConditions();
@@ -143,6 +146,10 @@ public class ComponentBuilder {
         String componentLevel = fieldsMap.get("component-level");
         if (componentLevel != null && !componentLevel.isEmpty()) {
             log.debug("component work " + componentWork.getObjId() + ": componentLevel: " + componentLevel.toString());
+            
+            SubUnitType subUnitType = SubUnitType.fromString(componentLevel.toString());
+            if (subUnitType == null)
+                throw new IllegalArgumentException("Invalid subunit type " + componentLevel.toString() + " for work " + componentWork.getObjId() + ".");
             componentWork.setSubUnitType(componentLevel.toString());
             // determine bib level with business rule borrowed from DCM
             String bibLevel = mapBibLevel(componentLevel);

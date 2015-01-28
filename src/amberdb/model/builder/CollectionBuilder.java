@@ -653,9 +653,7 @@ public class CollectionBuilder {
         if (fieldsMap.get("sponsor") != null)
             collectionWork.asEADWork().setRdsAcknowledgementReceiver(fieldsMap.get("sponsor"));
         else    
-            collectionWork.asEADWork().setRdsAcknowledgementReceiver("NLA");
-        
-        collectionWork.asEADWork().setEADUpdateReviewRequired("N");   
+            collectionWork.asEADWork().setRdsAcknowledgementReceiver("NLA"); 
         
         // default access conditions to Restricted if not set 
         if (collectionWork.getAccessConditions() == null || collectionWork.getAccessConditions().isEmpty())

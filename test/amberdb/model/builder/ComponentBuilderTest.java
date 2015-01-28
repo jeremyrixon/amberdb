@@ -65,8 +65,7 @@ public class ComponentBuilderTest {
             collectionWork.setCollection("nla.ms");
             collectionWork.setRecordSource("FA");
             collectionWork.asEADWork().setRdsAcknowledgementType("Sponsor");
-            collectionWork.asEADWork().setRdsAcknowledgementReceiver("NLA");
-            collectionWork.asEADWork().setEADUpdateReviewRequired("N");   
+            collectionWork.asEADWork().setRdsAcknowledgementReceiver("NLA");  
             collectionWork.asEADWork().setAccessConditions(AccessCondition.RESTRICTED.code());
             collectionWorkId = collectionWork.getObjId();
             collectionWork.addCopy(Paths.get("test/resources/6442.xml"), CopyRole.FINDING_AID_COPY, "application/xml");
