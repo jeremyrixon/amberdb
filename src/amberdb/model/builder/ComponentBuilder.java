@@ -150,7 +150,7 @@ public class ComponentBuilder {
             SubUnitType subUnitType = SubUnitType.fromString(componentLevel.toString());
             if (subUnitType == null)
                 throw new IllegalArgumentException("Invalid subunit type " + componentLevel.toString() + " for work " + componentWork.getObjId() + ".");
-            componentWork.setSubUnitType(componentLevel.toString());
+            componentWork.setSubUnitType(subUnitType.code());
             // determine bib level with business rule borrowed from DCM
             String bibLevel = mapBibLevel(componentLevel);
             componentWork.setBibLevel(bibLevel);
