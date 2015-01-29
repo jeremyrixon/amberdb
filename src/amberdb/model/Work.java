@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import amberdb.util.WorkUtils;
+import com.google.common.collect.Iterables;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -958,17 +959,6 @@ public interface Work extends Node {
     @Adjacency(label = Represents.label, direction = Direction.IN)
     public Iterable<Copy> getRepresentations();
     
-    @Property("hasRepresentation")
-    public Boolean getHasRepresentation();
-    
-    /**
-     * This flag is used as a shortcut for delivery of the represented image for a work.
-     * The boolean value in property is encoded as "y"/"n" string - You probably want to use
-     * setHasRepresentationIndicator to set this property
-     */
-    @Property("hasRepresentation")
-    public void setHasRepresentation(Boolean hasRepresentation);
-    
     @JavaHandler
     public boolean isRepresented();
     
@@ -1410,20 +1400,18 @@ public interface Work extends Node {
         
         @Override
         public boolean isRepresented() {
-            Boolean represented = getHasRepresentation();
-            return (represented == null)? false : represented;
+            Iterable<Copy> representations = getRepresentations();
+            return representations == null ? false : Iterables.size(representations) != 0;
         }
         
         @Override
         public void removeRepresentation(final Copy copy) {
             removeRepresentative(copy);
-            setHasRepresentation(false);
         }
         
         @Override
         public void addRepresentation(final Copy copy) {
             addRepresentative(copy);
-            setHasRepresentation(true);
         }
 
         @Override
