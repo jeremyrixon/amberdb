@@ -76,6 +76,76 @@ public interface EADWork extends Work {
     public void setBibliography(String bibliography);
     
     /**
+     * arrangement: the arrangement for the collection in hierarchical components
+     */
+    @Property("arrangement")
+    public String getJSONArrangement();
+    
+    /**
+     * arrangement: the arrangement for the collection in hierarchical components
+     */
+    @Property("arrangement")
+    public void setJSONArrangement(String arrangement);
+    
+    @JavaHandler
+    public List<String> getArrangement() throws JsonParseException, JsonMappingException, IOException;
+    
+    @JavaHandler
+    public void setArrangement(List<String> arrangement) throws JsonParseException, JsonMappingException, IOException;
+
+    
+    @Property("access")
+    public String getJSONAccess();
+    
+    @Property("access")
+    public void setJSONAccess(String access);
+    
+    @JavaHandler
+    public List<String> getAccess() throws JsonParseException, JsonMappingException, IOException;
+    
+    @JavaHandler
+    public void setAccess(List<String> access) throws JsonParseException, JsonMappingException, IOException;
+
+    
+    @Property("copyingPublishing")
+    public String getJSONCopyingPublishing();
+    
+    @Property("copyingPublishing")
+    public void setJSONCopyingPublishing(String copyingPublishing);
+    
+    @JavaHandler
+    public List<String> getCopyingPublishing() throws JsonParseException, JsonMappingException, IOException;
+    
+    @JavaHandler
+    public void setCopyingPublishing(List<String> copyingPublishing) throws JsonParseException, JsonMappingException, IOException;
+
+    
+    @Property("preferredCitation")
+    public String getJSONPreferredCitation();
+    
+    @Property("preferredCitation")
+    public void setJSONPreferredCitation(String preferredCitation);
+    
+    @JavaHandler
+    public List<String> getPreferredCitation() throws JsonParseException, JsonMappingException, IOException;
+    
+    @JavaHandler
+    public void setPreferredCitation(List<String> preferredCitation) throws JsonParseException, JsonMappingException, IOException;
+
+    
+    @Property("relatedMaterial")
+    public String getJSONRelatedMaterial();
+    
+    @Property("relatedMaterial")
+    public void setJSONRelatedMaterial(String relatedMaterial);
+    
+    @JavaHandler
+    public List<String> getRelatedMaterial() throws JsonParseException, JsonMappingException, IOException;
+    
+    @JavaHandler
+    public void setRelatedMaterial(List<String> relatedMaterial) throws JsonParseException, JsonMappingException, IOException;
+    
+    /**
      * adminInfo: administrative info for an origanisation.
      */
     @Property("adminInfo")
@@ -103,10 +173,16 @@ public interface EADWork extends Work {
     public void setCorrespondenceIndex(String correspondenceIndex);
     
     @Property("provenance")
-    public String getProvenance();
+    public String getJSONProvenance();
     
     @Property("provenance")
-    public void setProvenance(String provenance);
+    public void setJSONProvenance(String provenance);
+    
+    @JavaHandler
+    public List<String> getProvenance() throws JsonParseException, JsonMappingException, IOException;
+    
+    @JavaHandler
+    public void setProvenance(List<String> provenance) throws JsonParseException, JsonMappingException, IOException;
     
     @Property("altform")
     public String getAltForm();
@@ -283,6 +359,66 @@ public interface EADWork extends Work {
         @Override
         public void setFolderNumber(List<String> folderNumbers) throws JsonParseException, JsonMappingException, IOException {
             setJSONFolderNumber(serialiseToJSON(folderNumbers));
+        }
+        
+        @Override
+        public List<String> getArrangement() throws JsonParseException, JsonMappingException, IOException {
+            return deserialiseJSONString(getJSONArrangement());
+        }
+
+        @Override
+        public void setArrangement(List<String> arrangement) throws JsonParseException, JsonMappingException, IOException {
+            setJSONArrangement(serialiseToJSON(arrangement));
+        }
+        
+        @Override
+        public List<String> getAccess() throws JsonParseException, JsonMappingException, IOException {
+            return deserialiseJSONString(getJSONAccess());
+        }
+        
+        @Override
+        public void setAccess(List<String> access) throws JsonParseException, JsonMappingException, IOException {
+            setJSONAccess(serialiseToJSON(access));
+        }
+        
+        @Override
+        public List<String> getCopyingPublishing() throws JsonParseException, JsonMappingException, IOException {
+            return deserialiseJSONString(getJSONCopyingPublishing());
+        }
+        
+        @Override
+        public void setCopyingPublishing(List<String> copyingPublishing) throws JsonParseException, JsonMappingException, IOException {
+            setJSONCopyingPublishing(serialiseToJSON(copyingPublishing));
+        }
+        
+        @Override
+        public List<String> getPreferredCitation() throws JsonParseException, JsonMappingException, IOException {
+            return deserialiseJSONString(getJSONPreferredCitation());
+        }
+        
+        @Override
+        public void setPreferredCitation(List<String> preferredCitation) throws JsonParseException, JsonMappingException, IOException {
+            setJSONPreferredCitation(serialiseToJSON(preferredCitation));
+        }
+        
+        @Override
+        public List<String> getRelatedMaterial() throws JsonParseException, JsonMappingException, IOException {
+            return deserialiseJSONString(getJSONRelatedMaterial());
+        }
+        
+        @Override
+        public void setRelatedMaterial(List<String> relatedMaterial) throws JsonParseException, JsonMappingException, IOException {
+            setJSONRelatedMaterial(serialiseToJSON(relatedMaterial));
+        }
+        
+        @Override
+        public List<String> getProvenance() throws JsonParseException, JsonMappingException, IOException {
+            return deserialiseJSONString(getJSONProvenance());
+        }
+        
+        @Override
+        public void setProvenance(List<String> provenance) throws JsonParseException, JsonMappingException, IOException {
+            setJSONProvenance(serialiseToJSON(provenance));
         }
         
         @Override

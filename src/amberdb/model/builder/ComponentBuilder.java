@@ -127,7 +127,7 @@ public class ComponentBuilder {
             componentWork.setAccessConditions(accessConditions);
         else
             componentWork.setAccessConditions(AccessCondition.RESTRICTED.code());
-        componentWork.setDigitalStatus(DigitalStatus.NON_DIGITISED.code());
+        componentWork.setDigitalStatus(DigitalStatus.NOT_CAPTURED.code());
         
         List<String> constraints = componentWork.getParent().getConstraint();
         componentWork.setConstraint(constraints);
