@@ -11,6 +11,6 @@ public class WorkUtils {
         if ("closed".equalsIgnoreCase(internalAccesscondition) || "restricted".equalsIgnoreCase(internalAccesscondition))
             return false;
         String sensitiveMaterial = work.getSensitiveMaterial();
-        return (sensitiveMaterial.equalsIgnoreCase("no"));
+        return ("no".equalsIgnoreCase(sensitiveMaterial));
     }
 }
