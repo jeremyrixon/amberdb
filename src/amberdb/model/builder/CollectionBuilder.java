@@ -31,6 +31,7 @@ import doss.core.Writables;
 import amberdb.PIUtil;
 import amberdb.enums.AccessCondition;
 import amberdb.enums.CopyRole;
+import amberdb.enums.DigitalStatus;
 import amberdb.model.Copy;
 import amberdb.model.EADWork;
 import amberdb.model.File;
@@ -182,17 +183,12 @@ public class CollectionBuilder {
         
         parser.init(collection.getObjId(), getFindingAIDFile(collection).openStream(), getDefaultCollectionCfg());
         Map<String, String> currentComponents = componentWorksMap(collection); 
-        List<String> currentDOs = digitisedItemList(collection);
         List<String> eadUUIDList = parser.listUUIDs();
         List<String> componentsNotInEAD = new ArrayList<String>();
         
         for (String asId : currentComponents.keySet()) {
             if (asId != null && !asId.isEmpty() && !eadUUIDList.contains(asId)) {
-                if (currentDOs.contains(asId)) {
-                    throw new EADValidationException("Cannot update collection " + parser.collectionObjId + " from EAD as component of Archive Space id " + asId + " contains digitised copies, but is not found in the EAD.");
-                } else {
-                    componentsNotInEAD.add(currentComponents.get(asId));
-                }
+                componentsNotInEAD.add(currentComponents.get(asId));
             }
         }
         return componentsNotInEAD;
@@ -229,13 +225,13 @@ public class CollectionBuilder {
     }
     
     /**
-     * digitisedItemList provides a list of uuid of each EAD works within collectionWork (including the collectionWork)
+     * digitisedItemList provides a list of objId of each EAD works within collectionWork (including the collectionWork)
      * which has any digital object attach to it.
      * 
      * @param collectionWork - the top level work of a collection with the new updated EAD finding aid attached as
      *                         the FINDING_AID_COPY, and the FINDING_AID_VIEW_COPY containing json not yet containing 
      *                         updates from the new updated FINDING_AID_COPY.
-     * @return a list of uuid of each EAD works within collectionWork (including the collectionWork) which has any digital
+     * @return a list of objId of each EAD works within collectionWork (including the collectionWork) which has any digital
      *         object attach to it.
      *         
      * @throws JsonParseException
@@ -247,7 +243,7 @@ public class CollectionBuilder {
         // Get a list of EAD component works in the current collection work
         // structure which has digital objects attached
         JsonNode content = getFindingAIDJsonDocument(collectionWork).getContent();
-        List<String> uuidList = new ArrayList<>();
+        List<String> objIdList = new ArrayList<>();
 
         if (content != null && content.getFieldNames() != null) {
             Iterator<String> fieldNames = content.getFieldNames();
@@ -261,15 +257,12 @@ public class CollectionBuilder {
                     // copies attached
                     if (component != null
                             && (component.getCopies() != null && component.getCopies().iterator().hasNext())) {
-                        if (content.get(objId).get("localSystemNumber") != null) {
-                            String uuid = content.get(objId).get("localSystemNumber").getTextValue();
-                            uuidList.add(uuid);
-                        } 
+                        objIdList.add(objId); 
                     }
                 }
             }
         }
-        return uuidList;
+        return objIdList;
     }
     
     protected static Document getFindingAIDJsonDocument(Work collectionWork) throws JsonParseException, JsonMappingException, IOException {
@@ -366,7 +359,11 @@ public class CollectionBuilder {
             parser = getDefaultXmlDocumentParser();
         }
         
-        String collectionName = eadFile.getFileName();      
+        String collectionName = collectionWork.getCollection();
+        // precheck
+        List<String> list = CollectionBuilder.reloadEADPreChecks(collectionWork);
+        List<String> currentDOs = digitisedItemList(collectionWork);
+        
         // initializing the parser
         parser.init(collectionWork.getObjId(), eadFile.openStream(), collectionCfg);
         
@@ -378,6 +375,18 @@ public class CollectionBuilder {
         
         // Step 2: generate the FINDING_AID_VIEW_COPY json from the updated FINDING_AID_COPY EAD attached to collectionWork
         generateJson(collectionWork, parser.storeCopy);
+        
+        // mark the list of EAD works which requires review
+        for (String objId : list) {
+            EADWork eadWork = collectionWork.asEADWork().getEADWork(PIUtil.parse(objId));
+            eadWork.setEADUpdateReviewRequired("Y");
+        }
+        
+        // reset the digital status of digitised items
+        for (String objId : currentDOs) {
+            EADWork eadWork = collectionWork.asEADWork().getEADWork(PIUtil.parse(objId));
+            eadWork.setDigitalStatus(DigitalStatus.DIGITISED.code());
+        }
     }
     
     private static File getFindingAIDFile(Work collectionWork) {
@@ -642,9 +651,7 @@ public class CollectionBuilder {
         if (fieldsMap.get("sponsor") != null)
             collectionWork.asEADWork().setRdsAcknowledgementReceiver(fieldsMap.get("sponsor"));
         else    
-            collectionWork.asEADWork().setRdsAcknowledgementReceiver("NLA");
-        
-        collectionWork.asEADWork().setEADUpdateReviewRequired("Y");   
+            collectionWork.asEADWork().setRdsAcknowledgementReceiver("NLA"); 
         
         // default access conditions to Restricted if not set 
         if (collectionWork.getAccessConditions() == null || collectionWork.getAccessConditions().isEmpty())
