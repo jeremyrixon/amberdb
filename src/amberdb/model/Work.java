@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
+import amberdb.util.WorkUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -1428,14 +1429,27 @@ public interface Work extends Node {
         @Override
         public Work getRepresentativeImageWork() {
             Iterator<Copy> representations = getRepresentations().iterator();
-            if (representations.hasNext()) return representations.next().getWork();
+            if (representations.hasNext()) {
+                Work repWork = representations.next().getWork();
+                if (!WorkUtils.checkCanReturnRepImage(repWork)) {
+                    return null;
+                }
+                return repWork;
+            }
             Copy accessCopy = getCopy(CopyRole.ACCESS_COPY);
-            if (accessCopy != null && accessCopy.getImageFile() != null) return this;
+            if (accessCopy != null && accessCopy.getImageFile() != null) {
+                return this;
+            }
 
             Iterable<Work> children = getChildren();
             for (Work child : children) {
-                Work thumbnailWork = child.getRepresentativeImageWork();
-                if (thumbnailWork != null) return thumbnailWork;
+                if (!WorkUtils.checkCanReturnRepImage(child)) {
+                    return null;
+                }
+                else {
+                    Work thumbnailWork = child.getRepresentativeImageWork();
+                    if (thumbnailWork != null) return thumbnailWork;
+                }
             }
             return null;
         }
