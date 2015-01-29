@@ -813,7 +813,7 @@ public class CollectionBuilder {
     private static JsonNode mapWorkProperties(Work work) {
         JsonNode workProperties = mapper.createObjectNode();
         String[] fields = { "repository", "extent", "collectionNumber", "dcmWorkPid", "arrangement", "access", "copyingPublising", "preferredCitation", "relatedMaterial", 
-                            "provenance", "creator", "title", "subType", "subUnitType", "form", "bibLevel", "collection", "bibliography", "adminInfo", 
+                            "provenance", "creator", "title", "digitalStatus", "subType", "subUnitType", "form", "bibLevel", "collection", "bibliography", "adminInfo", 
                             "recordSource", "localSystemNumber", "rdsAcknowledgementType", "rdsAcknowledgementReceiver", "eadUpdateReviewRequired", "accessConditions",
                                "subUnitType", "subUnitNo", "scopeContent", "dateRangeInAS", "folder"};
         String background = null;
