@@ -697,45 +697,34 @@ public class CollectionBuilder {
         List<String> arrangement = toList(fieldsMap.get("arrangement"));
         if (arrangement != null && !arrangement.isEmpty()) {
             collectionWork.asEADWork().setArrangement(arrangement); 
-            System.out.println("arrangement: " + collectionWork.asEADWork().getJSONArrangement());
         }
         
         // setting Provenance
         List<String> provenance = toList(fieldsMap.get("provenance"));
         if (provenance != null && !provenance.isEmpty()) {
             collectionWork.asEADWork().setProvenance(provenance);
-            System.out.println("provenance:");
-            System.out.println(collectionWork.asEADWork().getJSONProvenance());
         }
         
         // setting Copying Publishing
         List<String> copyingPublishing = toList(fieldsMap.get("copying-publishing"));
         if (copyingPublishing != null && !copyingPublishing.isEmpty()) {
             collectionWork.asEADWork().setCopyingPublishing(copyingPublishing);
-            System.out.println("Copying Publishing:");
-            System.out.println(collectionWork.asEADWork().getJSONCopyingPublishing());
         }
         
         // setting Preferred Citation
         List<String> preferredCitation = toList(fieldsMap.get("preferred-citation"));
         if (preferredCitation != null && !preferredCitation.isEmpty()) {
             collectionWork.asEADWork().setPreferredCitation(preferredCitation);
-            System.out.println("preferred citation:");
-            System.out.println(collectionWork.asEADWork().getJSONPreferredCitation());
         }
         
         // setting Related Material
         List<String> relatedMaterial = toList(fieldsMap.get("related-material"));
         if (relatedMaterial != null && !relatedMaterial.isEmpty()) {
             collectionWork.asEADWork().setRelatedMaterial(relatedMaterial);
-            System.out.println("relatedMaterial:");
-            System.out.println(collectionWork.asEADWork().getJSONRelatedMaterial());
         } else {
             List<String> separatedMaterial = toList(fieldsMap.get("separated-material"));
             if (separatedMaterial != null && !separatedMaterial.isEmpty()) {
                 collectionWork.asEADWork().setRelatedMaterial(separatedMaterial);
-                System.out.println("separatedMaterial:");
-                System.out.println(collectionWork.asEADWork().getJSONRelatedMaterial());
             }
         }
         
@@ -743,8 +732,6 @@ public class CollectionBuilder {
         List<String> access = toList(fieldsMap.get("access"));
         if (access != null && !access.isEmpty()) {
             collectionWork.asEADWork().setAccess(access);
-            System.out.println("access:");
-            System.out.println(access);
         }
     }
     
