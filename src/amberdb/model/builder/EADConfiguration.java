@@ -71,11 +71,12 @@ public class EADConfiguration {
         ((ObjectNode) introductionFields).put("repository", "//ead:ead/ead:archdesc/ead:did/ead:repository/ead:corpname");
         ((ObjectNode) introductionFields).put("scope-n-content", "//ead:ead/ead:archdesc/ead:scopecontent/ead:p");
         ((ObjectNode) introductionFields).put("arrangement", "//ead:ead/ead:archdesc/ead:arrangement/ead:p");
-        ((ObjectNode) introductionFields).put("provenance", "//ead:ead/ead:archdesc/ead:acqinfo");
-        ((ObjectNode) introductionFields).put("copying-publishing", "//ead:ead/ead:archdesc/ead:userestrict");
-        ((ObjectNode) introductionFields).put("preferred-citation", "//ead:ead/ead:archdesc/ead:prefercite");
-        ((ObjectNode) introductionFields).put("related-material", "//ead:ead/ead:archdesc/ead:relatedmaterial");
-        ((ObjectNode) introductionFields).put("separated-material", "//ead:ead/ead:archdesc/ead:separatedmaterial");
+        ((ObjectNode) introductionFields).put("access", "//ead:ead/ead:archdesc/ead:accessrestrict/ead:p");
+        ((ObjectNode) introductionFields).put("provenance", "//ead:ead/ead:archdesc/ead:acqinfo/ead:p");
+        ((ObjectNode) introductionFields).put("copying-publishing", "//ead:ead/ead:archdesc/ead:userestrict/ead:p");
+        ((ObjectNode) introductionFields).put("preferred-citation", "//ead:ead/ead:archdesc/ead:prefercite/ead:p");
+        ((ObjectNode) introductionFields).put("related-material", "//ead:ead/ead:archdesc/ead:relatedmaterial/ead:p");
+        ((ObjectNode) introductionFields).put("separated-material", "//ead:ead/ead:archdesc/ead:separatedmaterial/ead:p");
         return introductionFields;
     }
     

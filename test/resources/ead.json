@@ -21,9 +21,12 @@
         "repository":         "//ead:ead/ead:archdesc/ead:did/ead:repository/ead:corpname",
         "scope-n-content":    "//ead:ead/ead:archdesc/ead:scopecontent/ead:p",
         "arrangement":        "//ead:ead/ead:archdesc/ead:arrangement/ead:p",
-        "provenance":         "//ead:ead/ead:archdesc/ead:acqinfo",
-        "copying-publishing": "//ead:ead/ead:archdesc/ead:userestrict",
-        "preferred-citation": "//ead:ead/ead:archdesc/ead:prefercite" },
+        "access":             "//ead:ead/ead:archdesc/ead:accessrestrict/ead:p",
+        "provenance":         "//ead:ead/ead:archdesc/ead:acqinfo/ead:p",
+        "copying-publishing": "//ead:ead/ead:archdesc/ead:userestrict/ead:p",
+        "preferred-citation": "//ead:ead/ead:archdesc/ead:prefercite/ead:p",
+        "related-material":   "//ead:ead/ead:archdesc/ead:relatedmaterial/ead:p",
+        "separated-material": "//ead:ead/ead:archdesc/ead:separatedmaterial/ead:p" },
       "bioghistory": {
         "biographical-note":  "//ead:ead/ead:archdesc/ead:bioghist",
         "bibliography":       "//ead:ead/ead:archdesc/ead:bibliography"
