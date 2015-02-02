@@ -764,7 +764,7 @@ public class CollectionBuilder {
     private static void mapBibliography(Work collectionWork, Map<String, String> fieldsMap) {
         try {
             String bibliography = fieldsMap.get("bibliography");
-            if (bibliography != null) {
+            if (bibliography != null && !bibliography.isEmpty()) {
                 List<String> biblioList = new ArrayList<String>();
                 biblioList.add(bibliography);
                 collectionWork.asEADWork().setBibliography(biblioList);
