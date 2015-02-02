@@ -28,7 +28,7 @@
         "related-material":   "//ead:ead/ead:archdesc/ead:relatedmaterial/ead:p",
         "separated-material": "//ead:ead/ead:archdesc/ead:separatedmaterial/ead:p" },
       "bioghistory": {
-        "biographical-note":  "//ead:ead/ead:archdesc/ead:bioghist",
+        "biographical-note":  "//ead:ead/ead:archdesc/ead:bioghist/ead:p",
         "bibliography":       "//ead:ead/ead:archdesc/ead:bibliography"
       },
       "administrative-info": {
