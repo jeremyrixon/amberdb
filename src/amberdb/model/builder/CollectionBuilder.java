@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -691,6 +692,60 @@ public class CollectionBuilder {
                     collectionWork.setEndDate(dateList.get(1));
             }
         }
+        
+        // setting Arrangement
+        List<String> arrangement = toList(fieldsMap.get("arrangement"));
+        if (arrangement != null && !arrangement.isEmpty()) {
+            collectionWork.asEADWork().setArrangement(arrangement); 
+        }
+        
+        // setting Provenance
+        List<String> provenance = toList(fieldsMap.get("provenance"));
+        if (provenance != null && !provenance.isEmpty()) {
+            collectionWork.asEADWork().setProvenance(provenance);
+        }
+        
+        // setting Copying Publishing
+        List<String> copyingPublishing = toList(fieldsMap.get("copying-publishing"));
+        if (copyingPublishing != null && !copyingPublishing.isEmpty()) {
+            collectionWork.asEADWork().setCopyingPublishing(copyingPublishing);
+        }
+        
+        // setting Preferred Citation
+        List<String> preferredCitation = toList(fieldsMap.get("preferred-citation"));
+        if (preferredCitation != null && !preferredCitation.isEmpty()) {
+            collectionWork.asEADWork().setPreferredCitation(preferredCitation);
+        }
+        
+        // setting Related Material
+        List<String> relatedMaterial = toList(fieldsMap.get("related-material"));
+        if (relatedMaterial != null && !relatedMaterial.isEmpty()) {
+            collectionWork.asEADWork().setRelatedMaterial(relatedMaterial);
+        } else {
+            List<String> separatedMaterial = toList(fieldsMap.get("separated-material"));
+            if (separatedMaterial != null && !separatedMaterial.isEmpty()) {
+                collectionWork.asEADWork().setRelatedMaterial(separatedMaterial);
+            }
+        }
+        
+        // setting Access
+        List<String> access = toList(fieldsMap.get("access"));
+        if (access != null && !access.isEmpty()) {
+            collectionWork.asEADWork().setAccess(access);
+        }
+    }
+    
+    private static List<String> toList(String extract) {
+        if (extract != null && !extract.isEmpty()) {
+            if (extract.startsWith("[")) {
+                String[] array = extract.replace("[", "").replace("]", "").replace("\",", "\n").replace("\"", "").split("\n"); 
+                return Arrays.asList(array);
+            } 
+            List<String> list = new ArrayList<String>();
+            list.add(extract);
+            return list;
+        }
+        return null;
     }
 
     private static void mapAdminInfo(Work collectionWork, JsonNode collectionCfg, Map<String, String> fieldsMap) {
@@ -757,7 +812,8 @@ public class CollectionBuilder {
     
     private static JsonNode mapWorkProperties(Work work) {
         JsonNode workProperties = mapper.createObjectNode();
-        String[] fields = { "repository", "extent", "collectionNumber", "dcmWorkPid", "creator", "title", "subType", "subUnitType", "form", "bibLevel", "collection", "bibliography", "adminInfo", 
+        String[] fields = { "repository", "extent", "collectionNumber", "dcmWorkPid", "arrangement", "access", "copyingPublising", "preferredCitation", "relatedMaterial", 
+                            "provenance", "creator", "title", "digitalStatus", "subType", "subUnitType", "form", "bibLevel", "collection", "bibliography", "adminInfo", 
                             "recordSource", "localSystemNumber", "rdsAcknowledgementType", "rdsAcknowledgementReceiver", "eadUpdateReviewRequired", "accessConditions",
                                "subUnitType", "subUnitNo", "scopeContent", "dateRangeInAS", "folder"};
         String background = null;
