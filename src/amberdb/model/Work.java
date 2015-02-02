@@ -1423,6 +1423,9 @@ public interface Work extends Node {
             }
 
             Iterable<Work> children = getChildren();
+            if (Iterables.size(children) == 0) {
+                return null;
+            }
             Work child = Iterables.get(children, 0);
             if (WorkUtils.checkCanReturnRepImage(child)) {
                 return getRepImageOrAccessCopy(child);
