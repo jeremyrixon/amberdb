@@ -67,13 +67,19 @@ public interface EADWork extends Work {
      * bibliography: bibliography info for a person.
      */
     @Property("bibliography")
-    public String getBibliography();
+    public String getJSONBibliography();
     
     /**
      * bibliography: bibliography info for a person.
      */
     @Property("bibliography")
-    public void setBibliography(String bibliography);
+    public void setJSONBibliography(String bibliography);
+    
+    @JavaHandler
+    public List<String> getBibliography() throws JsonParseException, JsonMappingException, IOException;
+    
+    @JavaHandler
+    public void setBibliography(List<String> bibliography) throws JsonParseException, JsonMappingException, IOException;
     
     /**
      * arrangement: the arrangement for the collection in hierarchical components
@@ -419,6 +425,16 @@ public interface EADWork extends Work {
         @Override
         public void setProvenance(List<String> provenance) throws JsonParseException, JsonMappingException, IOException {
             setJSONProvenance(serialiseToJSON(provenance));
+        }
+        
+        @Override
+        public List<String> getBibliography() throws JsonParseException, JsonMappingException, IOException {
+            return deserialiseJSONString(getJSONBibliography());
+        }
+        
+        @Override
+        public void setBibliography(List<String> bibliography)  throws JsonParseException, JsonMappingException, IOException {
+            setJSONBibliography(serialiseToJSON(bibliography));
         }
         
         @Override

@@ -168,6 +168,12 @@ public class ComponentBuilder {
             componentWork.setTitle(unitTitle.toString());
         }
         
+        Object creator = fieldsMap.get("creator");
+        if (creator != null && !creator.toString().isEmpty()) {
+            log.debug("component work " + componentWork.getObjId() + ": creator: " + creator.toString());
+            componentWork.setCreator(creator.toString());
+        }
+        
         Object extent = fieldsMap.get("extent");
         if (extent != null && extent instanceof String) {
             if (!extent.toString().isEmpty())

@@ -82,7 +82,7 @@ public class EADConfiguration {
     
     protected JsonNode getMappedBioghistoryFieldsCfg() {
         JsonNode biogHistoryFields = mapper.createObjectNode();
-        ((ObjectNode) biogHistoryFields).put("biographical-note", "//ead:ead/ead:archdesc/ead:bioghist");
+        ((ObjectNode) biogHistoryFields).put("biographical-note", "//ead:ead/ead:archdesc/ead:bioghist/ead:p");
         ((ObjectNode) biogHistoryFields).put("bibliography", "//ead:ead/ead:archdesc/ead:bibliography");
         return biogHistoryFields;
     }
@@ -142,6 +142,7 @@ public class EADConfiguration {
         JsonNode mappedFields = mapper.createObjectNode();
         ((ObjectNode) mappedFields).put("dcmpi", "ead:did/ead:materialspec");
         ((ObjectNode) mappedFields).put("title", "ead:did/ead:unittitle");
+        ((ObjectNode) mappedFields).put("creator", "ead:did/ead:origination/ead:persname");
         ((ObjectNode) mappedFields).put("extent", "ead:did/ead:physdesc/ead:extent");
         ((ObjectNode) mappedFields).put("date-range", "ead:did/ead:unitdate");
         ((ObjectNode) mappedFields).put("scope-n-content", "ead:scopecontent/ead:p");
