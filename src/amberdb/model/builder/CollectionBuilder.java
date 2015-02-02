@@ -646,7 +646,7 @@ public class CollectionBuilder {
         collectionWork.setSubType("Work");
         collectionWork.setForm("Manuscript");
         collectionWork.setBibLevel("Set");
-        collectionWork.setRecordSource("FA");
+
         collectionWork.asEADWork().setRdsAcknowledgementType("Sponsor");
         
         if (fieldsMap.get("sponsor") != null)
