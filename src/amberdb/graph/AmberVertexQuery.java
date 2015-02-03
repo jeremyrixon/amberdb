@@ -172,7 +172,7 @@ public class AmberVertexQuery extends AmberQueryBase {
 
             // run the generated query
             h.begin();
-            h.execute("DROP TABLE IF EXISTS vp; CREATE TEMPORARY TABLE vp (id BIGINT) " + graph.tempTableEngine + ";");
+            h.execute("DROP " + graph.tempTableDrop + " TABLE IF EXISTS vp; CREATE TEMPORARY TABLE vp (id BIGINT) " + graph.tempTableEngine + ";");
             Update q = h.createStatement(generateQuery());
             
             for (int i = 0; i < properties.size(); i++) {

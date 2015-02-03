@@ -155,8 +155,8 @@ public class TransactionQuery {
         }
         
         StringBuilder s = new StringBuilder();
-        s.append("DROP TABLE IF EXISTS v0;\n");
-        s.append("DROP TABLE IF EXISTS e0;\n");
+        s.append("DROP " + graph.tempTableDrop + " TABLE IF EXISTS v0;\n");
+        s.append("DROP " + graph.tempTableDrop + " TABLE IF EXISTS e0;\n");
         
         s.append("CREATE TEMPORARY TABLE v0 (id BIGINT) " + graph.tempTableEngine + ";\n");
         s.append("CREATE TEMPORARY TABLE e0 (id BIGINT) " + graph.tempTableEngine + ";\n");
@@ -185,9 +185,9 @@ public class TransactionQuery {
 
     public String makeTempTablesQuery() {
         StringBuilder s = new StringBuilder();
-        s.append("DROP TABLE IF EXISTS c0;\n");
-        s.append("DROP TABLE IF EXISTS f0;\n");
-        s.append("DROP TABLE IF EXISTS d0;\n");
+        s.append("DROP " + graph.tempTableDrop + " TABLE IF EXISTS c0;\n");
+        s.append("DROP " + graph.tempTableDrop + " TABLE IF EXISTS f0;\n");
+        s.append("DROP " + graph.tempTableDrop + " TABLE IF EXISTS d0;\n");
 
         s.append("CREATE TEMPORARY TABLE c0 (id BIGINT) " + graph.tempTableEngine + ";\n"); // Copies
         s.append("CREATE TEMPORARY TABLE f0 (id BIGINT) " + graph.tempTableEngine + ";\n"); // Files

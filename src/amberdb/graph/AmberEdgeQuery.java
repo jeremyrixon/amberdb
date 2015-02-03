@@ -178,8 +178,8 @@ public class AmberEdgeQuery extends AmberQueryBase {
             // run the generated query
             h.begin();
             h.execute(
-                    "DROP TABLE IF EXISTS ep; CREATE TEMPORARY TABLE ep (id BIGINT) " + graph.tempTableEngine + ";" +
-                    "DROP TABLE IF EXISTS vp; CREATE TEMPORARY TABLE vp (id BIGINT) " + graph.tempTableEngine + ";");
+                    "DROP " + graph.tempTableDrop + " TABLE IF EXISTS ep; CREATE TEMPORARY TABLE ep (id BIGINT) " + graph.tempTableEngine + ";" +
+                    "DROP " + graph.tempTableDrop + " TABLE IF EXISTS vp; CREATE TEMPORARY TABLE vp (id BIGINT) " + graph.tempTableEngine + ";");
             Update q = h.createStatement(generateQuery());
             
             for (int i = 0; i < properties.size(); i++) {
