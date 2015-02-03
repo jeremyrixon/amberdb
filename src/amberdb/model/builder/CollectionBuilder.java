@@ -646,7 +646,7 @@ public class CollectionBuilder {
         collectionWork.setSubType("Work");
         collectionWork.setForm("Manuscript");
         collectionWork.setBibLevel("Set");
-        collectionWork.setRecordSource("FA");
+
         collectionWork.asEADWork().setRdsAcknowledgementType("Sponsor");
         
         if (fieldsMap.get("sponsor") != null)
@@ -762,14 +762,20 @@ public class CollectionBuilder {
     }
     
     private static void mapBibliography(Work collectionWork, Map<String, String> fieldsMap) {
-        String biliography = fieldsMap.get("bibliography");
-        if (biliography != null)
-            collectionWork.asEADWork().setBibliography(biliography);
-        else {
-            String biographicalNote = fieldsMap.get("biographical-note");
-            if (biographicalNote != null) {
-                collectionWork.asEADWork().setBibliography(biographicalNote);
+        try {
+            String bibliography = fieldsMap.get("bibliography");
+            if (bibliography != null && !bibliography.isEmpty()) {
+                List<String> biblioList = new ArrayList<String>();
+                biblioList.add(bibliography);
+                collectionWork.asEADWork().setBibliography(biblioList);
+            } else {
+                List<String> biographicalNote = toList(fieldsMap.get("biographical-note"));
+                if (biographicalNote != null) {
+                    collectionWork.asEADWork().setBibliography(biographicalNote);
+                }
             }
+        } catch (IOException e) {
+            log.error("Failed to map bibliography for collection work " + collectionWork.getObjId());
         }
     }
     
@@ -812,28 +818,39 @@ public class CollectionBuilder {
     
     private static JsonNode mapWorkProperties(Work work) {
         JsonNode workProperties = mapper.createObjectNode();
-        String[] fields = { "repository", "extent", "collectionNumber", "dcmWorkPid", "arrangement", "access", "copyingPublising", "preferredCitation", "relatedMaterial", 
-                            "provenance", "creator", "title", "digitalStatus", "subType", "subUnitType", "form", "bibLevel", "collection", "bibliography", "adminInfo", 
-                            "recordSource", "localSystemNumber", "rdsAcknowledgementType", "rdsAcknowledgementReceiver", "eadUpdateReviewRequired", "accessConditions",
-                               "subUnitType", "subUnitNo", "scopeContent", "dateRangeInAS", "folder"};
-        String background = null;
+        String[] fields = { "repository", "extent", "collectionNumber", "dcmWorkPid", "arrangement", "access",
+                "copyingPublising", "preferredCitation", "relatedMaterial", "provenance", "creator", "title",
+                "digitalStatus", "subType", "subUnitType", "form", "bibLevel", "collection", "bibliography",
+                "adminInfo", "recordSource", "localSystemNumber", "rdsAcknowledgementType",
+                "rdsAcknowledgementReceiver", "eadUpdateReviewRequired", "accessConditions", "subUnitType",
+                "subUnitNo", "scopeContent", "dateRangeInAS", "folder" };
+        List<String> background = null;
         // map general work properties
         for (String field : fields) {
             if (work.asVertex().getProperty(field) != null)
                 ((ObjectNode) workProperties).put(field, work.asVertex().getProperty(field).toString());
         }
         // map background
-        String bibliography = work.asEADWork().getBibliography();
-        if (bibliography != null && !bibliography.isEmpty()) {
-            background = bibliography;
-        } else {
-            String adminInfo = work.asEADWork().getAdminInfo();
-            if (adminInfo != null && !adminInfo.isEmpty()) {
-                background = adminInfo;
+        try {
+            List<String> bibliography = work.asEADWork().getBibliography();
+            if (bibliography != null && !bibliography.isEmpty()) {
+                background = bibliography;
+            } else {
+                String adminInfo = work.asEADWork().getAdminInfo();
+                if (adminInfo != null && !adminInfo.isEmpty()) {
+                    background = new ArrayList<>();
+                    background.add(adminInfo);
+                }
             }
-        }
-        if (background != null) {
-            ((ObjectNode) workProperties).put("background", background);
+            if (background != null) {
+                ArrayNode backgroundHist = mapper.createArrayNode();
+                for (String item : background) {
+                    backgroundHist.add(item);
+                }
+                ((ObjectNode) workProperties).put("background", backgroundHist);
+            }
+        } catch (IOException e) {
+            log.error("Failed to retrieve background for collection work " + work.getObjId());
         }
         return workProperties;
     }

@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import amberdb.PIUtil;
 import amberdb.enums.AccessCondition;
+import amberdb.enums.BibLevel;
 import amberdb.enums.DigitalStatus;
 import amberdb.enums.SubUnitType;
 import amberdb.model.EADWork;
@@ -107,7 +108,7 @@ public class ComponentBuilder {
         componentWork.setSubType("Work");      
         componentWork.setForm("Manuscript");
       
-        componentWork.setBibLevel("Item");
+        componentWork.setBibLevel(BibLevel.SET.code());
         
         String collection = componentWork.getParent().getCollection();
         componentWork.setCollection(collection);
@@ -168,6 +169,12 @@ public class ComponentBuilder {
             componentWork.setTitle(unitTitle.toString());
         }
         
+        Object creator = fieldsMap.get("creator");
+        if (creator != null && !creator.toString().isEmpty()) {
+            log.debug("component work " + componentWork.getObjId() + ": creator: " + creator.toString());
+            componentWork.setCreator(creator.toString());
+        }
+        
         Object extent = fieldsMap.get("extent");
         if (extent != null && extent instanceof String) {
             if (!extent.toString().isEmpty())
@@ -207,12 +214,12 @@ public class ComponentBuilder {
     }
 
     private static String mapBibLevel(Object componentLevel) {
-        String bibLevel = "Set";
+        String bibLevel = BibLevel.SET.code();
         if (componentLevel != null) {
             if (componentLevel.toString().equalsIgnoreCase("item")) 
-                bibLevel = "Item";
-            else if (componentLevel.toString().equalsIgnoreCase("part"))
-                bibLevel = "Part";
+                bibLevel = BibLevel.ITEM.code();
+            else if (componentLevel.toString().equalsIgnoreCase("otherlevel"))
+                bibLevel = BibLevel.PART.code();
         }
         return bibLevel;
     }
