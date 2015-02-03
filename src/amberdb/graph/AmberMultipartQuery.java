@@ -105,7 +105,7 @@ public class AmberMultipartQuery extends AmberQueryBase implements AutoCloseable
     private String createTmpTables() {
 
         StringBuilder s = new StringBuilder();
-        s.append("DROP TABLE IF EXISTS v0;\n");
+        s.append("DROP " + graph.tempTableDrop + " TABLE IF EXISTS v0;\n");
         s.append("CREATE TEMPORARY TABLE v0 ("
                 + "step INT, "
                 + "vid BIGINT, "
@@ -116,7 +116,7 @@ public class AmberMultipartQuery extends AmberQueryBase implements AutoCloseable
         // double buffer table to get around mysql limitation
         // of not being able to open the same temporary table
         // more than once in a query
-        s.append("DROP TABLE IF EXISTS v1;\n");
+        s.append("DROP " + graph.tempTableDrop + " TABLE IF EXISTS v1;\n");
         s.append("CREATE TEMPORARY TABLE v1 ("
                 + "step INT, "
                 + "vid BIGINT, "
