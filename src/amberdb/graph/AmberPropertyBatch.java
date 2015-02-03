@@ -18,9 +18,14 @@ public class AmberPropertyBatch {
     void add(Long id, Map<String, Object> properties) {
         if (properties == null) return;
         for (String name : properties.keySet()) {
+
+            // MySQL seems to map an empty string to null in a blob field context
+            // This should eliminate this issue by simply not saving the empty str
+            Object value = properties.get(name);
+            if (value.equals("")) continue;
+
             this.id.add(id);
             this.name.add(name);
-            Object value = properties.get(name);
             this.type.add(DataType.forObject(value));
             this.value.add(AmberProperty.encode(value));
         }

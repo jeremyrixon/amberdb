@@ -39,6 +39,7 @@ public class VersionedGraph {
 
     protected final DBI dbi;
     protected final String tempTableEngine;
+    protected final String tempTableDrop;
     private final VersionDao dao;
 
     private boolean localMode = false;
@@ -102,13 +103,14 @@ public class VersionedGraph {
         dao = this.dbi.onDemand(VersionDao.class);
         
         try (Handle h = dbi.open()) {
-        	String dbProduct;
-        	try {
-        		dbProduct = h.getConnection().getMetaData().getDatabaseProductName();
-			} catch (SQLException e) {
-				throw new RuntimeException("Unable to get database product name", e);
-			}
-			tempTableEngine = "MySQL".equals(dbProduct) ? "ENGINE=memory" : "";
+            String dbProduct;
+            try {
+                dbProduct = h.getConnection().getMetaData().getDatabaseProductName();
+            } catch (SQLException e) {
+                throw new RuntimeException("Unable to get database product name", e);
+            }
+            tempTableEngine = "MySQL".equals(dbProduct) ? "ENGINE=memory" : "";
+            tempTableDrop = "MySQL".equals(dbProduct) ? "TEMPORARY" : "";
         }
     }
         
