@@ -28,7 +28,7 @@
         "related-material":   "//ead:ead/ead:archdesc/ead:relatedmaterial/ead:p",
         "separated-material": "//ead:ead/ead:archdesc/ead:separatedmaterial/ead:p" },
       "bioghistory": {
-        "biographical-note":  "//ead:ead/ead:archdesc/ead:bioghist",
+        "biographical-note":  "//ead:ead/ead:archdesc/ead:bioghist/ead:p",
         "bibliography":       "//ead:ead/ead:archdesc/ead:bibliography"
       },
       "administrative-info": {
@@ -73,6 +73,7 @@
         "series": {
           "dcmpi":              "ead:did/ead:materialspec",
           "title":              "ead:did/ead:unittitle",
+          "creator":            "ead:did/ead:origination/ead:persname",
           "extent":             "ead:did/ead:physdesc/ead:extent",
           "date-range":         "ead:did/ead:unitdate",
           "scope-n-content":    "ead:scopecontent/ead:p",

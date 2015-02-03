@@ -10,6 +10,7 @@ import java.io.ByteArrayInputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -91,11 +92,35 @@ public class CollectionBuilderTest {
         createCollection();
         
         // Verify after creating collection, collectionWork has 8 sub-works attached
+        String[] expectedBibliography = {
+          "Biographical note 1",
+          "Biographical note 2",
+          "Biographical note 3",
+          "Biographical note 4"
+        };
+        Map<String, String> expectedCreatorMap = new HashMap<>();
+        expectedCreatorMap.put("aspace_d1ac0117fdba1b9dc09b68e8bb125948", "First Creator");
+        expectedCreatorMap.put("aspace_7275d12ba178fcbb7cf926d0b7bf68cc", "Second Creator");
+        expectedCreatorMap.put("aspace_5c65cd1a0dd35517ba04da03d95ffac2", "Third Creator");
+        expectedCreatorMap.put("aspace_563116915a27063fb67dc5de82e2f848", "Forth Creator");
+        expectedCreatorMap.put("aspace_1012d592eedcfdbdc6175b91db070e2d", "Fifth Creator");
+        expectedCreatorMap.put("aspace_3c0c615f787a41d4dc4c4104505e55a7", "Sixth Creator");
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
             List<Work> subWorks = collectionWork.getPartsOf(new ArrayList<String>());
+            List<String> bibliography = collectionWork.asEADWork().getBibliography();
             assertNotNull(subWorks);
             assertEquals(8, subWorks.size());
+            assertEquals(4, bibliography.size());
+            for (String expectedItem : expectedBibliography) {
+                bibliography.contains(expectedItem);
+            }
+            for (Work subWork : subWorks) {
+                String asId = subWork.getLocalSystemNumber();
+                String creator = subWork.getCreator();
+                String expectedCreator = expectedCreatorMap.get(asId);
+                assertEquals(expectedCreator, creator);
+            }
         }
     }
     
