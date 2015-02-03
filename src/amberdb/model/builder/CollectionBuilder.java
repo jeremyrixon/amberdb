@@ -985,6 +985,4 @@ public class CollectionBuilder {
         }
         return entities;
     }
-    
-    // TODO: dates range and single date patterns and unit test etc (1009, 9982)
 }
