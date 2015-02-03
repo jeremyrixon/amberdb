@@ -436,6 +436,7 @@ public interface Copy extends Node {
                     acf.setImageWidth(imgFile.getImageWidth());
                     acf.setResolution(imgFile.getResolution());
                     acf.setFileFormat("jpeg2000");
+                    acf.setFileSize(Files.size(jp2ImgPath));
                 }
                 return ac;
 
