@@ -110,8 +110,6 @@ public class EADConfiguration {
     protected JsonNode getMappedOddElementCfg() {
         JsonNode oddElement = mapper.createObjectNode();
         ((ObjectNode) oddElement).put("base", "//ead:ead/ead:archdesc/ead:odd");
-        ((ObjectNode) oddElement).put("odd-type", "ead:head");
-        ((ObjectNode) oddElement).put("odd-fields", "ead:table/ead:tgroup/ead:thead/ead:row/ead:entry");
         ((ObjectNode) oddElement).put("fields", getMappedOddFieldsCfg());
         ((ObjectNode) oddElement).put("repeatable-element", "ead:table/ead:tgroup/ead:tbody/ead:row");
         return oddElement;
@@ -119,6 +117,8 @@ public class EADConfiguration {
     
     protected JsonNode getMappedOddFieldsCfg() {
         JsonNode oddFields = mapper.createObjectNode();
+        ((ObjectNode) oddFields).put("odd-type", "ead:head");
+        ((ObjectNode) oddFields).put("odd-fields", "ead:table/ead:tgroup/ead:thead/ead:row/ead:entry");
         ((ObjectNode) oddFields).put("odd-record-data", "ead:table/ead:tgroup/ead:tbody/ead:row/ead:entry");
         return oddFields;
     }

@@ -49,11 +49,11 @@
     },
     "odd": {
       "base":               "//ead:ead/ead:archdesc/ead:odd",
-      "odd-type":           "ead:head",
-      "odd-fields":         "ead:table/ead:tgroup/ead:thead/ead:row/ead:entry",
       "repeatable-element": "ead:table/ead:tgroup/ead:tbody/ead:row",
       "fields": {
-        "odd-record-data":  "ead:entry"
+        "odd-type":           "ead:head",
+        "odd-fields":         "ead:table/ead:tgroup/ead:thead/ead:row/ead:entry",
+        "odd-record-data":    "ead:entry"
       }
     },
     "index": {
@@ -61,6 +61,7 @@
       "repeatable-element": "ead:indexentry",
       "fields": {
         "corpname":           "ead:corpname",
+        "famname":            "ead:famname",
         "persname":           "ead:persname",
         "ref":                "ead:ref"
       }
