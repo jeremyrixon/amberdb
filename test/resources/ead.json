@@ -29,7 +29,9 @@
         "separated-material": "//ead:ead/ead:archdesc/ead:separatedmaterial/ead:p" },
       "bioghistory": {
         "biographical-note":  "//ead:ead/ead:archdesc/ead:bioghist/ead:p",
-        "bibliography":       "//ead:ead/ead:archdesc/ead:bibliography"
+        "bibliography":       "//ead:ead/ead:archdesc/ead:bibliography",
+        "bibref-title":       "//ead:ead/ead:archdesc/ead:bioghist/ead:p/ead:bibref/ead:title",
+        "bibref-extref":      "//ead:ead/ead:archdesc/ead:bioghist/ead:p/ead:bibref/ead:extref"
       },
       "administrative-info": {
         "publicationstmt":    "//ead:ead/ead:eadheader/ead:filedesc/ead:publicationstmt",
@@ -43,6 +45,24 @@
         "appraisal":          "//ead:ead/ead:archdesc/ead:appraisal",
         "altformavail":       "//ead:ead/ead:archdesc/ead:altformavail",
         "originalsloc":       "//ead:ead/ead:archdesc/ead:originalsloc"
+      }
+    },
+    "odd": {
+      "base":               "//ead:ead/ead:archdesc/ead:odd",
+      "odd-type":           "ead:head",
+      "odd-fields":         "ead:table/ead:tgroup/ead:thead/ead:row/ead:entry",
+      "repeatable-element": "ead:table/ead:tgroup/ead:tbody/ead:row",
+      "fields": {
+        "odd-record-data":  "ead:entry"
+      }
+    },
+    "index": {
+      "base":               "//ead:ead/ead:archdesc/ead:index",
+      "repeatable-element": "ead:indexentry",
+      "fields": {
+        "corpname":           "ead:corpname",
+        "persname":           "ead:persname",
+        "ref":                "ead:ref"
       }
     },
     "excludes": [

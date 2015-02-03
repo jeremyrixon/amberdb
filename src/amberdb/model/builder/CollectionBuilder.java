@@ -41,6 +41,8 @@ import amberdb.util.DateParser;
 
 import static amberdb.model.builder.XmlDocumentParser.CFG_COLLECTION_ELEMENT;
 import static amberdb.model.builder.XmlDocumentParser.CFG_SUB_ELEMENTS;
+import static amberdb.model.builder.XmlDocumentParser.CFG_FEATURE_ELEMENTS;
+import static amberdb.model.builder.XmlDocumentParser.CFG_ENTITY_ELEMENTS;
 import static amberdb.model.builder.XmlDocumentParser.CFG_BASE;
 import static amberdb.model.builder.XmlDocumentParser.CFG_REPEATABLE_ELEMENTS;
 
@@ -564,6 +566,16 @@ public class CollectionBuilder {
         // update metadata in the collection work.
         mapCollectionMD(collectionWork, collectionCfg.get(CFG_COLLECTION_ELEMENT), parser);
         
+        // extract features like container list
+        JsonNode featuresCfg = collectionCfg.get(CFG_FEATURE_ELEMENTS);
+        if (featuresCfg != null)
+            extractFeatures(collectionWork.asEADWork(), featuresCfg, parser);
+        
+        // extract entities like correspondence index
+        JsonNode entitiesCfg = collectionCfg.get(CFG_ENTITY_ELEMENTS);
+        if (entitiesCfg != null)
+            extractEntities(collectionWork.asEADWork(), entitiesCfg, parser);
+        
         // filter out elements to be excluded during delivery from the EAD, 
         // and by default configuration, the filtered EAD document will be stored
         // as the FINDING_AID__FILTERED_COPY of the top level collection work.
@@ -586,6 +598,28 @@ public class CollectionBuilder {
                 }
             }
         }
+    }
+    
+    protected static void extractFeatures(EADWork collectionWork, JsonNode featuresCfg, XmlDocumentParser parser) {
+        String basePath = featuresCfg.get(CFG_BASE).getTextValue();
+        String repeatablePath = featuresCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
+        Nodes eadElements = parser.getElementsByXPath(parser.getDocument(), basePath);
+        Map<String, String> mapping = parser.getFieldsMap(parser.doc.getRootElement(), featuresCfg, basePath);
+        String featureType = mapping.get("odd-type");
+        if (featureType != null || !featureType.isEmpty()) {
+            
+        }
+        List<String> featureFields = toList(mapping.get("odd-fields")); 
+        if (featureFields != null) {
+            
+        }
+    }
+    
+    protected static void extractEntities(EADWork collectionWork, JsonNode entitiesCfg, XmlDocumentParser parser) {
+        String basePath = entitiesCfg.get(CFG_BASE).getTextValue();
+        String repeatablePath = entitiesCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
+        Nodes eadElements = parser.getElementsByXPath(parser.getDocument(), basePath);
+        Map<String, String> mapping = parser.getFieldsMap(parser.doc.getRootElement(), entitiesCfg, basePath);
     }
     
     protected static void traverseEAD(EADWork collectionWork, EADWork parentWork, Nodes eadElements, JsonNode elementCfg, XmlDocumentParser parser, 
