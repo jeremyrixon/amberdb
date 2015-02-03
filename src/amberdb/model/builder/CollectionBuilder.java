@@ -946,6 +946,45 @@ public class CollectionBuilder {
         } catch (IOException e) {
             log.error("Failed to retrieve background for collection work " + work.getObjId());
         }
+        
+        ArrayNode features = mapEADFeatures(work);
+        if (features != null) {
+            ((ObjectNode) workProperties).put("containerList", features);
+        }
+        
+        ArrayNode entities = mapEADEntities(work);
+        if (entities != null) {
+            ((ObjectNode) workProperties).put("correspondenceIndex", entities);
+        }
         return workProperties;
     }
+    
+    private static ArrayNode mapEADFeatures(Work work) {
+        List<EADFeature> list = work.asEADWork().getEADFeatures();
+        if (list == null) return null;
+        ArrayNode features = mapper.createArrayNode();
+        for (EADFeature e : list) {
+            ObjectNode feature = mapper.createObjectNode();
+            feature.put("featureType", e.getFeatureType());
+            feature.put("fields", e.getJSONFields());
+            feature.put("records", e.getJSONRecords());
+            features.add(feature);
+        }
+        return features;
+    }
+    
+    private static ArrayNode mapEADEntities(Work work) {
+        List<EADEntity> list = work.asEADWork().getEADEntities();
+        if (list == null) return null;
+        ArrayNode entities = mapper.createArrayNode();
+        for (EADEntity e : list) {
+            ObjectNode entity = mapper.createObjectNode();
+            entity.put("entityName", e.getJSONEntityName());
+            entity.put("correspondenceRef", e.getCorrespondencRef());
+            entities.add(entity);
+        }
+        return entities;
+    }
+    
+    // TODO: dates range and single date patterns and unit test etc (1009, 9982)
 }
