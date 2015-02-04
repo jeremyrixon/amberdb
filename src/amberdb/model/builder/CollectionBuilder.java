@@ -34,6 +34,8 @@ import amberdb.enums.AccessCondition;
 import amberdb.enums.CopyRole;
 import amberdb.enums.DigitalStatus;
 import amberdb.model.Copy;
+import amberdb.model.EADEntity;
+import amberdb.model.EADFeature;
 import amberdb.model.EADWork;
 import amberdb.model.File;
 import amberdb.model.Work;
@@ -41,6 +43,8 @@ import amberdb.util.DateParser;
 
 import static amberdb.model.builder.XmlDocumentParser.CFG_COLLECTION_ELEMENT;
 import static amberdb.model.builder.XmlDocumentParser.CFG_SUB_ELEMENTS;
+import static amberdb.model.builder.XmlDocumentParser.CFG_FEATURE_ELEMENTS;
+import static amberdb.model.builder.XmlDocumentParser.CFG_ENTITY_ELEMENTS;
 import static amberdb.model.builder.XmlDocumentParser.CFG_BASE;
 import static amberdb.model.builder.XmlDocumentParser.CFG_REPEATABLE_ELEMENTS;
 
@@ -564,6 +568,16 @@ public class CollectionBuilder {
         // update metadata in the collection work.
         mapCollectionMD(collectionWork, collectionCfg.get(CFG_COLLECTION_ELEMENT), parser);
         
+        // extract features like container list
+        JsonNode featuresCfg = collectionCfg.get(CFG_FEATURE_ELEMENTS);
+        if (featuresCfg != null)
+            extractFeatures(collectionWork.asEADWork(), featuresCfg, parser);
+        
+        // extract entities like correspondence index
+        JsonNode entitiesCfg = collectionCfg.get(CFG_ENTITY_ELEMENTS);
+        if (entitiesCfg != null)
+            extractEntities(collectionWork.asEADWork(), entitiesCfg, parser);
+        
         // filter out elements to be excluded during delivery from the EAD, 
         // and by default configuration, the filtered EAD document will be stored
         // as the FINDING_AID__FILTERED_COPY of the top level collection work.
@@ -586,6 +600,86 @@ public class CollectionBuilder {
                 }
             }
         }
+    }
+    
+    protected static void extractFeatures(EADWork collectionWork, JsonNode featuresCfg, XmlDocumentParser parser) {
+        String basePath = featuresCfg.get(CFG_BASE).getTextValue();
+        String repeatablePath = featuresCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
+        Map<String, String> mapping = parser.getFieldsMap(parser.doc.getRootElement(), featuresCfg, basePath);
+        String featureType = mapping.get("odd-type");
+        try {
+            if (featureType != null || !featureType.isEmpty()) {
+                EADFeature feature = collectionWork.addEADFeature();
+                feature.setFeatureType(featureType);
+                List<String> featureFields = toList(mapping.get("odd-fields"));
+                if (featureFields != null) {
+                    feature.setFields(featureFields);
+                }
+                Nodes eadElements = parser.getElementsByXPath(parser.getDocument(), basePath);
+                if (eadElements != null && eadElements.size() > 0) {
+                    List<List<String>> featureRecords = new ArrayList<>();
+                    for (int i = 0; i < eadElements.size(); i++) {
+                        Nodes eadFeatureEntries = parser.traverse(eadElements.get(i), repeatablePath);
+                        log.debug("feature entry found: " + eadFeatureEntries.size() + " for query repeatable path " + repeatablePath);
+                        for (int j = 0; j < eadFeatureEntries.size(); j++) {
+                            Map<String, String> featureData = parser.getFieldsMap(eadFeatureEntries.get(j), featuresCfg, repeatablePath);
+                            List<String> featureRecord = toList(mapping.get("odd-record-data"));
+                            featureRecords.add(featureRecord);
+                        }
+                    }
+                    feature.setRecords(featureRecords);
+                }
+            }
+        } catch (IOException e) {
+            log.error("Failed to extract feature " + featureType + " for work " + collectionWork.getObjId() + ".");
+        }
+    }
+    
+    protected static void extractEntities(EADWork collectionWork, JsonNode entitiesCfg, XmlDocumentParser parser) {
+        String basePath = entitiesCfg.get(CFG_BASE).getTextValue();
+        String repeatablePath = entitiesCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
+        Nodes eadEntities = parser.getElementsByXPath(parser.getDocument(), basePath);
+        Map<String, String> mapping = parser.getFieldsMap(parser.doc.getRootElement(), entitiesCfg, basePath);
+        try {
+                if (eadEntities != null && eadEntities.size() > 0) {
+                    for (int i = 0; i < eadEntities.size(); i++) {
+                        Nodes eadEntityEntries = parser.traverse(eadEntities.get(i), repeatablePath);
+                        log.debug("entity found: " + eadEntityEntries.size() + " for query repeatable path " + repeatablePath);
+                        for (int j = 0; j < eadEntityEntries.size(); j++) {
+                            Map<String, String> entityData = parser.getFieldsMap(eadEntityEntries.get(j), entitiesCfg, repeatablePath);
+                            String corpName = entityData.get("corpname");
+                            String famName = entityData.get("famname");
+                            String persName = entityData.get("persName");
+                            String ref = entityData.get("ref");
+                            
+                            if (!isEmpty(corpName) || !isEmpty(famName) || !isEmpty(persName) || !isEmpty(ref)) {
+                                EADEntity entity = collectionWork.addEADEntity();
+                                List<String> entityName = new ArrayList<>();
+                                if (!isEmpty(corpName)) {
+                                    entityName.add(corpName);
+                                }
+                                if (!isEmpty(persName)) {
+                                    entityName.add(persName);
+                                }
+                                if (!isEmpty(famName)) {
+                                    entityName.add(famName);
+                                }
+                                entity.setEntityName(entityName);
+                                if (!isEmpty(ref)) {
+                                    entity.setCorrespondenceRef(ref);
+                                }
+                            }
+                            
+                        }
+                    }
+                }
+        } catch (IOException e) {
+            log.error("Failed to extract entities for work " + collectionWork.getObjId() + ".");
+        }
+    }
+    
+    private static boolean isEmpty(String value) {
+        return (value != null && !value.isEmpty());
     }
     
     protected static void traverseEAD(EADWork collectionWork, EADWork parentWork, Nodes eadElements, JsonNode elementCfg, XmlDocumentParser parser, 
@@ -852,6 +946,43 @@ public class CollectionBuilder {
         } catch (IOException e) {
             log.error("Failed to retrieve background for collection work " + work.getObjId());
         }
+        
+        ArrayNode features = mapEADFeatures(work);
+        if (features != null) {
+            ((ObjectNode) workProperties).put("containerList", features);
+        }
+        
+        ArrayNode entities = mapEADEntities(work);
+        if (entities != null) {
+            ((ObjectNode) workProperties).put("correspondenceIndex", entities);
+        }
         return workProperties;
+    }
+    
+    private static ArrayNode mapEADFeatures(Work work) {
+        List<EADFeature> list = work.asEADWork().getEADFeatures();
+        if (list == null) return null;
+        ArrayNode features = mapper.createArrayNode();
+        for (EADFeature e : list) {
+            ObjectNode feature = mapper.createObjectNode();
+            feature.put("featureType", e.getFeatureType());
+            feature.put("fields", e.getJSONFields());
+            feature.put("records", e.getJSONRecords());
+            features.add(feature);
+        }
+        return features;
+    }
+    
+    private static ArrayNode mapEADEntities(Work work) {
+        List<EADEntity> list = work.asEADWork().getEADEntities();
+        if (list == null) return null;
+        ArrayNode entities = mapper.createArrayNode();
+        for (EADEntity e : list) {
+            ObjectNode entity = mapper.createObjectNode();
+            entity.put("entityName", e.getJSONEntityName());
+            entity.put("correspondenceRef", e.getCorrespondencRef());
+            entities.add(entity);
+        }
+        return entities;
     }
 }
