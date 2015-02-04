@@ -424,11 +424,15 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "WHERE s_id = @txn "
             + "AND state = 'MOD';\n"
 
-            // properties            
+            // properties
             + "INSERT INTO property (id, txn_start, txn_end, name, type, value) "
-            + "SELECT id, s_id, 0, name, type, value "
-            + "FROM sess_property "
-            + "WHERE s_id = @txn") 
+            + "SELECT p.id, p.s_id, 0, p.name, p.type, p.value "
+            + "FROM sess_property p, "
+            + "  (SELECT id FROM sess_vertex v WHERE v.state NOT IN ('AMB', 'DEL') AND v.s_id = @txn " 
+            + "   UNION " 
+            + "   SELECT id FROM sess_edge e WHERE e.state NOT IN ('AMB', 'DEL') AND e.s_id = @txn) changed "
+            + "WHERE p.s_id = @txn "
+            + "AND p.id = changed.id") 
     void startElements(
             @Bind("txnId") Long txnId);
 
