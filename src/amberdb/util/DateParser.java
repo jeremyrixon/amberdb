@@ -257,6 +257,7 @@ public class DateParser {
             return dateFmt.parse("01/" + fmttedMonth + "/" + year);
         else {
             Calendar cal = Calendar.getInstance();
+            cal.clear();
             cal.set(Calendar.YEAR, Integer.parseInt(year));
             cal.set(Calendar.MONTH, monthLu.get(month.toUpperCase()));
             // Note: not sure sometimes time is over clocked, hence the work around below

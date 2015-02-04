@@ -12,6 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class DateParserTest {
@@ -98,15 +99,7 @@ public class DateParserTest {
         
         List<Date> dateRange = DateParser.parseDateRange(dateRangeExpr);
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
-        if (dateRange != null && dateRange.size() > 0) {
-            System.out.println("Actual from date: " + dateRange.get(0));
-            if (dateRange.size() > 1)
-                System.out.println("Actual to date: " + dateRange.get(1));
-            else 
-                System.out.println("Actual to date is null");
-        } else {
-            System.out.println("Actual from and to dates are null.");
-        }
+
         assertEquals(expectedStartDate, dateFormat.format(dateRange.get(0)));
         assertEquals(expectedEndDate, dateFormat.format(dateRange.get(1)));
     }
@@ -125,28 +118,8 @@ public class DateParserTest {
     public void testDateRangePattern() throws ParseException {
         int i = 0;
         for (String dateRangeExpr : testDateRangeExprs) {
-            System.out.println("testDateRangeExpr: " + dateRangeExpr);
             List<Date> dateRange = DateParser.parseDateRange(dateRangeExpr);
             
-            if (expectedFromDate.get(i) != null)
-                System.out.println("Expected from date " + dateFmt.format(expectedFromDate.get(i)));
-            else 
-                System.out.println("Expected from date is null");
-            
-            if (expectedToDate.get(i) != null)
-                System.out.println("Expected to date " + dateFmt.format(expectedToDate.get(i)));
-            else
-                System.out.println("Expected to date is null");
-
-            if (dateRange != null && dateRange.size() > 0) {
-                System.out.println("Actual from date: " + dateRange.get(0));
-                if (dateRange.size() > 1)
-                    System.out.println("Actual to date: " + dateRange.get(1));
-                else 
-                    System.out.println("Actual to date is null");
-            } else {
-                System.out.println("Actual from and to dates are null.");
-            }
             if (dateRangeExpr == null || dateRangeExpr.trim().isEmpty())
                 assertNull(dateRange);
             else {
