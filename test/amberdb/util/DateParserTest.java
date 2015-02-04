@@ -22,13 +22,15 @@ public class DateParserTest {
        "1732 - ",
        "1732  ",
        "  1799",
-       "c. 1732 - 1799", // circa date
+       "c.1990s", // circa date
        "1817 - 1916",
        "1817/1916",
        "Mar 1817 - Sep 1916",
        "03.Mar.1817/09.Sep.1916",
        "1732.Mar",
-       "1732.Mar.9"
+       "1732.Mar.9",
+       "12 September 1984",
+       "May 1993"
     };
     
     static final String[] dateRangePattern = { 
@@ -51,25 +53,62 @@ public class DateParserTest {
         expectedFromDate.add(dateFmt.parse("01/01/1732"));
         expectedFromDate.add(dateFmt.parse("01/01/1732"));
         expectedFromDate.add(dateFmt.parse("01/01/1799"));
-        expectedFromDate.add(dateFmt.parse("01/01/1732"));
+        expectedFromDate.add(dateFmt.parse("01/01/1990"));
         expectedFromDate.add(dateFmt.parse("01/01/1817"));
         expectedFromDate.add(dateFmt.parse("01/01/1817"));
         expectedFromDate.add(dateFmt.parse("01/03/1817"));
         expectedFromDate.add(dateFmt.parse("03/03/1817"));
         expectedFromDate.add(dateFmt.parse("01/03/1732"));
         expectedFromDate.add(dateFmt.parse("09/03/1732"));
+        expectedFromDate.add(dateFmt.parse("12/09/1984"));
+        expectedFromDate.add(dateFmt.parse("01/05/1993"));
         expectedToDate.add(null);
         expectedToDate.add(null);
         expectedToDate.add(dateFmt.parse("31/12/1799"));
         expectedToDate.add(null);
-        expectedToDate.add(null);
-        expectedToDate.add(null);
+        expectedToDate.add(dateFmt.parse("31/12/1732"));
         expectedToDate.add(dateFmt.parse("31/12/1799"));
+        expectedToDate.add(dateFmt.parse("31/12/1999"));
         expectedToDate.add(dateFmt.parse("31/12/1916"));
         expectedToDate.add(dateFmt.parse("31/12/1916"));
         expectedToDate.add(dateFmt.parse("30/09/1916"));
         expectedToDate.add(dateFmt.parse("09/09/1916"));
-        expectedToDate.add(null);
+        expectedToDate.add(dateFmt.parse("30/03/1732"));
+        expectedToDate.add(dateFmt.parse("09/03/1732"));
+        expectedToDate.add(dateFmt.parse("12/09/1984"));
+        expectedToDate.add(dateFmt.parse("30/05/1993"));
+    }
+    
+    @Test
+    public void testCircaDateRangePattern() throws ParseException {
+        String dateRange = "c.1990s";
+        String expectedStartDate = "01-01-1990";
+        String expectedEndDate = "31-12-1999";
+        List<Date> dates = DateParser.parseCircaDateRange(dateRange);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+        assertEquals(expectedStartDate, dateFormat.format(dates.get(0)));
+        assertEquals(expectedEndDate, dateFormat.format(dates.get(1)));
+    }
+    
+    @Test
+    public void testIndivDate() throws ParseException {
+        String dateRangeExpr = "1732";
+        String expectedStartDate = "01-01-1732";
+        String expectedEndDate = "31-12-1732";
+        
+        List<Date> dateRange = DateParser.parseDateRange(dateRangeExpr);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+        if (dateRange != null && dateRange.size() > 0) {
+            System.out.println("Actual from date: " + dateRange.get(0));
+            if (dateRange.size() > 1)
+                System.out.println("Actual to date: " + dateRange.get(1));
+            else 
+                System.out.println("Actual to date is null");
+        } else {
+            System.out.println("Actual from and to dates are null.");
+        }
+        assertEquals(expectedStartDate, dateFormat.format(dateRange.get(0)));
+        assertEquals(expectedEndDate, dateFormat.format(dateRange.get(1)));
     }
     
     @Test 
@@ -86,7 +125,28 @@ public class DateParserTest {
     public void testDateRangePattern() throws ParseException {
         int i = 0;
         for (String dateRangeExpr : testDateRangeExprs) {
+            System.out.println("testDateRangeExpr: " + dateRangeExpr);
             List<Date> dateRange = DateParser.parseDateRange(dateRangeExpr);
+            
+            if (expectedFromDate.get(i) != null)
+                System.out.println("Expected from date " + dateFmt.format(expectedFromDate.get(i)));
+            else 
+                System.out.println("Expected from date is null");
+            
+            if (expectedToDate.get(i) != null)
+                System.out.println("Expected to date " + dateFmt.format(expectedToDate.get(i)));
+            else
+                System.out.println("Expected to date is null");
+
+            if (dateRange != null && dateRange.size() > 0) {
+                System.out.println("Actual from date: " + dateRange.get(0));
+                if (dateRange.size() > 1)
+                    System.out.println("Actual to date: " + dateRange.get(1));
+                else 
+                    System.out.println("Actual to date is null");
+            } else {
+                System.out.println("Actual from and to dates are null.");
+            }
             if (dateRangeExpr == null || dateRangeExpr.trim().isEmpty())
                 assertNull(dateRange);
             else {
@@ -95,18 +155,20 @@ public class DateParserTest {
                     Date fromDate = DateParser.parseDate(dateRangeExpr, isFromDate);
                     assertEquals(dateFmt.format(expectedFromDate.get(i)), dateFmt.format(fromDate));
                 } else {
-                    if (expectedFromDate.get(i) == null)
+                    if (expectedFromDate.get(i) == null) {
                         assertNull(dateRange.get(0));
-                    else {
-                        if (dateRange.get(0) == null)
+                    } else {
+                        if (dateRange.get(0) == null) {
                             assertEquals(dateFmt.format(expectedFromDate.get(i)), dateFmt.format(dateRange.get(0)));
+                        }
                     }
 
-                    if (expectedToDate.get(i) == null)
+                    if (expectedToDate.get(i) == null) {
                         assertNull(dateRange.get(1));
-                    else {
-                        if (dateRange.get(1) == null)
+                    } else {
+                        if (dateRange.get(1) != null) {
                             assertEquals(dateFmt.format(expectedToDate.get(i)), dateFmt.format(dateRange.get(1)));
+                        }
                     }
                 }
             }
