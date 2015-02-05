@@ -462,10 +462,10 @@ public class AmberGraph extends BaseGraph
 
         // End current elements where this transaction modifies or deletes them.
         // Additionally, end edges orphaned by this procedure.
-        endElementsWithRetry(txnId, 5, 400);
+        endElementsWithRetry(txnId, 3, 300);
         
         // start new elements for new and modified transaction elements
-        startElementsWithRetry(txnId, 5, 400);
+        startElementsWithRetry(txnId, 3, 300);
         
         // Refactor note: need to check when adding (modding?) edges that both ends exist
         dao.insertTransaction(txnId, new Date().getTime(), user, operation);
