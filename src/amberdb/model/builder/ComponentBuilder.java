@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import amberdb.PIUtil;
 import amberdb.enums.AccessCondition;
 import amberdb.enums.BibLevel;
+import amberdb.enums.CopyrightPolicy;
 import amberdb.enums.DigitalStatus;
 import amberdb.enums.SubUnitType;
 import amberdb.model.EADWork;
@@ -137,9 +138,13 @@ public class ComponentBuilder {
         componentWork.setExpiryDate(expiryDate);
         
         String internalAccessConditions = AccessCondition.OPEN.code();
-        if (componentWork.getCollection() != null && componentWork.getCollection().equalsIgnoreCase("nla.ms"))
+        String copyrightPolicy = CopyrightPolicy.PERPETUAL.code();
+        if (componentWork.getCollection() != null && componentWork.getCollection().equalsIgnoreCase("nla.ms")) {
             internalAccessConditions = AccessCondition.RESTRICTED.code();
+            copyrightPolicy = CopyrightPolicy.OUTOFCOPYRIGHT.code();
+        }
         componentWork.setInternalAccessConditions(internalAccessConditions);
+        componentWork.setCopyrightPolicy(copyrightPolicy);
         
         componentWork.setCopyrightPolicy("Perpetual");
         componentWork.setSensitiveMaterial("No");
