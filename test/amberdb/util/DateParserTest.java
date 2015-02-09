@@ -74,10 +74,10 @@ public class DateParserTest {
         expectedToDate.add(dateFmt.parse("31/12/1916"));
         expectedToDate.add(dateFmt.parse("30/09/1916"));
         expectedToDate.add(dateFmt.parse("09/09/1916"));
-        expectedToDate.add(dateFmt.parse("30/03/1732"));
+        expectedToDate.add(dateFmt.parse("31/03/1732"));
         expectedToDate.add(dateFmt.parse("09/03/1732"));
         expectedToDate.add(dateFmt.parse("12/09/1984"));
-        expectedToDate.add(dateFmt.parse("30/05/1993"));
+        expectedToDate.add(dateFmt.parse("31/05/1993"));
     }
     
     @Test

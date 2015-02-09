@@ -365,6 +365,7 @@ public class CollectionBuilder {
         }
         
         String collectionName = collectionWork.getCollection();
+        String collectionLevel = collectionWork.getBibLevel();
         // precheck
         List<String> list = CollectionBuilder.reloadEADPreChecks(collectionWork);
         List<String> currentDOs = digitisedItemList(collectionWork);
@@ -392,6 +393,8 @@ public class CollectionBuilder {
             EADWork eadWork = collectionWork.asEADWork().getEADWork(PIUtil.parse(objId));
             eadWork.setDigitalStatus(DigitalStatus.DIGITISED.code());
         }
+        // retain the original bib level for top level work
+        collectionWork.setBibLevel(collectionLevel);
     }
     
     private static File getFindingAIDFile(Work collectionWork) {
@@ -739,7 +742,10 @@ public class CollectionBuilder {
         collectionWork.setCreator(fieldsMap.get("creator"));
         collectionWork.setSubType("Work");
         collectionWork.setForm("Manuscript");
-        collectionWork.setBibLevel("Set");
+        
+        // retain the original biblevel for the top level work
+        if (collectionWork.getBibLevel() == null)
+            collectionWork.setBibLevel("Set");
 
         collectionWork.asEADWork().setRdsAcknowledgementType("Sponsor");
         
@@ -749,7 +755,7 @@ public class CollectionBuilder {
             collectionWork.asEADWork().setRdsAcknowledgementReceiver("NLA"); 
         
         // default access conditions to Restricted if not set 
-        if (collectionWork.getAccessConditions() == null || collectionWork.getAccessConditions().isEmpty())
+        if (collectionWork.getAccessConditions() == null || collectionWork.getAccessConditions().isEmpty()) 
             collectionWork.setAccessConditions(AccessCondition.RESTRICTED.code());
         
         // setting the dcm work pid
