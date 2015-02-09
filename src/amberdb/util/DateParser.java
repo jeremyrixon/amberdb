@@ -259,7 +259,7 @@ public class DateParser {
             Calendar cal = Calendar.getInstance();
             cal.clear();
             cal.set(Calendar.YEAR, Integer.parseInt(year));
-            cal.set(Calendar.MONTH, monthLu.get(month.toUpperCase()));
+            cal.set(Calendar.MONTH, monthLu.get(month.toUpperCase()) - 1);
             // Note: not sure sometimes time is over clocked, hence the work around below
             Date newTime = dateFmt.parse("" + cal.getActualMaximum(Calendar.DAY_OF_MONTH) + "/" + fmttedMonth + "/" + year);
             SimpleDateFormat fmt = new SimpleDateFormat("MMM");
