@@ -26,6 +26,8 @@ import org.slf4j.LoggerFactory;
 public abstract class XmlDocumentParser {
     public static final String CFG_COLLECTION_ELEMENT = "collection";  // collection cfg tag
     public static final String CFG_SUB_ELEMENTS = "sub-elements";      // sub-elements cfg tag
+    public static final String CFG_FEATURE_ELEMENTS = "odd";           // tag for e.g. container list
+    public static final String CFG_ENTITY_ELEMENTS = "index";          // tag for e.g. correspondence index
     public static final String CFG_BASE = "base";                      // base cfg tag, use for base path of an repeatable element type
     public static final String CFG_REPEATABLE_ELEMENTS = "repeatable-element"; // cfg tag to specify how to identify repeatable elements.
     public static final String CFG_ATTRIBUTE_PREFIX = "@";

@@ -1060,6 +1060,10 @@ public interface Work extends Node {
     @JavaHandler
     public Work getRepresentativeImageWork();
 
+    
+    @JavaHandler
+    public List<String> getJsonList(String propertyName) throws JsonParseException, JsonMappingException, IOException;
+    
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {
         static ObjectMapper mapper = new ObjectMapper();
 
@@ -1370,6 +1374,11 @@ public interface Work extends Node {
         }
 
         @Override
+        public List<String> getJsonList(String propertyName) throws JsonParseException, JsonMappingException, IOException {
+            return deserialiseJSONString((String) this.asVertex().getProperty(propertyName));
+        }
+        
+        @Override
         public void orderRelated(List<Work> relatedNodes, String label, Direction direction) {
             for (int i = 0; i < relatedNodes.size(); i++) {
                 Work node = relatedNodes.get(i);
@@ -1420,7 +1429,25 @@ public interface Work extends Node {
 
         @Override
         public Work getRepresentativeImageWork() {
-            Iterator<Copy> representations = getRepresentations().iterator();
+
+            Work repImageOrAccessCopy = getRepImageOrAccessCopy(this);
+            if (repImageOrAccessCopy != null) {
+                return repImageOrAccessCopy;
+            }
+
+            Iterable<Work> children = getChildren();
+            if (Iterables.size(children) == 0) {
+                return null;
+            }
+            Work child = Iterables.get(children, 0);
+            if (WorkUtils.checkCanReturnRepImage(child)) {
+                return getRepImageOrAccessCopy(child);
+            }
+            return null;
+        }
+
+        private static Work getRepImageOrAccessCopy(Work work) {
+            Iterator<Copy> representations = work.getRepresentations().iterator();
             if (representations.hasNext()) {
                 Work repWork = representations.next().getWork();
                 if (!WorkUtils.checkCanReturnRepImage(repWork)) {
@@ -1428,20 +1455,9 @@ public interface Work extends Node {
                 }
                 return repWork;
             }
-            Copy accessCopy = getCopy(CopyRole.ACCESS_COPY);
+            Copy accessCopy = work.getCopy(CopyRole.ACCESS_COPY);
             if (accessCopy != null && accessCopy.getImageFile() != null) {
-                return this;
-            }
-
-            Iterable<Work> children = getChildren();
-            for (Work child : children) {
-                if (!WorkUtils.checkCanReturnRepImage(child)) {
-                    return null;
-                }
-                else {
-                    Work thumbnailWork = child.getRepresentativeImageWork();
-                    if (thumbnailWork != null) return thumbnailWork;
-                }
+                return work;
             }
             return null;
         }

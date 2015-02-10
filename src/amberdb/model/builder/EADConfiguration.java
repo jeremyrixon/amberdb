@@ -23,6 +23,8 @@ public class EADConfiguration {
         ((ObjectNode) collectionNode).put("storeCopy", "yes");
         ((ObjectNode) collectionNode).put("applicable-attributes-to-all-fields", getApplicableAttrsToAllFldsCfg());
         ((ObjectNode) collectionNode).put("fields", getMappedCollectionFieldsCfg());
+        ((ObjectNode) collectionNode).put("odd", getMappedOddElementCfg());
+        ((ObjectNode) collectionNode).put("index", getMappedIndexElementCfg());
         ((ObjectNode) collectionNode).put("excludes", getExcludedElementsCfg());
         ((ObjectNode) collectionNode).put("sub-elements", getSubElementsCfg());
         return collectionNode;
@@ -82,8 +84,10 @@ public class EADConfiguration {
     
     protected JsonNode getMappedBioghistoryFieldsCfg() {
         JsonNode biogHistoryFields = mapper.createObjectNode();
-        ((ObjectNode) biogHistoryFields).put("biographical-note", "//ead:ead/ead:archdesc/ead:bioghist");
+        ((ObjectNode) biogHistoryFields).put("biographical-note", "//ead:ead/ead:archdesc/ead:bioghist/ead:p");
         ((ObjectNode) biogHistoryFields).put("bibliography", "//ead:ead/ead:archdesc/ead:bibliography");
+        ((ObjectNode) biogHistoryFields).put("bibref-title", "//ead:ead/ead:archdesc/ead:bioghist/ead:p/ead:bibref/ead:title");
+        ((ObjectNode) biogHistoryFields).put("bibref-extref", "//ead:ead/ead:archdesc/ead:bioghist/ead:p/ead:bibref/ead:extref");
         return biogHistoryFields;
     }
     
@@ -101,6 +105,38 @@ public class EADConfiguration {
         ((ObjectNode) adminInfoFields).put("altformavail", "//ead:ead/ead:archdesc/ead:altformavail");
         ((ObjectNode) adminInfoFields).put("originalsloc", "//ead:ead/ead:archdesc/ead:originalsloc");
         return adminInfoFields;
+    }
+    
+    protected JsonNode getMappedOddElementCfg() {
+        JsonNode oddElement = mapper.createObjectNode();
+        ((ObjectNode) oddElement).put("base", "//ead:ead/ead:archdesc/ead:odd");
+        ((ObjectNode) oddElement).put("fields", getMappedOddFieldsCfg());
+        ((ObjectNode) oddElement).put("repeatable-element", "ead:table/ead:tgroup/ead:tbody/ead:row");
+        return oddElement;
+    }
+    
+    protected JsonNode getMappedOddFieldsCfg() {
+        JsonNode oddFields = mapper.createObjectNode();
+        ((ObjectNode) oddFields).put("odd-type", "ead:head");
+        ((ObjectNode) oddFields).put("odd-fields", "ead:table/ead:tgroup/ead:thead/ead:row/ead:entry");
+        ((ObjectNode) oddFields).put("odd-record-data", "ead:table/ead:tgroup/ead:tbody/ead:row/ead:entry");
+        return oddFields;
+    }
+    
+    protected JsonNode getMappedIndexElementCfg() {
+        JsonNode indexElement = mapper.createObjectNode();
+        ((ObjectNode) indexElement).put("base", "//ead:ead/ead:archdesc/ead:index");
+        ((ObjectNode) indexElement).put("repeatable-element", "ead:indexentry");
+        ((ObjectNode) indexElement).put("fields", getMappedIndexFieldsCfg());
+        return indexElement;       
+    }
+    
+    protected JsonNode getMappedIndexFieldsCfg() {
+        JsonNode indexFields = mapper.createObjectNode();
+        ((ObjectNode) indexFields).put("corpname", "ead:corpname");
+        ((ObjectNode) indexFields).put("persname", "ead:persname");
+        ((ObjectNode) indexFields).put("ref", "ead:ref");
+        return indexFields;
     }
     
     protected ArrayNode getExcludedElementsCfg() {
@@ -142,6 +178,7 @@ public class EADConfiguration {
         JsonNode mappedFields = mapper.createObjectNode();
         ((ObjectNode) mappedFields).put("dcmpi", "ead:did/ead:materialspec");
         ((ObjectNode) mappedFields).put("title", "ead:did/ead:unittitle");
+        ((ObjectNode) mappedFields).put("creator", "ead:did/ead:origination/ead:persname");
         ((ObjectNode) mappedFields).put("extent", "ead:did/ead:physdesc/ead:extent");
         ((ObjectNode) mappedFields).put("date-range", "ead:did/ead:unitdate");
         ((ObjectNode) mappedFields).put("scope-n-content", "ead:scopecontent/ead:p");

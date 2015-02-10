@@ -48,6 +48,7 @@ public class AmberGraph extends BaseGraph
 
     String dbProduct;
     protected String tempTableEngine = "";
+    protected String tempTableDrop = "";
     
     protected Map<Object, Edge> removedEdges = new HashMap<>();
     protected Map<Object, Vertex> removedVertices = new HashMap<>();
@@ -120,6 +121,7 @@ public class AmberGraph extends BaseGraph
 
         if (dbProduct.equals("MySQL")) {
             tempTableEngine = "ENGINE=memory";
+            tempTableDrop = "TEMPORARY";
             return dbi.onDemand(AmberDaoMySql.class);
         } else if (dbProduct.equals("H2")) {
             return dbi.onDemand(AmberDaoH2.class);
@@ -460,10 +462,10 @@ public class AmberGraph extends BaseGraph
 
         // End current elements where this transaction modifies or deletes them.
         // Additionally, end edges orphaned by this procedure.
-        dao.endElements(txnId);
+        endElementsWithRetry(txnId, 3, 300);
         
         // start new elements for new and modified transaction elements
-        dao.startElements(txnId);
+        startElementsWithRetry(txnId, 3, 300);
         
         // Refactor note: need to check when adding (modding?) edges that both ends exist
         dao.insertTransaction(txnId, new Date().getTime(), user, operation);
@@ -728,6 +730,60 @@ public class AmberGraph extends BaseGraph
 
     public AmberTransaction getFirstTransactionForEdgeId(Long id) {
         return dao.getFirstTransactionForEdgeId(id);
+    }
+
+
+    private void endElementsWithRetry(Long txnId, int retries, int backoffDelay) {
+        int tryCount = 0;
+        int backoff = backoffDelay;
+        retryLoop: while (true) {
+            try {
+                dao.endElements(txnId);
+                break retryLoop;
+            } catch (RuntimeException e) {
+                if (tryCount < retries) {
+                    log.warn("AmberDb dao.endElements failed: Reason: {}\n" +
+                            "Retry after {} milliseconds", e.getMessage(), backoff);
+                    tryCount++;
+                    try {
+                        Thread.sleep(backoff);
+                    } catch (InterruptedException ie) {
+                        log.error("Backoff delay failed :", ie); // noted
+                    }
+                    backoff = backoff *2;
+                } else {
+                    log.error("AmberDb dao.endElements failed after {} retries: Reason:", retries, e);
+                    throw e;
+                }
+            }
+        }
+    }
+
+
+    private void startElementsWithRetry(Long txnId, int retries, int backoffDelay) {
+        int tryCount = 0;
+        int backoff = backoffDelay;
+        retryLoop: while (true) {
+            try {
+                dao.startElements(txnId);
+                break retryLoop;
+            } catch (RuntimeException e) {
+                if (tryCount < retries) {
+                    log.warn("AmberDb dao.startElements failed: Reason: {}\n" +
+                            "Retry after {} milliseconds", e.getMessage(), backoff);
+                    tryCount++;
+                    try {
+                        Thread.sleep(backoff);
+                    } catch (InterruptedException ie) {
+                        log.error("Backoff delay failed :", ie); // noted
+                    }
+                    backoff = backoff *2;
+                } else {
+                    log.error("AmberDb dao.startElements failed after {} retries: Reason:", retries, e);
+                    throw e;
+                }
+            }
+        }
     }
 }
 
