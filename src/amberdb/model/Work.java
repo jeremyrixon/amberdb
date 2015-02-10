@@ -243,15 +243,19 @@ public interface Work extends Node {
     public void setCopyrightPolicy(String copyrightPolicy);
 
     @Property("firstPart")
+    @Deprecated
     public String getFirstPart();
 
     @Property("firstPart")
+    @Deprecated
     public void setFirstPart(String firstPart);
 
     @Property("sortIndex")
+    @Deprecated
     public String getSortIndex();
 
     @Property("sortIndex")
+    @Deprecated
     public void setSortIndex(String sortIndex);
 
     @Property("edition")
