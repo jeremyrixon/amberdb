@@ -70,7 +70,7 @@ public class CollectionBuilderTest {
             collectionWork.setSubUnitType("Collection");
             collectionWork.setForm("Manuscript");
             collectionWork.setBibLevel("Set");
-            collectionWork.setCollection("nla.ms-ms6442");
+            collectionWork.setCollection("nla.ms");
             collectionWork.setRecordSource("FA");
             collectionWork.asEADWork().setRdsAcknowledgementType("Sponsor");
             collectionWork.asEADWork().setRdsAcknowledgementReceiver("NLA"); 
@@ -331,10 +331,9 @@ public class CollectionBuilderTest {
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
             InputStream in = new FileInputStream(testEADPath.toFile());
-            String collectionName = testEADPath.getFileName().toString();
             EADParser parser = new EADParser();
             parser.init(collectionWorkId, in, collectCfg);
-            CollectionBuilder.processCollection(collectionWork, collectionName, in, collectCfg, parser);
+            CollectionBuilder.processCollection(collectionWork, in, collectCfg, parser);
             as.commit();
         }
     }
