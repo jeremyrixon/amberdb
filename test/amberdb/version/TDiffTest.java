@@ -207,11 +207,11 @@ public class TDiffTest {
 
         VersionedVertex vv = vGraph.getVertex(id);
         
-        assertEquals(vv.getDiff(txn0, txn4), TTransition.UNCHANGED); // before creation after deletion
-        assertEquals(vv.getDiff(txn2, txn4), TTransition.DELETED); // after creation after deletion
-        assertEquals(vv.getDiff(txn1, txn4), TTransition.DELETED); // on creation after deletion
-        assertEquals(vv.getDiff(txn1, txn3), TTransition.DELETED); // on creation on deletion
-        assertEquals(vv.getDiff(txn2, txn3), TTransition.DELETED); // after creation on deletion
+        assertEquals(vv.getDiff(txn0, txn4).getTransition(), TTransition.UNCHANGED); // before creation after deletion
+        assertEquals(vv.getDiff(txn2, txn4).getTransition(), TTransition.DELETED); // after creation after deletion
+        assertEquals(vv.getDiff(txn1, txn4).getTransition(), TTransition.DELETED); // on creation after deletion
+        assertEquals(vv.getDiff(txn1, txn3).getTransition(), TTransition.DELETED); // on creation on deletion
+        assertEquals(vv.getDiff(txn2, txn3).getTransition(), TTransition.DELETED); // after creation on deletion
 
     }        
     
