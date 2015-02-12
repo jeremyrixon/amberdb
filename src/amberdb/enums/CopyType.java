@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public enum CopyType {
-    DIGITAL_COPY("d", "digitised");
+    DIGITAL_COPY("d", "Digitised"),
+    PHYSICAL_COPY("p", "Physical"),
+    BORN_DIGITAL("b", "Born Digital");
     
     private String code;
     private String name;
