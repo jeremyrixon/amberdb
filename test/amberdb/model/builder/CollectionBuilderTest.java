@@ -49,7 +49,17 @@ public class CollectionBuilderTest {
     Path testEADPath;
     Path testUpdedEADPath;
     String[] testEADFiles = { "test/resources/6442.xml" };
-
+    String[] expectedUuids = {
+            "aspace_d1ac0117fdba1b9dc09b68e8bb125948",
+            "aspace_7275d12ba178fcbb7cf926d0b7bf68cc",
+            "aspace_5c65cd1a0dd35517ba04da03d95ffac2",
+            "aspace_ff977d51fa95c2d3a318fc7d6fb14451",
+            "aspace_563116915a27063fb67dc5de82e2f848",
+            "aspace_140a75e0f3a47eb5fbb735c7fba957ae", 
+            "aspace_1012d592eedcfdbdc6175b91db070e2d",
+            "aspace_3c0c615f787a41d4dc4c4104505e55a7"
+    };
+    
     @Before
     public void setUp() throws JsonProcessingException, IOException {
         testEADPath = Paths.get("test/resources/6442.xml");
@@ -115,11 +125,15 @@ public class CollectionBuilderTest {
             for (String expectedItem : expectedBibliography) {
                 bibliography.contains(expectedItem);
             }
+            
+            int i = 0;
             for (Work subWork : subWorks) {
                 String asId = subWork.getLocalSystemNumber();
                 String creator = subWork.getCreator();
                 String expectedCreator = expectedCreatorMap.get(asId);
                 assertEquals(expectedCreator, creator);
+                assertEquals(expectedUuids[i], asId);
+                i++;
             }
         }
     }
