@@ -7,8 +7,8 @@ public enum AccessCondition {
     RESTRICTED("Restricted", true, true),
     UNRESTRICTED("Unrestricted", true, false),
     INTERNAL_ACCESS_ONLY("Internal access only", true, false),
-    OPEN("open", false, true),
-    CLOSED("closed", false, true);
+    OPEN("Open", false, true),
+    CLOSED("Closed", false, true);
     
     private String code;
     private boolean publicAvailability;
