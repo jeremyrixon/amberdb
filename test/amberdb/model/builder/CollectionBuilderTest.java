@@ -143,7 +143,7 @@ public class CollectionBuilderTest {
         createCollection();
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
-            boolean storeCopy = false;
+            boolean storeCopy = true;
             Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
             log("doc: " + doc.toJson());
             JsonNode content = doc.getContent();
@@ -155,6 +155,7 @@ public class CollectionBuilderTest {
                 i++;
             }
             assertEquals(9, i);
+            assertEquals(collectionWork.getCopy(CopyRole.FINDING_AID_COPY), collectionWork.getCopy(CopyRole.FINDING_AID_VIEW_COPY).getSourceCopy());
         }
     }
         
@@ -163,14 +164,16 @@ public class CollectionBuilderTest {
         try (AmberSession as = db.begin()) {
            Work collectionWork = as.findWork(collectionWorkId);
            XmlDocumentParser parser = CollectionBuilder.getDefaultXmlDocumentParser();
+           parser.storeCopy = true;
            String filteredEAD = filterSampleEAD(collectionWork, parser);
            InputStream eadIn = new ByteArrayInputStream(filteredEAD.getBytes());
            JsonNode parserCfg = CollectionBuilder.getDefaultCollectionCfg();
            ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
-           ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "no");
+           ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "yes");
            parser.init(collectionWorkId, eadIn, parserCfg);
            List<String> filteredElementCfg = parser.parseFiltersCfg();
            assertFalse(hasFilteredEADElement(parser.doc.getRootElement(), filteredElementCfg));
+           assertEquals(collectionWork.getCopy(CopyRole.FINDING_AID_COPY), collectionWork.getCopy(CopyRole.FINDING_AID_FILTERED_COPY).getSourceCopy());
         }
     }
     
@@ -195,7 +198,7 @@ public class CollectionBuilderTest {
         InputStream eadData = new FileInputStream(testEADPath.toFile());
         JsonNode parserCfg = CollectionBuilder.getDefaultCollectionCfg();
         ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
-        ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "no");
+        ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "yes");
         parser.init(collectionWorkId, eadData, parserCfg);
         String filteredEAD = CollectionBuilder.filterEAD(collectionWork, parser);
         return filteredEAD;

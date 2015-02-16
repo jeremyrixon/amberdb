@@ -553,6 +553,7 @@ public class CollectionBuilder {
         eadCopy.setMaterialType("Text");
         eadCopy.setCopyType("b");
         eadCopy.setCarrier("Online");
+        eadCopy.setSourceCopy(work.getCopy(CopyRole.FINDING_AID_COPY));
     }
     
     protected static void processCollection(Work collectionWork, InputStream in, JsonNode collectionCfg, XmlDocumentParser parser) throws EADValidationException, ValidityException, ParsingException, IOException {
