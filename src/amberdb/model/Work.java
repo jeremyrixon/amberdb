@@ -919,6 +919,9 @@ public interface Work extends Node {
     public Iterable<Copy> getCopies();
 
     @GremlinGroovy("it.in('isCopyOf').has('copyRole',role.code)")
+    public Iterable<Copy> getCopies(@GremlinParam("role") CopyRole role);
+
+    @GremlinGroovy("it.in('isCopyOf').has('copyRole',role.code)")
     public Copy getCopy(@GremlinParam("role") CopyRole role);
 
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
@@ -995,7 +998,7 @@ public interface Work extends Node {
      * exist as an orphan. Use the deletePart method to actually delete the part
      * and its children from the graph.
      * 
-     * @param work
+     * @param part
      */
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public void removePart(final Work part);
