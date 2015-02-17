@@ -412,7 +412,7 @@ public class AmberSession implements AutoCloseable {
     
 
     /**
-     * Delete the vertices representing a file including and its descriptions.
+     * Delete the vertices representing a file including its descriptions.
      * @param file
      */
     public void deleteFile(final File file) {
