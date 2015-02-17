@@ -219,10 +219,9 @@ public class ComponentBuilderTest {
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
             InputStream in = new FileInputStream(testEADPath.toFile());
-            String collectionName = testEADPath.getFileName().toString();
             parser = new EADParser();
             parser.init(collectionWorkId, in, collectCfg);
-            CollectionBuilder.processCollection(collectionWork, collectionName, in, collectCfg, parser);
+            CollectionBuilder.processCollection(collectionWork, in, collectCfg, parser);
             as.commit();
         }
     }

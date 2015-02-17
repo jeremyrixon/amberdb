@@ -49,7 +49,17 @@ public class CollectionBuilderTest {
     Path testEADPath;
     Path testUpdedEADPath;
     String[] testEADFiles = { "test/resources/6442.xml" };
-
+    String[] expectedUuids = {
+            "aspace_d1ac0117fdba1b9dc09b68e8bb125948",
+            "aspace_7275d12ba178fcbb7cf926d0b7bf68cc",
+            "aspace_5c65cd1a0dd35517ba04da03d95ffac2",
+            "aspace_ff977d51fa95c2d3a318fc7d6fb14451",
+            "aspace_563116915a27063fb67dc5de82e2f848",
+            "aspace_140a75e0f3a47eb5fbb735c7fba957ae", 
+            "aspace_1012d592eedcfdbdc6175b91db070e2d",
+            "aspace_3c0c615f787a41d4dc4c4104505e55a7"
+    };
+    
     @Before
     public void setUp() throws JsonProcessingException, IOException {
         testEADPath = Paths.get("test/resources/6442.xml");
@@ -70,7 +80,7 @@ public class CollectionBuilderTest {
             collectionWork.setSubUnitType("Collection");
             collectionWork.setForm("Manuscript");
             collectionWork.setBibLevel("Set");
-            collectionWork.setCollection("nla.ms-ms6442");
+            collectionWork.setCollection("nla.ms");
             collectionWork.setRecordSource("FA");
             collectionWork.asEADWork().setRdsAcknowledgementType("Sponsor");
             collectionWork.asEADWork().setRdsAcknowledgementReceiver("NLA"); 
@@ -115,11 +125,15 @@ public class CollectionBuilderTest {
             for (String expectedItem : expectedBibliography) {
                 bibliography.contains(expectedItem);
             }
+            
+            int i = 0;
             for (Work subWork : subWorks) {
                 String asId = subWork.getLocalSystemNumber();
                 String creator = subWork.getCreator();
                 String expectedCreator = expectedCreatorMap.get(asId);
                 assertEquals(expectedCreator, creator);
+                assertEquals(expectedUuids[i], asId);
+                i++;
             }
         }
     }
@@ -129,7 +143,7 @@ public class CollectionBuilderTest {
         createCollection();
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
-            boolean storeCopy = false;
+            boolean storeCopy = true;
             Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
             log("doc: " + doc.toJson());
             JsonNode content = doc.getContent();
@@ -141,6 +155,7 @@ public class CollectionBuilderTest {
                 i++;
             }
             assertEquals(9, i);
+            assertEquals(collectionWork.getCopy(CopyRole.FINDING_AID_COPY), collectionWork.getCopy(CopyRole.FINDING_AID_VIEW_COPY).getSourceCopy());
         }
     }
         
@@ -149,14 +164,16 @@ public class CollectionBuilderTest {
         try (AmberSession as = db.begin()) {
            Work collectionWork = as.findWork(collectionWorkId);
            XmlDocumentParser parser = CollectionBuilder.getDefaultXmlDocumentParser();
+           parser.storeCopy = true;
            String filteredEAD = filterSampleEAD(collectionWork, parser);
            InputStream eadIn = new ByteArrayInputStream(filteredEAD.getBytes());
            JsonNode parserCfg = CollectionBuilder.getDefaultCollectionCfg();
            ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
-           ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "no");
+           ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "yes");
            parser.init(collectionWorkId, eadIn, parserCfg);
            List<String> filteredElementCfg = parser.parseFiltersCfg();
            assertFalse(hasFilteredEADElement(parser.doc.getRootElement(), filteredElementCfg));
+           assertEquals(collectionWork.getCopy(CopyRole.FINDING_AID_COPY), collectionWork.getCopy(CopyRole.FINDING_AID_FILTERED_COPY).getSourceCopy());
         }
     }
     
@@ -181,7 +198,7 @@ public class CollectionBuilderTest {
         InputStream eadData = new FileInputStream(testEADPath.toFile());
         JsonNode parserCfg = CollectionBuilder.getDefaultCollectionCfg();
         ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
-        ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "no");
+        ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "yes");
         parser.init(collectionWorkId, eadData, parserCfg);
         String filteredEAD = CollectionBuilder.filterEAD(collectionWork, parser);
         return filteredEAD;
@@ -331,10 +348,9 @@ public class CollectionBuilderTest {
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
             InputStream in = new FileInputStream(testEADPath.toFile());
-            String collectionName = testEADPath.getFileName().toString();
             EADParser parser = new EADParser();
             parser.init(collectionWorkId, in, collectCfg);
-            CollectionBuilder.processCollection(collectionWork, collectionName, in, collectCfg, parser);
+            CollectionBuilder.processCollection(collectionWork, in, collectCfg, parser);
             as.commit();
         }
     }

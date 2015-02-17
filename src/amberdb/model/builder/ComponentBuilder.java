@@ -166,6 +166,7 @@ public class ComponentBuilder {
         if (componentNumber != null && !componentNumber.isEmpty()) {
             log.debug("component work " + componentWork.getObjId() + ": componentNumber: " + componentNumber.toString());
             componentWork.setSubUnitNo(componentNumber.toString());
+            componentWork.setOrder(Integer.parseInt(componentNumber.toString()));
         }
         
         Object unitTitle = fieldsMap.get("title");

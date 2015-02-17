@@ -131,10 +131,9 @@ public class CollectionBuilder {
             parser = getDefaultXmlDocumentParser();
         }
         
-        String collectionName = eadFile.getFileName();
         // initializing the parser
         parser.init(collectionWork.getObjId(), eadFile.openStream(), collectionCfg);
-        processCollection(collectionWork, collectionName, eadFile.openStream(), collectionCfg, parser);
+        processCollection(collectionWork, eadFile.openStream(), collectionCfg, parser);
         generateJson(collectionWork, parser.storeCopy());
     }
     
@@ -364,7 +363,6 @@ public class CollectionBuilder {
             parser = getDefaultXmlDocumentParser();
         }
         
-        String collectionName = collectionWork.getCollection();
         String collectionLevel = collectionWork.getBibLevel();
         // precheck
         List<String> list = CollectionBuilder.reloadEADPreChecks(collectionWork);
@@ -377,7 +375,7 @@ public class CollectionBuilder {
         //          - compare and update the metadata in collectionWork from the updated EAD finding aid header.
         //          - iterate through each component in the updated EAD, and merge the component into the collection of works
         //            under the collectionWork.
-        processCollection(collectionWork, collectionName, eadFile.openStream(), collectionCfg, parser);
+        processCollection(collectionWork, eadFile.openStream(), collectionCfg, parser);
         
         // Step 2: generate the FINDING_AID_VIEW_COPY json from the updated FINDING_AID_COPY EAD attached to collectionWork
         generateJson(collectionWork, parser.storeCopy);
@@ -555,9 +553,10 @@ public class CollectionBuilder {
         eadCopy.setMaterialType("Text");
         eadCopy.setCopyType("b");
         eadCopy.setCarrier("Online");
+        eadCopy.setSourceCopy(work.getCopy(CopyRole.FINDING_AID_COPY));
     }
     
-    protected static void processCollection(Work collectionWork, String collectionName, InputStream in, JsonNode collectionCfg, XmlDocumentParser parser) throws EADValidationException, ValidityException, ParsingException, IOException {
+    protected static void processCollection(Work collectionWork, InputStream in, JsonNode collectionCfg, XmlDocumentParser parser) throws EADValidationException, ValidityException, ParsingException, IOException {
         boolean newCollection = true;
         Map<String, String> componentWorks;
         
