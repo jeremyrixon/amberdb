@@ -404,15 +404,23 @@ public class AmberSession implements AutoCloseable {
      * @param copy
      */
     public void deleteCopy(final Copy copy) {
-
         for (File file : copy.getFiles()) {
-            for (Description desc : file.getDescriptions()) {
-                graph.removeVertex(desc.asVertex());
-            }
-            graph.removeVertex(file.asVertex());
+            deleteFile(file);
         }
         graph.removeVertex(copy.asVertex());
     }
+    
+
+    /**
+     * Delete the vertices representing a file including and its descriptions.
+     * @param file
+     */
+    public void deleteFile(final File file) {
+        for (Description desc : file.getDescriptions()) {
+            graph.removeVertex(desc.asVertex());
+        }
+        graph.removeVertex(file.asVertex());
+    }    
     
     
     /**
