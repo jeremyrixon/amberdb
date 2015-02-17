@@ -1,10 +1,5 @@
 package amberdb.model;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -12,6 +7,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Iterables;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -21,6 +17,9 @@ import org.junit.rules.TemporaryFolder;
 import amberdb.AmberSession;
 import amberdb.TestUtils;
 import amberdb.enums.CopyRole;
+
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.*;
 
 public class CopyTest {
     
@@ -250,6 +249,37 @@ public class CopyTest {
         // Check for changes against the updated values
         assertEquals("Expecting the Record Source on Copy to be updated", RECORDSOURCE_UPDATED, copyC.getRecordSource());
         assertEquals("Expecting the Device on ImageFile to be updated", DEVICE_UPDATED, imageFileC.getDevice());
-    }  
+    }
+
+    @Test
+    public void copyHasMultipleAccessCopies() {
+        Work work = amberDb.addWork();
+        Copy mCopy = work.addCopy();
+        mCopy.setCopyRole(CopyRole.MASTER_COPY.code());
+        Copy d1Copy = work.addCopy();
+        Copy d2Copy = work.addCopy();
+
+        d1Copy.setSourceCopy(mCopy);
+        d2Copy.setSourceCopy(mCopy);
+
+        Copy sourceCopy = d1Copy.getSourceCopy();
+        assertThat(d1Copy.getSourceCopy().getCopyRole().equals(mCopy.getCopyRole()), is(true));
+        assertThat(Iterables.size(mCopy.getDerivatives()), is(2));
+    }
+
+    @Test
+    public void copyHasSingleComaster() {
+        Work work = amberDb.addWork();
+        Copy mCopy = work.addCopy();
+        mCopy.setCopyRole(CopyRole.MASTER_COPY.code());
+        Copy d1Copy = work.addCopy();
+        d1Copy.setNotes("d1");
+        Copy d2Copy = work.addCopy();
+        d2Copy.setNotes("d2");
+
+        mCopy.setComasterCopy(d1Copy);
+        mCopy.setComasterCopy(d2Copy);
+        assertThat(mCopy.getComasterCopy().getNotes(), is("d2"));
+    }
 }
 
