@@ -84,14 +84,13 @@ public class AmberSessionTest {
         Work bookAgain = sess.findWork(book.getId());
         assertNotNull(bookAgain);
         
-        Map<String, Integer> counts = sess.deleteWorkWithAudit(new HashMap<String, Integer>(), bookAgain);
+        Map<String, Integer> counts = sess.deleteWorksFast(new HashMap<String, Integer>(), bookAgain);
         assertEquals(numVertices(sess.getAmberGraph()), 0);
         
         assertEquals(new Integer(5), counts.get("File"));
         assertEquals(new Integer(5), counts.get("Copy"));
         assertEquals(new Integer(7), counts.get("Work"));
         
-        // check we don't delete Sets
         Work book3 = makeBook();
         Work book4 = makeBook();
         Work book5 = makeBook();
@@ -104,7 +103,8 @@ public class AmberSessionTest {
         // check we have the 4 books
         assertEquals(numVertices(sess.getAmberGraph()), 68);
         
-        counts =  sess.deleteWorkWithAudit(new HashMap<String, Integer>(), book3);
+        counts = sess.deleteWorksFast(new HashMap<String, Integer>(), book3);
+        
         assertEquals(new Integer(15), counts.get("File"));
         assertEquals(new Integer(15), counts.get("Copy"));
         assertEquals(new Integer(21), counts.get("Work"));
@@ -143,7 +143,7 @@ public class AmberSessionTest {
         Work bookAgain = sess.findWork(book.getId());
         assertNotNull(bookAgain);
         
-        sess.deleteWorkRecursive(bookAgain);
+        sess.deleteWorks(bookAgain);
         assertEquals(numVertices(sess.getAmberGraph()), 0);
         
         // check we don't delete Sets
@@ -159,7 +159,7 @@ public class AmberSessionTest {
         // check we have the 4 books
         assertEquals(numVertices(sess.getAmberGraph()), 68);
         
-        sess.deleteWorkRecursive(book3);
+        sess.deleteWorks(book3);
         
         // we should have retained book6 as it's not in book3 hierarchy
         assertEquals(numVertices(sess.getAmberGraph()), 17);
@@ -176,7 +176,7 @@ public class AmberSessionTest {
         book4.addChild(book5);
         book5.addChild(book3);
 
-        sess.deleteWorkRecursive(book4);
+        sess.deleteWorks(book4);
     }        
     
     private static void s(String s) {
@@ -229,6 +229,38 @@ public class AmberSessionTest {
         AmberGraph g3 = sess.getAmberGraph();
         assertEquals(numEdges(g3), 0);
     }
+
+    @Test
+    public void testDeleteParentWithSuspend() throws IOException {
+
+        // create a test work and delete its parent
+        Work book = makeBook();
+        
+        // check our creation
+        assertEquals(19, numEdges(sess.getAmberGraph()));
+        assertEquals(17, numVertices(sess.getAmberGraph()));
+
+        // now delete the parent and suspend
+        sess.deleteWork(book);
+        long sessId = sess.suspend();
+        sess.close();
+
+        // next recover the session
+        sess = new AmberSession(LocalBlobStore.open(dossLocation));
+        sess.recover(sessId);
+        
+        // check what's in the resumed session - should be 5 pages with 5 copies and 5 files, and 1 Section 
+        assertEquals(13, numEdges(sess.getAmberGraph()));
+        assertEquals(16, numVertices(sess.getAmberGraph()));
+        // now commit it
+        sess.commit();
+        sess.close();
+        
+        // then recover the session
+        sess = new AmberSession(LocalBlobStore.open(dossLocation));
+        assertEquals(13, numEdges(sess.getAmberGraph()));
+        assertEquals(16, numVertices(sess.getAmberGraph()));
+    }        
     
     private int numEdges(Graph g) {
         int i = 0;

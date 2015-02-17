@@ -1,6 +1,9 @@
 package amberdb.model;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
@@ -9,13 +12,15 @@ import java.nio.file.StandardOpenOption;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import amberdb.AmberSession;
 import amberdb.NoSuchCopyException;
@@ -26,6 +31,7 @@ import amberdb.relation.IsFileOf;
 import amberdb.relation.IsSourceCopyOf;
 import amberdb.relation.Represents;
 import amberdb.util.Jp2Converter;
+import amberdb.util.PdfTransformerFop;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
@@ -37,6 +43,7 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
 import doss.Blob;
 import doss.BlobStore;
+import doss.NoSuchBlobException;
 import doss.Writable;
 import doss.core.Writables;
 
@@ -276,8 +283,14 @@ public interface Copy extends Node {
     @JavaHandler
     Copy deriveJp2ImageCopy(Path jp2Converter, Path imgConverter) throws IllegalStateException, IOException, InterruptedException, Exception;
 
-
+    @JavaHandler
+    Copy derivePdfCopy(Path pdfConverter, Path stylesheet, Path altStylesheet) throws IllegalStateException, NoSuchBlobException, IOException, InterruptedException;
+    
+    @JavaHandler
+    Copy derivePdfCopy(CopyRole copyRole, Reader... stylesheets) throws IOException;
+    
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Copy {
+        static final Logger log = LoggerFactory.getLogger(Copy.class);
         static ObjectMapper mapper = new ObjectMapper();
         
         @Override
@@ -379,24 +392,27 @@ public interface Copy extends Node {
 
         @Override
         public Copy deriveJp2ImageCopy(Path jp2Converter, Path imgConverter) throws IllegalStateException, IOException, InterruptedException, Exception {
-            ImageFile tiffImage = this.getImageFile();
-            if (!tiffImage.getMimeType().equals("image/tiff")) {
-                throw new IllegalStateException(this.getWork().getObjId() + " master is not a tiff.  You may not generate a jpeg2000 from anything but a tiff");
+            ImageFile imgFile = this.getImageFile();
+            String mimeType = imgFile.getMimeType();
+                       
+            // Do we need to check?
+            if (!(mimeType.equals("image/tiff") || mimeType.equals("image/jpeg"))) {
+                throw new IllegalStateException(this.getWork().getObjId() + " master is not a tiff or jpeg. You may not generate a jpeg2000 from anything but a tiff or a jpeg");
             }
 
             Path stage = null;
             try {
-                // create a temporary file processing location for deriving the jpeg2000 from the tiff
+                // create a temporary file processing location for deriving the jpeg2000 from the master/comaster
                 stage = Files.createTempDirectory("amberdb-derivative");
 
-                // assume this Copy is a tiff master copy and access the amber file
-                Long tiffBlobId = this.getFile().getBlobId();
+                // assume this Copy is a master copy and access the amber file
+                Long imgBlobId = (this.getFile() == null)? null: this.getFile().getBlobId();
 
                 // get this copy's blob store ...
                 BlobStore doss = AmberSession.ownerOf(g()).getBlobStore();
 
                 // aaaaand generate the derivative ...
-                Path jp2ImgPath = generateJp2Image(doss, jp2Converter, imgConverter, stage, tiffBlobId);
+                Path jp2ImgPath = generateJp2Image(doss, jp2Converter, imgConverter, stage, imgBlobId);
 
                 // add the derived jp2 image to this Copy's work as an access copy
                 Copy ac = null;
@@ -416,10 +432,11 @@ public interface Copy extends Node {
 
                     // add image metadata based on the master image metadata
                     // this is used by some nla delivery systems eg: tarkine
-                    acf.setImageLength(tiffImage.getImageLength());
-                    acf.setImageWidth(tiffImage.getImageWidth());
-                    acf.setResolution(tiffImage.getResolution());
+                    acf.setImageLength(imgFile.getImageLength());
+                    acf.setImageWidth(imgFile.getImageWidth());
+                    acf.setResolution(imgFile.getResolution());
                     acf.setFileFormat("jpeg2000");
+                    acf.setFileSize(Files.size(jp2ImgPath));
                 }
                 return ac;
 
@@ -434,6 +451,141 @@ public interface Copy extends Node {
                     }
                 }
                 stage.toFile().delete();
+            }
+        }
+        
+        @Override
+        public Copy derivePdfCopy(CopyRole copyRole, Reader... stylesheets) throws IOException {
+            File file = this.getFile();
+            if (file == null)
+                throw new RuntimeException("Failed to generate pdf copy for work " + getWork().getObjId() + " as no file can be found for this copy " + getObjId());
+            if (!file.getMimeType().equals("application/xml")) {
+                throw new RuntimeException("Failed to generate pdf copy for work " + getWork().getObjId() + " as this copy " + getObjId() + " is not an xml file.");
+            }
+            
+            Copy pdfCopy = this.getWork().addCopy();
+            pdfCopy.setCopyRole(copyRole.code());
+            pdfCopy.setSourceCopy(this);
+            byte[] pdfContent = PdfTransformerFop.transform(file.openStream(), stylesheets);
+            pdfCopy.addFile(Writables.wrap(pdfContent), "application/pdf");
+            return pdfCopy;
+        }
+        
+        @Override
+        public Copy derivePdfCopy(Path pdfConverter, Path stylesheet, Path altStylesheet) throws IllegalStateException, NoSuchBlobException, IOException, InterruptedException {
+            File eadFile = this.getFile();
+            if (!eadFile.getMimeType().equals("application/xml")) {
+                throw new IllegalStateException("Failed to generate pdf from this copy. " + this.getWork().getObjId() + " " + getCopyRole() + " copy is not a xml file.");
+            }
+            Path stage = null;
+            try {
+                // create a temporary file processing location for generating pdf
+                stage = Files.createTempDirectory("amberdb-derivative");
+                
+                // assume this Copy is a FINDING_AID_COPY
+                Long blobId = this.getFile().getBlobId();
+                
+                // get this copy's blob store...
+                BlobStore doss = AmberSession.ownerOf(g()).getBlobStore();
+                
+                // pdf finally...
+                Path pdfPath = generatePdf(doss, pdfConverter, stylesheet, altStylesheet, stage, blobId);
+                
+                // add the derived pdf copy
+                Copy pc = null;
+                if (pdfPath != null) {
+                    EADWork work = this.getWork().asEADWork();
+                    pc = work.getCopy(CopyRole.FINDING_AID_PRINT_COPY);
+                    if (pc == null) {
+                        pc = work.addCopy(pdfPath, CopyRole.FINDING_AID_PRINT_COPY, "application/pdf");
+                        pc.setSourceCopy(this);
+                    } else {
+                        pc.getFile().put(pdfPath);
+                    }
+                    File pcf = pc.getFile();
+                    pcf.setFileFormat("pdf");
+                }
+                return pc;
+            } finally {
+                // clean up temporary working space
+                java.io.File[] files = stage.toFile().listFiles();
+                if (files != null) {
+                    for (java.io.File f : files)
+                        f.delete();
+                }
+                stage.toFile().delete();
+            }
+        }
+
+        private Path generatePdf(BlobStore doss, Path pdfConverter, Path stylesheet, Path altStylesheet, Path stage,
+                Long blobId) throws NoSuchBlobException, IOException, InterruptedException {
+            if (blobId == null)
+                throw new NoSuchCopyException(this.getWork().getId(), CopyRole.fromString(getCopyRole()));
+            
+            // prepare file for conversion
+            Path eadPath = stage.resolve(blobId + ".xml"); // where to put the ead xml from the amber
+            copyBlobToFile(doss.get(blobId), eadPath);
+            
+            // pdf file
+            Path pdfPath = stage.resolve(blobId + ".pdf"); // name the pdf derivative after the original blob id
+            
+            // Convert to pdf
+            convertToPDF(pdfConverter, stylesheet, altStylesheet, eadPath, pdfPath);
+            return pdfPath;
+        }
+
+        private void convertToPDF(Path pdfConverter, Path stylesheet, Path altStylesheet, Path eadPath, Path pdfPath) throws IOException, InterruptedException {
+            try {
+                executeCmd(new String[] {
+                        pdfConverter.toString(),
+                        "-xml",
+                        eadPath.toString(),
+                        "-xsl",
+                        stylesheet.toString(),
+                        "-pdf",
+                        pdfPath.toString()
+                });
+            } catch (IOException | InterruptedException e) {
+                executeCmd(new String[] {
+                        pdfConverter.toString(),
+                        "-xml",
+                        eadPath.toString(),
+                        "-xsl",
+                        altStylesheet.toString(),
+                        "-pdf",
+                        pdfPath.toString()
+                });
+            }
+            
+        }
+        
+        // Execute a command
+        private void executeCmd(String[] cmd) throws IOException, InterruptedException {
+            // Log command
+            log.debug("Run command: ", StringUtils.join(cmd, ' '));
+
+            // Execute command
+            ProcessBuilder builder = new ProcessBuilder(cmd);
+            Process p = builder.start();
+            p.waitFor();
+            int exitVal = p.exitValue();
+            String msg = "";
+            if (exitVal > 0) {
+                // Error - Read from error stream
+                StringBuffer sb = new StringBuffer();
+                String line;
+
+                BufferedReader br = new BufferedReader(new InputStreamReader(p.getErrorStream(), "UTF-8"));
+                while ((line = br.readLine()) != null) {
+                    if (sb.length() > 0) {
+                        sb.append('\n');
+                    }
+                    sb.append(line);
+                }
+                br.close();
+
+                msg = sb.toString().trim();
+                throw new IOException(msg);
             }
         }
 
@@ -513,17 +665,18 @@ public interface Copy extends Node {
             return jp2ImgPath;
         }
 
-        private Path generateJp2Image(BlobStore doss, Path jp2Converter, Path imgConverter, Path stage, Long tiffBlobId) throws IOException, InterruptedException, NoSuchCopyException, Exception {
-            if (tiffBlobId == null) {
+        private Path generateJp2Image(BlobStore doss, Path jp2Converter, Path imgConverter, Path stage, Long imgBlobId) throws IOException, InterruptedException, NoSuchCopyException, Exception {
+            if (imgBlobId == null) {
                 throw new NoSuchCopyException(this.getWork().getId(), CopyRole.fromString(this.getCopyRole()));
             }
 
             // prepare the files for conversion
-            Path tiffPath = stage.resolve(tiffBlobId + ".tif");   // where to put the tif retrieved from the amber blob
-            copyBlobToFile(doss.get(tiffBlobId), tiffPath);       // get the blob from amber
+            String imgFilename = this.getImageFile().getFileName();
+            Path srcImgPath = stage.resolve(imgBlobId + imgFilename.substring(imgFilename.lastIndexOf('.')));  // where to put the source retrieved from the amber blob
+            copyBlobToFile(doss.get(imgBlobId), srcImgPath);       // get the blob from amber
 
             // Jp2 file
-            Path jp2ImgPath = stage.resolve(tiffBlobId + ".jp2"); // name the jpeg2000 derivative after the original uncompressed blob
+            Path jp2ImgPath = stage.resolve(imgBlobId + ".jp2"); // name the jpeg2000 derivative after the original uncompressed blob
 
             // Convert to jp2
             Jp2Converter jp2c = new Jp2Converter(jp2Converter, imgConverter);
@@ -532,26 +685,28 @@ public interface Copy extends Node {
             // check 4 properties from ImageFile: compression, samplesPerPixel, bitsPerSample and photometric
             // If they all exist and have proper values, pass them in a Map to Jp2Converter.
             // Otherwise, let Jp2Converter find out from the source file.
+
             ImageFile imgFile = this.getImageFile();
-            if (imgFile != null) {
+            if (imgFile != null && "image/tiff".equals(imgFile.getMimeType())) {
+                // Only check image properties for tiff files
                 int compression = parseIntFromStr(imgFile.getCompression());
                 int samplesPerPixel = parseIntFromStr(imgFile.getSamplesPerPixel());
                 int bitsPerSample = parseIntFromStr(imgFile.getBitDepth());
                 int photometric = parseIntFromStr(imgFile.getPhotometric());
-
                 if (compression >= 0 && samplesPerPixel >= 0 && bitsPerSample >= 0 && photometric >= 0) {
-                    Map<String, Integer> imgInfoMap = new HashMap<String, Integer>();
-                    imgInfoMap.put("compression", compression);
-                    imgInfoMap.put("samplesPerPixel", samplesPerPixel);
-                    imgInfoMap.put("bitsPerSample", bitsPerSample);
-                    imgInfoMap.put("photometric", photometric);
-                    jp2c.convertFile(tiffPath, jp2ImgPath, imgInfoMap);
+                    Map<String, String> imgInfoMap = new HashMap<String, String>();
+                    imgInfoMap.put("mimeType", imgFile.getMimeType());
+                    imgInfoMap.put("compression", "" + compression);
+                    imgInfoMap.put("samplesPerPixel", "" + samplesPerPixel);
+                    imgInfoMap.put("bitsPerSample", "" + bitsPerSample);
+                    imgInfoMap.put("photometric", "" + photometric);
+                    jp2c.convertFile(srcImgPath, jp2ImgPath, imgInfoMap);
                 } else {
-                    jp2c.convertFile(tiffPath, jp2ImgPath);
+                    jp2c.convertFile(srcImgPath, jp2ImgPath);
                 }
             } else {
-                // No image file
-                jp2c.convertFile(tiffPath, jp2ImgPath);
+                // No image file or not a tiff tile
+                jp2c.convertFile(srcImgPath, jp2ImgPath);
             }
 
             // NOTE: to return null at this point to cater for TiffEcho and JP2Echo test cases running in Travis env.

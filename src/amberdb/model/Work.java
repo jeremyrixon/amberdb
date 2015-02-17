@@ -10,6 +10,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
+import amberdb.util.WorkUtils;
+import com.google.common.collect.Iterables;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -241,15 +243,19 @@ public interface Work extends Node {
     public void setCopyrightPolicy(String copyrightPolicy);
 
     @Property("firstPart")
+    @Deprecated
     public String getFirstPart();
 
     @Property("firstPart")
+    @Deprecated
     public void setFirstPart(String firstPart);
 
     @Property("sortIndex")
+    @Deprecated
     public String getSortIndex();
 
     @Property("sortIndex")
+    @Deprecated
     public void setSortIndex(String sortIndex);
 
     @Property("edition")
@@ -348,6 +354,11 @@ public interface Work extends Node {
     @Property("moreIlmsDetailsRequired")
     public void setMoreIlmsDetailsRequired(Boolean moreIlmsDetailsRequired);
 
+    @Property("allowHighResdownload")
+    public Boolean getAllowHighResdownload();
+
+    @Property("allowHighResdownload")
+    public void setAllowHighResdownload(Boolean allowHRdownload);
 
     @Property("ilmsSentDateTime")
     public Date getIlmsSentDateTime();
@@ -884,7 +895,21 @@ public interface Work extends Node {
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public void addCopy(final Copy copy);
     
+    /**
+     * This method is intended for internal amberdb use, to be called by the
+     * removeRepresentation() method.  You probably want to use removeRepresentation()
+     * method to remove a representative image.
+     * @param copy
+     */
     @Adjacency(label = Represents.label, direction = Direction.IN)
+    public void removeRepresentative(final Copy copy);
+    
+    /**
+     * This method calls removeRepresentative() to remove a representative image,
+     * and update the hasRepresentation flag which is a shortcut for delivery.
+     * @param copy
+     */
+    @JavaHandler
     public void removeRepresentation(final Copy copy);
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
@@ -915,7 +940,21 @@ public interface Work extends Node {
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public void removePage(final Page page);
     
+    /**
+     * This method is intended for internal amberdb use, to be called by the 
+     * addRepresentation() method.  You probably want to use addRepresentation()
+     * method to add a representative image.
+     * @param copy
+     */
     @Adjacency(label = Represents.label, direction = Direction.IN)
+    public void addRepresentative(final Copy copy);
+    
+    /**
+     * This method calls addRepresentative() to add a representative image,
+     * and update the hasRepresentation flag which is a shortcut for delivery.
+     * @param copy
+     */
+    @JavaHandler
     public void addRepresentation(final Copy copy);
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
@@ -923,23 +962,6 @@ public interface Work extends Node {
 
     @Adjacency(label = Represents.label, direction = Direction.IN)
     public Iterable<Copy> getRepresentations();
-    
-    @Property("hasRepresentation")
-    public String getHasRepresentation();
-    
-    /**
-     * The boolean value in property is encoded as "y"/"n" string - You probably want to use
-     * setHasRepresentationIndicator to set this property
-     */
-    @Property("hasRepresentation")
-    public void setHasRepresentation(String hasRepresentation);
-    
-    /**
-     * This method takes in a boolean value and store it as "y"/"n" string in the hasRepresentation 
-     * property 
-     */
-    @JavaHandler
-    public void setRepresented(Boolean represented);
     
     @JavaHandler
     public boolean isRepresented();
@@ -1026,6 +1048,22 @@ public interface Work extends Node {
     @JavaHandler
     public void orderParts(List<Work> parts);
 
+
+    /**
+     *
+     * Returns the work that contains the access copy to be used for this work's representative image.
+     *
+     * @return The work with the image copy that should be used to represent this work, or null if no image is
+     * specified.
+     *
+     */
+    @JavaHandler
+    public Work getRepresentativeImageWork();
+
+    
+    @JavaHandler
+    public List<String> getJsonList(String propertyName) throws JsonParseException, JsonMappingException, IOException;
+    
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {
         static ObjectMapper mapper = new ObjectMapper();
 
@@ -1336,6 +1374,11 @@ public interface Work extends Node {
         }
 
         @Override
+        public List<String> getJsonList(String propertyName) throws JsonParseException, JsonMappingException, IOException {
+            return deserialiseJSONString((String) this.asVertex().getProperty(propertyName));
+        }
+        
+        @Override
         public void orderRelated(List<Work> relatedNodes, String label, Direction direction) {
             for (int i = 0; i < relatedNodes.size(); i++) {
                 Work node = relatedNodes.get(i);
@@ -1369,16 +1412,54 @@ public interface Work extends Node {
         }
         
         @Override
-        public void setRepresented(Boolean represented) {
-            if (represented != null) {
-                setHasRepresentation(represented?"y":"n");
-            }
+        public boolean isRepresented() {
+            Iterable<Copy> representations = getRepresentations();
+            return representations == null ? false : Iterables.size(representations) != 0;
         }
         
         @Override
-        public boolean isRepresented() {
-            String represented = getHasRepresentation();
-            return (represented == null)? false : ((represented.equalsIgnoreCase("y"))? true : false);
+        public void removeRepresentation(final Copy copy) {
+            removeRepresentative(copy);
+        }
+        
+        @Override
+        public void addRepresentation(final Copy copy) {
+            addRepresentative(copy);
+        }
+
+        @Override
+        public Work getRepresentativeImageWork() {
+
+            Work repImageOrAccessCopy = getRepImageOrAccessCopy(this);
+            if (repImageOrAccessCopy != null) {
+                return repImageOrAccessCopy;
+            }
+
+            Iterable<Work> children = getChildren();
+            if (Iterables.size(children) == 0) {
+                return null;
+            }
+            Work child = Iterables.get(children, 0);
+            if (WorkUtils.checkCanReturnRepImage(child)) {
+                return getRepImageOrAccessCopy(child);
+            }
+            return null;
+        }
+
+        private static Work getRepImageOrAccessCopy(Work work) {
+            Iterator<Copy> representations = work.getRepresentations().iterator();
+            if (representations.hasNext()) {
+                Work repWork = representations.next().getWork();
+                if (!WorkUtils.checkCanReturnRepImage(repWork)) {
+                    return null;
+                }
+                return repWork;
+            }
+            Copy accessCopy = work.getCopy(CopyRole.ACCESS_COPY);
+            if (accessCopy != null && accessCopy.getImageFile() != null) {
+                return work;
+            }
+            return null;
         }
     }
 }

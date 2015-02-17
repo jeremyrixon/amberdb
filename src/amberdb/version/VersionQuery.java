@@ -77,8 +77,8 @@ public class VersionQuery {
         int step = 0;
         
         StringBuilder s = new StringBuilder();
-        s.append("DROP TABLE IF EXISTS v0;\n");
-        s.append("DROP TABLE IF EXISTS v1;\n");
+        s.append("DROP " + graph.tempTableDrop + " TABLE IF EXISTS v0;\n");
+        s.append("DROP " + graph.tempTableDrop + " TABLE IF EXISTS v1;\n");
         
         s.append("CREATE TEMPORARY TABLE v0 ("
                 + "step INT, "

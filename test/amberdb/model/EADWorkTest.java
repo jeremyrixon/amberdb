@@ -14,7 +14,7 @@ import org.junit.Test;
 import amberdb.AmberSession;
 
 public class EADWorkTest {
-    private static EADWork greenerCollection;
+    private static EADWork componentWork;
     private static AmberSession db;
     
     @Before
@@ -31,19 +31,20 @@ public class EADWorkTest {
         String[] items = { "box-6" };
         List<String> expectedFolder = Arrays.asList(items);
         
-        greenerCollection.setRdsAcknowledgementType(expectedRdsType);
-        greenerCollection.setRdsAcknowledgementReceiver(expectedRdsReceiver);
-        greenerCollection.setEADUpdateReviewRequired(expectedEADReviewYN);
-        greenerCollection.setFolder(expectedFolder);
-        assertEquals(expectedRdsType, greenerCollection.getRdsAcknowledgementType());
-        assertEquals(expectedRdsReceiver, greenerCollection.getRdsAcknowledgementReceiver());
-        assertEquals(expectedEADReviewYN, greenerCollection.getEADUpdateReviewRequired());
-        assertEquals(expectedFolder, greenerCollection.getFolder());
+        componentWork.setRdsAcknowledgementType(expectedRdsType);
+        componentWork.setRdsAcknowledgementReceiver(expectedRdsReceiver);
+        componentWork.setEADUpdateReviewRequired(expectedEADReviewYN);
+        componentWork.setFolder(expectedFolder);
+        assertEquals(expectedRdsType, componentWork.getRdsAcknowledgementType());
+        assertEquals(expectedRdsReceiver, componentWork.getRdsAcknowledgementReceiver());
+        assertEquals(expectedEADReviewYN, componentWork.getEADUpdateReviewRequired());
+        assertEquals(expectedFolder, componentWork.getFolder());
     }
     
     private static void setTestDataInH2(AmberSession db) {
-        greenerCollection = db.addWork().asEADWork();
-        greenerCollection.setSubType("series");
-        greenerCollection.setTitle("Papers of Leslie Greener");
+        EADWork collectionWork = db.addWork().asEADWork();
+        componentWork = collectionWork.addEADWork(); 
+        componentWork.setSubType("series");
+        componentWork.setTitle("Papers of Leslie Greener");
     }
 }

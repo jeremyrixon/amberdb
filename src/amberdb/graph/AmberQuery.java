@@ -126,7 +126,7 @@ public class AmberQuery extends AmberQueryBase {
         int step = 0;
         
         StringBuilder s = new StringBuilder();
-        s.append("DROP TABLE IF EXISTS v0;\n");
+        s.append("DROP " + graph.tempTableDrop + " TABLE IF EXISTS v0;\n");
         s.append("CREATE TEMPORARY TABLE v0 ("
                 + "step INT, "
                 + "vid BIGINT, "
@@ -137,7 +137,7 @@ public class AmberQuery extends AmberQueryBase {
         // double buffer table to get around mysql limitation
         // of not being able to open the same temporary table
         // more than once in a query
-        s.append("DROP TABLE IF EXISTS v1;\n");
+        s.append("DROP " + graph.tempTableDrop + " TABLE IF EXISTS v1;\n");
         s.append("CREATE TEMPORARY TABLE v1 ("
                 + "step INT, "
                 + "vid BIGINT, "
@@ -230,33 +230,6 @@ public class AmberQuery extends AmberQueryBase {
     }
     
     
-    private <T> String numberListToStr(List<T> numbers) {
-        StringBuilder s = new StringBuilder();
-        for (T n : numbers) {
-            s.append(n).append(',');
-        }
-        s.setLength(s.length()-1);
-        return s.toString();
-    }
-    
-    
-    private String strListToStr(List<String> strs) {
-        StringBuilder s = new StringBuilder();
-        for (String str : strs) {
-            // dumbass sql injection protection (not real great)
-            s.append("'" + str.replaceAll("'", "\\'") + "',");
-        }
-        s.setLength(s.length()-1);
-        return s.toString();
-    }
-    
-    
-    private String generateLabelsClause(List<String> labels) {
-        if (labels == null || labels.size() == 0) return "";
-        return " AND e.label IN (" + strListToStr(labels) + ") \n"; 
-    }
-    
-
     /**
      * Execute the query
      * 

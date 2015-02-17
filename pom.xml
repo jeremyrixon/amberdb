@@ -3,7 +3,7 @@
 
   <groupId>au.gov.nla</groupId>
   <artifactId>amberdb</artifactId>
-  <version>1.1.219-SNAPSHOT</version>
+  <version>1.1.257-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>amberdb</name>
@@ -78,7 +78,7 @@
     <dependency>
       <groupId>au.gov.nla</groupId>
       <artifactId>doss</artifactId>
-      <version>0.26.4</version>
+      <version>1.0.0</version>
     </dependency>
     <dependency>
       <groupId>org.jdbi</groupId>
@@ -203,6 +203,16 @@
       <groupId>xom</groupId>
       <artifactId>xom</artifactId>
       <version>1.2.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.avalon.framework</groupId>
+      <artifactId>avalon-framework-impl</artifactId>
+      <version>4.3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.xmlgraphics</groupId>
+      <artifactId>fop</artifactId>
+      <version>1.1</version>
     </dependency>
   </dependencies>
   <repositories>

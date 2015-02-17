@@ -177,6 +177,43 @@ public class TDiffTest {
         assertEquals(0, diffs.size());
     }        
     
+    @Test
+    public void testChangeDiff() throws Exception {
+        
+        // before creation
+        long txn0 = graph.commit("test", "c0");
+        
+        Vertex v = graph.addVertex(null);
+        Long id = (Long) v.getId();
+        v.setProperty("prop1", "v1");
+        v.setProperty("prop2", "v2");
+        v.setProperty("prop3", "v3");
+        v.setProperty("prop4", "v4");
+        
+        // on creation
+        long txn1 = graph.commit("test", "c1");
+
+        // after creation
+        long txn2 = graph.commit("test", "c2");
+
+        // delete vertex
+        v.remove();
+
+        // on deletion
+        long txn3 = graph.commit("test", "c3");
+
+        // after deletion
+        long txn4 = graph.commit("test", "c4");
+
+        VersionedVertex vv = vGraph.getVertex(id);
+        
+        assertEquals(vv.getDiff(txn0, txn4).getTransition(), TTransition.UNCHANGED); // before creation after deletion
+        assertEquals(vv.getDiff(txn2, txn4).getTransition(), TTransition.DELETED); // after creation after deletion
+        assertEquals(vv.getDiff(txn1, txn4).getTransition(), TTransition.DELETED); // on creation after deletion
+        assertEquals(vv.getDiff(txn1, txn3).getTransition(), TTransition.DELETED); // on creation on deletion
+        assertEquals(vv.getDiff(txn2, txn3).getTransition(), TTransition.DELETED); // after creation on deletion
+
+    }        
     
     private void printDiffMap(TElementDiff t) {
         Map<String, Object[]> diffMap = t.getDiffMap();

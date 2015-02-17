@@ -22,6 +22,12 @@ public class DateParser {
         "(.*)\\s*-\\s*(.*)",
         "(.*)\\s*/\\s*(.*)"};
     
+    static final String[] bulkDateRangePattern = {
+        "\\s*\\(bulk (.*)\\s*-\\s*(.*)\\)"
+    };
+    
+    static final String circaDateRangePattern = "c.\\s*(.*)\\s*s";
+    
     static final String[] yearPatterns = {
         "(\\d{3,4})\\s*[\\s\\-\\./](.*)", // which covers
                                           // "(\\d\\d\\d)\\s+(.*)",
@@ -69,9 +75,8 @@ public class DateParser {
     };  
     static Map<String, Integer> monthLu = new ConcurrentHashMap<>();
     
-    static final Calendar cal = Calendar.getInstance();
-    static final SimpleDateFormat dateFmt1 = new SimpleDateFormat("dd/MM/yyyy");
-    static final SimpleDateFormat dateFmt2 = new SimpleDateFormat("dd/MMM/yyyy");
+    static final String DATE_PATTERN1 = "dd/MM/yyyy";
+    static final String DATE_PATTERN2 = "dd/MMM/yyyy";
     static Pattern[] dtRangePatterns;
     static Pattern[] yrPatterns;
     static Pattern[] dtPatterns;
@@ -84,11 +89,12 @@ public class DateParser {
             i++;
         }
         
-        dtRangePatterns = new Pattern[dateRangePattern.length];
+        dtRangePatterns = new Pattern[dateRangePattern.length*2];
         i = 0;
         for (String expr : dateRangePattern) {
-            dtRangePatterns[i] = Pattern.compile(expr);
-            i++;
+            dtRangePatterns[i] = Pattern.compile(expr + bulkDateRangePattern[0]);
+            dtRangePatterns[i+1] = Pattern.compile(expr);
+            i=i+2;
         }
         yrPatterns = new Pattern[yearPatterns.length];
         i = 0;
@@ -114,16 +120,27 @@ public class DateParser {
         if (dateRangeExpr == null || dateRangeExpr.trim().isEmpty()) return null;
         
         List<Date> dateRange = new ArrayList<>();      
-        // trim circa date
         dateRangeExpr = dateRangeExpr.trim();
-        if (dateRangeExpr.startsWith("c."))
-            dateRangeExpr = dateRangeExpr.replace("c.", "").trim();
-        else if (dateRangeExpr.startsWith("c"))
-            dateRangeExpr = dateRangeExpr.replace("c", "").trim();
+        
+        // parse circa date
+        if (dateRangeExpr.startsWith("c"))
+            return parseCircaDateRange(dateRangeExpr);
         
         // parse the date range
+        SimpleDateFormat dateFmt1 = new SimpleDateFormat(DATE_PATTERN1);
         List<String> dateRangePair = getExprPair(dateRangeExpr, dtRangePatterns);
-        if (dateRangePair != null && dateRangePair.size() == 2) {
+        if (dateRangePair == null) {
+            Date fromDate = parseDate(dateRangeExpr, true);
+            Date toDate = parseDate(dateRangeExpr, false);
+            if (fromDate != null) {
+                List<Date> sameDayRange = new ArrayList<>();
+                sameDayRange.add(fromDate);
+                sameDayRange.add(toDate);
+                return sameDayRange;
+            }
+            return null;
+        }
+        if (dateRangePair.size() == 2) {
             if (dateRangePair.get(0).length() == 4) {
                 dateRange.add(dateFmt1.parse("01/01/" + dateRangePair.get(0)));
             } else {
@@ -137,6 +154,26 @@ public class DateParser {
                 boolean isFromDate = false;
                 dateRange.add(parseDate(dateRangePair.get(1), isFromDate));
             }
+        }
+        if (dateRange.isEmpty()) return parseCircaDateRange(dateRangeExpr);
+        return dateRange;
+    }
+    
+    /**
+     * parseCircaDateRange: returns the from date and to date 10 years apart starting from
+     *                      01/01/<circa year>
+     */
+    protected static List<Date> parseCircaDateRange(String dateRangeExpr) throws ParseException {
+        List<Date> dateRange = new ArrayList<>();
+
+        Pattern circaPattern = Pattern.compile(circaDateRangePattern);
+        Matcher matcher = circaPattern.matcher(dateRangeExpr);
+        if (matcher.matches()) {
+            int startYear = Integer.parseInt(matcher.group(1));
+            int endYear = startYear + 9;
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy:MM:dd");
+            dateRange.add(dateFormat.parse(startYear + ":01:01"));
+            dateRange.add(dateFormat.parse(endYear + ":12:31"));
         }
         return dateRange;
     }
@@ -172,7 +209,6 @@ public class DateParser {
         
         if (mnthAbbrList.contains(restExpr.toUpperCase())) {
             Date potentialDate = constructDate(isFromDate, year, restExpr, null, mnthAbbrList);
-            String ddStr = dateFmt2.format(potentialDate);
             if (potentialDate != null) return potentialDate;
         }
         
@@ -209,6 +245,8 @@ public class DateParser {
             month = (isFromDate)?"JAN":"DEC";
         }
        
+        SimpleDateFormat dateFmt1 = new SimpleDateFormat(DATE_PATTERN1);
+        SimpleDateFormat dateFmt2 = new SimpleDateFormat(DATE_PATTERN2);
         SimpleDateFormat dateFmt = (mnthAbbrList.contains(month.toUpperCase())) ? dateFmt2 : dateFmt1;
         String fmttedMonth = (mnthAbbrList.contains(month.toUpperCase())) ? month.toUpperCase().substring(0,3) : month.toUpperCase();
         
@@ -218,8 +256,10 @@ public class DateParser {
         if (isFromDate)
             return dateFmt.parse("01/" + fmttedMonth + "/" + year);
         else {
+            Calendar cal = Calendar.getInstance();
+            cal.clear();
             cal.set(Calendar.YEAR, Integer.parseInt(year));
-            cal.set(Calendar.MONTH, monthLu.get(month.toUpperCase()));
+            cal.set(Calendar.MONTH, monthLu.get(month.toUpperCase()) - 1);
             // Note: not sure sometimes time is over clocked, hence the work around below
             Date newTime = dateFmt.parse("" + cal.getActualMaximum(Calendar.DAY_OF_MONTH) + "/" + fmttedMonth + "/" + year);
             SimpleDateFormat fmt = new SimpleDateFormat("MMM");
@@ -262,7 +302,7 @@ public class DateParser {
                     if (result.groupCount() == 1) {
                         from = matcher.toMatchResult().group(1).trim();
                         to = null;
-                    } else if (result.groupCount() == 2) {
+                    } else if (result.groupCount() > 1) {
                         from = matcher.toMatchResult().group(1).trim();
                         to = matcher.toMatchResult().group(2).trim();
                     }

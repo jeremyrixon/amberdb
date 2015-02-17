@@ -37,14 +37,21 @@
   <controlaccess>
     <persname rules="local" source="ingest">Saloway Family</persname>
   </controlaccess>
+  <bioghist id="aspace_5d66aaed235e00c7f509c12704f78305">
+    <head>Biographical Note</head>
+    <p>Biographical note 1</p>
+    <p>Biographical note 2</p>
+    <p>Biographical note 3</p>
+    <p>Biographical note 4</p>
+  </bioghist>
   <dsc>
-<c01 id="aspace_d1ac0117fdba1b9dc09b68e8bb125948" level="file"><did><unittitle>Typescript copies of an autobiographical sketch written by Mary Kirby Reeves, and an account of the voyage from Liverpool to Melbourne in the <emph render="underline">Queen of the west</emph> in 1856 written by J.W. Reeves.</unittitle><unitdate type="inclusive">1818-1899</unitdate></did><scopecontent><head>Scope and Contents</head><p>Mary Kirby Reeves was the mother of Annie Saloway </p></scopecontent></c01>
-<c01 id="aspace_7275d12ba178fcbb7cf926d0b7bf68cc" level="file"><did><unittitle>Letters written by Mary Reeves and her daughter Annie to their family in Oak House, West Bromuich, Bridgnorth, England.</unittitle></did></c01>
-<c01 id="aspace_5c65cd1a0dd35517ba04da03d95ffac2" level="file"><did><unittitle>Correspondence between Annie and her future husband, Rev. Henry Saloway.</unittitle><unitdate type="inclusive">1884-1888</unitdate></did></c01>
-<c01 id="aspace_ff977d51fa95c2d3a318fc7d6fb14451" level="file"><did><unittitle>A photograph album.</unittitle></did></c01>
-<c01 id="aspace_563116915a27063fb67dc5de82e2f848" level="file"><did><unittitle>A diary documenting Olive E. Saloway's nursing service overseas during World War I.</unittitle></did></c01>
-<c01 id="aspace_140a75e0f3a47eb5fbb735c7fba957ae" level="file"><did><unittitle>Joseph F. King's scrap book documenting his service with the 1st Australian Wireless Signal Squadron, Melbourne to Mesopotamia.</unittitle><unitdate type="inclusive">1916-1919</unitdate></did></c01>
-<c01 id="aspace_1012d592eedcfdbdc6175b91db070e2d" level="file"><did><unittitle>A collection of letters written by Nurse Annie King (later Cox) to her parents (Mr and Mrs J.F. King of Melbourne) during a trip to England and Europe.</unittitle><unitdate type="inclusive">1952-1955</unitdate></did><scopecontent><head>Scope and Contents</head><p>A photopaper of Gordon Cumming working on a wood carving of the Coat of Arms of the city of Launceston.</p></scopecontent></c01>
-<c01 id="aspace_3c0c615f787a41d4dc4c4104505e55a7" level="file"><did><unittitle>Annie Cox budget account books (2).</unittitle><unitdate type="inclusive">October 1963-July 1974</unitdate></did></c01></dsc>
+<c01 id="aspace_d1ac0117fdba1b9dc09b68e8bb125948" level="file"><did><origination label="creator"><persname normal="Creator, First">First Creator</persname></origination><unittitle>Typescript copies of an autobiographical sketch written by Mary Kirby Reeves, and an account of the voyage from Liverpool to Melbourne in the <emph render="underline">Queen of the west</emph> in 1856 written by J.W. Reeves.</unittitle><unitid>1</unitid><unitdate type="inclusive">1818-1899</unitdate></did><scopecontent><head>Scope and Contents</head><p>Mary Kirby Reeves was the mother of Annie Saloway </p></scopecontent></c01>
+    <c01 id="aspace_7275d12ba178fcbb7cf926d0b7bf68cc" level="file"><did><origination label="creator"><persname normal="Creator, Second">Second Creator</persname></origination><unittitle>Letters written by Mary Reeves and her daughter Annie to their family in Oak House, West Bromuich, Bridgnorth, England.</unittitle><unitid>2</unitid></did></c01>
+    <c01 id="aspace_5c65cd1a0dd35517ba04da03d95ffac2" level="file"><did><origination label="creator"><persname normal="Creator, Third">Third Creator</persname></origination><unittitle>Correspondence between Annie and her future husband, Rev. Henry Saloway.</unittitle><unitid>3</unitid><unitdate type="inclusive">1884-1888</unitdate></did></c01>
+    <c01 id="aspace_ff977d51fa95c2d3a318fc7d6fb14451" level="file"><did><unittitle>A photograph album.</unittitle><unitid>4</unitid></did></c01>
+    <c01 id="aspace_563116915a27063fb67dc5de82e2f848" level="file"><did><origination label="creator"><persname normal="Creator, Forth">Forth Creator</persname></origination><unittitle>A diary documenting Olive E. Saloway's nursing service overseas during World War I.</unittitle><unitid>5</unitid></did></c01>
+    <c01 id="aspace_140a75e0f3a47eb5fbb735c7fba957ae" level="file"><did><unittitle>Joseph F. King's scrap book documenting his service with the 1st Australian Wireless Signal Squadron, Melbourne to Mesopotamia.</unittitle><unitdate type="inclusive">1916-1919</unitdate><unitid>6</unitid></did></c01>
+    <c01 id="aspace_1012d592eedcfdbdc6175b91db070e2d" level="file"><did><origination label="creator"><persname normal="Creator, Fifth">Fifth Creator</persname></origination><unittitle>A collection of letters written by Nurse Annie King (later Cox) to her parents (Mr and Mrs J.F. King of Melbourne) during a trip to England and Europe.</unittitle><unitid>7</unitid><unitdate type="inclusive">1952-1955</unitdate></did><scopecontent><head>Scope and Contents</head><p>A photopaper of Gordon Cumming working on a wood carving of the Coat of Arms of the city of Launceston.</p></scopecontent></c01>
+    <c01 id="aspace_3c0c615f787a41d4dc4c4104505e55a7" level="file"><did><origination label="creator"><persname normal="Creator, Sixth">Sixth Creator</persname></origination><unittitle>Annie Cox budget account books (2).</unittitle><unitid>8</unitid><unitdate type="inclusive">October 1963-July 1974</unitdate></did></c01></dsc>
 </archdesc>
 </ead>

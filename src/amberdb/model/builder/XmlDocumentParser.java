@@ -26,6 +26,8 @@ import org.slf4j.LoggerFactory;
 public abstract class XmlDocumentParser {
     public static final String CFG_COLLECTION_ELEMENT = "collection";  // collection cfg tag
     public static final String CFG_SUB_ELEMENTS = "sub-elements";      // sub-elements cfg tag
+    public static final String CFG_FEATURE_ELEMENTS = "odd";           // tag for e.g. container list
+    public static final String CFG_ENTITY_ELEMENTS = "index";          // tag for e.g. correspondence index
     public static final String CFG_BASE = "base";                      // base cfg tag, use for base path of an repeatable element type
     public static final String CFG_REPEATABLE_ELEMENTS = "repeatable-element"; // cfg tag to specify how to identify repeatable elements.
     public static final String CFG_ATTRIBUTE_PREFIX = "@";
@@ -35,7 +37,7 @@ public abstract class XmlDocumentParser {
     public static final String CFG_STORE_COPY = "storeCopy";
     
     static final Logger log = LoggerFactory.getLogger(XmlDocumentParser.class);
-    protected static ObjectMapper mapper = new ObjectMapper();
+    protected static final ObjectMapper mapper = new ObjectMapper();
     protected String collectionObjId;
     protected JsonNode parsingCfg;
     protected List<String> filters;
@@ -163,7 +165,7 @@ public abstract class XmlDocumentParser {
                 Node baseComponent = baseComponents.get(i);
                 Nodes components = traverse(baseComponent, repeatablePath);
                 for (int j = 0; j < components.size(); j++) {
-                    Map<String, Object> fldsMap = getFieldsMap(components.get(j), subElementsCfg, componentBasePath);
+                    Map<String, String> fldsMap = getFieldsMap(components.get(j), subElementsCfg, componentBasePath);
                     String uuid = fldsMap.get("uuid").toString();
                     eadUUIDList.add(uuid);
                 }
@@ -185,7 +187,7 @@ public abstract class XmlDocumentParser {
      * @param collectionCfg - the fields config for mapping the top collection work
      * @return field mapping of the root element of the document
      */
-    public abstract Map<String, Object> getFieldsMap(Document doc, JsonNode collectionCfg);
+    public abstract Map<String, String> getFieldsMap(Document doc, JsonNode collectionCfg);
     
     /**
      * provide mapping of <field name, field value> of the input element.
@@ -196,7 +198,7 @@ public abstract class XmlDocumentParser {
      * @param basePath - the xpath for the input xml node.
      * @return field mapping of the input element.
      */
-    public abstract Map<String, Object> getFieldsMap(Node node, JsonNode elementCfg, String basePath);
+    public abstract Map<String, String> getFieldsMap(Node node, JsonNode elementCfg, String basePath);
     
     protected String getQualifiedXPath(String xpath) {
         String qualifiedXPath = xpath.replace("//", "");

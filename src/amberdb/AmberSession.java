@@ -3,6 +3,7 @@ package amberdb;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -35,10 +36,14 @@ import amberdb.sql.Lookups;
 import amberdb.sql.LookupsSchema;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberHistory;
+import amberdb.graph.AmberMultipartQuery;
+import amberdb.graph.AmberMultipartQuery.QueryClause;
 import amberdb.graph.AmberTransaction;
+import static amberdb.graph.BranchType.*;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Iterables;
+import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.TransactionalGraph;
 import com.tinkerpop.blueprints.Vertex;
@@ -213,7 +218,7 @@ public class AmberSession implements AutoCloseable {
     public JsonNode serializeToJson() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         GraphSONWriter.outputGraph(graph.getBaseGraph(), bos);
-        return new ObjectMapper().reader().readTree(bos.toString());
+        return new ObjectMapper().reader().readTree(bos.toString("UTF-8"));
     }
 
     
@@ -303,7 +308,7 @@ public class AmberSession implements AutoCloseable {
     
     /**
      * Noting deletion of all the vertices representing the work, its copies, and its copy files
-     * within the session.
+     * within the session. This method will orphan any child works.
      * @param work
      */
     public void deleteWork(final Work work) {
@@ -326,14 +331,47 @@ public class AmberSession implements AutoCloseable {
     }
 
 
+    public Map<String, Integer> deleteWorksFast(Map<String, Integer> counts, final Work... works) {
+
+        List<Long> ids = new ArrayList<>();
+        for (Work w : works) {
+            ids.add(w.getId()); 
+        }
+        loadMultiLevelWorks(ids);
+        
+        AmberGraph g = getAmberGraph();
+        boolean prevMode = g.inLocalMode();
+        g.setLocalMode(true);
+        counts = deleteWorks(counts, works);
+        g.setLocalMode(prevMode);
+        
+        return counts;
+    }
+
+    
+    public void deleteWorksFast(final Work... works) {
+
+        List<Long> ids = new ArrayList<>();
+        for (Work w : works) {
+            ids.add(w.getId()); 
+        }
+        loadMultiLevelWorks(ids);
+        
+        AmberGraph g = getAmberGraph();
+        boolean prevMode = g.inLocalMode();
+        g.setLocalMode(true);
+        deleteWorks(works);
+        g.setLocalMode(prevMode);
+    }
+    
+    
     /**
      * Recursively delete a Work and all its children (including Copies, Files
-     * and Descriptions). Exception: recursive delete will not remove 'Set'
-     * bibLevel works encountered, nor their children.
+     * and Descriptions). 
      * 
      * @param work
      */
-    public void deleteWorkRecursive(final Work... works) {
+    public void deleteWorks(final Work... works) {
         
         for (Work work : works) {
             
@@ -356,7 +394,7 @@ public class AmberSession implements AutoCloseable {
             graph.removeVertex(work.asVertex());
 
             /* finally, process the children */ 
-            deleteWorkRecursive(children.toArray(new Work[children.size()]));
+            deleteWorks(children.toArray(new Work[children.size()]));
         }  
     }
     
@@ -366,15 +404,23 @@ public class AmberSession implements AutoCloseable {
      * @param copy
      */
     public void deleteCopy(final Copy copy) {
-
         for (File file : copy.getFiles()) {
-            for (Description desc : file.getDescriptions()) {
-                graph.removeVertex(desc.asVertex());
-            }
-            graph.removeVertex(file.asVertex());
+            deleteFile(file);
         }
         graph.removeVertex(copy.asVertex());
     }
+    
+
+    /**
+     * Delete the vertices representing a file including its descriptions.
+     * @param file
+     */
+    public void deleteFile(final File file) {
+        for (Description desc : file.getDescriptions()) {
+            graph.removeVertex(desc.asVertex());
+        }
+        graph.removeVertex(file.asVertex());
+    }    
     
     
     /**
@@ -584,7 +630,7 @@ public class AmberSession implements AutoCloseable {
      * @param work
      *            The works to be deleted
      */
-    public Map<String, Integer> deleteWorkWithAudit(Map<String, Integer> counts, final Work... works) {
+    public Map<String, Integer> deleteWorks(Map<String, Integer> counts, final Work... works) {
 
         for (Work work : works) {
             
@@ -595,7 +641,7 @@ public class AmberSession implements AutoCloseable {
             
             // copies
             for (Copy copy : work.getCopies()) {
-                deleteCopyWithAudit(counts, copy);
+                deleteCopy(counts, copy);
             }
             
             // descriptions
@@ -609,7 +655,7 @@ public class AmberSession implements AutoCloseable {
             increment(counts, "Work");
 
             /* finally, process the children */ 
-            deleteWorkWithAudit(counts, children.toArray(new Work[children.size()]));
+            deleteWorks(counts, children.toArray(new Work[children.size()]));
         }  
 
         return counts;
@@ -658,7 +704,7 @@ public class AmberSession implements AutoCloseable {
      * @param copy
      *            The copy to be deleted
      */
-    public Map<String, Integer> deleteCopyWithAudit(Map<String, Integer> counts, final Copy copy) {
+    public Map<String, Integer> deleteCopy(Map<String, Integer> counts, final Copy copy) {
         
         for (File file : copy.getFiles()) {
             for (Description desc : file.getDescriptions()) {
@@ -691,5 +737,60 @@ public class AmberSession implements AutoCloseable {
             count = count + 1;
         }
         countMap.put(key, count);
+    }
+    
+    
+    /**
+     * Load the given works into memory. IMPORTANT: Please read the return value
+     * as it is not an intuitive result.
+     * 
+     * @param ids
+     *            The list of works to load
+     * @return Only the vertices related to these works already saved to amber.
+     *         Vertices related to these works that have not yet been saved will
+     *         NOT appear here.
+     */
+    public List<Vertex> loadMultiLevelWorks(final Long... ids) {
+        
+        AmberGraph g = getAmberGraph();
+        
+        List<Vertex> components;
+        try (AmberMultipartQuery q = g.newMultipartQuery(ids)) {
+
+            String numPartsInAmberQuery = 
+                    "SELECT COUNT(edge.id) num " 
+                    + "FROM edge, v1 " 
+                    + "WHERE v1.step = %d " 
+                    + "AND v1.vid = edge.v_in " 
+                    + "AND edge.label = 'isPartOf' " 
+                    + "AND edge.txn_end = 0;";
+
+            QueryClause qc = q.new QueryClause(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf" }, Direction.IN);
+
+            int step;
+            q.startQuery();
+
+            boolean moreParts = true;
+            while (moreParts) {
+                step = q.step + 1; // add 1 because the checkQuery is run after the following step is executed
+                List<Map<String, Object>> numPartsInAmberResult = q.continueWithCheck(String.format(numPartsInAmberQuery, step), qc);
+                Long numParts = (Long) numPartsInAmberResult.get(0).get("num");
+                if (numParts.equals(0L)) {
+                    moreParts = false;
+                }
+            }    
+
+            // get all the copies, files etc
+            q.continueWithCheck(null, new QueryClause[] { 
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "isCopyOf" }, Direction.IN), 
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "isFileOf" }, Direction.IN),
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "descriptionOf" }, Direction.IN), 
+            });
+            components = q.getResults();
+        }
+        return components;
+    }
+    public List<Vertex> loadMultiLevelWorks(final List<Long> ids) {
+        return loadMultiLevelWorks(ids.toArray(new Long[ids.size()]));
     }
 }

@@ -169,7 +169,7 @@ public class AmberEdgeQuery extends AmberQueryBase {
         }
     }
     
-    
+
     public List<Edge> execute() {
 
         List<Edge> edges;
@@ -177,7 +177,9 @@ public class AmberEdgeQuery extends AmberQueryBase {
 
             // run the generated query
             h.begin();
-            h.execute("DROP TABLE IF EXISTS ep; CREATE TEMPORARY TABLE ep (id BIGINT) " + graph.tempTableEngine + ";");
+            h.execute(
+                    "DROP " + graph.tempTableDrop + " TABLE IF EXISTS ep; CREATE TEMPORARY TABLE ep (id BIGINT) " + graph.tempTableEngine + ";" +
+                    "DROP " + graph.tempTableDrop + " TABLE IF EXISTS vp; CREATE TEMPORARY TABLE vp (id BIGINT) " + graph.tempTableEngine + ";");
             Update q = h.createStatement(generateQuery());
             
             for (int i = 0; i < properties.size(); i++) {
@@ -185,11 +187,18 @@ public class AmberEdgeQuery extends AmberQueryBase {
                 q.bind("value"+i, AmberProperty.encode(properties.get(i).getValue()));
             }
             q.execute();
+            h.execute(
+                    "INSERT INTO vp " +
+                    "SELECT v_in FROM edge e, ep WHERE e.txn_end = 0 AND e.id = ep.id " +
+                    "UNION " +
+                    "SELECT v_out FROM edge e, ep WHERE e.txn_end = 0 AND e.id = ep.id;");
             h.commit();
 
             // and reap the rewards
-            Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h, "ep", "id");
-            edges = getEdges(h, graph, propMaps, "ep", "id");
+            Map<Long, Map<String, Object>> vPropMaps = getElementPropertyMaps(h, "ep", "id");
+            getVertices(h, graph, vPropMaps, "vp", "id", "id");
+            Map<Long, Map<String, Object>> ePropMaps = getElementPropertyMaps(h, "ep", "id");
+            edges = getEdges(h, graph, ePropMaps, "ep", "id");
         }
         return edges;
     }

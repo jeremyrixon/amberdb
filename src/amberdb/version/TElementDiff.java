@@ -41,7 +41,7 @@ public class TElementDiff {
             return;
         }
         if (elem2 == null) {
-            if (elem1.id.end.compareTo(0L) > 0 && ((elem1.id.end.equals(txn2) && !elem1.id.start.equals(txn1)) || (elem1.id.end.equals(txn1)))) {
+            if (elem1.id.end.compareTo(0L) > 0 && ((elem1.id.end.equals(txn2) && elem1.id.start.compareTo(txn1) > 0) || (elem1.id.end.equals(txn1)))) {
                 transition = TTransition.UNCHANGED;
             } else {
                 transition = TTransition.DELETED;
