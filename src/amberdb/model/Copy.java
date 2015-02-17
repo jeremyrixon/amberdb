@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import amberdb.relation.*;
+import com.google.common.collect.Iterables;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -25,11 +27,6 @@ import org.slf4j.LoggerFactory;
 import amberdb.AmberSession;
 import amberdb.NoSuchCopyException;
 import amberdb.enums.CopyRole;
-import amberdb.relation.DescriptionOf;
-import amberdb.relation.IsCopyOf;
-import amberdb.relation.IsFileOf;
-import amberdb.relation.IsSourceCopyOf;
-import amberdb.relation.Represents;
 import amberdb.util.Jp2Converter;
 import amberdb.util.PdfTransformerFop;
 
@@ -228,8 +225,17 @@ public interface Copy extends Node {
     @Adjacency(label = IsSourceCopyOf.label, direction=Direction.OUT)
     public Copy getSourceCopy();
 
+    @Adjacency(label = IsSourceCopyOf.label, direction=Direction.IN)
+    public Iterable<Copy> getDerivatives();
+
     @Adjacency(label = IsSourceCopyOf.label, direction=Direction.OUT)
     public void setSourceCopy(Copy sourceCopy);
+
+    @Adjacency(label = IsComasterOf.label, direction=Direction.OUT)
+    public Copy getComasterCopy();
+
+    @Adjacency(label = IsComasterOf.label, direction=Direction.OUT)
+    public void setComasterCopy(Copy comasterCopy);
 
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     public Iterable<File> getFiles();
@@ -276,10 +282,6 @@ public interface Copy extends Node {
     @Adjacency(label = Represents.label)
     public Iterable<Work> getRepresentedWorks();
     
-    @JavaHandler
-    @Deprecated
-    Copy deriveImageCopy(Path tiffUnCompressor, Path jp2Generator) throws IllegalStateException, IOException, InterruptedException;
-
     @JavaHandler
     Copy deriveJp2ImageCopy(Path jp2Converter, Path imgConverter) throws IllegalStateException, IOException, InterruptedException, Exception;
 
@@ -328,68 +330,6 @@ public interface Copy extends Node {
             file.setMimeType(mimeType);
         }
 
-        /*
-         * The old method to derive image copy
-         * @deprecated - use {@links #deriveJp2ImageCopy()} instead
-         */
-        @Override
-        @Deprecated
-        public Copy deriveImageCopy(Path tiffUncompressor, Path jp2Generator) throws IllegalStateException, IOException, InterruptedException {
-
-            ImageFile tiffImage = this.getImageFile();
-            if (!tiffImage.getMimeType().equals("image/tiff")) {
-                throw new IllegalStateException(this.getWork().getObjId() + " master is not a tiff.  You may not generate a jpeg2000 from anything but a tiff");
-            }
-
-            Path stage = null;
-            try {
-                // create a temporary file processing location for deriving the jpeg2000 from the tiff
-                stage = Files.createTempDirectory("amberdb-derivative");
-
-                // assume this Copy is a tiff master copy and access the amber file
-                Long tiffBlobId = this.getFile().getBlobId();
-
-                // get this copy's blob store ...
-                BlobStore doss = AmberSession.ownerOf(g()).getBlobStore();
-
-                // aaaaand generate the derivative ...
-                Path jp2ImgPath = generateImage(doss, tiffUncompressor, jp2Generator, stage, tiffBlobId);
-
-                // add the derived jp2 image to this Copy's work as an access copy
-                Copy ac = null;
-                if (jp2ImgPath != null) {
-                    Work work = this.getWork();
-
-                    ac = work.getCopy(CopyRole.ACCESS_COPY);
-                    if ( ac == null ) {
-                        ac = work.addCopy(jp2ImgPath, CopyRole.ACCESS_COPY, "image/jp2");
-                        ac.setSourceCopy(this);
-                    }
-
-                    ImageFile acf = ac.getImageFile();
-                    acf.setLocation(jp2ImgPath.toString());
-
-                    // add image metadata based on the master image metadata
-                    // this is used by some nla delivery systems eg: tarkine
-                    acf.setImageLength(tiffImage.getImageLength());
-                    acf.setImageWidth(tiffImage.getImageWidth());
-                    acf.setResolution(tiffImage.getResolution());
-                    acf.setFileFormat("jpeg2000");
-                }
-                return ac;
-                
-            } finally {
-                // clean up temporary working space
-                java.io.File[] files = stage.toFile().listFiles();
-                if (files != null) {
-                    for (java.io.File f : files) {
-                        f.delete();
-                    }
-                }
-                stage.toFile().delete();
-            }
-        }
-
         @Override
         public Copy deriveJp2ImageCopy(Path jp2Converter, Path imgConverter) throws IllegalStateException, IOException, InterruptedException, Exception {
             ImageFile imgFile = this.getImageFile();
@@ -408,10 +348,10 @@ public interface Copy extends Node {
                 // assume this Copy is a master copy and access the amber file
                 Long imgBlobId = (this.getFile() == null)? null: this.getFile().getBlobId();
 
-                // get this copy's blob store ...
+                // get this copy's blob store.
                 BlobStore doss = AmberSession.ownerOf(g()).getBlobStore();
 
-                // aaaaand generate the derivative ...
+                // generate the derivative.
                 Path jp2ImgPath = generateJp2Image(doss, jp2Converter, imgConverter, stage, imgBlobId);
 
                 // add the derived jp2 image to this Copy's work as an access copy
@@ -419,11 +359,13 @@ public interface Copy extends Node {
                 if (jp2ImgPath != null) {
                     Work work = this.getWork();
 
-                    ac = work.getCopy(CopyRole.ACCESS_COPY);
-                    if ( ac == null ) {
+                    // Replace the derivative for this copy, not all.
+                    Iterable<Copy> derivatives = this.getDerivatives();
+                    if (Iterables.size(derivatives) != 0) {
                         ac = work.addCopy(jp2ImgPath, CopyRole.ACCESS_COPY, "image/jp2");
                         ac.setSourceCopy(this);
                     } else {
+                        ac = Iterables.get(derivatives, 0);
                         ac.getImageFile().put(jp2ImgPath);
                     }
 
