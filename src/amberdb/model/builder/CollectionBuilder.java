@@ -609,32 +609,32 @@ public class CollectionBuilder {
         String basePath = featuresCfg.get(CFG_BASE).getTextValue();
         Nodes nodes = parser.getElementsByXPath(parser.getDocument(), basePath);
         if (nodes.size() > 0) {
-        Map<String, String> mapping = parser.getFieldsMap(nodes.get(0), featuresCfg, basePath);
-        String featureType = mapping.get("odd-type");
-        try {
-            if (featureType != null || !featureType.isEmpty()) {
-                EADFeature feature = collectionWork.addEADFeature();
-                feature.setFeatureType(featureType);
-                feature.setFeatureId(mapping.get("id"));
-                List<String> featureFields = toList(mapping.get("odd-fields"));
-                if (featureFields != null) {
-                    feature.setFields(featureFields);
-                }
-                List<String> featureData = toList(mapping.get("odd-record-data"));
-                List<List<String>> featureRecords = new ArrayList<>();
-                for (int i = 0; i < featureData.size(); i++) {
-                    List<String> record = new ArrayList<>();
-                    for (int j = 0; j < featureFields.size(); j++) {
-                        record.add(featureData.get(i + j));
+            Map<String, String> mapping = parser.getFieldsMap(nodes.get(0), featuresCfg, basePath);
+            String featureType = mapping.get("odd-type");
+            try {
+                if (featureType != null || !featureType.isEmpty()) {
+                    EADFeature feature = collectionWork.addEADFeature();
+                    feature.setFeatureType(featureType);
+                    feature.setFeatureId(mapping.get("id"));
+                    List<String> featureFields = toList(mapping.get("odd-fields"));
+                    if (featureFields != null) {
+                        feature.setFields(featureFields);
                     }
-                    featureRecords.add(record);
-                    i = i+3;
+                    List<String> featureData = toList(mapping.get("odd-record-data"));
+                    List<List<String>> featureRecords = new ArrayList<>();
+                    for (int i = 0; i < featureData.size(); i++) {
+                        List<String> record = new ArrayList<>();
+                        for (int j = 0; j < featureFields.size(); j++) {
+                            record.add(featureData.get(i + j));
+                        }
+                        featureRecords.add(record);
+                        i = i + 3;
+                    }
+                    feature.setRecords(featureRecords);
                 }
-                feature.setRecords(featureRecords);
+            } catch (IOException e) {
+                log.error("Failed to extract feature " + featureType + " for work " + collectionWork.getObjId() + ".");
             }
-        } catch (IOException e) {
-            log.error("Failed to extract feature " + featureType + " for work " + collectionWork.getObjId() + ".");
-        }
         }
     }
     
@@ -643,23 +643,26 @@ public class CollectionBuilder {
         String repeatablePath = entitiesCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
         Nodes eadEntities = parser.getElementsByXPath(parser.getDocument(), basePath);
         if (eadEntities != null && eadEntities.size() > 0) {
-        Map<String, String> mapping = parser.getFieldsMap(eadEntities.get(0), entitiesCfg, basePath);
-        collectionWork.setCorrespondenceId(mapping.get("id"));
-        collectionWork.setCorrespondenceHeader(mapping.get("header"));
-        
-        try {
+            Map<String, String> mapping = parser.getFieldsMap(eadEntities.get(0), entitiesCfg, basePath);
+            collectionWork.setCorrespondenceId(mapping.get("id"));
+            collectionWork.setCorrespondenceHeader(mapping.get("header"));
+
+            try {
                 if (eadEntities.size() > 0) {
                     for (int i = 0; i < eadEntities.size(); i++) {
-                        // Nodes eadEntityEntries = parser.traverse(eadEntities.get(i), repeatablePath);
+                        // Nodes eadEntityEntries =
+                        // parser.traverse(eadEntities.get(i), repeatablePath);
                         Nodes eadEntityEntries = eadEntities.get(i).query(repeatablePath, parser.xc);
-                        log.debug("entity found: " + eadEntityEntries.size() + " for query repeatable path " + repeatablePath);
+                        log.debug("entity found: " + eadEntityEntries.size() + " for query repeatable path "
+                                + repeatablePath);
                         for (int j = 0; j < eadEntityEntries.size(); j++) {
-                            Map<String, String> entityData = parser.getFieldsMap(eadEntityEntries.get(j), entitiesCfg, repeatablePath);
+                            Map<String, String> entityData = parser.getFieldsMap(eadEntityEntries.get(j), entitiesCfg,
+                                    repeatablePath);
                             String corpName = entityData.get("corpname");
                             String famName = entityData.get("famname");
                             String persName = entityData.get("persname");
                             String ref = entityData.get("ref");
-                            
+
                             if (!isEmpty(corpName) || !isEmpty(famName) || !isEmpty(persName) || !isEmpty(ref)) {
                                 EADEntity entity = collectionWork.addEADEntity();
                                 List<String> entityName = new ArrayList<>();
@@ -681,13 +684,13 @@ public class CollectionBuilder {
                                     entity.setCorrespondenceRef(ref);
                                 }
                             }
-                            
+
                         }
                     }
                 }
-        } catch (IOException e) {
-            log.error("Failed to extract entities for work " + collectionWork.getObjId() + ".");
-        }
+            } catch (IOException e) {
+                log.error("Failed to extract entities for work " + collectionWork.getObjId() + ".");
+            }
         }
     }
     
