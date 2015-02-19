@@ -605,12 +605,12 @@ public class CollectionBuilder {
         }
     }
     
-    protected static EADFeature extractFeatures(EADWork collectionWork, JsonNode featuresCfg, XmlDocumentParser parser) {
+    protected static void extractFeatures(EADWork collectionWork, JsonNode featuresCfg, XmlDocumentParser parser) {
         String basePath = featuresCfg.get(CFG_BASE).getTextValue();
         String repeatablePath = featuresCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
         // Node node = parser.doc.getRootElement();
         Nodes nodes = parser.getElementsByXPath(parser.getDocument(), basePath);
-        if (nodes != null) {
+        if (nodes.size() > 0) {
         Map<String, String> mapping = parser.getFieldsMap(nodes.get(0), featuresCfg, basePath);
         ObjectMapper mapper = new ObjectMapper();
         String featureType = mapping.get("odd-type");
@@ -634,25 +634,24 @@ public class CollectionBuilder {
                     i = i+3;
                 }
                 feature.setRecords(featureRecords);
-                return feature;
             }
         } catch (IOException e) {
             log.error("Failed to extract feature " + featureType + " for work " + collectionWork.getObjId() + ".");
         }
         }
-        return null;
     }
     
     protected static void extractEntities(EADWork collectionWork, JsonNode entitiesCfg, XmlDocumentParser parser) {
         String basePath = entitiesCfg.get(CFG_BASE).getTextValue();
         String repeatablePath = entitiesCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
         Nodes eadEntities = parser.getElementsByXPath(parser.getDocument(), basePath);
+        if (eadEntities != null && eadEntities.size() > 0) {
         Map<String, String> mapping = parser.getFieldsMap(eadEntities.get(0), entitiesCfg, basePath);
         collectionWork.setCorrespondenceId(mapping.get("id"));
         collectionWork.setCorrespondenceHeader(mapping.get("header"));
         
         try {
-                if (eadEntities != null && eadEntities.size() > 0) {
+                if (eadEntities.size() > 0) {
                     for (int i = 0; i < eadEntities.size(); i++) {
                         // Nodes eadEntityEntries = parser.traverse(eadEntities.get(i), repeatablePath);
                         Nodes eadEntityEntries = eadEntities.get(i).query(repeatablePath, parser.xc);
@@ -691,6 +690,7 @@ public class CollectionBuilder {
                 }
         } catch (IOException e) {
             log.error("Failed to extract entities for work " + collectionWork.getObjId() + ".");
+        }
         }
     }
     

@@ -311,7 +311,7 @@ public class CollectionBuilderTest {
     }
     
     @Test
-    public void testEADCollectionWithContainerList() throws ValidityException, IOException, ParsingException {
+    public void testEADCollectionWithCorrespondenceIdxContainerList() throws ValidityException, IOException, ParsingException {
         createCollection();
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
@@ -338,9 +338,6 @@ public class CollectionBuilderTest {
             String expectedCorrespondenceHeader = "An index of correspondence items in Series 1.1 (letters to Patrick White), Series 1.2 (letters by Patrick White), and Series 26.1 (letters to Manoly Lascaris).  Each correspondent is listed alphabetically by surname. The numbers refer to the series, subseries and folder in which the correspondence is held.";
             assertEquals("correspondence header",  expectedCorrespondenceHeader, correspondenceHeader);
             assertEquals("correspondence list size",  215, entities.size());
-            assertEquals("first entity type", "corpname", entities.get(0).getEntityType());
-            assertEquals("first entity name", "Aboriginal Education Council", entities.get(0).getEntityName().get(0));
-            assertEquals("first correspondence ref", "26.1/1", entities.get(0).getCorrespondencRef());
         }
     }
     
