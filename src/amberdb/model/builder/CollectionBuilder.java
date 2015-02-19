@@ -383,7 +383,7 @@ public class CollectionBuilder {
         // mark the list of EAD works which requires review
         for (String objId : list) {
             EADWork eadWork = collectionWork.asEADWork().getEADWork(PIUtil.parse(objId));
-            eadWork.setEADUpdateReviewRequired("Yes");
+            eadWork.setEADUpdateReviewRequired("Y");
         }
         
         // reset the digital status of digitised items
