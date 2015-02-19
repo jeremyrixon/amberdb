@@ -607,12 +607,9 @@ public class CollectionBuilder {
     
     protected static void extractFeatures(EADWork collectionWork, JsonNode featuresCfg, XmlDocumentParser parser) {
         String basePath = featuresCfg.get(CFG_BASE).getTextValue();
-        String repeatablePath = featuresCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
-        // Node node = parser.doc.getRootElement();
         Nodes nodes = parser.getElementsByXPath(parser.getDocument(), basePath);
         if (nodes.size() > 0) {
         Map<String, String> mapping = parser.getFieldsMap(nodes.get(0), featuresCfg, basePath);
-        ObjectMapper mapper = new ObjectMapper();
         String featureType = mapping.get("odd-type");
         try {
             if (featureType != null || !featureType.isEmpty()) {

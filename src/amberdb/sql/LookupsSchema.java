@@ -945,11 +945,14 @@ public abstract class LookupsSchema {
       + "('rdsAcknowledgementType', 'Donation of material'),"
       + "('rdsAcknowledgementType', 'Lending of material'),"
       + "('rdsAcknowledgementType', 'Donation of digitised copy'),"
-      + "('rdsAcknowledgementType', 'Sponsor'),"
-      + "('eadUpdateReviewRequired', 'Y'),"
-      + "('eadUpdateReviewRequired', 'N')"
+      + "('rdsAcknowledgementType', 'Sponsor')"
     )
     public abstract void seedKeyCodeList();
+    
+    @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
+    + "('eadUpdateReviewRequired', 'Y', 'Yes'),"
+    + "('eadUpdateReviewRequired', 'N', 'No')")
+    public abstract void seedEADUpdateReviewRequired();
     
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
     + "('collection','nla.aus', 'Australian'),"
@@ -1054,6 +1057,7 @@ public abstract class LookupsSchema {
         createToolsToolCategoryIdIndex();
         createToolsMaterialTypeIdIndex();
         seedKeyCodeList();
+        seedEADUpdateReviewRequired();
         seedCollectionList();
         seedCopyTypeList();
         seedTiffMetaLuList();
