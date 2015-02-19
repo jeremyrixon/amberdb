@@ -945,7 +945,9 @@ public abstract class LookupsSchema {
       + "('rdsAcknowledgementType', 'Donation of material'),"
       + "('rdsAcknowledgementType', 'Lending of material'),"
       + "('rdsAcknowledgementType', 'Donation of digitised copy'),"
-      + "('rdsAcknowledgementType', 'Sponsor')"
+      + "('rdsAcknowledgementType', 'Sponsor'),"
+      + "('eadUpdateReviewRequired', 'Y'),"
+      + "('eadUpdateReviewRequired', 'N')"
     )
     public abstract void seedKeyCodeList();
     

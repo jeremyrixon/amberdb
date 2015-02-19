@@ -25,6 +25,12 @@ public interface EADFeature extends Description {
     @Property("featureType")
     public void setFeatureType(String featureType);
     
+    @Property("featureId")
+    public String getFeatureId();
+    
+    @Property("featureId")
+    public void setFeatureId(String featureId);
+    
     @Property("fields")
     public String getJSONFields();
     
