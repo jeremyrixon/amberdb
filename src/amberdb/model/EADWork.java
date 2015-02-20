@@ -279,7 +279,9 @@ public interface EADWork extends Work {
     
     /**
      * This method handles the JSON deserialisation of the folder property.
-     * Each folder entry is returned as <folder type>-<folder number>
+     * Each folder entry is returned as:
+     *    container <folder type> <folder number>(id:<folder uuid>):<folder label>:(parent:<parent folder uuid>)
+     * the (parent:<parent folder uuid>) is optional, and it isn't present if there's no parent folder.   
      */
     @JavaHandler
     public List<String> getFolder() throws JsonParseException, JsonMappingException, IOException;
@@ -296,6 +298,18 @@ public interface EADWork extends Work {
     
     @JavaHandler
     public EADWork getEADWork(long objectId);
+    
+    @Property("correspondenceHeader")
+    public String getCorrespondenceHeader();
+    
+    @Property("correspondenceHeader")
+    public void setCorrespondenceHeader(String correspondenceHeader);
+    
+    @Property("correspondenceId")
+    public String getCorrespondenceId();
+    
+    @Property("correspondenceId")
+    public void setCorrespondenceId(String correspondenceId);
     
     @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
     public EADEntity addEADEntity();
