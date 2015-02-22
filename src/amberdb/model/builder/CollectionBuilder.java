@@ -556,7 +556,7 @@ public class CollectionBuilder {
         eadCopy.setSourceCopy(work.getCopy(CopyRole.FINDING_AID_COPY));
     }
     
-    protected static void processCollection(Work collectionWork, InputStream in, JsonNode collectionCfg, XmlDocumentParser parser) throws EADValidationException, ValidityException, ParsingException, IOException {
+    protected static void processCollection(Work collectionWork, InputStream in, JsonNode eadCfg, XmlDocumentParser parser) throws EADValidationException, ValidityException, ParsingException, IOException {
         boolean newCollection = true;
         Map<String, String> componentWorks;
         
@@ -567,8 +567,9 @@ public class CollectionBuilder {
             componentWorks = new ConcurrentHashMap<>();
         }
         
+        JsonNode collectionCfg = eadCfg.get(CFG_COLLECTION_ELEMENT);
         // update metadata in the collection work.
-        mapCollectionMD(collectionWork, collectionCfg.get(CFG_COLLECTION_ELEMENT), parser);
+        mapCollectionMD(collectionWork, collectionCfg, parser);
         
         // extract features like container list
         JsonNode featuresCfg = collectionCfg.get(CFG_FEATURE_ELEMENTS);
@@ -587,7 +588,7 @@ public class CollectionBuilder {
         
         // traverse EAD components, and create work for each component under the top-level work, 
         // and map its metadata
-        JsonNode subElementsCfg = collectionCfg.get(CFG_COLLECTION_ELEMENT).get(CFG_SUB_ELEMENTS);
+        JsonNode subElementsCfg = collectionCfg.get(CFG_SUB_ELEMENTS);
         
         if (subElementsCfg != null) {
             String basePath = subElementsCfg.get(CFG_BASE).getTextValue();
@@ -606,34 +607,34 @@ public class CollectionBuilder {
     
     protected static void extractFeatures(EADWork collectionWork, JsonNode featuresCfg, XmlDocumentParser parser) {
         String basePath = featuresCfg.get(CFG_BASE).getTextValue();
-        String repeatablePath = featuresCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
-        Map<String, String> mapping = parser.getFieldsMap(parser.doc.getRootElement(), featuresCfg, basePath);
-        String featureType = mapping.get("odd-type");
-        try {
-            if (featureType != null || !featureType.isEmpty()) {
-                EADFeature feature = collectionWork.addEADFeature();
-                feature.setFeatureType(featureType);
-                List<String> featureFields = toList(mapping.get("odd-fields"));
-                if (featureFields != null) {
-                    feature.setFields(featureFields);
-                }
-                Nodes eadElements = parser.getElementsByXPath(parser.getDocument(), basePath);
-                if (eadElements != null && eadElements.size() > 0) {
+        Nodes nodes = parser.getElementsByXPath(parser.getDocument(), basePath);
+        if (nodes.size() > 0) {
+            Map<String, String> mapping = parser.getFieldsMap(nodes.get(0), featuresCfg, basePath);
+            String featureType = mapping.get("odd-type");
+            try {
+                if (featureType != null || !featureType.isEmpty()) {
+                    EADFeature feature = collectionWork.addEADFeature();
+                    feature.setFeatureType(featureType);
+                    feature.setFeatureId(mapping.get("id"));
+                    List<String> featureFields = toList(mapping.get("odd-fields"));
+                    if (featureFields != null) {
+                        feature.setFields(featureFields);
+                    }
+                    List<String> featureData = toList(mapping.get("odd-record-data"));
                     List<List<String>> featureRecords = new ArrayList<>();
-                    for (int i = 0; i < eadElements.size(); i++) {
-                        Nodes eadFeatureEntries = parser.traverse(eadElements.get(i), repeatablePath);
-                        log.debug("feature entry found: " + eadFeatureEntries.size() + " for query repeatable path " + repeatablePath);
-                        for (int j = 0; j < eadFeatureEntries.size(); j++) {
-                            Map<String, String> featureData = parser.getFieldsMap(eadFeatureEntries.get(j), featuresCfg, repeatablePath);
-                            List<String> featureRecord = toList(mapping.get("odd-record-data"));
-                            featureRecords.add(featureRecord);
+                    for (int i = 0; i < featureData.size(); i++) {
+                        List<String> record = new ArrayList<>();
+                        for (int j = 0; j < featureFields.size(); j++) {
+                            record.add(featureData.get(i + j));
                         }
+                        featureRecords.add(record);
+                        i = i + 3;
                     }
                     feature.setRecords(featureRecords);
                 }
+            } catch (IOException e) {
+                log.error("Failed to extract feature " + featureType + " for work " + collectionWork.getObjId() + ".");
             }
-        } catch (IOException e) {
-            log.error("Failed to extract feature " + featureType + " for work " + collectionWork.getObjId() + ".");
         }
     }
     
@@ -641,47 +642,60 @@ public class CollectionBuilder {
         String basePath = entitiesCfg.get(CFG_BASE).getTextValue();
         String repeatablePath = entitiesCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
         Nodes eadEntities = parser.getElementsByXPath(parser.getDocument(), basePath);
-        Map<String, String> mapping = parser.getFieldsMap(parser.doc.getRootElement(), entitiesCfg, basePath);
-        try {
-                if (eadEntities != null && eadEntities.size() > 0) {
+        if (eadEntities != null && eadEntities.size() > 0) {
+            Map<String, String> mapping = parser.getFieldsMap(eadEntities.get(0), entitiesCfg, basePath);
+            collectionWork.setCorrespondenceId(mapping.get("id"));
+            collectionWork.setCorrespondenceHeader(mapping.get("header"));
+
+            try {
+                if (eadEntities.size() > 0) {
                     for (int i = 0; i < eadEntities.size(); i++) {
-                        Nodes eadEntityEntries = parser.traverse(eadEntities.get(i), repeatablePath);
-                        log.debug("entity found: " + eadEntityEntries.size() + " for query repeatable path " + repeatablePath);
+                        // Nodes eadEntityEntries =
+                        // parser.traverse(eadEntities.get(i), repeatablePath);
+                        Nodes eadEntityEntries = eadEntities.get(i).query(repeatablePath, parser.xc);
+                        log.debug("entity found: " + eadEntityEntries.size() + " for query repeatable path "
+                                + repeatablePath);
                         for (int j = 0; j < eadEntityEntries.size(); j++) {
-                            Map<String, String> entityData = parser.getFieldsMap(eadEntityEntries.get(j), entitiesCfg, repeatablePath);
+                            Map<String, String> entityData = parser.getFieldsMap(eadEntityEntries.get(j), entitiesCfg,
+                                    repeatablePath);
                             String corpName = entityData.get("corpname");
                             String famName = entityData.get("famname");
-                            String persName = entityData.get("persName");
+                            String persName = entityData.get("persname");
                             String ref = entityData.get("ref");
-                            
+
                             if (!isEmpty(corpName) || !isEmpty(famName) || !isEmpty(persName) || !isEmpty(ref)) {
                                 EADEntity entity = collectionWork.addEADEntity();
                                 List<String> entityName = new ArrayList<>();
+
                                 if (!isEmpty(corpName)) {
                                     entityName.add(corpName);
+                                    entity.setEntityType("corpname");
                                 }
                                 if (!isEmpty(persName)) {
                                     entityName.add(persName);
+                                    entity.setEntityType("persname");
                                 }
                                 if (!isEmpty(famName)) {
                                     entityName.add(famName);
+                                    entity.setEntityType("famname");
                                 }
                                 entity.setEntityName(entityName);
                                 if (!isEmpty(ref)) {
                                     entity.setCorrespondenceRef(ref);
                                 }
                             }
-                            
+
                         }
                     }
                 }
-        } catch (IOException e) {
-            log.error("Failed to extract entities for work " + collectionWork.getObjId() + ".");
+            } catch (IOException e) {
+                log.error("Failed to extract entities for work " + collectionWork.getObjId() + ".");
+            }
         }
     }
     
     private static boolean isEmpty(String value) {
-        return (value != null && !value.isEmpty());
+        return (value == null || value.isEmpty());
     }
     
     protected static void traverseEAD(EADWork collectionWork, EADWork parentWork, Nodes eadElements, JsonNode elementCfg, XmlDocumentParser parser, 

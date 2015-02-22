@@ -950,6 +950,11 @@ public abstract class LookupsSchema {
     public abstract void seedKeyCodeList();
     
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
+    + "('eadUpdateReviewRequired', 'Y', 'Yes'),"
+    + "('eadUpdateReviewRequired', 'N', 'No')")
+    public abstract void seedEADUpdateReviewRequired();
+    
+    @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
     + "('collection','nla.aus', 'Australian'),"
     + "('collection','nla.ms', 'Manuscript'),"
     + "('collection','nla.map', 'Map'),"
@@ -1052,6 +1057,7 @@ public abstract class LookupsSchema {
         createToolsToolCategoryIdIndex();
         createToolsMaterialTypeIdIndex();
         seedKeyCodeList();
+        seedEADUpdateReviewRequired();
         seedCollectionList();
         seedCopyTypeList();
         seedTiffMetaLuList();
