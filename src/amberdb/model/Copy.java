@@ -361,7 +361,7 @@ public interface Copy extends Node {
 
                     // Replace the derivative for this copy, not all.
                     Iterable<Copy> derivatives = this.getDerivatives();
-                    if (Iterables.size(derivatives) != 0) {
+                    if (Iterables.size(derivatives) == 0) {
                         ac = work.addCopy(jp2ImgPath, CopyRole.ACCESS_COPY, "image/jp2");
                         ac.setSourceCopy(this);
                     } else {
