@@ -138,15 +138,13 @@ public class ComponentBuilder {
         componentWork.setExpiryDate(expiryDate);
         
         String internalAccessConditions = AccessCondition.OPEN.code();
-        String copyrightPolicy = CopyrightPolicy.PERPETUAL.code();
+        String copyrightPolicy = CopyrightPolicy.OUTOFCOPYRIGHT.code();
         if (componentWork.getCollection() != null && componentWork.getCollection().equalsIgnoreCase("nla.ms")) {
             internalAccessConditions = AccessCondition.RESTRICTED.code();
-            copyrightPolicy = CopyrightPolicy.OUTOFCOPYRIGHT.code();
+            copyrightPolicy = CopyrightPolicy.PERPETUAL.code();
         }
         componentWork.setInternalAccessConditions(internalAccessConditions);
         componentWork.setCopyrightPolicy(copyrightPolicy);
-        
-        componentWork.setCopyrightPolicy("Perpetual");
         componentWork.setSensitiveMaterial("No");
               
         String componentLevel = fieldsMap.get("component-level");
