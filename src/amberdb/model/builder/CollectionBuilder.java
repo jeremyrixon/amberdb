@@ -550,7 +550,6 @@ public class CollectionBuilder {
                 eadCopy.removeFile(eadCopy.getFile());
         }
         eadCopy.addFile(Writables.wrap(content), contentType);
-        eadCopy.setMaterialType("Text");
         eadCopy.setCopyType("b");
         eadCopy.setCarrier("Online");
         eadCopy.setSourceCopy(work.getCopy(CopyRole.FINDING_AID_COPY));
