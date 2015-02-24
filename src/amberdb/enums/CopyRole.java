@@ -48,9 +48,9 @@ public enum CopyRole {
     LISTENING_1_COPY("l1", "Listening 1"),
     LISTENING_2_COPY("l2", "Listening 2"),
     LISTENING_3_COPY("l3", "Listening 3"),
-    WORKING_COPY("w", "Working");
-    
-    
+    WORKING_COPY("w", "Working"),
+    EDITED_COPY("ed", "Edited"),
+    FILTERED_COPY("fc", "Filtered");
 
     private String code;
     private String display;
