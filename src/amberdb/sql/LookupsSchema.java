@@ -955,11 +955,11 @@ public abstract class LookupsSchema {
     public abstract void seedEADUpdateReviewRequired();
     
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
-    + "('dataValidationMsg', 'INVALID_FILE_NAME', 'The file ${filename} does not match the work''s PI.  Please rename your file to ${workObjId}.xml.'),"  
-    + "('dataValidationMsg', 'FILE_ALREADY_LOADED', 'File has already been uploaded for job ${jobId}.')," 
-    + "('dataValidationMsg', 'CANNOT_OPEN_FILE', 'Fail to access file ${filename}.')," 
-    + "('dataValidationMsg', 'MISSING_EAD_XML_NAMESPACE', 'Invalid EAD file, it is missing EAD xml namespace: ${xmlHeader}.')," 
-    + "('dataValidationMsg', 'VALID_FILE', '${filename} is a valid file.')")
+    + "('eadFileValidationMsg', 'INVALID_FILE_NAME', 'The file ${filename} does not match the work''s PI.  Please rename your file to ${workObjId}.xml.'),"  
+    + "('eadFileValidationMsg', 'FILE_ALREADY_LOADED', 'File has already been uploaded for job ${jobId}.')," 
+    + "('eadFileValidationMsg', 'CANNOT_OPEN_FILE', 'Fail to access file ${filename}.')," 
+    + "('eadFileValidationMsg', 'MISSING_EAD_XML_NAMESPACE', 'Invalid EAD file, it is missing EAD xml namespace: ${xmlHeader}.')," 
+    + "('eadFileValidationMsg', 'VALID_FILE', '${filename} is a valid file.')")
     public abstract void seedDataValidationMsgs();
     
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
