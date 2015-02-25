@@ -142,6 +142,22 @@ public class CollectionBuilderTest {
     }
     
     @Test
+    public void testFindExistingEADWork() throws ValidityException, IOException, ParsingException {
+        try (AmberSession as = db.begin()) {
+            Work collectionWork = as.findWork(collectionWorkId);
+            List<Work> subWorks = collectionWork.getPartsOf(new ArrayList<String>());
+            Map<String, String> idMap = new HashMap<>();
+            for (Work subWork : subWorks) {
+                idMap.put(subWork.getLocalSystemNumber(), subWork.getObjId());
+            }
+            for (String inputLocalSystemNumber : idMap.keySet()) {
+                String expectedObjId = idMap.get(inputLocalSystemNumber);
+                assertEquals(expectedObjId, collectionWork.asEADWork().checkEADWorkInCollectionByLocalSystemNumber(inputLocalSystemNumber).getObjId());
+            }
+        }
+    }
+    
+    @Test
     public void testGenerateJson() throws IOException, ValidityException, ParsingException {
         createCollection();
         try (AmberSession as = db.begin()) {
@@ -378,7 +394,7 @@ public class CollectionBuilderTest {
         }
     }
         
-    private void createCollection() throws IOException, ValidityException, ParsingException {
+    private void createCollection() throws IOException, ValidityException, ParsingException {            
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
             InputStream in = new FileInputStream(testEADPath.toFile());

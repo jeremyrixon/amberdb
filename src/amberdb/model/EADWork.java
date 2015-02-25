@@ -1,22 +1,13 @@
 package amberdb.model;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.regex.MatchResult;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.ObjectNode;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
@@ -299,6 +290,9 @@ public interface EADWork extends Work {
     @JavaHandler
     public EADWork getEADWork(long objectId);
     
+    @JavaHandler
+    public EADWork checkEADWorkInCollectionByLocalSystemNumber(String localSystemNumber);
+    
     @Property("correspondenceHeader")
     public String getCorrespondenceHeader();
     
@@ -458,6 +452,18 @@ public interface EADWork extends Work {
                 throw new NoSuchObjectException(objectId);
             }
             return component;
+        }
+        
+        @Override
+        public EADWork checkEADWorkInCollectionByLocalSystemNumber(String localSystemNumber) {
+            Iterator<Vertex> worksInCollection = this.g().getVertices("localSystemNumber", localSystemNumber).iterator();
+            if (worksInCollection.hasNext()) {
+                EADWork eadWork = this.g().getVertex(worksInCollection.next().getId(), EADWork.class);
+                eadWork.setEADUpdateReviewRequired("Y");
+                if (eadWork.getParent() == this)
+                    return eadWork;
+            }
+            return null;
         }
         
         @Override

@@ -122,7 +122,8 @@ public class ComponentBuilder {
             componentWork.asEADWork().setRdsAcknowledgementReceiver("NLA");
         
         // eadUpdateReviewRequired appears on the child levels only
-        componentWork.setEADUpdateReviewRequired("N"); 
+        if (componentWork.getEADUpdateReviewRequired() == null)
+            componentWork.setEADUpdateReviewRequired("N"); 
         
         String accessConditions = componentWork.getParent().getAccessConditions();
         if (accessConditions != null && !accessConditions.isEmpty())
