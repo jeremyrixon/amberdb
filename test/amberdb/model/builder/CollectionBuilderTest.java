@@ -162,8 +162,6 @@ public class CollectionBuilderTest {
         createCollection();
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
-            List<Work> subWorks = collectionWork.getPartsOf(new ArrayList<String>());
-            System.out.println("no. of subworks is " + subWorks.size());
             boolean storeCopy = true;
             Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
             log("doc: " + doc.toJson());

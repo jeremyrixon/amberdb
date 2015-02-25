@@ -895,7 +895,6 @@ public class CollectionBuilder {
         EADWork workInCollection = null;
         Map<String, String> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));        
         if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").isEmpty()) {
-            workInCollection = collectionWork.addEADWork();
             throw new EADValidationException("Failed to process collection " + parser.collectionObjId + " as no Archive Space id found for component work " + workInCollection.getObjId());
         }
         String uuid = fieldsMap.get("uuid");
