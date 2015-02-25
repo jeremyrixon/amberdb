@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -299,6 +300,9 @@ public interface EADWork extends Work {
     @JavaHandler
     public EADWork getEADWork(long objectId);
     
+    @JavaHandler
+    public EADWork getEADWork(String localSystemNumber);
+    
     @Property("correspondenceHeader")
     public String getCorrespondenceHeader();
     
@@ -458,6 +462,15 @@ public interface EADWork extends Work {
                 throw new NoSuchObjectException(objectId);
             }
             return component;
+        }
+        
+        @Override
+        public EADWork getEADWork(String localSystemNumber) {
+            Iterator<Vertex> worksInCollection = this.g().getVertices("name", "localSystemNumber").iterator();
+            if (worksInCollection.hasNext()) {
+                return this.g().getVertex(worksInCollection.next().getId(), EADWork.class);
+            }
+            return null;
         }
         
         @Override
