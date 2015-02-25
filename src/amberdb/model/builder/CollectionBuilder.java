@@ -27,8 +27,11 @@ import org.codehaus.jackson.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.tinkerpop.blueprints.Vertex;
+
 import doss.core.Writables;
 
+import amberdb.NoSuchObjectException;
 import amberdb.PIUtil;
 import amberdb.enums.AccessCondition;
 import amberdb.enums.CopyRole;
@@ -701,14 +704,14 @@ public class CollectionBuilder {
             boolean newCollection, Map<String, String> componentWorks) throws JsonParseException, JsonMappingException, IOException {
         for (int i = 0 ; i < eadElements.size(); i++) {
             Node eadElement = eadElements.get(i);
+            
             EADWork workInCollection;
             if (newCollection) {
-               workInCollection = parentWork.addEADWork();
+               workInCollection = mapWorkMD(parentWork, eadElement, elementCfg, parser); 
                if (collectionWork.getRepository() != null)
                    workInCollection.setRepository(collectionWork.getRepository());
                // inherit access conditions from the top-level collection work
                workInCollection.setAccessConditions(collectionWork.getAccessConditions());
-               mapWorkMD(workInCollection, eadElement, elementCfg, parser); 
             } else {
                JsonNode component = ComponentBuilder.makeComponent(eadElement, elementCfg, parser);
                String uuid = component.get("uuid").getTextValue();
@@ -891,14 +894,22 @@ public class CollectionBuilder {
         }
     }
     
-    protected static void mapWorkMD(EADWork workInCollection, Node eadElement, JsonNode elementCfg, XmlDocumentParser parser) throws EADValidationException, JsonParseException, JsonMappingException, IOException {
+    protected static EADWork mapWorkMD(EADWork collectionWork, Node eadElement, JsonNode elementCfg, XmlDocumentParser parser) throws EADValidationException, JsonParseException, JsonMappingException, IOException {
+        EADWork workInCollection = null;
         Map<String, String> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));        
-        if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").isEmpty())
+        if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").isEmpty()) {
+            workInCollection = collectionWork.addEADWork();
             throw new EADValidationException("Failed to process collection " + parser.collectionObjId + " as no Archive Space id found for component work " + workInCollection.getObjId());
-        
+        }
         String uuid = fieldsMap.get("uuid");
+        workInCollection = collectionWork.getEADWork(uuid);
+        if (workInCollection == null) {
+            workInCollection = collectionWork.addEADWork();
+        }
+
         log.debug("fieldsMap: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(fieldsMap));
         ComponentBuilder.mapWorkMD(workInCollection, uuid, fieldsMap);
+        return workInCollection;
     }
     
     protected static void traverseCollection (Work work, JsonNode structure, JsonNode content) {
