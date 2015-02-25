@@ -27,11 +27,8 @@ import org.codehaus.jackson.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.tinkerpop.blueprints.Vertex;
-
 import doss.core.Writables;
 
-import amberdb.NoSuchObjectException;
 import amberdb.PIUtil;
 import amberdb.enums.AccessCondition;
 import amberdb.enums.CopyRole;
@@ -902,7 +899,7 @@ public class CollectionBuilder {
             throw new EADValidationException("Failed to process collection " + parser.collectionObjId + " as no Archive Space id found for component work " + workInCollection.getObjId());
         }
         String uuid = fieldsMap.get("uuid");
-        workInCollection = collectionWork.getEADWork(uuid);
+        workInCollection = collectionWork.checkEADWorkInCollectionByLocalSystemNumber(uuid);
         if (workInCollection == null) {
             workInCollection = collectionWork.addEADWork();
         }
