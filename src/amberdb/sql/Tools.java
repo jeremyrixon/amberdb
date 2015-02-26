@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
@@ -126,6 +127,14 @@ public abstract class Tools implements Transactional<Tools>{
         return filterTools(filterFldName, filterFldValue, tools);
     }
     
+    public List<ToolsLu> findActiveToolsFor(Map<String, String> criteria, Long includeId) {
+        List<ToolsLu> tools = (includeId == null)? findTools("N") : findTools("N", includeId);
+        for (String fldName : criteria.keySet()) {
+            tools = filterTools(fldName, criteria.get(fldName), tools, includeId);
+        }
+        return tools;
+    }
+    
     public List<ToolsLu> findToolsEverRecordedFor(String filterFldName, String filterFldValue) {
         List<ToolsLu> tools = findAllToolsEverRecorded();
         return filterTools(filterFldName, filterFldValue, tools);
@@ -150,20 +159,24 @@ public abstract class Tools implements Transactional<Tools>{
     public List<ToolsLu> findActiveDevices(Long includeId) {
         return findActiveToolsFor("toolCategory", "device", includeId);
     }
-    
+        
     public List<ToolsLu> findDevicesEverRecorded() {
         return findToolsEverRecordedFor("toolCategory", "device");
     }
      
     private List<ToolsLu> filterTools(String filterFldName, String filterFldValue, List<ToolsLu> tools) {
+        return filterTools(filterFldName, filterFldValue, tools, null);
+    }
+    
+    private List<ToolsLu> filterTools(String filterFldName, String filterFldValue, List<ToolsLu> tools, Long includeId) {
         List<ToolsLu> filteredTools = new ArrayList<>();
         for (ToolsLu tool : tools) {
-                filterRow(filterFldName, filterFldValue, filteredTools, tool);  
+                filterRow(filterFldName, filterFldValue, filteredTools, tool, includeId);  
         }
         return filteredTools;
     }
-    
-    private void filterRow(String filterFldName, String filterFldValue, List<ToolsLu> activeToolsFor, ToolsLu tool) {
+
+    private void filterRow(String filterFldName, String filterFldValue, List<ToolsLu> activeToolsFor, ToolsLu tool, Long includeId) {
         // The following assignments are to cater for user trying to add a new tool, 
         // but doesn't go through with it, which will leave a blank record in the db
         // currently.
@@ -188,6 +201,8 @@ public abstract class Tools implements Transactional<Tools>{
         else if (filterFldName.equalsIgnoreCase("materialType") && materialType.toUpperCase().contains(filterFldValue.toUpperCase()))
             activeToolsFor.add(tool);
         else if (filterFldName.equalsIgnoreCase("toolCategory") && toolCategory.toUpperCase().contains(filterFldValue.toUpperCase()))
+            activeToolsFor.add(tool);
+        else if (includeId != null && tool.getId() == includeId)
             activeToolsFor.add(tool);
     }    
     
