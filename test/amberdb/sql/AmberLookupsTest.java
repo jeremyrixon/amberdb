@@ -228,4 +228,19 @@ public class AmberLookupsTest {
         assert (newAI.getSerialNumber().equals("11-220-284"));
         assert (newAI.getNotes().equals("Use to create clip art"));
     }
+     
+    @Test
+    public void testUpdateLookupsByCode(){
+        ListLu listLu = new ListLu("carrier", "tape 1", "1234");
+        lookups.addLookup(listLu);
+        ListLu found = lookups.findActiveLookup("carrier", "tape 1").get(0);
+        assertEquals(found.getValue(), "1234");
+        lookups.updateLookup(found.getId(), "234", "tape 2");
+        ListLu updatedLookup = lookups.findLookup(found.getId());
+        assertEquals(updatedLookup.getCode(), "tape 2");
+        assertEquals(updatedLookup.getValue(), "234");
+        
+        
+        
+    }
 }
