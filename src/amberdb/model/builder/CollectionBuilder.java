@@ -146,12 +146,10 @@ public class CollectionBuilder {
      *                     updates from the new updated FINDING_AID_COPY.
      * @return list of nla object ids of the EADworks requiring EAD update review.
      * @throws IOException 
-     * @throws JsonMappingException 
-     * @throws JsonParseException 
      * @throws ParsingException 
      * @throws ValidityException 
      */
-    public static List<String> reloadEADPreChecks(Work collectionWork) throws JsonParseException, JsonMappingException, IOException, ValidityException, ParsingException {
+    public static List<String> reloadEADPreChecks(Work collectionWork) throws ValidityException, ParsingException, IOException {
         return reloadEADPreChecks(collectionWork.asEADWork(), null);
     }
     
@@ -165,12 +163,10 @@ public class CollectionBuilder {
      * @param parser     - the XML document parser configured to parse the updated EAD.
      * @return list of nla object ids of the EADworks requiring EAD update review.
      * @throws IOException 
-     * @throws JsonMappingException 
-     * @throws JsonParseException 
      * @throws ParsingException 
      * @throws ValidityException 
      */
-    public static List<String> reloadEADPreChecks(EADWork collection, XmlDocumentParser parser) throws JsonParseException, JsonMappingException, IOException, ValidityException, ParsingException {
+    public static List<String> reloadEADPreChecks(EADWork collection, XmlDocumentParser parser) throws ValidityException, ParsingException, IOException {
         if (collection == null) {
             String errMsg = "Failed to perform EAD reload prechecks as the input collection work is null.";
             log.error(errMsg);
@@ -204,12 +200,9 @@ public class CollectionBuilder {
      *                         updates from the new updated FINDING_AID_COPY.
      * @return a map of (uuid, nla object id) of each EAD works within collectionWork (including the collectionWork).
      *         
-     * @throws JsonParseException
-     * @throws JsonMappingException
      * @throws IOException
      */
-    protected static Map<String, String> componentWorksMap(Work collectionWork) throws JsonParseException,
-            JsonMappingException, IOException {
+    protected static Map<String, String> componentWorksMap(Work collectionWork) throws IOException {
         JsonNode content = getFindingAIDJsonDocument(collectionWork).getContent();
         Map<String, String> uuidToPIMap = new HashMap<>();
 
@@ -236,12 +229,9 @@ public class CollectionBuilder {
      * @return a list of objId of each EAD works within collectionWork (including the collectionWork) which has any digital
      *         object attach to it.
      *         
-     * @throws JsonParseException
-     * @throws JsonMappingException
      * @throws IOException
      */
-    protected static List<String> digitisedItemList(Work collectionWork) throws JsonParseException,
-            JsonMappingException, IOException {
+    protected static List<String> digitisedItemList(Work collectionWork) throws IOException {
         // Get a list of EAD component works in the current collection work
         // structure which has digital objects attached
         JsonNode content = getFindingAIDJsonDocument(collectionWork).getContent();
@@ -267,7 +257,7 @@ public class CollectionBuilder {
         return objIdList;
     }
     
-    protected static Document getFindingAIDJsonDocument(Work collectionWork) throws JsonParseException, JsonMappingException, IOException {
+    protected static Document getFindingAIDJsonDocument(Work collectionWork) throws IOException {
         Copy eadJsonCopy = collectionWork.getCopy(CopyRole.FINDING_AID_VIEW_COPY);
         if (eadJsonCopy == null || eadJsonCopy.getFile() == null) {
             String errMsg = "Failed to process work collection as the input collection work " + collectionWork.getObjId() + " does not have a finding aid json copy.";
