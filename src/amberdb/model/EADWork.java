@@ -459,7 +459,6 @@ public interface EADWork extends Work {
             Iterator<Vertex> worksInCollection = this.g().getVertices("localSystemNumber", localSystemNumber).iterator();
             if (worksInCollection.hasNext()) {
                 EADWork eadWork = this.g().getVertex(worksInCollection.next().getId(), EADWork.class);
-                eadWork.setEADUpdateReviewRequired("Y");
                 if (eadWork.getParent() == this)
                     return eadWork;
             }

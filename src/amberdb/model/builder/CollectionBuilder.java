@@ -138,14 +138,14 @@ public class CollectionBuilder {
     }
     
     /**
-     * reloadEADPreChecks checks each EADwork to be purged as whether there're any digitial objects attached to it, if so, EADValidationException is thrown.
-     * If no digital object is attached to any EADwork to be purged, a list of nla object ids for the EADworks to be purged is returned.
+     * reloadEADPreChecks checks each EADwork for review as whether there're any digitial objects attached to it, if so, EADValidationException is thrown.
+     * If no digital object is attached to any EADwork for review, a list of nla object ids for the EADworks for review is returned.
      *   
      * @param collection - the top level work of a collection with the new updated EAD finding aid attached as
      *                     the FINDING_AID_COPY, and the FINDING_AID_VIEW_COPY containing json not yet containing 
      *                     updates from the new updated FINDING_AID_COPY.
      * @return list of nla object ids for the EADworks to be deleted.
-     * @throws EADValidationException when a component EADwork (in collection) to be purged has digital objects attach to it.
+     * @throws EADValidationException when a component EADwork (in collection) for review has digital objects attach to it.
      * @throws IOException 
      * @throws JsonMappingException 
      * @throws JsonParseException 
@@ -157,15 +157,15 @@ public class CollectionBuilder {
     }
     
     /**
-     * reloadEADPreChecks checks each EADwork to be purged as whether there're any digitial objects attached to it, if so, EADValidationException is thrown.
-     * If no digital object is attached to any EADwork to be purged, a list of nla object ids for the EADworks to be purged is returned.
+     * reloadEADPreChecks checks each EADwork for review as whether there're any digitial objects attached to it, if so, EADValidationException is thrown.
+     * If no digital object is attached to any EADwork for review, a list of nla object ids for the EADworks for review is returned.
      *   
      * @param collection - the top level work of a collection with the new updated EAD finding aid attached as
      *                     the FINDING_AID_COPY, and the FINDING_AID_VIEW_COPY containing json not yet containing 
      *                     updates from the new updated FINDING_AID_COPY.
      * @param parser     - the XML document parser configured to parse the updated EAD.
      * @return list of nla object ids for the EADworks to be deleted.
-     * @throws EADValidationException when a component EADwork (in collection) to be purged has digital objects attach to it.
+     * @throws EADValidationException when a component EADwork (in collection) for review has digital objects attach to it.
      * @throws IOException 
      * @throws JsonMappingException 
      * @throws JsonParseException 
@@ -291,7 +291,7 @@ public class CollectionBuilder {
      * file; update EAD work for an EAD component with modified metadata.
      * 
      * pre-requisite: reloadEADPreChecks() has been called, and all components intended for purging
-     *                has been purged.
+     *                has been marked for review.
      *                
      * reloadCollection also call generateJson(...) to regenerate the derivative Json to reflect the updated
      * the mapping of the structure and the content for top level collection metadata and its components and 
@@ -322,7 +322,7 @@ public class CollectionBuilder {
      * file; update EAD work for an EAD component with modified metadata.
      * 
      * pre-requisite: reloadEADPreChecks() has been called, and all components intended for purging
-     *                has been purged.
+     *                has been marked for review.
      * 
      * reloadCollection also call generateJson(...) to regenerate the derivative Json to reflect the updated
      * the mapping of the structure and the content for top level collection metadata and its components and 
