@@ -138,41 +138,39 @@ public class CollectionBuilder {
     }
     
     /**
-     * reloadEADPreChecks checks each EADwork for review as whether there're any digitial objects attached to it, if so, EADValidationException is thrown.
-     * If no digital object is attached to any EADwork for review, a list of nla object ids for the EADworks for review is returned.
+     * reloadEADPreChecks checks each EADwork within the collectionWork and returns a list of EADwork object id
+     * if these EADwork does not exist in the new EAD file for reload.  
      *   
      * @param collection - the top level work of a collection with the new updated EAD finding aid attached as
      *                     the FINDING_AID_COPY, and the FINDING_AID_VIEW_COPY containing json not yet containing 
      *                     updates from the new updated FINDING_AID_COPY.
-     * @return list of nla object ids for the EADworks to be deleted.
-     * @throws EADValidationException when a component EADwork (in collection) for review has digital objects attach to it.
+     * @return list of nla object ids of the EADworks requiring EAD update review.
      * @throws IOException 
      * @throws JsonMappingException 
      * @throws JsonParseException 
      * @throws ParsingException 
      * @throws ValidityException 
      */
-    public static List<String> reloadEADPreChecks(Work collectionWork) throws EADValidationException, JsonParseException, JsonMappingException, IOException, ValidityException, ParsingException {
+    public static List<String> reloadEADPreChecks(Work collectionWork) throws JsonParseException, JsonMappingException, IOException, ValidityException, ParsingException {
         return reloadEADPreChecks(collectionWork.asEADWork(), null);
     }
     
     /**
-     * reloadEADPreChecks checks each EADwork for review as whether there're any digitial objects attached to it, if so, EADValidationException is thrown.
-     * If no digital object is attached to any EADwork for review, a list of nla object ids for the EADworks for review is returned.
+     * reloadEADPreChecks checks each EADwork within the collectionWork and returns a list of EADwork object id
+     * if these EADwork does not exist in the new EAD file for reload.
      *   
      * @param collection - the top level work of a collection with the new updated EAD finding aid attached as
      *                     the FINDING_AID_COPY, and the FINDING_AID_VIEW_COPY containing json not yet containing 
      *                     updates from the new updated FINDING_AID_COPY.
      * @param parser     - the XML document parser configured to parse the updated EAD.
-     * @return list of nla object ids for the EADworks to be deleted.
-     * @throws EADValidationException when a component EADwork (in collection) for review has digital objects attach to it.
+     * @return list of nla object ids of the EADworks requiring EAD update review.
      * @throws IOException 
      * @throws JsonMappingException 
      * @throws JsonParseException 
      * @throws ParsingException 
      * @throws ValidityException 
      */
-    public static List<String> reloadEADPreChecks(EADWork collection, XmlDocumentParser parser) throws EADValidationException, JsonParseException, JsonMappingException, IOException, ValidityException, ParsingException {
+    public static List<String> reloadEADPreChecks(EADWork collection, XmlDocumentParser parser) throws JsonParseException, JsonMappingException, IOException, ValidityException, ParsingException {
         if (collection == null) {
             String errMsg = "Failed to perform EAD reload prechecks as the input collection work is null.";
             log.error(errMsg);
@@ -286,24 +284,24 @@ public class CollectionBuilder {
      * reloadCollection parses the updated EAD file attached to the top-level
      * collection work with the input field mapping from collectionCfg, and
      * update the collection work structure under the top level collection by
-     * adding EAD work for each new EAD component; delete EAD work for an EAD
+     * adding EAD work for each new EAD component; mark EAD work for an EAD
      * component that was previously there but not included in the updated EAD
-     * file; update EAD work for an EAD component with modified metadata.
+     * file as EADUpdateReviewRequired; update EAD work for an EAD component 
+     * with modified metadata.
      * 
-     * pre-requisite: reloadEADPreChecks() has been called, and all components intended for purging
-     *                has been marked for review.
+     * pre-requisite: reloadEADPreChecks() has been called, and a list of components requiring EAD update
+     *                review has been returned.
      *                
      * reloadCollection also call generateJson(...) to regenerate the derivative Json to reflect the updated
      * the mapping of the structure and the content for top level collection metadata and its components and 
      * sub-components.
      * 
      * if any of the EAD work in the current collection work structure has copies and files
-     * attached to it, the copies and files will be re-attached to the corresponding
-     * node in the recreated collection work structure.
+     * attached to it, the copies and files will be retained.
      * 
-     * @param collectionWork - the top level work of a collection with the new updated EAD attached as the FINDING_AID_COPY, 
-     *                         and the FINDING_AID_VIEW_COPY containing json not yet containing updates from the new updated
-     *                         FINDING_AID_COPY.
+     * @param collectionWork - input collectionWork is the top level work of a collection with the new updated EAD attached 
+     *                         as the FINDING_AID_COPY, and the FINDING_AID_VIEW_COPY containing json not yet containing updates 
+     *                         from the new updated FINDING_AID_COPY.
      * @throws EADValidationException
      * @throws IOException
      * @throws ParsingException 
@@ -317,24 +315,24 @@ public class CollectionBuilder {
      * reloadCollection parses the updated EAD file attached to the top-level
      * collection work with the input field mapping from collectionCfg, and
      * update the collection work structure under the top level collection by
-     * adding EAD work for each new EAD component; delete EAD work for an EAD
+     * adding EAD work for each new EAD component; mark EAD work for an EAD
      * component that was previously there but not included in the updated EAD
-     * file; update EAD work for an EAD component with modified metadata.
+     * file as EADUpdateReviewRequired; update EAD work for an EAD component 
+     * with modified metadata.
      * 
-     * pre-requisite: reloadEADPreChecks() has been called, and all components intended for purging
-     *                has been marked for review.
+     * pre-requisite: reloadEADPreChecks() has been called, and a list of components requiring EAD update
+     *                review has been returned.
      * 
      * reloadCollection also call generateJson(...) to regenerate the derivative Json to reflect the updated
      * the mapping of the structure and the content for top level collection metadata and its components and 
      * sub-components.
      * 
      * if any of the EAD work in the current collection work structure has copies and files
-     * attached to it, the copies and files will be re-attached to the corresponding
-     * node in the recreated collection work structure.
+     * attached to it, the copies and files will be retained.
      * 
-     * @param collectionWork - the top level work of a collection with the new updated EAD attached as the FINDING_AID_COPY, 
-     *                         and the FINDING_AID_VIEW_COPY containing json not yet containing updates from the new updated
-     *                         FINDING_AID_COPY.
+     * @param collectionWork - input collectionWork is the top level work of a collection with the new updated EAD attached 
+     *                         as the FINDING_AID_COPY, and the FINDING_AID_VIEW_COPY containing json not yet containing updates 
+     *                         from the new updated FINDING_AID_COPY.
      * @param collectionCfg  - configuration for parsing attached EAD file in order to create the collection.
      * @param parser         - the XML document parser for parsing the EAD.
      * @throws EADValidationException
