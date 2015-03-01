@@ -3,6 +3,7 @@ package amberdb.model.builder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -934,9 +935,22 @@ public class CollectionBuilder {
         List<String> background = null;
         // map general work properties
         for (String field : fields) {
-            if (work.asVertex().getProperty(field) != null)
+            if (work.asVertex().getProperty(field) != null) {
                 ((ObjectNode) workProperties).put(field, work.asVertex().getProperty(field).toString());
+            }
         }
+        SimpleDateFormat dateFmt = new SimpleDateFormat("yyyy:MM:dd");
+        String startDate = null;
+        if (work.getStartDate() != null) {
+            startDate = dateFmt.format(work.getStartDate());
+        } 
+        ((ObjectNode) workProperties).put("startDate", startDate);
+        String endDate = null;
+        if (work.getEndDate() != null) {
+            endDate = dateFmt.format(work.getEndDate());
+        }
+        ((ObjectNode) workProperties).put("endDate", endDate);
+        
         // map background
         try {
             List<String> bibliography = work.asEADWork().getBibliography();
