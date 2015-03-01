@@ -5,7 +5,6 @@
   <artifactId>amberdb</artifactId>
   <version>1.1.268-SNAPSHOT</version>
   <packaging>jar</packaging>
-
   <name>amberdb</name>
   <description>Digital library domain model</description>
 
