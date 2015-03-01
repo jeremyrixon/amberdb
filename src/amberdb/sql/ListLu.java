@@ -25,6 +25,13 @@ public class ListLu implements Comparable<Object>{
         this.code = value;
         this.deleted = "N";
     }
+    
+    public ListLu(String name, String code, String value) {
+        this.name = name;
+        this.code = code;
+        this.value = value;        
+        this.deleted = "N";
+    }
 
     protected ListLu(Long id, String name, String value, String code, String deleted) {
         this.id = id;

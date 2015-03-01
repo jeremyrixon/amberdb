@@ -163,6 +163,13 @@ public abstract class Lookups extends Tools {
         }
     }
     
+    public synchronized void updateLookup(Long id, String value, String code) {
+        // check the list lu is in the database with its id, otherwise, throw an exception.
+        if (id != null) {
+            updLookupData(id, value, code);
+        }
+    }
+    
     public synchronized void deleteLookup(List<Long> id) {
         deleteLookupData(id);
     }
@@ -186,6 +193,13 @@ public abstract class Lookups extends Tools {
             + "and (deleted = 'N' or deleted is null)")
     public abstract void updLookupData(@Bind("id") long id,
                                           @Bind("value") String value);
+    
+    @SqlUpdate("UPDATE lookups set value = :value, code = :code  "
+            + "where id = :id "
+            + "and (deleted = 'N' or deleted is null)")
+    public abstract void updLookupData(@Bind("id") long id,
+                                       @Bind("value") String value,
+                                       @Bind("code") String code);
     
     @SqlBatch("UPDATE lookups SET deleted = 'D' WHERE id = :id")
     protected abstract void deleteLookupData(@Bind("id") List<Long> id);
