@@ -114,6 +114,22 @@ public class DateParser {
     
     /**
      * parseDateRange: returns the from date and to date in a list of date.
+     * example dates can be parsed:
+     *   date range in AS                  start date      end date
+     *   null                              null            null
+     *   c.1936                            01-01-1936      31-12-1936
+     *   c.1930s                           01-01-1930      31-12-1939
+     *   1936 or 1937                      01-01-1936      31-12-1937
+     *   12 September 1984                 12-09-1984      12-09-1984
+     *   [4] June 1937                     04-06-1937      04-06-1937
+     *   May 1992                          01-05-1992      31-05-1992
+     *   [November] 1935                   01-11-1935      30-11-1935
+     *   9-15 December 1938                null            15-12-1938
+     *     (Note: current limitation for date parsing as 9 is ambiguous to parse as a start date)
+     *   1935-1936                         01-01-1935      31-12-1936
+     *   1935-c.1936                       01-01-1935      31-12-1936
+     *   1914, 1919-1960 (bulk 1930-1958)  01-01-1914      31-12-1960
+     *   
      * @param dateRangeExpr - input date range string
      * @return the from date and to date of the date range in a date list.
      * @throws ParseException
@@ -142,6 +158,7 @@ public class DateParser {
             }
             return null;
         }
+        
         if (dateRangePair.size() == 2) {
             if (dateRangePair.get(0).length() == 4) {
                 dateRange.add(dateFmt1.parse("01/01/" + dateRangePair.get(0)));
