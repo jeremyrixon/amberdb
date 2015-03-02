@@ -20,13 +20,15 @@ public class DateParser {
     static final Logger log = LoggerFactory.getLogger(DateParser.class);
     static final String[] dateRangePattern = { 
         "(.*)\\s*-\\s*(.*)",
-        "(.*)\\s*/\\s*(.*)"};
+        "(.*)\\s*/\\s*(.*)",
+        "(.*)\\s*or\\s*(.*)",
+        "(.*)\\s*,\\s*(.*)"};
     
     static final String[] bulkDateRangePattern = {
         "\\s*\\(bulk (.*)\\s*-\\s*(.*)\\)"
     };
     
-    static final String circaDateRangePattern = "c.\\s*(.*)\\s*s";
+    static final String circaDateRangePattern = "c.\\s*(.*)\\s*";
     
     static final String[] yearPatterns = {
         "(\\d{3,4})\\s*[\\s\\-\\./](.*)", // which covers
@@ -112,6 +114,22 @@ public class DateParser {
     
     /**
      * parseDateRange: returns the from date and to date in a list of date.
+     * example dates can be parsed:
+     *   date range in AS                  start date      end date
+     *   null                              null            null
+     *   c.1936                            01-01-1936      31-12-1936
+     *   c.1930s                           01-01-1930      31-12-1939
+     *   1936 or 1937                      01-01-1936      31-12-1937
+     *   12 September 1984                 12-09-1984      12-09-1984
+     *   [4] June 1937                     04-06-1937      04-06-1937
+     *   May 1992                          01-05-1992      31-05-1992
+     *   [November] 1935                   01-11-1935      30-11-1935
+     *   9-15 December 1938                null            15-12-1938
+     *     (Note: current limitation for date parsing as 9 is ambiguous to parse as a start date)
+     *   1935-1936                         01-01-1935      31-12-1936
+     *   1935-c.1936                       01-01-1935      31-12-1936
+     *   1914, 1919-1960 (bulk 1930-1958)  01-01-1914      31-12-1960
+     *   
      * @param dateRangeExpr - input date range string
      * @return the from date and to date of the date range in a date list.
      * @throws ParseException
@@ -120,7 +138,7 @@ public class DateParser {
         if (dateRangeExpr == null || dateRangeExpr.trim().isEmpty()) return null;
         
         List<Date> dateRange = new ArrayList<>();      
-        dateRangeExpr = dateRangeExpr.trim();
+        dateRangeExpr = dateRangeExpr.replace("[", "").replace("]", "").trim();
         
         // parse circa date
         if (dateRangeExpr.startsWith("c"))
@@ -140,19 +158,36 @@ public class DateParser {
             }
             return null;
         }
+        
         if (dateRangePair.size() == 2) {
             if (dateRangePair.get(0).length() == 4) {
                 dateRange.add(dateFmt1.parse("01/01/" + dateRangePair.get(0)));
             } else {
-                boolean isFromDate = true;
-                dateRange.add(parseDate(dateRangePair.get(0), isFromDate));
+                try {
+                    List<Date> dates = parseDateRange(dateRangePair.get(0));
+                    if (dates != null && dates.size() > 0)
+                        dateRange.add(dates.get(0));
+                    else
+                        dateRange.add(null);
+                } catch (ParseException e) {
+                    boolean isFromDate = true;
+                    dateRange.add(parseDate(dateRangePair.get(0), isFromDate));
+                }
             }
             
             if (dateRangePair.get(1).length() == 4) {
                 dateRange.add(dateFmt1.parse("31/12/" + dateRangePair.get(1)));
             } else {
-                boolean isFromDate = false;
-                dateRange.add(parseDate(dateRangePair.get(1), isFromDate));
+                try {
+                    List<Date> dates = parseDateRange(dateRangePair.get(1));
+                    if (dates != null && dates.size() > 0)
+                        dateRange.add(dates.get(dates.size() - 1));
+                    else
+                        dateRange.add(null);
+                } catch (ParseException e) {
+                    boolean isFromDate = false;
+                    dateRange.add(parseDate(dateRangePair.get(1), isFromDate));
+                }
             }
         }
         if (dateRange.isEmpty()) return parseCircaDateRange(dateRangeExpr);
@@ -165,12 +200,17 @@ public class DateParser {
      */
     protected static List<Date> parseCircaDateRange(String dateRangeExpr) throws ParseException {
         List<Date> dateRange = new ArrayList<>();
-
+        dateRangeExpr = dateRangeExpr.trim();
+        boolean addDecade = false;
+        if (dateRangeExpr.endsWith("s")) {
+            addDecade = true;
+            dateRangeExpr = dateRangeExpr.substring(0, dateRangeExpr.length() - 1);
+        }
         Pattern circaPattern = Pattern.compile(circaDateRangePattern);
         Matcher matcher = circaPattern.matcher(dateRangeExpr);
         if (matcher.matches()) {
             int startYear = Integer.parseInt(matcher.group(1));
-            int endYear = startYear + 9;
+            int endYear = (addDecade)? startYear + 9 : startYear;
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy:MM:dd");
             dateRange.add(dateFormat.parse(startYear + ":01:01"));
             dateRange.add(dateFormat.parse(endYear + ":12:31"));

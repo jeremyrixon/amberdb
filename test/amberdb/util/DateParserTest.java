@@ -33,7 +33,7 @@ public class DateParserTest {
        "12 September 1984",
        "May 1993"
     };
-    
+        
     static final String[] dateRangePattern = { 
         "(.*)\\s*-\\s*(.*)",
         "(.*)\\s*/\\s*(.*)"};
@@ -81,6 +81,66 @@ public class DateParserTest {
     }
     
     @Test
+    public void testAdditionalDateRangePattern() throws ParseException {
+        String dateRange1 = "c.1936";
+        String expectedStartDate1 = "01-01-1936";
+        String expectedEndDate1 = "31-12-1936";
+        List<Date> dates1 = DateParser.parseCircaDateRange(dateRange1);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+        assertEquals(expectedStartDate1, dateFormat.format(dates1.get(0)));
+        assertEquals(expectedEndDate1, dateFormat.format(dates1.get(1)));
+        
+        String dateRange2 = "1936 or 1937";
+        String expectedStartDate2 = "01-01-1936";
+        String expectedEndDate2 = "31-12-1937";
+        List<Date> dates2 = DateParser.parseDateRange(dateRange2);
+        assertEquals(expectedStartDate2, dateFormat.format(dates2.get(0)));
+        assertEquals(expectedEndDate2, dateFormat.format(dates2.get(1)));
+        
+        String dateRange3 = "4 June 1937";
+        String expectedStartDate3 = "04-06-1937";
+        String expectedEndDate3 = "04-06-1937";
+        List<Date> dates3 = DateParser.parseDateRange(dateRange3);
+        assertEquals(expectedStartDate3, dateFormat.format(dates3.get(0)));
+        assertEquals(expectedEndDate3, dateFormat.format(dates3.get(1)));
+        
+        String dateRange4 = "November 1937";
+        String expectedStartDate4 = "01-11-1937";
+        String expectedEndDate4 = "30-11-1937";
+        List<Date> dates4 = DateParser.parseDateRange(dateRange4);
+        assertEquals(expectedStartDate4, dateFormat.format(dates4.get(0)));
+        assertEquals(expectedEndDate4, dateFormat.format(dates4.get(1)));
+        
+        String dateRange5 = "[4] June 1937";
+        String expectedStartDate5 = "04-06-1937";
+        String expectedEndDate5 = "04-06-1937";
+        List<Date> dates5 = DateParser.parseDateRange(dateRange5);
+        assertEquals(expectedStartDate5, dateFormat.format(dates5.get(0)));
+        assertEquals(expectedEndDate5, dateFormat.format(dates5.get(1)));
+        
+        String dateRange6 = "[November] 1937";
+        String expectedStartDate6 = "01-11-1937";
+        String expectedEndDate6 = "30-11-1937";
+        List<Date> dates6 = DateParser.parseDateRange(dateRange6);
+        assertEquals(expectedStartDate6, dateFormat.format(dates6.get(0)));
+        assertEquals(expectedEndDate6, dateFormat.format(dates6.get(1)));
+        
+        String dateRange7 = "1914, 1919-1960 (bulk 1930-1958)";
+        String expectedStartDate7 = "01-01-1914";
+        String expectedEndDate7 = "31-12-1960";
+        List<Date> dates7 = DateParser.parseDateRange(dateRange7);
+        assertEquals(expectedStartDate7, dateFormat.format(dates7.get(0)));
+        assertEquals(expectedEndDate7, dateFormat.format(dates7.get(1)));
+        
+        String dateRange8 = "9-15 December 1938";
+        String expectedStartDate8 = null;
+        String expectedEndDate8 = "15-12-1938";
+        List<Date> dates8 = DateParser.parseDateRange(dateRange8);
+        assertEquals(expectedStartDate8, dates8.get(0));
+        assertEquals(expectedEndDate8, dateFormat.format(dates8.get(1)));
+    }
+    
+    @Test
     public void testCircaDateRangePattern() throws ParseException {
         String dateRange = "c.1990s";
         String expectedStartDate = "01-01-1990";
@@ -112,12 +172,22 @@ public class DateParserTest {
         List<Date> dateRange = DateParser.parseDateRange(testBulkDateRangeExprs);
         assertEquals(expectedFromDate, dateFmt.format(dateRange.get(0)));
         assertEquals(expectedToDate, dateFmt.format(dateRange.get(1)));
+        
+        String testBulkDateRangeExprs1 = "1914, 1919-1960 (bulk 1930-1958)";
+        String expectedFromDate1 = "01/01/1914";
+        String expectedToDate1 = "31/12/1960";
+        List<Date> dateRange1 = DateParser.parseDateRange(testBulkDateRangeExprs1);
+        System.out.println(dateRange1.get(0));
+        System.out.println(dateRange1.get(1));
+        assertEquals(expectedFromDate1, dateFmt.format(dateRange1.get(0)));
+        assertEquals(expectedToDate1, dateFmt.format(dateRange1.get(1)));
     }
     
     @Test
     public void testDateRangePattern() throws ParseException {
         int i = 0;
         for (String dateRangeExpr : testDateRangeExprs) {
+            System.out.println("date range: " + dateRangeExpr);
             List<Date> dateRange = DateParser.parseDateRange(dateRangeExpr);
             
             if (dateRangeExpr == null || dateRangeExpr.trim().isEmpty())
