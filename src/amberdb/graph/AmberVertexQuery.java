@@ -33,7 +33,7 @@ public class AmberVertexQuery extends AmberQueryBase {
     }
 
 
-    protected AmberVertexQuery(AmberGraph graph) {
+    public AmberVertexQuery(AmberGraph graph) {
         super(graph);
     }
     
@@ -179,6 +179,32 @@ public class AmberVertexQuery extends AmberQueryBase {
                 q.bind("name"+i, properties.get(i).getName());
                 q.bind("value"+i, AmberProperty.encode(properties.get(i).getValue()));
             }
+            q.execute();
+            h.commit();
+
+            // and reap the rewards
+            Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h, "vp", "id");
+            vertices = getVertices(h, graph, propMaps, "vp", "id", "id");
+        }
+        return vertices;
+    }
+    
+    
+    public List<Vertex> executeJsonValSearch(String name, String value) {
+
+        List<Vertex> vertices;
+        try (Handle h = graph.dbi().open()) {
+            h.begin();
+            h.execute("DROP " + graph.tempTableDrop + " TABLE IF EXISTS vp; CREATE TEMPORARY TABLE vp (id BIGINT) " + graph.tempTableEngine + ";");
+            Update q = h.createStatement(
+                    "INSERT INTO vp (id) \n"
+                    + "SELECT p.id \n"
+                    + "FROM property p \n"
+                    + "WHERE p.txn_end = 0 \n"
+                    + "AND p.name = :name " 
+                    + "AND p.value REGEXP :value");
+            q.bind("name", name);
+            q.bind("value", AmberProperty.encode("\"" + value + "\""));
             q.execute();
             h.commit();
 

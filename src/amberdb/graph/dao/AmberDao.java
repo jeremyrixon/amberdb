@@ -157,6 +157,12 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "ON property(value(512))")
     void createPropertyValueIndex();
 
+
+    @SqlUpdate(
+            "CREATE INDEX property_name_val_idx "
+            + "ON property(name, value(512))")
+    void createPropertyNameValueIndex();
+
     
     @SqlUpdate(
             "CREATE INDEX prop_txn_end_idx "
@@ -452,6 +458,5 @@ public interface AmberDao extends Transactional<AmberDao> {
             "WHERE s_id = @sessId;\n")
     void clearSession(
             @Bind("sessId") Long sessId);
-
 }
 
