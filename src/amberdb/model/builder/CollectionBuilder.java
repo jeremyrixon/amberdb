@@ -52,25 +52,11 @@ import static amberdb.model.builder.XmlDocumentParser.CFG_REPEATABLE_ELEMENTS;
 public class CollectionBuilder {
     static final Logger log = LoggerFactory.getLogger(CollectionBuilder.class);
     static final ObjectMapper mapper = new ObjectMapper();
-    static Map<String, String> customMsgs;
     
     public static void setValidationMessages(Map<String, String> customMsgs) {
-        customMsgs = customMsgs;
+        EADValidationException.customMsgs = customMsgs;
     }
     
-    protected static Map<String, String> getValidationMessages() {
-        if (customMsgs == null) {
-            // create default validation messages
-            customMsgs = new HashMap<>();
-            customMsgs.put("FAILED_TO_CREATE_CHILD_WORK", "Failed to create child works from ${workObjId}.xml for work ${workObjId}.");
-            customMsgs.put("NO_UUID_FOR_CHILD_WORK", "No Archives Space ID specified for a component work.");
-            customMsgs.put("MISSING_CONTAINER_TYPE", "No container type specified for one of the containers for the component work ${componentWorkObjId} (Archives Space ID: ${componentWorkUUID})");
-            customMsgs.put("FAILED_TO_DETERMINE_START_DATE", "Failed to extract start date for the component work ${componentWorkObjId} (Archives Space ID: ${componentWorkUUID})");
-            customMsgs.put("FAILED_EXTRACT_ENTITIIES", "Failed to extract entities for the work ${workObjId}.");
-            customMsgs.put("FAILED_EXTRACT_FEATURE", "Failed to extract container list for the work ${workObjId}.");
-        }
-        return customMsgs;
-    }
     /**
      * createCollection in absence of collection configuration and document parser input parameters, 
      * resolves to default collection JSON configuration and the default EAD parser in order to 
@@ -611,7 +597,7 @@ public class CollectionBuilder {
         }
 
         if (!collectionWork.getChildren().iterator().hasNext()) {
-            throw new EADValidationException(getValidationMessages().get("FAILED_TO_CREATE_CHILD_WORK"), collectionWork.getObjId(), collectionWork.getObjId());
+            throw new EADValidationException("FAILED_TO_CREATE_CHILD_WORK", collectionWork.getObjId(), collectionWork.getObjId());
         }
     }
     
@@ -644,6 +630,7 @@ public class CollectionBuilder {
                 }
             } catch (IOException e) {
                 log.error("Failed to extract feature " + featureType + " for work " + collectionWork.getObjId() + ".");
+                throw new EADValidationException("FAILED_EXTRACT_FEATURE", featureType, collectionWork.getObjId());
             }
         }
     }
@@ -700,6 +687,7 @@ public class CollectionBuilder {
                 }
             } catch (IOException e) {
                 log.error("Failed to extract entities for work " + collectionWork.getObjId() + ".");
+                throw new EADValidationException("FAILED_EXTRACT_ENTITIES", collectionWork.getObjId());
             }
         }
     }
@@ -715,7 +703,7 @@ public class CollectionBuilder {
             
             EADWork workInCollection;
             if (newCollection) {
-               workInCollection = mapWorkMD(parentWork, eadElement, elementCfg, parser); 
+               workInCollection = mapWorkMD(parentWork, eadElement, elementCfg, parser, i); 
                if (collectionWork.getRepository() != null)
                    workInCollection.setRepository(collectionWork.getRepository());
                // inherit access conditions from the top-level collection work
@@ -884,7 +872,7 @@ public class CollectionBuilder {
         collectionWork.asEADWork().setAdminInfo(adminInfo);
     }
     
-    private static void mapBibliography(Work collectionWork, Map<String, String> fieldsMap) {
+    private static void mapBibliography(Work collectionWork, Map<String, String> fieldsMap) throws EADValidationException {
         try {
             String bibliography = fieldsMap.get("bibliography");
             if (bibliography != null && !bibliography.isEmpty()) {
@@ -899,14 +887,16 @@ public class CollectionBuilder {
             }
         } catch (IOException e) {
             log.error("Failed to map bibliography for collection work " + collectionWork.getObjId());
+            throw new EADValidationException("FAILED_EXTRACT_BIBLIOGRAPHY", collectionWork.getObjId());
         }
     }
     
-    protected static EADWork mapWorkMD(EADWork collectionWork, Node eadElement, JsonNode elementCfg, XmlDocumentParser parser) throws EADValidationException, JsonParseException, JsonMappingException, IOException {
+    protected static EADWork mapWorkMD(EADWork collectionWork, Node eadElement, JsonNode elementCfg, XmlDocumentParser parser, int ord) throws EADValidationException, JsonParseException, JsonMappingException, IOException {
         EADWork workInCollection = null;
         Map<String, String> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));        
         if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").isEmpty()) {
-           throw new EADValidationException(getValidationMessages().get("NO_UUID_FOR_CHILD_WORK"));
+           String collectionWorkUUID = (collectionWork.getLocalSystemNumber() == null)? "" : collectionWork.getLocalSystemNumber();  
+           throw new EADValidationException("NO_UUID_FOR_CHILD_WORK", "" + ord, collectionWork.getObjId(), collectionWorkUUID);
         }
         String uuid = fieldsMap.get("uuid");
         workInCollection = collectionWork.checkEADWorkInCollectionByLocalSystemNumber(uuid);
@@ -994,6 +984,7 @@ public class CollectionBuilder {
             }
         } catch (IOException e) {
             log.error("Failed to retrieve background for collection work " + work.getObjId());
+            throw new EADValidationException("FAILED_EXTRACT_BIBLIOGRAPHY", work.getObjId());
         }
         
         ArrayNode features = mapEADFeatures(work);
