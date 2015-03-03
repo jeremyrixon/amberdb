@@ -294,6 +294,19 @@ public class AmberSession implements AutoCloseable {
         return graph.frame(graph.getVertices("bibId", Long.toString(vnLink)).iterator().next(), Section.class);
     }
 
+
+    /**
+     * Finds nodes that have a given value in a json string list property.
+     * @param <T>
+     */
+    public <T> List<T> findModelByValueInJsonList(String propertyName, String value, Class<T> T) {
+        List<T> nodes = new ArrayList<>();
+        for (Vertex match : getAmberGraph().getVerticesByJsonListValue(propertyName, value)) {
+            nodes.add((T) graph.frame(match, T));
+        }
+        return nodes;
+    }
+    
     
     /**
      * Creates a new work.
