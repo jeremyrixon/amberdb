@@ -83,12 +83,19 @@ public class ComponentBuilder {
             log.debug("The component nla object id is " + component.get("nlaObjId").getTextValue());
             try {
                 componentWork = collectionWork.getEADWork(PIUtil.parse(component.get("nlaObjId").getTextValue()));
+                String accessConditions = componentWork.getAccessConditions();
+                String internalAccessConditions = componentWork.getInternalAccessConditions();
+                String digitalStatus = componentWork.getDigitalStatus();
                 if (!parentWork.getObjId().equals(componentWork.getParent().getObjId())) {
                     // Update component path
                     Work fromParent = componentWork.getParent();
                     fromParent.removePart(componentWork);
                     componentWork.setParent(parentWork);
                 }
+                // retaining existing values for access restrictions and digital status during EAD reload.
+                componentWork.setAccessConditions(accessConditions);
+                componentWork.setInternalAccessConditions(internalAccessConditions);
+                componentWork.setDigitalStatus(digitalStatus);
             } catch (Exception e) {
                 componentWork = parentWork.addEADWork();
             }
@@ -122,14 +129,18 @@ public class ComponentBuilder {
             componentWork.asEADWork().setRdsAcknowledgementReceiver("NLA");
         
         // eadUpdateReviewRequired appears on the child levels only
-        componentWork.setEADUpdateReviewRequired("N"); 
+        if (componentWork.getEADUpdateReviewRequired() == null)
+            componentWork.setEADUpdateReviewRequired("N"); 
         
         String accessConditions = componentWork.getParent().getAccessConditions();
-        if (accessConditions != null && !accessConditions.isEmpty())
-            componentWork.setAccessConditions(accessConditions);
-        else
-            componentWork.setAccessConditions(AccessCondition.RESTRICTED.code());
-        componentWork.setDigitalStatus(DigitalStatus.NOT_CAPTURED.code());
+        if (componentWork.getAccessConditions() == null) {
+            if (accessConditions != null && !accessConditions.isEmpty())
+                componentWork.setAccessConditions(accessConditions);
+            else
+                componentWork.setAccessConditions(AccessCondition.RESTRICTED.code());
+        }
+        if (componentWork.getDigitalStatus() == null)
+            componentWork.setDigitalStatus(DigitalStatus.NOT_CAPTURED.code());
         
         List<String> constraints = componentWork.getParent().getConstraint();
         componentWork.setConstraint(constraints);
@@ -138,15 +149,14 @@ public class ComponentBuilder {
         componentWork.setExpiryDate(expiryDate);
         
         String internalAccessConditions = AccessCondition.OPEN.code();
-        String copyrightPolicy = CopyrightPolicy.PERPETUAL.code();
+        String copyrightPolicy = CopyrightPolicy.OUTOFCOPYRIGHT.code();
         if (componentWork.getCollection() != null && componentWork.getCollection().equalsIgnoreCase("nla.ms")) {
             internalAccessConditions = AccessCondition.RESTRICTED.code();
-            copyrightPolicy = CopyrightPolicy.OUTOFCOPYRIGHT.code();
+            copyrightPolicy = CopyrightPolicy.PERPETUAL.code();
         }
-        componentWork.setInternalAccessConditions(internalAccessConditions);
+        if (componentWork.getInternalAccessConditions() == null)
+            componentWork.setInternalAccessConditions(internalAccessConditions);
         componentWork.setCopyrightPolicy(copyrightPolicy);
-        
-        componentWork.setCopyrightPolicy("Perpetual");
         componentWork.setSensitiveMaterial("No");
               
         String componentLevel = fieldsMap.get("component-level");
@@ -166,7 +176,6 @@ public class ComponentBuilder {
         if (componentNumber != null && !componentNumber.isEmpty()) {
             log.debug("component work " + componentWork.getObjId() + ": componentNumber: " + componentNumber.toString());
             componentWork.setSubUnitNo(componentNumber.toString());
-            componentWork.setOrder(Integer.parseInt(componentNumber.toString()));
         }
         
         Object unitTitle = fieldsMap.get("title");

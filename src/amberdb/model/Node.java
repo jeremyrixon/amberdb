@@ -292,8 +292,8 @@ public interface Node extends VertexFrame {
             List<T> entries = new ArrayList<>();
             Iterator<Description> it = descriptions.iterator();
             while (it.hasNext()) {
-                Description next = it.next();
-                if (next.getType() != null && next.getType().equals(returnClass.getName())) {
+                Description next = it.next();  
+                if (next.getType() != null && (next.getType().equals(returnClass.getName()) || (next.getType().equals(returnClass.getSimpleName())))) {
                     entries.add(this.g().getVertex(next.asVertex().getId(), returnClass));
                 }
             }

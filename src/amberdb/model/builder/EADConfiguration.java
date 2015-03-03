@@ -117,6 +117,7 @@ public class EADConfiguration {
     
     protected JsonNode getMappedOddFieldsCfg() {
         JsonNode oddFields = mapper.createObjectNode();
+        ((ObjectNode) oddFields).put("id", "@id");
         ((ObjectNode) oddFields).put("odd-type", "ead:head");
         ((ObjectNode) oddFields).put("odd-fields", "ead:table/ead:tgroup/ead:thead/ead:row/ead:entry");
         ((ObjectNode) oddFields).put("odd-record-data", "ead:table/ead:tgroup/ead:tbody/ead:row/ead:entry");
@@ -133,7 +134,10 @@ public class EADConfiguration {
     
     protected JsonNode getMappedIndexFieldsCfg() {
         JsonNode indexFields = mapper.createObjectNode();
+        ((ObjectNode) indexFields).put("id", "@id");
+        ((ObjectNode) indexFields).put("header", "ead:p");
         ((ObjectNode) indexFields).put("corpname", "ead:corpname");
+        ((ObjectNode) indexFields).put("famname", "ead:famname");
         ((ObjectNode) indexFields).put("persname", "ead:persname");
         ((ObjectNode) indexFields).put("ref", "ead:ref");
         return indexFields;

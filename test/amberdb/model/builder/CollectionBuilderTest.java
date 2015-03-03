@@ -38,6 +38,8 @@ import amberdb.AmberSession;
 import amberdb.enums.AccessCondition;
 import amberdb.enums.CopyRole;
 import amberdb.model.Copy;
+import amberdb.model.EADEntity;
+import amberdb.model.EADFeature;
 import amberdb.model.Work;
 
 public class CollectionBuilderTest {
@@ -68,6 +70,7 @@ public class CollectionBuilderTest {
         objectMapper = new ObjectMapper();
         // collectCfg = objectMapper.readTree(new File("test/resources/ead.json"));
         collectCfg = CollectionBuilder.getDefaultCollectionCfg();
+        ObjectMapper mapper = new ObjectMapper();
         ((ObjectNode) collectCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
         ((ObjectNode) collectCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "no");
 
@@ -134,6 +137,22 @@ public class CollectionBuilderTest {
                 assertEquals(expectedCreator, creator);
                 assertEquals(expectedUuids[i], asId);
                 i++;
+            }
+        }
+    }
+    
+    @Test
+    public void testFindExistingEADWork() throws ValidityException, IOException, ParsingException {
+        try (AmberSession as = db.begin()) {
+            Work collectionWork = as.findWork(collectionWorkId);
+            List<Work> subWorks = collectionWork.getPartsOf(new ArrayList<String>());
+            Map<String, String> idMap = new HashMap<>();
+            for (Work subWork : subWorks) {
+                idMap.put(subWork.getLocalSystemNumber(), subWork.getObjId());
+            }
+            for (String inputLocalSystemNumber : idMap.keySet()) {
+                String expectedObjId = idMap.get(inputLocalSystemNumber);
+                assertEquals(expectedObjId, collectionWork.asEADWork().checkEADWorkInCollectionByLocalSystemNumber(inputLocalSystemNumber).getObjId());
             }
         }
     }
@@ -308,6 +327,37 @@ public class CollectionBuilderTest {
     }
     
     @Test
+    public void testEADCollectionWithCorrespondenceIdxContainerList() throws ValidityException, IOException, ParsingException {
+        createCollection();
+        try (AmberSession as = db.begin()) {
+            Work collectionWork = as.findWork(collectionWorkId);
+            List<EADFeature> containerList = collectionWork.asEADWork().getEADFeatures();
+            assertEquals("number of container list", 1, containerList.size()); 
+            assertEquals("number of columns", 4, containerList.get(0).getFields().size());
+            assertEquals("number of records", 176, containerList.get(0).getRecords().size());
+            assertEquals("first container record: Series", "1", containerList.get(0).getRecords().get(0).get(0));
+            assertEquals("first container record: Series", "1-9", containerList.get(0).getRecords().get(0).get(1));
+            assertEquals("first container record: Series", "1-1029", containerList.get(0).getRecords().get(0).get(2));
+            assertEquals("first container record: Series", "1", containerList.get(0).getRecords().get(0).get(3));
+        }
+    }
+    
+    @Test
+    public void testEADCollectionWithCorrespondenceIndex() throws ValidityException, IOException, ParsingException {
+        createCollection();
+        try (AmberSession as = db.begin()) {
+            Work collectionWork = as.findWork(collectionWorkId);
+            String correspondenceId = collectionWork.asEADWork().getCorrespondenceId();
+            String correspondenceHeader = collectionWork.asEADWork().getCorrespondenceHeader();
+            List<EADEntity> entities = collectionWork.asEADWork().getEADEntities();
+            assertEquals("correspondence id", "aspace_3866e149682cb863686b1c74fe987122", correspondenceId);
+            String expectedCorrespondenceHeader = "An index of correspondence items in Series 1.1 (letters to Patrick White), Series 1.2 (letters by Patrick White), and Series 26.1 (letters to Manoly Lascaris).  Each correspondent is listed alphabetically by surname. The numbers refer to the series, subseries and folder in which the correspondence is held.";
+            assertEquals("correspondence header",  expectedCorrespondenceHeader, correspondenceHeader);
+            assertEquals("correspondence list size",  215, entities.size());
+        }
+    }
+    
+    @Test
     public void testComponentWorksMap() throws ValidityException, IOException, ParsingException {
         createCollection();
         try (AmberSession as = db.begin()) {
@@ -344,7 +394,7 @@ public class CollectionBuilderTest {
         }
     }
         
-    private void createCollection() throws IOException, ValidityException, ParsingException {
+    private void createCollection() throws IOException, ValidityException, ParsingException {            
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
             InputStream in = new FileInputStream(testEADPath.toFile());

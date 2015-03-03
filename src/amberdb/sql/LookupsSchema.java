@@ -950,6 +950,19 @@ public abstract class LookupsSchema {
     public abstract void seedKeyCodeList();
     
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
+    + "('eadUpdateReviewRequired', 'Y', 'Yes'),"
+    + "('eadUpdateReviewRequired', 'N', 'No')")
+    public abstract void seedEADUpdateReviewRequired();
+    
+    @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
+    + "('eadFileValidationMsg', 'INVALID_FILE_NAME', 'The file ${filename} does not match the work''s PI.  Please rename your file to ${workObjId}.xml.'),"  
+    + "('eadFileValidationMsg', 'FILE_ALREADY_LOADED', 'File has already been uploaded for job ${jobId}.')," 
+    + "('eadFileValidationMsg', 'CANNOT_OPEN_FILE', 'Fail to access file ${filename}.')," 
+    + "('eadFileValidationMsg', 'MISSING_EAD_XML_NAMESPACE', 'Invalid EAD file, it is missing EAD xml namespace: ${xmlHeader}.')," 
+    + "('eadFileValidationMsg', 'VALID_FILE', '${filename} is a valid file.')")
+    public abstract void seedDataValidationMsgs();
+    
+    @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
     + "('collection','nla.aus', 'Australian'),"
     + "('collection','nla.ms', 'Manuscript'),"
     + "('collection','nla.map', 'Map'),"
@@ -1052,6 +1065,8 @@ public abstract class LookupsSchema {
         createToolsToolCategoryIdIndex();
         createToolsMaterialTypeIdIndex();
         seedKeyCodeList();
+        seedEADUpdateReviewRequired();
+        seedDataValidationMsgs();
         seedCollectionList();
         seedCopyTypeList();
         seedTiffMetaLuList();

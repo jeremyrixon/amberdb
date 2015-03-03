@@ -3,6 +3,7 @@ package amberdb.model.builder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -138,41 +139,35 @@ public class CollectionBuilder {
     }
     
     /**
-     * reloadEADPreChecks checks each EADwork to be purged as whether there're any digitial objects attached to it, if so, EADValidationException is thrown.
-     * If no digital object is attached to any EADwork to be purged, a list of nla object ids for the EADworks to be purged is returned.
+     * reloadEADPreChecks checks each EADwork within the collectionWork and returns a list of EADwork object id
+     * if these EADwork does not exist in the new EAD file for reload.  
      *   
      * @param collection - the top level work of a collection with the new updated EAD finding aid attached as
      *                     the FINDING_AID_COPY, and the FINDING_AID_VIEW_COPY containing json not yet containing 
      *                     updates from the new updated FINDING_AID_COPY.
-     * @return list of nla object ids for the EADworks to be deleted.
-     * @throws EADValidationException when a component EADwork (in collection) to be purged has digital objects attach to it.
+     * @return list of nla object ids of the EADworks requiring EAD update review.
      * @throws IOException 
-     * @throws JsonMappingException 
-     * @throws JsonParseException 
      * @throws ParsingException 
      * @throws ValidityException 
      */
-    public static List<String> reloadEADPreChecks(Work collectionWork) throws EADValidationException, JsonParseException, JsonMappingException, IOException, ValidityException, ParsingException {
+    public static List<String> reloadEADPreChecks(Work collectionWork) throws ValidityException, ParsingException, IOException {
         return reloadEADPreChecks(collectionWork.asEADWork(), null);
     }
     
     /**
-     * reloadEADPreChecks checks each EADwork to be purged as whether there're any digitial objects attached to it, if so, EADValidationException is thrown.
-     * If no digital object is attached to any EADwork to be purged, a list of nla object ids for the EADworks to be purged is returned.
+     * reloadEADPreChecks checks each EADwork within the collectionWork and returns a list of EADwork object id
+     * if these EADwork does not exist in the new EAD file for reload.
      *   
      * @param collection - the top level work of a collection with the new updated EAD finding aid attached as
      *                     the FINDING_AID_COPY, and the FINDING_AID_VIEW_COPY containing json not yet containing 
      *                     updates from the new updated FINDING_AID_COPY.
      * @param parser     - the XML document parser configured to parse the updated EAD.
-     * @return list of nla object ids for the EADworks to be deleted.
-     * @throws EADValidationException when a component EADwork (in collection) to be purged has digital objects attach to it.
+     * @return list of nla object ids of the EADworks requiring EAD update review.
      * @throws IOException 
-     * @throws JsonMappingException 
-     * @throws JsonParseException 
      * @throws ParsingException 
      * @throws ValidityException 
      */
-    public static List<String> reloadEADPreChecks(EADWork collection, XmlDocumentParser parser) throws EADValidationException, JsonParseException, JsonMappingException, IOException, ValidityException, ParsingException {
+    public static List<String> reloadEADPreChecks(EADWork collection, XmlDocumentParser parser) throws ValidityException, ParsingException, IOException {
         if (collection == null) {
             String errMsg = "Failed to perform EAD reload prechecks as the input collection work is null.";
             log.error(errMsg);
@@ -206,12 +201,9 @@ public class CollectionBuilder {
      *                         updates from the new updated FINDING_AID_COPY.
      * @return a map of (uuid, nla object id) of each EAD works within collectionWork (including the collectionWork).
      *         
-     * @throws JsonParseException
-     * @throws JsonMappingException
      * @throws IOException
      */
-    protected static Map<String, String> componentWorksMap(Work collectionWork) throws JsonParseException,
-            JsonMappingException, IOException {
+    protected static Map<String, String> componentWorksMap(Work collectionWork) throws IOException {
         JsonNode content = getFindingAIDJsonDocument(collectionWork).getContent();
         Map<String, String> uuidToPIMap = new HashMap<>();
 
@@ -238,12 +230,9 @@ public class CollectionBuilder {
      * @return a list of objId of each EAD works within collectionWork (including the collectionWork) which has any digital
      *         object attach to it.
      *         
-     * @throws JsonParseException
-     * @throws JsonMappingException
      * @throws IOException
      */
-    protected static List<String> digitisedItemList(Work collectionWork) throws JsonParseException,
-            JsonMappingException, IOException {
+    protected static List<String> digitisedItemList(Work collectionWork) throws IOException {
         // Get a list of EAD component works in the current collection work
         // structure which has digital objects attached
         JsonNode content = getFindingAIDJsonDocument(collectionWork).getContent();
@@ -269,7 +258,7 @@ public class CollectionBuilder {
         return objIdList;
     }
     
-    protected static Document getFindingAIDJsonDocument(Work collectionWork) throws JsonParseException, JsonMappingException, IOException {
+    protected static Document getFindingAIDJsonDocument(Work collectionWork) throws IOException {
         Copy eadJsonCopy = collectionWork.getCopy(CopyRole.FINDING_AID_VIEW_COPY);
         if (eadJsonCopy == null || eadJsonCopy.getFile() == null) {
             String errMsg = "Failed to process work collection as the input collection work " + collectionWork.getObjId() + " does not have a finding aid json copy.";
@@ -286,24 +275,24 @@ public class CollectionBuilder {
      * reloadCollection parses the updated EAD file attached to the top-level
      * collection work with the input field mapping from collectionCfg, and
      * update the collection work structure under the top level collection by
-     * adding EAD work for each new EAD component; delete EAD work for an EAD
+     * adding EAD work for each new EAD component; mark EAD work for an EAD
      * component that was previously there but not included in the updated EAD
-     * file; update EAD work for an EAD component with modified metadata.
+     * file as EADUpdateReviewRequired; update EAD work for an EAD component 
+     * with modified metadata.
      * 
-     * pre-requisite: reloadEADPreChecks() has been called, and all components intended for purging
-     *                has been purged.
+     * pre-requisite: reloadEADPreChecks() has been called, and a list of components requiring EAD update
+     *                review has been returned.
      *                
      * reloadCollection also call generateJson(...) to regenerate the derivative Json to reflect the updated
      * the mapping of the structure and the content for top level collection metadata and its components and 
      * sub-components.
      * 
      * if any of the EAD work in the current collection work structure has copies and files
-     * attached to it, the copies and files will be re-attached to the corresponding
-     * node in the recreated collection work structure.
+     * attached to it, the copies and files will be retained.
      * 
-     * @param collectionWork - the top level work of a collection with the new updated EAD attached as the FINDING_AID_COPY, 
-     *                         and the FINDING_AID_VIEW_COPY containing json not yet containing updates from the new updated
-     *                         FINDING_AID_COPY.
+     * @param collectionWork - input collectionWork is the top level work of a collection with the new updated EAD attached 
+     *                         as the FINDING_AID_COPY, and the FINDING_AID_VIEW_COPY containing json not yet containing updates 
+     *                         from the new updated FINDING_AID_COPY.
      * @throws EADValidationException
      * @throws IOException
      * @throws ParsingException 
@@ -317,24 +306,24 @@ public class CollectionBuilder {
      * reloadCollection parses the updated EAD file attached to the top-level
      * collection work with the input field mapping from collectionCfg, and
      * update the collection work structure under the top level collection by
-     * adding EAD work for each new EAD component; delete EAD work for an EAD
+     * adding EAD work for each new EAD component; mark EAD work for an EAD
      * component that was previously there but not included in the updated EAD
-     * file; update EAD work for an EAD component with modified metadata.
+     * file as EADUpdateReviewRequired; update EAD work for an EAD component 
+     * with modified metadata.
      * 
-     * pre-requisite: reloadEADPreChecks() has been called, and all components intended for purging
-     *                has been purged.
+     * pre-requisite: reloadEADPreChecks() has been called, and a list of components requiring EAD update
+     *                review has been returned.
      * 
      * reloadCollection also call generateJson(...) to regenerate the derivative Json to reflect the updated
      * the mapping of the structure and the content for top level collection metadata and its components and 
      * sub-components.
      * 
      * if any of the EAD work in the current collection work structure has copies and files
-     * attached to it, the copies and files will be re-attached to the corresponding
-     * node in the recreated collection work structure.
+     * attached to it, the copies and files will be retained.
      * 
-     * @param collectionWork - the top level work of a collection with the new updated EAD attached as the FINDING_AID_COPY, 
-     *                         and the FINDING_AID_VIEW_COPY containing json not yet containing updates from the new updated
-     *                         FINDING_AID_COPY.
+     * @param collectionWork - input collectionWork is the top level work of a collection with the new updated EAD attached 
+     *                         as the FINDING_AID_COPY, and the FINDING_AID_VIEW_COPY containing json not yet containing updates 
+     *                         from the new updated FINDING_AID_COPY.
      * @param collectionCfg  - configuration for parsing attached EAD file in order to create the collection.
      * @param parser         - the XML document parser for parsing the EAD.
      * @throws EADValidationException
@@ -550,13 +539,12 @@ public class CollectionBuilder {
                 eadCopy.removeFile(eadCopy.getFile());
         }
         eadCopy.addFile(Writables.wrap(content), contentType);
-        eadCopy.setMaterialType("Text");
         eadCopy.setCopyType("b");
         eadCopy.setCarrier("Online");
         eadCopy.setSourceCopy(work.getCopy(CopyRole.FINDING_AID_COPY));
     }
     
-    protected static void processCollection(Work collectionWork, InputStream in, JsonNode collectionCfg, XmlDocumentParser parser) throws EADValidationException, ValidityException, ParsingException, IOException {
+    protected static void processCollection(Work collectionWork, InputStream in, JsonNode eadCfg, XmlDocumentParser parser) throws EADValidationException, ValidityException, ParsingException, IOException {
         boolean newCollection = true;
         Map<String, String> componentWorks;
         
@@ -567,8 +555,9 @@ public class CollectionBuilder {
             componentWorks = new ConcurrentHashMap<>();
         }
         
+        JsonNode collectionCfg = eadCfg.get(CFG_COLLECTION_ELEMENT);
         // update metadata in the collection work.
-        mapCollectionMD(collectionWork, collectionCfg.get(CFG_COLLECTION_ELEMENT), parser);
+        mapCollectionMD(collectionWork, collectionCfg, parser);
         
         // extract features like container list
         JsonNode featuresCfg = collectionCfg.get(CFG_FEATURE_ELEMENTS);
@@ -587,7 +576,7 @@ public class CollectionBuilder {
         
         // traverse EAD components, and create work for each component under the top-level work, 
         // and map its metadata
-        JsonNode subElementsCfg = collectionCfg.get(CFG_COLLECTION_ELEMENT).get(CFG_SUB_ELEMENTS);
+        JsonNode subElementsCfg = collectionCfg.get(CFG_SUB_ELEMENTS);
         
         if (subElementsCfg != null) {
             String basePath = subElementsCfg.get(CFG_BASE).getTextValue();
@@ -606,34 +595,34 @@ public class CollectionBuilder {
     
     protected static void extractFeatures(EADWork collectionWork, JsonNode featuresCfg, XmlDocumentParser parser) {
         String basePath = featuresCfg.get(CFG_BASE).getTextValue();
-        String repeatablePath = featuresCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
-        Map<String, String> mapping = parser.getFieldsMap(parser.doc.getRootElement(), featuresCfg, basePath);
-        String featureType = mapping.get("odd-type");
-        try {
-            if (featureType != null || !featureType.isEmpty()) {
-                EADFeature feature = collectionWork.addEADFeature();
-                feature.setFeatureType(featureType);
-                List<String> featureFields = toList(mapping.get("odd-fields"));
-                if (featureFields != null) {
-                    feature.setFields(featureFields);
-                }
-                Nodes eadElements = parser.getElementsByXPath(parser.getDocument(), basePath);
-                if (eadElements != null && eadElements.size() > 0) {
+        Nodes nodes = parser.getElementsByXPath(parser.getDocument(), basePath);
+        if (nodes.size() > 0) {
+            Map<String, String> mapping = parser.getFieldsMap(nodes.get(0), featuresCfg, basePath);
+            String featureType = mapping.get("odd-type");
+            try {
+                if (featureType != null || !featureType.isEmpty()) {
+                    EADFeature feature = collectionWork.addEADFeature();
+                    feature.setFeatureType(featureType);
+                    feature.setFeatureId(mapping.get("id"));
+                    List<String> featureFields = toList(mapping.get("odd-fields"));
+                    if (featureFields != null) {
+                        feature.setFields(featureFields);
+                    }
+                    List<String> featureData = toList(mapping.get("odd-record-data"));
                     List<List<String>> featureRecords = new ArrayList<>();
-                    for (int i = 0; i < eadElements.size(); i++) {
-                        Nodes eadFeatureEntries = parser.traverse(eadElements.get(i), repeatablePath);
-                        log.debug("feature entry found: " + eadFeatureEntries.size() + " for query repeatable path " + repeatablePath);
-                        for (int j = 0; j < eadFeatureEntries.size(); j++) {
-                            Map<String, String> featureData = parser.getFieldsMap(eadFeatureEntries.get(j), featuresCfg, repeatablePath);
-                            List<String> featureRecord = toList(mapping.get("odd-record-data"));
-                            featureRecords.add(featureRecord);
+                    for (int i = 0; i < featureData.size(); i++) {
+                        List<String> record = new ArrayList<>();
+                        for (int j = 0; j < featureFields.size(); j++) {
+                            record.add(featureData.get(i + j));
                         }
+                        featureRecords.add(record);
+                        i = i + 3;
                     }
                     feature.setRecords(featureRecords);
                 }
+            } catch (IOException e) {
+                log.error("Failed to extract feature " + featureType + " for work " + collectionWork.getObjId() + ".");
             }
-        } catch (IOException e) {
-            log.error("Failed to extract feature " + featureType + " for work " + collectionWork.getObjId() + ".");
         }
     }
     
@@ -641,61 +630,74 @@ public class CollectionBuilder {
         String basePath = entitiesCfg.get(CFG_BASE).getTextValue();
         String repeatablePath = entitiesCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
         Nodes eadEntities = parser.getElementsByXPath(parser.getDocument(), basePath);
-        Map<String, String> mapping = parser.getFieldsMap(parser.doc.getRootElement(), entitiesCfg, basePath);
-        try {
-                if (eadEntities != null && eadEntities.size() > 0) {
+        if (eadEntities != null && eadEntities.size() > 0) {
+            Map<String, String> mapping = parser.getFieldsMap(eadEntities.get(0), entitiesCfg, basePath);
+            collectionWork.setCorrespondenceId(mapping.get("id"));
+            collectionWork.setCorrespondenceHeader(mapping.get("header"));
+
+            try {
+                if (eadEntities.size() > 0) {
                     for (int i = 0; i < eadEntities.size(); i++) {
-                        Nodes eadEntityEntries = parser.traverse(eadEntities.get(i), repeatablePath);
-                        log.debug("entity found: " + eadEntityEntries.size() + " for query repeatable path " + repeatablePath);
+                        // Nodes eadEntityEntries =
+                        // parser.traverse(eadEntities.get(i), repeatablePath);
+                        Nodes eadEntityEntries = eadEntities.get(i).query(repeatablePath, parser.xc);
+                        log.debug("entity found: " + eadEntityEntries.size() + " for query repeatable path "
+                                + repeatablePath);
                         for (int j = 0; j < eadEntityEntries.size(); j++) {
-                            Map<String, String> entityData = parser.getFieldsMap(eadEntityEntries.get(j), entitiesCfg, repeatablePath);
+                            Map<String, String> entityData = parser.getFieldsMap(eadEntityEntries.get(j), entitiesCfg,
+                                    repeatablePath);
                             String corpName = entityData.get("corpname");
                             String famName = entityData.get("famname");
-                            String persName = entityData.get("persName");
+                            String persName = entityData.get("persname");
                             String ref = entityData.get("ref");
-                            
+
                             if (!isEmpty(corpName) || !isEmpty(famName) || !isEmpty(persName) || !isEmpty(ref)) {
                                 EADEntity entity = collectionWork.addEADEntity();
                                 List<String> entityName = new ArrayList<>();
+
                                 if (!isEmpty(corpName)) {
                                     entityName.add(corpName);
+                                    entity.setEntityType("corpname");
                                 }
                                 if (!isEmpty(persName)) {
                                     entityName.add(persName);
+                                    entity.setEntityType("persname");
                                 }
                                 if (!isEmpty(famName)) {
                                     entityName.add(famName);
+                                    entity.setEntityType("famname");
                                 }
                                 entity.setEntityName(entityName);
                                 if (!isEmpty(ref)) {
                                     entity.setCorrespondenceRef(ref);
                                 }
                             }
-                            
+
                         }
                     }
                 }
-        } catch (IOException e) {
-            log.error("Failed to extract entities for work " + collectionWork.getObjId() + ".");
+            } catch (IOException e) {
+                log.error("Failed to extract entities for work " + collectionWork.getObjId() + ".");
+            }
         }
     }
     
     private static boolean isEmpty(String value) {
-        return (value != null && !value.isEmpty());
+        return (value == null || value.isEmpty());
     }
     
     protected static void traverseEAD(EADWork collectionWork, EADWork parentWork, Nodes eadElements, JsonNode elementCfg, XmlDocumentParser parser, 
             boolean newCollection, Map<String, String> componentWorks) throws JsonParseException, JsonMappingException, IOException {
         for (int i = 0 ; i < eadElements.size(); i++) {
             Node eadElement = eadElements.get(i);
+            
             EADWork workInCollection;
             if (newCollection) {
-               workInCollection = parentWork.addEADWork();
+               workInCollection = mapWorkMD(parentWork, eadElement, elementCfg, parser); 
                if (collectionWork.getRepository() != null)
                    workInCollection.setRepository(collectionWork.getRepository());
                // inherit access conditions from the top-level collection work
                workInCollection.setAccessConditions(collectionWork.getAccessConditions());
-               mapWorkMD(workInCollection, eadElement, elementCfg, parser); 
             } else {
                JsonNode component = ComponentBuilder.makeComponent(eadElement, elementCfg, parser);
                String uuid = component.get("uuid").getTextValue();
@@ -878,14 +880,21 @@ public class CollectionBuilder {
         }
     }
     
-    protected static void mapWorkMD(EADWork workInCollection, Node eadElement, JsonNode elementCfg, XmlDocumentParser parser) throws EADValidationException, JsonParseException, JsonMappingException, IOException {
+    protected static EADWork mapWorkMD(EADWork collectionWork, Node eadElement, JsonNode elementCfg, XmlDocumentParser parser) throws EADValidationException, JsonParseException, JsonMappingException, IOException {
+        EADWork workInCollection = null;
         Map<String, String> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));        
-        if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").isEmpty())
+        if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").isEmpty()) {
             throw new EADValidationException("Failed to process collection " + parser.collectionObjId + " as no Archive Space id found for component work " + workInCollection.getObjId());
-        
+        }
         String uuid = fieldsMap.get("uuid");
+        workInCollection = collectionWork.checkEADWorkInCollectionByLocalSystemNumber(uuid);
+        if (workInCollection == null) {
+            workInCollection = collectionWork.addEADWork();
+        }
+
         log.debug("fieldsMap: " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(fieldsMap));
         ComponentBuilder.mapWorkMD(workInCollection, uuid, fieldsMap);
+        return workInCollection;
     }
     
     protected static void traverseCollection (Work work, JsonNode structure, JsonNode content) {
@@ -926,9 +935,22 @@ public class CollectionBuilder {
         List<String> background = null;
         // map general work properties
         for (String field : fields) {
-            if (work.asVertex().getProperty(field) != null)
+            if (work.asVertex().getProperty(field) != null) {
                 ((ObjectNode) workProperties).put(field, work.asVertex().getProperty(field).toString());
+            }
         }
+        SimpleDateFormat dateFmt = new SimpleDateFormat("yyyy:MM:dd");
+        String startDate = null;
+        if (work.getStartDate() != null) {
+            startDate = dateFmt.format(work.getStartDate());
+        } 
+        ((ObjectNode) workProperties).put("startDate", startDate);
+        String endDate = null;
+        if (work.getEndDate() != null) {
+            endDate = dateFmt.format(work.getEndDate());
+        }
+        ((ObjectNode) workProperties).put("endDate", endDate);
+        
         // map background
         try {
             List<String> bibliography = work.asEADWork().getBibliography();

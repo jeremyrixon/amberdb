@@ -1,22 +1,13 @@
 package amberdb.model;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.regex.MatchResult;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.ObjectNode;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
@@ -279,7 +270,9 @@ public interface EADWork extends Work {
     
     /**
      * This method handles the JSON deserialisation of the folder property.
-     * Each folder entry is returned as <folder type>-<folder number>
+     * Each folder entry is returned as:
+     *    container <folder type> <folder number>(id:<folder uuid>):<folder label>:(parent:<parent folder uuid>)
+     * the (parent:<parent folder uuid>) is optional, and it isn't present if there's no parent folder.   
      */
     @JavaHandler
     public List<String> getFolder() throws JsonParseException, JsonMappingException, IOException;
@@ -296,6 +289,21 @@ public interface EADWork extends Work {
     
     @JavaHandler
     public EADWork getEADWork(long objectId);
+    
+    @JavaHandler
+    public EADWork checkEADWorkInCollectionByLocalSystemNumber(String localSystemNumber);
+    
+    @Property("correspondenceHeader")
+    public String getCorrespondenceHeader();
+    
+    @Property("correspondenceHeader")
+    public void setCorrespondenceHeader(String correspondenceHeader);
+    
+    @Property("correspondenceId")
+    public String getCorrespondenceId();
+    
+    @Property("correspondenceId")
+    public void setCorrespondenceId(String correspondenceId);
     
     @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
     public EADEntity addEADEntity();
@@ -444,6 +452,17 @@ public interface EADWork extends Work {
                 throw new NoSuchObjectException(objectId);
             }
             return component;
+        }
+        
+        @Override
+        public EADWork checkEADWorkInCollectionByLocalSystemNumber(String localSystemNumber) {
+            Iterator<Vertex> worksInCollection = this.g().getVertices("localSystemNumber", localSystemNumber).iterator();
+            if (worksInCollection.hasNext()) {
+                EADWork eadWork = this.g().getVertex(worksInCollection.next().getId(), EADWork.class);
+                if (eadWork.getParent() == this)
+                    return eadWork;
+            }
+            return null;
         }
         
         @Override
