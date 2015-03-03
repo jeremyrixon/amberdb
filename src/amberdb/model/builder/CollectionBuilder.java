@@ -52,7 +52,25 @@ import static amberdb.model.builder.XmlDocumentParser.CFG_REPEATABLE_ELEMENTS;
 public class CollectionBuilder {
     static final Logger log = LoggerFactory.getLogger(CollectionBuilder.class);
     static final ObjectMapper mapper = new ObjectMapper();
+    static Map<String, String> customMsgs;
     
+    public static void setValidationMessages(Map<String, String> customMsgs) {
+        customMsgs = customMsgs;
+    }
+    
+    protected static Map<String, String> getValidationMessages() {
+        if (customMsgs == null) {
+            // create default validation messages
+            customMsgs = new HashMap<>();
+            customMsgs.put("FAILED_TO_CREATE_CHILD_WORK", "Failed to create child works from ${workObjId}.xml for work ${workObjId}.");
+            customMsgs.put("NO_UUID_FOR_CHILD_WORK", "No Archives Space ID specified for a component work.");
+            customMsgs.put("MISSING_CONTAINER_TYPE", "No container type specified for one of the containers for the component work ${componentWorkObjId} (Archives Space ID: ${componentWorkUUID})");
+            customMsgs.put("FAILED_TO_DETERMINE_START_DATE", "Failed to extract start date for the component work ${componentWorkObjId} (Archives Space ID: ${componentWorkUUID})");
+            customMsgs.put("FAILED_EXTRACT_ENTITIIES", "Failed to extract entities for the work ${workObjId}.");
+            customMsgs.put("FAILED_EXTRACT_FEATURE", "Failed to extract container list for the work ${workObjId}.");
+        }
+        return customMsgs;
+    }
     /**
      * createCollection in absence of collection configuration and document parser input parameters, 
      * resolves to default collection JSON configuration and the default EAD parser in order to 
@@ -591,6 +609,10 @@ public class CollectionBuilder {
                 }
             }
         }
+
+        if (!collectionWork.getChildren().iterator().hasNext()) {
+            throw new EADValidationException(getValidationMessages().get("FAILED_TO_CREATE_CHILD_WORK"), collectionWork.getObjId(), collectionWork.getObjId());
+        }
     }
     
     protected static void extractFeatures(EADWork collectionWork, JsonNode featuresCfg, XmlDocumentParser parser) {
@@ -884,7 +906,7 @@ public class CollectionBuilder {
         EADWork workInCollection = null;
         Map<String, String> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));        
         if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").isEmpty()) {
-            throw new EADValidationException("Failed to process collection " + parser.collectionObjId + " as no Archive Space id found for component work " + workInCollection.getObjId());
+           throw new EADValidationException(getValidationMessages().get("NO_UUID_FOR_CHILD_WORK"));
         }
         String uuid = fieldsMap.get("uuid");
         workInCollection = collectionWork.checkEADWorkInCollectionByLocalSystemNumber(uuid);

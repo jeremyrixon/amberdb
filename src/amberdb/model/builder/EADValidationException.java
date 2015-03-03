@@ -6,4 +6,8 @@ public class EADValidationException extends RuntimeException {
     public EADValidationException(String string) {
         super(string);
     }
+    
+    public EADValidationException(String errorMsg, String...params) {
+        super(String.format(errorMsg.replaceAll("\\$\\{.+?\\}", "%s"), params));
+    }
 }
