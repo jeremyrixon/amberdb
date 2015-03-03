@@ -26,7 +26,6 @@ import amberdb.model.File;
 import amberdb.model.GeoCoding;
 import amberdb.model.IPTC;
 import amberdb.model.ImageFile;
-import amberdb.model.Node;
 import amberdb.model.Page;
 import amberdb.model.Section;
 import amberdb.model.SoundFile;
