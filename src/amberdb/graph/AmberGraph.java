@@ -150,6 +150,7 @@ public class AmberGraph extends BaseGraph
         dao.createPropertyNameIndex();
         if (dbProduct.equals("MySQL")) {
             dao.createPropertyValueIndex();
+            dao.createPropertyNameValueIndex();
         }
         dao.createVertexTxnEndIndex();
         dao.createEdgeTxnEndIndex();
@@ -647,7 +648,33 @@ public class AmberGraph extends BaseGraph
         return super.getVertices(key, value); 
     }
 
-  
+    
+    /**
+     * Required for searching on values in json encoded string lists. Needed in Banjo
+     * @param key The name of the property containing a json encoded string list 
+     * @param value The value to search for in the list
+     * @return Any matching vertices
+     */
+    public Iterable<Vertex> getVerticesByJsonListValue(String key, String value) {
+
+        if (!localMode) {
+            AmberVertexQuery avq = new AmberVertexQuery(this); 
+            avq.executeJsonValSearch(key, value);
+        }
+        
+        List<Vertex> vertices = new ArrayList<Vertex>();
+        for (Vertex vertex : graphVertices.values()) {
+            String s = vertex.getProperty(key);
+            if (s != null && s.contains("\""+value+"\"")) {
+                vertices.add(vertex);
+            }
+        }
+        return vertices;        
+    }
+    
+    
+
+    
     /**
      * Used by AmberVertex.
      */
