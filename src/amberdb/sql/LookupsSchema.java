@@ -959,7 +959,16 @@ public abstract class LookupsSchema {
     + "('eadFileValidationMsg', 'FILE_ALREADY_LOADED', 'File has already been uploaded for job ${jobId}.')," 
     + "('eadFileValidationMsg', 'CANNOT_OPEN_FILE', 'Fail to access file ${filename}.')," 
     + "('eadFileValidationMsg', 'MISSING_EAD_XML_NAMESPACE', 'Invalid EAD file, it is missing EAD xml namespace: ${xmlHeader}.')," 
-    + "('eadFileValidationMsg', 'VALID_FILE', '${filename} is a valid file.')")
+    + "('eadFileValidationMsg', 'VALID_FILE', '${filename} is a valid file.'),"
+    + "('eadFileValidationMsg', 'FAILED_TO_CREATE_CHILD_WORK', 'Failed to create child works from ${workObjId}.xml for work ${workObjId}.'),"
+    + "('eadFileValidationMsg', 'NO_UUID_FOR_CHILD_WORK', 'No Archives Space ID specified for ${nth} component work under work ${workObjId} (Archives Space ID: ${componentWorkUUID}).'),"
+    + "('eadFileValidationMsg', 'MISSING_CONTAINER_TYPE', 'No container type specified for one of the containers for the component work ${componentWorkObjId} (Archives Space ID: ${componentWorkUUID})'),"
+    + "('eadFileValidationMsg', 'FAILED_EXTRACT_FEATURE', 'Failed to extract ${featureType} for the work ${workObjId}.'),"
+    + "('eadFileValidationMsg', 'FAILED_EXTRACT_ENTITIIES', 'Failed to extract entities for the work ${workObjId}.'),"
+    + "('eadFileValidationMsg', 'FAILED_EXTRACT_BIBLIOGRAPHY', 'Failed to map bibliography for the work ${workObjId}.'),"
+    + "('eadFileValidationMsg', 'FAILED_EXTRACT_CONTAINERS', 'Failed to map containers for the work ${componentWorkObjId}.'),"
+    + "('eadFileValidationMsg', 'FAILED_EXTRACT_DATE_RANGE', 'Failed to extract date range for the component work ${componentWorkObjId} (Archives Space ID: ${componentWorkUUID})'),"
+    + "('eadFileValidationMsg', 'FAILED_TO_DETERMINE_START_DATE', 'Failed to extract start date for the component work ${componentWorkObjId} (Archives Space ID: ${componentWorkUUID})')")
     public abstract void seedDataValidationMsgs();
     
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"

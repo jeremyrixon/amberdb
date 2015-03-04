@@ -53,6 +53,10 @@ public class CollectionBuilder {
     static final Logger log = LoggerFactory.getLogger(CollectionBuilder.class);
     static final ObjectMapper mapper = new ObjectMapper();
     
+    public static void setValidationMessages(Map<String, String> customMsgs) {
+        EADValidationException.customMsgs = customMsgs;
+    }
+    
     /**
      * createCollection in absence of collection configuration and document parser input parameters, 
      * resolves to default collection JSON configuration and the default EAD parser in order to 
@@ -261,9 +265,7 @@ public class CollectionBuilder {
     protected static Document getFindingAIDJsonDocument(Work collectionWork) throws IOException {
         Copy eadJsonCopy = collectionWork.getCopy(CopyRole.FINDING_AID_VIEW_COPY);
         if (eadJsonCopy == null || eadJsonCopy.getFile() == null) {
-            String errMsg = "Failed to process work collection as the input collection work " + collectionWork.getObjId() + " does not have a finding aid json copy.";
-            log.error(errMsg);
-            throw new IllegalArgumentException(errMsg);
+            return generateJson(collectionWork, true);
         }
         File eadJsonFile = eadJsonCopy.getFile();
         JsonNode eadJson = mapper.readTree(eadJsonFile.openStream());
@@ -547,7 +549,7 @@ public class CollectionBuilder {
     protected static void processCollection(Work collectionWork, InputStream in, JsonNode eadCfg, XmlDocumentParser parser) throws EADValidationException, ValidityException, ParsingException, IOException {
         boolean newCollection = true;
         Map<String, String> componentWorks;
-        
+
         if (collectionWork.getChildren() != null && collectionWork.getChildren().iterator().hasNext()) {
             newCollection = false;
             componentWorks = componentWorksMap(collectionWork);
@@ -591,6 +593,10 @@ public class CollectionBuilder {
                 }
             }
         }
+
+        if (!collectionWork.getChildren().iterator().hasNext()) {
+            throw new EADValidationException("FAILED_TO_CREATE_CHILD_WORK", collectionWork.getObjId(), collectionWork.getObjId());
+        }
     }
     
     protected static void extractFeatures(EADWork collectionWork, JsonNode featuresCfg, XmlDocumentParser parser) {
@@ -622,6 +628,7 @@ public class CollectionBuilder {
                 }
             } catch (IOException e) {
                 log.error("Failed to extract feature " + featureType + " for work " + collectionWork.getObjId() + ".");
+                throw new EADValidationException("FAILED_EXTRACT_FEATURE", featureType, collectionWork.getObjId());
             }
         }
     }
@@ -678,6 +685,7 @@ public class CollectionBuilder {
                 }
             } catch (IOException e) {
                 log.error("Failed to extract entities for work " + collectionWork.getObjId() + ".");
+                throw new EADValidationException("FAILED_EXTRACT_ENTITIES", collectionWork.getObjId());
             }
         }
     }
@@ -693,7 +701,7 @@ public class CollectionBuilder {
             
             EADWork workInCollection;
             if (newCollection) {
-               workInCollection = mapWorkMD(parentWork, eadElement, elementCfg, parser); 
+               workInCollection = mapWorkMD(parentWork, eadElement, elementCfg, parser, i); 
                if (collectionWork.getRepository() != null)
                    workInCollection.setRepository(collectionWork.getRepository());
                // inherit access conditions from the top-level collection work
@@ -785,7 +793,7 @@ public class CollectionBuilder {
             try {
                 dateList = DateParser.parseDateRange(dateRange);
             } catch (ParseException e) {
-                throw new IOException(e);
+                throw new EADValidationException("FAILED_EXTRACT_DATE_RANGE", collectionWork.getObjId(), "");
             }
             if (dateList != null && dateList.size() > 0) {
                 collectionWork.setStartDate(dateList.get(0));
@@ -862,7 +870,7 @@ public class CollectionBuilder {
         collectionWork.asEADWork().setAdminInfo(adminInfo);
     }
     
-    private static void mapBibliography(Work collectionWork, Map<String, String> fieldsMap) {
+    private static void mapBibliography(Work collectionWork, Map<String, String> fieldsMap) throws EADValidationException {
         try {
             String bibliography = fieldsMap.get("bibliography");
             if (bibliography != null && !bibliography.isEmpty()) {
@@ -877,14 +885,16 @@ public class CollectionBuilder {
             }
         } catch (IOException e) {
             log.error("Failed to map bibliography for collection work " + collectionWork.getObjId());
+            throw new EADValidationException("FAILED_EXTRACT_BIBLIOGRAPHY", collectionWork.getObjId());
         }
     }
     
-    protected static EADWork mapWorkMD(EADWork collectionWork, Node eadElement, JsonNode elementCfg, XmlDocumentParser parser) throws EADValidationException, JsonParseException, JsonMappingException, IOException {
+    protected static EADWork mapWorkMD(EADWork collectionWork, Node eadElement, JsonNode elementCfg, XmlDocumentParser parser, int ord) throws EADValidationException, JsonParseException, JsonMappingException, IOException {
         EADWork workInCollection = null;
         Map<String, String> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));        
         if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").isEmpty()) {
-            throw new EADValidationException("Failed to process collection " + parser.collectionObjId + " as no Archive Space id found for component work " + workInCollection.getObjId());
+           String collectionWorkUUID = (collectionWork.getLocalSystemNumber() == null)? "" : collectionWork.getLocalSystemNumber();  
+           throw new EADValidationException("NO_UUID_FOR_CHILD_WORK", "" + ord, collectionWork.getObjId(), collectionWorkUUID);
         }
         String uuid = fieldsMap.get("uuid");
         workInCollection = collectionWork.checkEADWorkInCollectionByLocalSystemNumber(uuid);
@@ -972,6 +982,7 @@ public class CollectionBuilder {
             }
         } catch (IOException e) {
             log.error("Failed to retrieve background for collection work " + work.getObjId());
+            throw new EADValidationException("FAILED_EXTRACT_BIBLIOGRAPHY", work.getObjId());
         }
         
         ArrayNode features = mapEADFeatures(work);

@@ -138,6 +138,13 @@ public class DateParserTest {
         List<Date> dates8 = DateParser.parseDateRange(dateRange8);
         assertEquals(expectedStartDate8, dates8.get(0));
         assertEquals(expectedEndDate8, dateFormat.format(dates8.get(1)));
+        
+        String dateRange9 = "c.1928-2002";
+        String expectedStartDate9 = "01-01-1928";
+        String expectedEndDate9 = "31-12-2002";
+        List<Date> dates9 = DateParser.parseDateRange(dateRange9);
+        assertEquals(expectedStartDate9, dateFormat.format(dates9.get(0)));
+        assertEquals(expectedEndDate9, dateFormat.format(dates9.get(1)));
     }
     
     @Test
