@@ -220,7 +220,7 @@ public class ComponentBuilder {
                 }
             } catch (Exception e) {
                 log.info("Failed to parse date range for component work " + componentWork.getObjId());
-                throw new EADValidationException("FAILED_EXTRACT_DATE_RANGE", componentWork.getObjId(), (uuid == null)?"":uuid);
+                throw new EADValidationException("FAILED_EXTRACT_DATE_RANGE", e, componentWork.getObjId(), (uuid == null)?"":uuid);
             }
         }
         
@@ -298,7 +298,7 @@ public class ComponentBuilder {
                         }
                     } catch (IOException e) {
                         log.error("unable to map containers for work " + componentWork.getObjId());
-                        throw new EADValidationException("FAILED_EXTRACT_CONTAINERS", componentWork.getObjId());
+                        throw new EADValidationException("FAILED_EXTRACT_CONTAINERS", e, componentWork.getObjId());
                     }
                 }
                 try {
@@ -307,7 +307,7 @@ public class ComponentBuilder {
                     componentWork.setFolder(folders);
                 } catch (IOException e) {
                     log.error("Failed to extract container for component work: " + componentWork.getObjId());
-                    throw new EADValidationException("FAILED_EXTRACT_CONTAINERS", componentWork.getObjId());
+                    throw new EADValidationException("FAILED_EXTRACT_CONTAINERS", e, componentWork.getObjId());
                 }
             }
         }

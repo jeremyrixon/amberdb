@@ -628,7 +628,7 @@ public class CollectionBuilder {
                 }
             } catch (IOException e) {
                 log.error("Failed to extract feature " + featureType + " for work " + collectionWork.getObjId() + ".");
-                throw new EADValidationException("FAILED_EXTRACT_FEATURE", featureType, collectionWork.getObjId());
+                throw new EADValidationException("FAILED_EXTRACT_FEATURE", e, featureType, collectionWork.getObjId());
             }
         }
     }
@@ -685,7 +685,7 @@ public class CollectionBuilder {
                 }
             } catch (IOException e) {
                 log.error("Failed to extract entities for work " + collectionWork.getObjId() + ".");
-                throw new EADValidationException("FAILED_EXTRACT_ENTITIES", collectionWork.getObjId());
+                throw new EADValidationException("FAILED_EXTRACT_ENTITIES", e, collectionWork.getObjId());
             }
         }
     }
@@ -793,7 +793,7 @@ public class CollectionBuilder {
             try {
                 dateList = DateParser.parseDateRange(dateRange);
             } catch (ParseException e) {
-                throw new EADValidationException("FAILED_EXTRACT_DATE_RANGE", collectionWork.getObjId(), "");
+                throw new EADValidationException("FAILED_EXTRACT_DATE_RANGE", e, collectionWork.getObjId(), "");
             }
             if (dateList != null && dateList.size() > 0) {
                 collectionWork.setStartDate(dateList.get(0));
@@ -885,7 +885,7 @@ public class CollectionBuilder {
             }
         } catch (IOException e) {
             log.error("Failed to map bibliography for collection work " + collectionWork.getObjId());
-            throw new EADValidationException("FAILED_EXTRACT_BIBLIOGRAPHY", collectionWork.getObjId());
+            throw new EADValidationException("FAILED_EXTRACT_BIBLIOGRAPHY", e, collectionWork.getObjId());
         }
     }
     
@@ -982,7 +982,7 @@ public class CollectionBuilder {
             }
         } catch (IOException e) {
             log.error("Failed to retrieve background for collection work " + work.getObjId());
-            throw new EADValidationException("FAILED_EXTRACT_BIBLIOGRAPHY", work.getObjId());
+            throw new EADValidationException("FAILED_EXTRACT_BIBLIOGRAPHY", e, work.getObjId());
         }
         
         ArrayNode features = mapEADFeatures(work);

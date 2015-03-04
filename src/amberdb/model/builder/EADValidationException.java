@@ -11,8 +11,16 @@ public class EADValidationException extends RuntimeException {
         super(string);
     }
     
+    public EADValidationException(String string, Throwable e) {
+        super(string, e);
+    }
+    
     public EADValidationException(String errorCode, String...params) {
         super(String.format(getValidationMessages().get(errorCode).replaceAll("\\$\\{.+?\\}", "%s"), params));
+    }
+    
+    public EADValidationException(String errorCode, Throwable e, String...params) {
+        super(String.format(getValidationMessages().get(errorCode).replaceAll("\\$\\{.+?\\}", "%s"), params), e);
     }
     
     protected static Map<String, String> getValidationMessages() {
