@@ -551,7 +551,7 @@ public class CollectionBuilder {
     protected static void processCollection(Work collectionWork, InputStream in, JsonNode eadCfg, XmlDocumentParser parser) throws EADValidationException, ValidityException, ParsingException, IOException {
         boolean newCollection = true;
         Map<String, String> componentWorks;
-        
+
         if (collectionWork.getChildren() != null && collectionWork.getChildren().iterator().hasNext()) {
             newCollection = false;
             componentWorks = componentWorksMap(collectionWork);
