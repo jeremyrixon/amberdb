@@ -141,8 +141,12 @@ public class DateParser {
         dateRangeExpr = dateRangeExpr.replace("[", "").replace("]", "").trim();
         
         // parse circa date
-        if (dateRangeExpr.startsWith("c"))
+        if (dateRangeExpr.startsWith("c") && !dateRangeExpr.contains("-"))
             return parseCircaDateRange(dateRangeExpr);
+        else if (dateRangeExpr.startsWith("c."))
+            dateRangeExpr = dateRangeExpr.substring(2).trim();
+        else if (dateRangeExpr.startsWith("c"))
+            dateRangeExpr = dateRangeExpr.substring(1).trim();
         
         // parse the date range
         SimpleDateFormat dateFmt1 = new SimpleDateFormat(DATE_PATTERN1);

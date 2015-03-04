@@ -265,9 +265,7 @@ public class CollectionBuilder {
     protected static Document getFindingAIDJsonDocument(Work collectionWork) throws IOException {
         Copy eadJsonCopy = collectionWork.getCopy(CopyRole.FINDING_AID_VIEW_COPY);
         if (eadJsonCopy == null || eadJsonCopy.getFile() == null) {
-            String errMsg = "Failed to process work collection as the input collection work " + collectionWork.getObjId() + " does not have a finding aid json copy.";
-            log.error(errMsg);
-            throw new IllegalArgumentException(errMsg);
+            return generateJson(collectionWork, true);
         }
         File eadJsonFile = eadJsonCopy.getFile();
         JsonNode eadJson = mapper.readTree(eadJsonFile.openStream());
@@ -795,7 +793,7 @@ public class CollectionBuilder {
             try {
                 dateList = DateParser.parseDateRange(dateRange);
             } catch (ParseException e) {
-                throw new IOException(e);
+                throw new EADValidationException("FAILED_EXTRACT_DATE_RANGE", collectionWork.getObjId(), "");
             }
             if (dateList != null && dateList.size() > 0) {
                 collectionWork.setStartDate(dateList.get(0));
