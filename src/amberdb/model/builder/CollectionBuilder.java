@@ -53,10 +53,6 @@ public class CollectionBuilder {
     static final Logger log = LoggerFactory.getLogger(CollectionBuilder.class);
     static final ObjectMapper mapper = new ObjectMapper();
     
-    public static void setValidationMessages(Map<String, String> customMsgs) {
-        EADValidationException.setValidationMessages(customMsgs);
-    }
-    
     /**
      * createCollection in absence of collection configuration and document parser input parameters, 
      * resolves to default collection JSON configuration and the default EAD parser in order to 
