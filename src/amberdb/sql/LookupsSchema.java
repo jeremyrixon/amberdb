@@ -963,6 +963,7 @@ public abstract class LookupsSchema {
     + "('eadFileValidationMsg', 'FAILED_TO_CREATE_CHILD_WORK', 'Failed to create child works from ${workObjId}.xml for work ${workObjId}.'),"
     + "('eadFileValidationMsg', 'NO_UUID_FOR_CHILD_WORK', 'No Archives Space ID specified for ${nth} component work under work ${workObjId} (Archives Space ID: ${componentWorkUUID}).'),"
     + "('eadFileValidationMsg', 'MISSING_CONTAINER_TYPE', 'No container type specified for one of the containers for the component work ${componentWorkObjId} (Archives Space ID: ${componentWorkUUID})'),"
+    + "('eadFileValidationMsg', 'NO_EAD_FILE_UPLOADED', 'Failed to complete EAD job ${jobId} as no EAD file is uploaded.'),"
     + "('eadFileValidationMsg', 'FAILED_EXTRACT_FEATURE', 'Failed to extract ${featureType} for the work ${workObjId}.'),"
     + "('eadFileValidationMsg', 'FAILED_EXTRACT_ENTITIIES', 'Failed to extract entities for the work ${workObjId}.'),"
     + "('eadFileValidationMsg', 'FAILED_EXTRACT_BIBLIOGRAPHY', 'Failed to map bibliography for the work ${workObjId}.'),"

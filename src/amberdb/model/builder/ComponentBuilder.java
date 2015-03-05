@@ -33,7 +33,7 @@ import amberdb.util.DateParser;
 
 public class ComponentBuilder {
     static final Logger log = LoggerFactory.getLogger(CollectionBuilder.class);
-    static final ObjectMapper mapper = new ObjectMapper();       
+    static final ObjectMapper mapper = new ObjectMapper();     
     
     /**
      * mergeComponents merges multiple components directly under the parentWork.
@@ -212,15 +212,16 @@ public class ComponentBuilder {
             try {
                 dateList = DateParser.parseDateRange(dateRange.toString());
                 if (dateList != null && dateList.size() > 0) {
-                    if (dateList.get(0) == null)
+                    if (dateList.get(0) == null) {
                         throw new EADValidationException("FAILED_TO_DETERMINE_START_DATE", componentWork.getObjId(), (uuid == null)?"":uuid);
+                    }
                     componentWork.setStartDate(dateList.get(0));
                     if (dateList.size() > 1)
                         componentWork.setEndDate(dateList.get(1));
                 }
             } catch (Exception e) {
                 log.info("Failed to parse date range for component work " + componentWork.getObjId());
-                throw new EADValidationException("FAILED_EXTRACT_DATE_RANGE", componentWork.getObjId(), (uuid == null)?"":uuid);
+                throw new EADValidationException("FAILED_EXTRACT_DATE_RANGE", e, componentWork.getObjId(), (uuid == null)?"":uuid);
             }
         }
         
@@ -256,8 +257,9 @@ public class ComponentBuilder {
                 List<String> folderTypes = new ArrayList<>();
                 List<String> folderNumbers = new ArrayList<>();
                 if (((String) containerId).length() == 39) {
-                    if (containerType == null || containerType.toString().trim().isEmpty()) 
+                    if (containerType == null || containerType.toString().trim().isEmpty()) {
                         throw new EADValidationException("MISSING_CONTAINER_TYPE", componentWork.getObjId(), componentWorkUUID);
+                    }
                     
                     String folderType = containerType.toString();
                     String folderNumber = (containerNumber == null) ? "" : containerNumber.toString();
@@ -285,8 +287,9 @@ public class ComponentBuilder {
                         } else {    
                             containerTypes = mapper.readValue(containerType, new TypeReference<String[]>() {});
                             folderTypes = Arrays.asList(containerTypes);
-                            if (folderTypes.contains(null))
+                            if (folderTypes.contains(null)) {
                                 throw new EADValidationException("MISSING_CONTAINER_TYPE", componentWork.getObjId(), componentWorkUUID);
+                            }
                         }
                         for (int i = 0; i < containerIds.length; i++) {
                             String folder = "container " + ((containerTypes[i] == null || containerTypes[i].toString().isEmpty()) ? "" : containerTypes[i].toString()) + " "
@@ -298,7 +301,7 @@ public class ComponentBuilder {
                         }
                     } catch (IOException e) {
                         log.error("unable to map containers for work " + componentWork.getObjId());
-                        throw new EADValidationException("FAILED_EXTRACT_CONTAINERS", componentWork.getObjId());
+                        throw new EADValidationException("FAILED_EXTRACT_CONTAINERS", e, componentWork.getObjId());
                     }
                 }
                 try {
@@ -307,7 +310,7 @@ public class ComponentBuilder {
                     componentWork.setFolder(folders);
                 } catch (IOException e) {
                     log.error("Failed to extract container for component work: " + componentWork.getObjId());
-                    throw new EADValidationException("FAILED_EXTRACT_CONTAINERS", componentWork.getObjId());
+                    throw new EADValidationException("FAILED_EXTRACT_CONTAINERS", e, componentWork.getObjId());
                 }
             }
         }
@@ -316,9 +319,9 @@ public class ComponentBuilder {
     protected static JsonNode makeComponent(Node eadElement, JsonNode elementCfg, XmlDocumentParser parser) {
         ObjectNode node = mapper.createObjectNode();
         Map<String, String> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));        
-        if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").toString().isEmpty())
+        if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").toString().isEmpty()) {
             throw new EADValidationException("Failed to parse uuid for EAD element " + ((Element) eadElement).getLocalName() + " - " + eadElement.getValue());
-        
+        }
         String uuid = fieldsMap.get("uuid").toString();
         node.put("uuid", uuid);
         Object componentLevel = fieldsMap.get("component-level");

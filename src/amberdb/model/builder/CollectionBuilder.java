@@ -53,10 +53,6 @@ public class CollectionBuilder {
     static final Logger log = LoggerFactory.getLogger(CollectionBuilder.class);
     static final ObjectMapper mapper = new ObjectMapper();
     
-    public static void setValidationMessages(Map<String, String> customMsgs) {
-        EADValidationException.customMsgs = customMsgs;
-    }
-    
     /**
      * createCollection in absence of collection configuration and document parser input parameters, 
      * resolves to default collection JSON configuration and the default EAD parser in order to 
@@ -628,7 +624,7 @@ public class CollectionBuilder {
                 }
             } catch (IOException e) {
                 log.error("Failed to extract feature " + featureType + " for work " + collectionWork.getObjId() + ".");
-                throw new EADValidationException("FAILED_EXTRACT_FEATURE", featureType, collectionWork.getObjId());
+                throw new EADValidationException("FAILED_EXTRACT_FEATURE", e, featureType, collectionWork.getObjId());
             }
         }
     }
@@ -685,7 +681,7 @@ public class CollectionBuilder {
                 }
             } catch (IOException e) {
                 log.error("Failed to extract entities for work " + collectionWork.getObjId() + ".");
-                throw new EADValidationException("FAILED_EXTRACT_ENTITIES", collectionWork.getObjId());
+                throw new EADValidationException("FAILED_EXTRACT_ENTITIES", e, collectionWork.getObjId());
             }
         }
     }
@@ -793,7 +789,7 @@ public class CollectionBuilder {
             try {
                 dateList = DateParser.parseDateRange(dateRange);
             } catch (ParseException e) {
-                throw new EADValidationException("FAILED_EXTRACT_DATE_RANGE", collectionWork.getObjId(), "");
+                throw new EADValidationException("FAILED_EXTRACT_DATE_RANGE", e, collectionWork.getObjId(), "");
             }
             if (dateList != null && dateList.size() > 0) {
                 collectionWork.setStartDate(dateList.get(0));
@@ -885,7 +881,7 @@ public class CollectionBuilder {
             }
         } catch (IOException e) {
             log.error("Failed to map bibliography for collection work " + collectionWork.getObjId());
-            throw new EADValidationException("FAILED_EXTRACT_BIBLIOGRAPHY", collectionWork.getObjId());
+            throw new EADValidationException("FAILED_EXTRACT_BIBLIOGRAPHY", e, collectionWork.getObjId());
         }
     }
     
@@ -982,7 +978,7 @@ public class CollectionBuilder {
             }
         } catch (IOException e) {
             log.error("Failed to retrieve background for collection work " + work.getObjId());
-            throw new EADValidationException("FAILED_EXTRACT_BIBLIOGRAPHY", work.getObjId());
+            throw new EADValidationException("FAILED_EXTRACT_BIBLIOGRAPHY", e, work.getObjId());
         }
         
         ArrayNode features = mapEADFeatures(work);
