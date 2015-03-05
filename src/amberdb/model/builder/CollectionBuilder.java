@@ -54,7 +54,7 @@ public class CollectionBuilder {
     static final ObjectMapper mapper = new ObjectMapper();
     
     public static void setValidationMessages(Map<String, String> customMsgs) {
-        EADValidationException.customMsgs = customMsgs;
+        EADValidationException.setValidationMessages(customMsgs);
     }
     
     /**
