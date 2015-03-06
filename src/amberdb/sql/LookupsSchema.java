@@ -965,7 +965,7 @@ public abstract class LookupsSchema {
     + "('eadFileValidationMsg', 'MISSING_CONTAINER_TYPE', 'No container type specified for one of the containers for the component work ${componentWorkObjId} (Archives Space ID: ${componentWorkUUID})'),"
     + "('eadFileValidationMsg', 'NO_EAD_FILE_UPLOADED', 'Failed to complete EAD job ${jobId} as no EAD file is uploaded.'),"
     + "('eadFileValidationMsg', 'FAILED_EXTRACT_FEATURE', 'Failed to extract ${featureType} for the work ${workObjId}.'),"
-    + "('eadFileValidationMsg', 'FAILED_EXTRACT_ENTITIIES', 'Failed to extract entities for the work ${workObjId}.'),"
+    + "('eadFileValidationMsg', 'FAILED_EXTRACT_ENTITIIES', 'Failed to extract ${nth} entity for the work ${workObjId}.'),"
     + "('eadFileValidationMsg', 'FAILED_EXTRACT_BIBLIOGRAPHY', 'Failed to map bibliography for the work ${workObjId}.'),"
     + "('eadFileValidationMsg', 'FAILED_EXTRACT_CONTAINERS', 'Failed to map containers for the work ${componentWorkObjId}.'),"
     + "('eadFileValidationMsg', 'FAILED_EXTRACT_DATE_RANGE', 'Failed to extract date range for the component work ${componentWorkObjId} (Archives Space ID: ${componentWorkUUID})'),"
