@@ -113,6 +113,9 @@ public class ComponentBuilder {
     }
     
     protected static void mapWorkMD(EADWork componentWork, String uuid, Map<String, String> fieldsMap) throws JsonParseException, JsonMappingException, IOException {
+        /* ObjectMapper om = new ObjectMapper();
+        System.out.println("fld map for " + componentWork.getObjId());
+        System.out.println(om.writerWithDefaultPrettyPrinter().writeValueAsString(fieldsMap)); */
         componentWork.setSubType("Work");      
         componentWork.setForm("Manuscript");
       
@@ -251,7 +254,87 @@ public class ComponentBuilder {
         String containerType = fieldsMap.get("container-type");
         String componentWorkUUID = (componentWork.getLocalSystemNumber() == null)? "" : componentWork.getLocalSystemNumber();
 
-        if (containerId != null) {
+        if (containerNumber == null || containerNumber.trim().isEmpty()) return;
+        if (containerType == null || containerType.trim().isEmpty()) {
+            throw new EADValidationException("MISSING_CONTAINER_TYPE", componentWork.getObjId(), componentWorkUUID);
+        }
+        
+        List<String> folders = new ArrayList<>();
+        List<String> folderTypes = new ArrayList<>();
+        List<String> folderNumbers = new ArrayList<>();
+        try {
+            String[] containerTypes = mapper.readValue(containerType, new TypeReference<String[]>() {});
+            folderTypes = Arrays.asList(containerTypes);
+            if (folderTypes.contains(null)) {
+                throw new EADValidationException("MISSING_CONTAINER_TYPE", componentWork.getObjId(), componentWorkUUID);
+            }
+        } catch (IOException e) {
+            folderTypes.add(containerType);
+        }
+        try {
+            if (folderTypes.size() == 1) {
+                String folderNumber = (containerNumber == null) ? ""
+                        : containerNumber.toString();
+                String folder = "container " + folderTypes.get(0) + " "
+                        + folderNumber + "(id:" + ((containerId == null)?"":containerId.toString()) + ")";
+                folder += (containerLabel == null || containerLabel.toString()
+                        .isEmpty()) ? "" : ":" + containerLabel.toString();
+                folder += (containerParent == null || containerParent
+                        .toString().isEmpty()) ? "" : "(parent: "
+                        + containerParent.toString() + ")";
+                folders.add(folder);
+                folderNumbers.add(folderNumber);
+            } else if (folderTypes.size() > 1) {
+                String[] containerIds = mapper.readValue(containerId,
+                        new TypeReference<String[]>() {
+                        });
+                String[] containerParents = null;
+                if (containerParent != null)
+                    containerParents = mapper.readValue(containerParent,
+                            new TypeReference<String[]>() {
+                            });
+                String[] containerNumbers = null;
+                if (containerNumber != null) {
+                    containerNumbers = mapper.readValue(containerNumber,
+                            new TypeReference<String[]>() {
+                            });
+                    folderNumbers = Arrays.asList(containerNumbers);
+                }
+                String[] containerLabels = null;
+                if (containerLabel != null)
+                    containerLabels = mapper.readValue(containerLabel,
+                            new TypeReference<String[]>() {
+                            });
+                for (int i = 0; i < folderTypes.size(); i++) {
+                    String folder = "container "
+                            + ((folderTypes.get(i) == null || folderTypes
+                                    .get(i).isEmpty()) ? "" : folderTypes
+                                    .get(i))
+                            + " "
+                            + ((containerNumbers[i] == null) ? ""
+                                    : containerNumbers[i].toString()) + "(id:"
+                            + containerIds[i].toString() + ")";
+                    folder += (containerLabels[i] == null || containerLabels[i]
+                            .toString().isEmpty()) ? "" : ":"
+                            + containerLabels[i].toString();
+                    folder += (containerParents[i] == null || containerParents[i]
+                            .toString().isEmpty()) ? "" : "(parent: "
+                            + containerParents[i].toString() + ")";
+                    folders.add(folder);
+                }
+            }
+            componentWork.setFolderType(folderTypes);
+            componentWork.setFolderNumber(folderNumbers);
+            componentWork.setFolder(folders);
+        } catch (IOException e) {
+            log.error("unable to map containers for work "
+                    + componentWork.getObjId());
+            throw new EADValidationException("FAILED_EXTRACT_CONTAINERS", e,
+                    componentWork.getObjId());
+        }
+        
+        /*
+        if (containerType != null) {
             if (containerId instanceof String && !((String) containerId).isEmpty()) {
                 List<String> folders = new ArrayList<>();
                 List<String> folderTypes = new ArrayList<>();
@@ -314,6 +397,7 @@ public class ComponentBuilder {
                 }
             }
         }
+        */
     }
     
     protected static JsonNode makeComponent(Node eadElement, JsonNode elementCfg, XmlDocumentParser parser) {
