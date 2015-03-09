@@ -653,7 +653,7 @@ public class CollectionBuilder {
                                 + repeatablePath);
                         
                         if (eadEntityEntries.size() == 0) {
-                            String ord = (i == 0)? "1st" : (i == 1)? "2nd" : (i == 2)? "3rd" : "" + i + "th";
+                            String ord = (i == 0)? "1st" : (i == 1)? "2nd" : (i == 2)? "3rd" : "" + (i+1) + "th";
                             throw new EADValidationException("FAILED_EXTRACT_ENTITIES", ord, collectionWork.getObjId());
                         }
                         for (int j = 0; j < eadEntityEntries.size(); j++) {
