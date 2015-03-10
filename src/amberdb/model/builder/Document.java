@@ -23,6 +23,14 @@ public class Document {
         return document.get("content");
     }
     
+    public JsonNode getReport() {
+        return document.get("report");
+    }
+    
+    public void setStatusReport(JsonNode report) {
+        ((ObjectNode) document).put("report", report);
+    }
+    
     public String toJson() throws IOException {
         return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(document);
     }

@@ -296,7 +296,7 @@ public class CollectionBuilderTest {
             collectionWork.setCollection("nla.ms");
             boolean storeCopy = true;
             Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
-            
+            assertNull(doc.getReport());
             // verify the component of AS id (i.e updedCompASId) has collection work as its parent
             Map<String, String> uuidToPIMap = CollectionBuilder.componentWorksMap(collectionWork);
             Work componentToUpdate = as.findWork(uuidToPIMap.get(updedCompASId));
@@ -314,6 +314,11 @@ public class CollectionBuilderTest {
             //         - add new component works from the updated EAD.
             //         - update existing component works from the updated EAD.
             CollectionBuilder.reloadCollection(collectionWork);
+            doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
+            JsonNode statusReport = doc.getReport();
+            assertNotNull(statusReport);
+            assertNotNull(statusReport.get("eadUpdateReviewRequired"));
+            assertEquals(2, statusReport.get("eadUpdateReviewRequired").size());
             as.commit();
             
             // verify the component of AS id (i.e. updatedCompAsId) is under the first component work 
