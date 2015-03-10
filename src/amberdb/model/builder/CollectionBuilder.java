@@ -607,10 +607,14 @@ public class CollectionBuilder {
                     feature.setFeatureType(featureType);
                     feature.setFeatureId(mapping.get("id"));
                     List<String> featureFields = toList(mapping.get("odd-fields"));
-                    if (featureFields != null) {
-                        feature.setFields(featureFields);
+                    if (featureFields == null) {
+                        throw new EADValidationException("FAILED_EXTRACT_FEATURE", featureType + " as there's no fields specified for " + featureType, collectionWork.getObjId());
                     }
+                    feature.setFields(featureFields);
                     List<String> featureData = toList(mapping.get("odd-record-data"));
+                    if (featureData == null || featureData.size() == 0) {
+                        throw new EADValidationException("FAILED_EXTRACT_FEATURE", featureType + " as there's no records specified for " + featureType, collectionWork.getObjId());
+                    }
                     List<List<String>> featureRecords = new ArrayList<>();
                     for (int i = 0; i < featureData.size(); i++) {
                         List<String> record = new ArrayList<>();
@@ -621,9 +625,11 @@ public class CollectionBuilder {
                         i = i + 3;
                     }
                     feature.setRecords(featureRecords);
+                } else {
+                    throw new EADValidationException("FAILED_EXTRACT_FEATURE", "feature as it is missing feature type", collectionWork.getObjId());
                 }
             } catch (IOException e) {
-                log.error("Failed to extract feature " + featureType + " for work " + collectionWork.getObjId() + ".");
+                log.error("Failed to extract feature " + featureType + " for work " + collectionWork.getObjId() + " due to " + e.getMessage() + ".");
                 throw new EADValidationException("FAILED_EXTRACT_FEATURE", e, featureType, collectionWork.getObjId());
             }
         }
@@ -633,6 +639,7 @@ public class CollectionBuilder {
         String basePath = entitiesCfg.get(CFG_BASE).getTextValue();
         String repeatablePath = entitiesCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
         Nodes eadEntities = parser.getElementsByXPath(parser.getDocument(), basePath);
+        
         if (eadEntities != null && eadEntities.size() > 0) {
             Map<String, String> mapping = parser.getFieldsMap(eadEntities.get(0), entitiesCfg, basePath);
             collectionWork.setCorrespondenceId(mapping.get("id"));
@@ -641,11 +648,14 @@ public class CollectionBuilder {
             try {
                 if (eadEntities.size() > 0) {
                     for (int i = 0; i < eadEntities.size(); i++) {
-                        // Nodes eadEntityEntries =
-                        // parser.traverse(eadEntities.get(i), repeatablePath);
                         Nodes eadEntityEntries = eadEntities.get(i).query(repeatablePath, parser.xc);
                         log.debug("entity found: " + eadEntityEntries.size() + " for query repeatable path "
                                 + repeatablePath);
+                        
+                        if (eadEntityEntries.size() == 0) {
+                            String ord = (i == 0)? "1st" : (i == 1)? "2nd" : (i == 2)? "3rd" : "" + (i+1) + "th";
+                            throw new EADValidationException("FAILED_EXTRACT_ENTITIES", ord, collectionWork.getObjId());
+                        }
                         for (int j = 0; j < eadEntityEntries.size(); j++) {
                             Map<String, String> entityData = parser.getFieldsMap(eadEntityEntries.get(j), entitiesCfg,
                                     repeatablePath);
@@ -680,8 +690,8 @@ public class CollectionBuilder {
                     }
                 }
             } catch (IOException e) {
-                log.error("Failed to extract entities for work " + collectionWork.getObjId() + ".");
-                throw new EADValidationException("FAILED_EXTRACT_ENTITIES", e, collectionWork.getObjId());
+                log.error("Failed to extract entities for work " + collectionWork.getObjId() + " due to " + e.getMessage() + ".");
+                throw new EADValidationException("FAILED_EXTRACT_ENTITIES", e, "any", collectionWork.getObjId());
             }
         }
     }
@@ -880,7 +890,7 @@ public class CollectionBuilder {
                 }
             }
         } catch (IOException e) {
-            log.error("Failed to map bibliography for collection work " + collectionWork.getObjId());
+            log.error("Failed to map bibliography for collection work " + collectionWork.getObjId() + " due to " + e.getMessage() + ".");
             throw new EADValidationException("FAILED_EXTRACT_BIBLIOGRAPHY", e, collectionWork.getObjId());
         }
     }
