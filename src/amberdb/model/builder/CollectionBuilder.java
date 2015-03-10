@@ -363,7 +363,7 @@ public class CollectionBuilder {
         //          - iterate through each component in the updated EAD, and merge the component into the collection of works
         //            under the collectionWork.
         processCollection(collectionWork, eadFile.openStream(), collectionCfg, parser);
-        
+             
         // Step 2: generate the FINDING_AID_VIEW_COPY json from the updated FINDING_AID_COPY EAD attached to collectionWork
         generateJson(collectionWork, parser.storeCopy);
         
@@ -424,10 +424,14 @@ public class CollectionBuilder {
         
         ObjectNode structure = mapper.createObjectNode();
         ObjectNode content = mapper.createObjectNode();
+        ObjectNode statusReport = mapper.createObjectNode();
         
         // create the document from the work.
-        traverseCollection(collectionWork, structure, content);
+        traverseCollection(collectionWork, structure, content, statusReport);
         Document doc = new Document(structure, content);
+        
+        // set status report if there's any ead work requiring review
+        if (statusReport.size() > 0) doc.setStatusReport(statusReport);
         
         // store the document as a copy to collectionWork.
         if (storeCopy)
@@ -653,8 +657,7 @@ public class CollectionBuilder {
                                 + repeatablePath);
                         
                         if (eadEntityEntries.size() == 0) {
-                            String ord = (i == 0)? "1st" : (i == 1)? "2nd" : (i == 2)? "3rd" : "" + (i+1) + "th";
-                            throw new EADValidationException("FAILED_EXTRACT_ENTITIES", ord, collectionWork.getObjId());
+                            throw new EADValidationException("FAILED_EXTRACT_ENTITIES", "" + (i+1), collectionWork.getObjId());
                         }
                         for (int j = 0; j < eadEntityEntries.size(); j++) {
                             Map<String, String> entityData = parser.getFieldsMap(eadEntityEntries.get(j), entitiesCfg,
@@ -900,7 +903,7 @@ public class CollectionBuilder {
         Map<String, String> fieldsMap = parser.getFieldsMap(eadElement, elementCfg, parser.getBasePath(parser.getDocument()));        
         if (fieldsMap.get("uuid") == null || fieldsMap.get("uuid").isEmpty()) {
            String collectionWorkUUID = (collectionWork.getLocalSystemNumber() == null)? "" : collectionWork.getLocalSystemNumber();  
-           throw new EADValidationException("NO_UUID_FOR_CHILD_WORK", "" + ord, collectionWork.getObjId(), collectionWorkUUID);
+           throw new EADValidationException("NO_UUID_FOR_CHILD_WORK", "" + (ord + 1), collectionWork.getObjId(), collectionWorkUUID);
         }
         String uuid = fieldsMap.get("uuid");
         workInCollection = collectionWork.checkEADWorkInCollectionByLocalSystemNumber(uuid);
@@ -913,7 +916,7 @@ public class CollectionBuilder {
         return workInCollection;
     }
     
-    protected static void traverseCollection (Work work, JsonNode structure, JsonNode content) {
+    protected static void traverseCollection (Work work, JsonNode structure, JsonNode content, JsonNode statusReport) {
         JsonNode workProperties = mapWorkProperties(work);
 
         String uuid = "";
@@ -926,17 +929,30 @@ public class CollectionBuilder {
             ((ObjectNode) structure).put(work.getObjId(), uuid);
         }
         ((ObjectNode) content).put(work.getObjId(), workProperties);
-        traverseCollection(work.getChildren(), structure, content);
+        
+        String eadUpdateReviewRequired= work.asEADWork().getEADUpdateReviewRequired();
+        if (eadUpdateReviewRequired != null && eadUpdateReviewRequired.equals("Y")) {
+            ArrayNode eadUpdateReviewList;
+            if (statusReport.get("eadUpdateReviewRequired") == null) {
+                eadUpdateReviewList = new ObjectMapper().createArrayNode();
+                ((ObjectNode) statusReport).put("eadUpdateReviewRequired", eadUpdateReviewList);
+            } else {
+                eadUpdateReviewList = (ArrayNode) statusReport.get("eadUpdateReviewRequired");
+            }
+            eadUpdateReviewList.add(work.getObjId());
+        }
+            
+        traverseCollection(work.getChildren(), structure, content, statusReport);
     }
     
-    protected static void traverseCollection (Iterable<Work> works, JsonNode structure, JsonNode content) {
+    protected static void traverseCollection (Iterable<Work> works, JsonNode structure, JsonNode content, JsonNode statusReport) {
         if (works == null || !works.iterator().hasNext()) return;
         ArrayNode arry = mapper.createArrayNode();
         ((ObjectNode) structure).put(XmlDocumentParser.CFG_SUB_ELEMENTS, arry);
         for (Work work : works) {
             JsonNode item = mapper.createObjectNode();
             arry.add(item);
-            traverseCollection(work, item, content);
+            traverseCollection(work, item, content, statusReport);
         }
     }
     
