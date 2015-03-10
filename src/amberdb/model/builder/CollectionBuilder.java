@@ -363,8 +363,7 @@ public class CollectionBuilder {
         //          - iterate through each component in the updated EAD, and merge the component into the collection of works
         //            under the collectionWork.
         processCollection(collectionWork, eadFile.openStream(), collectionCfg, parser);
-        
-        
+             
         // Step 2: generate the FINDING_AID_VIEW_COPY json from the updated FINDING_AID_COPY EAD attached to collectionWork
         generateJson(collectionWork, parser.storeCopy);
         
