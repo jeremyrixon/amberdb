@@ -682,17 +682,20 @@ public interface Copy extends Node {
         
         @Override
         public CameraData getCameraData() {
-            return (CameraData) getDescription("CameraData");
+            Object o = getDescription("CameraData");
+            return (o == null) ? null : (CameraData) o;
         }
         
         @Override
         public ImageFile getImageFile() {
-            return (ImageFile) getSpecializedFile("image");
+            Object o = getSpecializedFile("image");
+            return (o == null) ? null : (ImageFile) o;
         }
         
         @Override
         public SoundFile getSoundFile() {
-            return (SoundFile) getSpecializedFile("audio");
+            Object o = getSpecializedFile("audio");
+            return (o == null) ? null : (SoundFile) o;
         }
         
         private File getSpecializedFile(String fmt) {
