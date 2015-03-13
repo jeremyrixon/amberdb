@@ -42,35 +42,4 @@ public class NodeTest {
         w.setBibLevel("bib");
         assertEquals(w.getPropertyKeySet(), Sets.newHashSet("bibLevel", "type"));
     }
-
-    @Test
-    public void testFindNodeByJsonListValue() throws IOException {
-
-        // committed works
-        Work w1 = db.addWork();
-        Work w2 = db.addWork();
-        Work w3 = db.addWork();
-        Work w4 = db.addWork();
-
-        w1.setAlias(Arrays.asList("wally", "beta", "delta", "epsilon", "gamma"));
-        w2.setAlias(Arrays.asList("beta", "delta", "epsilon", "gamma", "wally"));
-        w3.setAlias(Arrays.asList("beta", "delta", "epsilon", "gamma"));
-        w4.setAlias(Arrays.asList("beta", "delta", "wally", "epsilon", "gamma"));
-
-        db.commit("blue", "carrot");
-
-        // uncommitted works
-        Work w5 = db.addWork();
-        Work w6 = db.addWork();
-
-        w5.setAlias(Arrays.asList("wally", "beta", "delta", "epsilon", "gamma"));
-        w6.setAlias(Arrays.asList("beta", "delta", "epsilon", "gamma"));
-
-        List<Work> works = db.findModelByValueInJsonList("alias", "wally", Work.class);
-
-        assertEquals(4, works.size());
-        for (Work w : works) {
-            assertTrue(w.getAlias().contains("wally"));
-        }
-    }
 }
