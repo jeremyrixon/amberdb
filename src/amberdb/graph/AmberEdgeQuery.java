@@ -11,7 +11,6 @@ import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.Update;
 
 import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Vertex;
 
 
 public class AmberEdgeQuery extends AmberQueryBase {
