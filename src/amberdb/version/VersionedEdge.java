@@ -70,6 +70,7 @@ public class VersionedEdge {
             if (e.id.end.equals(0L)) current++;
         }
         if (!sameIds || current > 1) 
+            this.edges.addAll(edges);
             throw new RuntimeException("Edges supplied to VersionedEdge are bad: " + toString());
     }
     
