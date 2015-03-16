@@ -750,14 +750,19 @@ public class CollectionBuilder {
         
         Object extent = fieldsMap.get("extent");
         if (extent != null && extent instanceof String) {
-            if (!extent.toString().isEmpty())
-                collectionWork.setExtent(extent.toString());
+            if (!extent.toString().isEmpty()) {
+                collectionWork.setExtent(extent.toString().replace("\"", "").replace("[", "").replace("]", ""));
+            }  
         } else if (extent != null) {
             List<String> extentList = (List<String>) extent;
-            collectionWork.setExtent(StringUtils.join(extentList, "; "));
+            String extentValue = StringUtils.join(extentList, ";");
+            collectionWork.setExtent(extentValue.replace("\"", "").replace("[", "").replace("]", ""));
         }
 
-        collectionWork.setCreator(fieldsMap.get("creator"));
+        String creator = fieldsMap.get("creator").toString();
+        if (creator != null && !creator.isEmpty()) {
+            collectionWork.setCreator(creator.replace("\",\"", ";").replace("\"", "").replace("[", "").replace("]", ""));
+        }
         collectionWork.setSubType("Work");
         collectionWork.setForm("Manuscript");
         
@@ -918,6 +923,7 @@ public class CollectionBuilder {
     
     protected static void traverseCollection (Work work, JsonNode structure, JsonNode content, JsonNode statusReport) {
         JsonNode workProperties = mapWorkProperties(work);
+        ObjectMapper om = new ObjectMapper();
 
         String uuid = "";
         if (workProperties.get("localSystemNumber") != null && !workProperties.get("localSystemNumber").getTextValue().isEmpty()) {
@@ -934,12 +940,29 @@ public class CollectionBuilder {
         if (eadUpdateReviewRequired != null && eadUpdateReviewRequired.equals("Y")) {
             ArrayNode eadUpdateReviewList;
             if (statusReport.get("eadUpdateReviewRequired") == null) {
-                eadUpdateReviewList = new ObjectMapper().createArrayNode();
+                eadUpdateReviewList = om.createArrayNode();
                 ((ObjectNode) statusReport).put("eadUpdateReviewRequired", eadUpdateReviewList);
             } else {
                 eadUpdateReviewList = (ArrayNode) statusReport.get("eadUpdateReviewRequired");
             }
             eadUpdateReviewList.add(work.getObjId());
+        }
+        String dateRangeInAS = work.asEADWork().getDateRangInAS();
+        if (dateRangeInAS != null && !dateRangeInAS.isEmpty()) {
+            JsonNode dateRangeList;
+            if (statusReport.get("dateRangeReviewRequired") == null) {
+                dateRangeList = om.createObjectNode();
+                ((ObjectNode) statusReport).put("dateRangeReviewRequired", dateRangeList);
+            } else {
+                dateRangeList = (JsonNode) statusReport.get("dateRangeReviewRequired");
+            }
+            if (dateRangeList.get(dateRangeInAS) == null) {
+                SimpleDateFormat fmt = new SimpleDateFormat("dd/MM/yyyy");
+                ObjectNode dateRange = om.createObjectNode();
+                dateRange.put("startDate", fmt.format(work.asEADWork().getStartDate()));
+                dateRange.put("endDate", fmt.format(work.asEADWork().getEndDate()));
+                ((ObjectNode) dateRangeList).put(dateRangeInAS, dateRange);  
+            } 
         }
             
         traverseCollection(work.getChildren(), structure, content, statusReport);

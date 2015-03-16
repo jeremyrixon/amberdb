@@ -164,7 +164,7 @@ public class CollectionBuilderTest {
             Work collectionWork = as.findWork(collectionWorkId);
             boolean storeCopy = true;
             Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
-            log("doc: " + doc.toJson());
+            System.out.println("doc: " + doc.toJson());
             JsonNode content = doc.getContent();
             Iterator<String> it = content.getFieldNames();
             assertTrue(it.hasNext());
@@ -296,7 +296,7 @@ public class CollectionBuilderTest {
             collectionWork.setCollection("nla.ms");
             boolean storeCopy = true;
             Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
-            assertNull(doc.getReport());
+            assertNull(doc.getReport().get("eadUpdateReviewRequired"));
             // verify the component of AS id (i.e updedCompASId) has collection work as its parent
             Map<String, String> uuidToPIMap = CollectionBuilder.componentWorksMap(collectionWork);
             Work componentToUpdate = as.findWork(uuidToPIMap.get(updedCompASId));
