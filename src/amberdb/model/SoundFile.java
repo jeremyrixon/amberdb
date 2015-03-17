@@ -63,14 +63,14 @@ public interface SoundFile extends File {
     public void setEqualisation(String equalisation);
 
     @Property("blockAlign")
-    public String getBlockAlign();    
+    public Integer getBlockAlign();    
     @Property("blockAlign")
-    public void setBlockAlign(String blockAlign);
+    public void setBlockAlign(Integer blockAlign);
 
     @Property("framerate")
-    public String getFramerate();    
+    public Integer getFramerate();    
     @Property("framerate")
-    public void setFramerate(String framerate);
+    public void setFramerate(Integer framerate);
 
     @Property("fileContainer")
     public String getFileContainer();    
