@@ -225,8 +225,10 @@ public class ComponentBuilder {
                         componentWork.setEndDate(dateList.get(1));
                 }
             } catch (Exception e) {
-                log.info("Failed to parse date range for component work " + componentWork.getObjId());
-                throw new EADValidationException("FAILED_EXTRACT_DATE_RANGE", e, componentWork.getObjId(), (uuid == null)?"":uuid);
+                String workObjId = componentWork.getObjId();
+                log.info("Failed to parse date range for component work " + workObjId);
+                log.debug("EAD validation failed: {}\n{} {}", e.getMessage(), workObjId, (uuid == null)?"":uuid);
+                throw new EADValidationException("FAILED_EXTRACT_DATE_RANGE", e, workObjId, (uuid == null)?"":uuid);
             }
         }
         

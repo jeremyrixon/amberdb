@@ -1,9 +1,9 @@
 package amberdb.util;
 
+import static amberdb.enums.DateExpression.*;
+
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -17,100 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DateParser {
-    static final Logger log = LoggerFactory.getLogger(DateParser.class);
-    static final String[] dateRangePattern = { 
-        "(.*)\\s*-\\s*(.*)",
-        "(.*)\\s*/\\s*(.*)",
-        "(.*)\\s*or\\s*(.*)",
-        "(.*)\\s*,\\s*(.*)"};
-    
-    static final String[] bulkDateRangePattern = {
-        "\\s*\\(bulk (.*)\\s*-\\s*(.*)\\)"
-    };
-    
-    static final String circaDateRangePattern = "c.\\s*(.*)\\s*";
-    
-    static final String[] yearPatterns = {
-        "(\\d{3,4})\\s*[\\s\\-\\./](.*)", // which covers
-                                          // "(\\d\\d\\d)\\s+(.*)",
-                                          // "(\\d\\d\\d)\\s*-\\s*(.*)",
-                                          // "(\\d\\d\\d)\\s*/\\s*(.*)",
-                                          // "(\\d\\d\\d)\\s*.\\s*(.*)",
-                                          // "(\\d\\d\\d\\d)\\s+(.*)",
-                                          // "(\\d\\d\\d\\d)\\s*-\\s*(.*)",
-                                          // "(\\d\\d\\d\\d)\\s*/\\s*(.*)",
-                                          // "(\\d\\d\\d\\d)\\s*.\\s*(.*)",
-        "(.*)\\s*[,\\s\\-\\./](\\d{3,4})",
-        "(\\d{3,4})"
-    };
-    
-    static final String[] datePatterns = {
-        "(\\d{1,2})\\s*[\\s\\-\\./](.*)",
-        "(.*)\\s*[,\\s\\-\\./](\\d{1,2})"
-    }; 
-    
-    static final String[] monthAbbr = {
-        "JANUARY",
-        "FEBRUARY",
-        "MARCH",
-        "APRIL",
-        "MAY",
-        "JUNE",
-        "JULY",
-        "AUGUST",
-        "SEPTEMBER",
-        "OCTOBER",
-        "NOVEMBER",
-        "DECEMBER",
-        "JAN",
-        "FEB",
-        "MAR",
-        "APR",
-        "MAY",
-        "JUN",
-        "JUL",
-        "AUG",
-        "SEP",
-        "OCT",
-        "NOV",
-        "DEC"
-    };  
-    static Map<String, Integer> monthLu = new ConcurrentHashMap<>();
-    
-    static final String DATE_PATTERN1 = "dd/MM/yyyy";
-    static final String DATE_PATTERN2 = "dd/MMM/yyyy";
-    static Pattern[] dtRangePatterns;
-    static Pattern[] yrPatterns;
-    static Pattern[] dtPatterns;
-    
-    static {
-        int i = 1;
-        for (String month : monthAbbr) {
-            int mnth = (i > 12)? i - 12 : i;
-            monthLu.put(month, i);
-            i++;
-        }
-        
-        dtRangePatterns = new Pattern[dateRangePattern.length*2];
-        i = 0;
-        for (String expr : dateRangePattern) {
-            dtRangePatterns[i] = Pattern.compile(expr + bulkDateRangePattern[0]);
-            dtRangePatterns[i+1] = Pattern.compile(expr);
-            i=i+2;
-        }
-        yrPatterns = new Pattern[yearPatterns.length];
-        i = 0;
-        for (String yearPattern : yearPatterns) {
-            yrPatterns[i] = Pattern.compile(yearPattern);
-            i++;
-        }
-        dtPatterns = new Pattern[datePatterns.length];
-        i = 0;
-        for (String dtPattern : datePatterns) {
-            dtPatterns[i] = Pattern.compile(dtPattern);
-            i++;
-        }
-    }
+    static final Logger log = LoggerFactory.getLogger(DateParser.class);    
+    static final String bulkDateRangePrefix= "(bulk";   
     
     /**
      * parseDateRange: returns the from date and to date in a list of date.
@@ -124,8 +32,7 @@ public class DateParser {
      *   [4] June 1937                     04-06-1937      04-06-1937
      *   May 1992                          01-05-1992      31-05-1992
      *   [November] 1935                   01-11-1935      30-11-1935
-     *   9-15 December 1938                null            15-12-1938
-     *     (Note: current limitation for date parsing as 9 is ambiguous to parse as a start date)
+     *   9-15 December 1938                09-12-1938      15-12-1938
      *   1935-1936                         01-01-1935      31-12-1936
      *   1935-c.1936                       01-01-1935      31-12-1936
      *   1914, 1919-1960 (bulk 1930-1958)  01-01-1914      31-12-1960
@@ -133,66 +40,130 @@ public class DateParser {
      * @param dateRangeExpr - input date range string
      * @return the from date and to date of the date range in a date list.
      * @throws ParseException
+     * 
+     * Note: Defaults: if there's no end date found in the date Range e.g. 1932 -
+     *       the end date is then defaults to 31/12/9999
+     *
+     *       It is ok to not specify a start date e.g. - 1799, in this case, the
+     *       start date in the returned date range will be null.
+     *
+     *       Input date expression start with year first can have " " (space) or
+     *       "." (full stop) as delimiter in the expression e.g. 1970.Mar.01 or
+     *       1970 Mar 01, but not "-" as delimiter in the expression i.e. not
+     *       1970-Mar-01 (currently not extracted)
+     *
+     *       limitation for year extraction: it's assumed that any
+     *       year value should have the length between 3 - 4 digits in order to be
+     *       recognized as a year value.
+     *       
+     *       limitation for month extraction: it's assumed month is expressed in
+     *       full text or 3 letter abbreviation (case insensitive).
+     *
+     *       format for the day part of a input date expression must be (1 or 2)
+     *       digit number between 1 and max days in month.
+     *       
+     *       limitation for parsing date ranges reference the four seasons:
+     *       - winter, spring, summer, autumn
+     *       currently any season reference will produce the whole year coverage
+     *       for corresponding date extracted from the input date range expression. 
      */
     public static List<Date> parseDateRange(String dateRangeExpr) throws ParseException {
+        return parseDateRange(dateRangeExpr, null);
+    }
+    public static List<Date> parseDateRange(String dateRangeExpr, Date defaultDate) throws ParseException {
         if (dateRangeExpr == null || dateRangeExpr.trim().isEmpty()) return null;
+        Calendar cal = Calendar.getInstance();
+        if (defaultDate != null) cal.setTime(defaultDate);
         
         List<Date> dateRange = new ArrayList<>();      
-        dateRangeExpr = dateRangeExpr.replace("[", "").replace("]", "").trim();
-        
+        dateRangeExpr = dateRangeExpr.replace("[", "").replace("]", "").trim();        
+        if (dateRangeExpr.indexOf(bulkDateRangePrefix) >= 0)
+            dateRangeExpr = dateRangeExpr.substring(0, dateRangeExpr.indexOf(bulkDateRangePrefix));
+
         // parse circa date
-        if (dateRangeExpr.startsWith("c") && !dateRangeExpr.contains("-"))
-            return parseCircaDateRange(dateRangeExpr);
-        else if (dateRangeExpr.startsWith("c."))
-            dateRangeExpr = dateRangeExpr.substring(2).trim();
-        else if (dateRangeExpr.startsWith("c"))
-            dateRangeExpr = dateRangeExpr.substring(1).trim();
+        if (dateRangeExpr.startsWith("c")) {
+            try {
+                return parseCircaDateRange(dateRangeExpr);
+            } catch (Exception e) {
+                // dateRangeExpr = dateRangeExpr.replaceAll("c.", "").replaceAll("c", "");
+                dateRangeExpr = CIRCAINSTANT.getPlainExprFromCircaDate(dateRangeExpr);
+            }
+        }
         
         // parse the date range
-        SimpleDateFormat dateFmt1 = new SimpleDateFormat(DATE_PATTERN1);
-        List<String> dateRangePair = getExprPair(dateRangeExpr, dtRangePatterns);
+        List<String> dateRangePair = getExprPair(dateRangeExpr, INTERVAL.getPatterns());
         if (dateRangePair == null) {
-            Date fromDate = parseDate(dateRangeExpr, true);
-            Date toDate = parseDate(dateRangeExpr, false);
-            if (fromDate != null) {
-                List<Date> sameDayRange = new ArrayList<>();
-                sameDayRange.add(fromDate);
-                sameDayRange.add(toDate);
-                return sameDayRange;
-            }
-            return null;
+            Date fromDate = parseDate(dateRangeExpr, true, cal);
+            Date toDate = parseDate(dateRangeExpr, false, cal);
+            dateRange.add(fromDate);
+            dateRange.add(toDate);
+            return dateRange;
         }
         
         if (dateRangePair.size() == 2) {
-            if (dateRangePair.get(0).length() == 4) {
-                dateRange.add(dateFmt1.parse("01/01/" + dateRangePair.get(0)));
-            } else {
-                try {
-                    List<Date> dates = parseDateRange(dateRangePair.get(0));
-                    if (dates != null && dates.size() > 0)
-                        dateRange.add(dates.get(0));
-                    else
-                        dateRange.add(null);
-                } catch (ParseException e) {
-                    boolean isFromDate = true;
-                    dateRange.add(parseDate(dateRangePair.get(0), isFromDate));
+            String startDateToken = (dateRangePair.get(0) == null)?"":dateRangePair.get(0).trim();
+            String endDateToken = (dateRangePair.get(1) == null)?"":dateRangePair.get(1).trim();
+            if (endDateToken.isEmpty()) {
+                defaultDate = constructDate(false, "9999", "DEC", "31");
+            } else if (endDateToken.length() < 3 && startDateToken.length() >=4 && YEAR.isYear(startDateToken.substring(0, 4))) {
+                int defaultYear = Integer.parseInt(startDateToken.substring(0, 4));
+                cal.set(defaultYear, 12, 31);
+                if (INSTANT.isDay(endDateToken, cal.getActualMaximum(Calendar.DAY_OF_MONTH)))
+                    cal.set(Calendar.DAY_OF_MONTH, Integer.parseInt(endDateToken));
+                if (cal.get(Calendar.YEAR) != defaultYear) {
+                    log.debug("Failed to parse date expr : " + dateRangeExpr + ", expect year:" + defaultYear + ", actual year:" + cal.get(Calendar.YEAR) + ", endDateTokenlen: " + endDateToken.length());
+                    throw new ParseException("Failed to parse date expr : " + dateRangeExpr, 0);
+                }
+                defaultDate = cal.getTime();
+            }
+            Date endDate = null;
+            if (endDateToken.length() > 0) {
+                if (YEAR.isYear(endDateToken)) {
+                    endDate = constructDate(false, endDateToken, "DEC", "31");
+                } else {
+                    try {
+                        List<Date> dates = parseDateRange(endDateToken,defaultDate);
+                        if (dates != null && dates.size() > 0)
+                            endDate = dates.get(dates.size() - 1);
+                    } catch (ParseException e) {
+                        boolean isFromDate = false;
+                        endDate = parseDate(endDateToken, isFromDate, cal);
+                    }
                 }
             }
             
-            if (dateRangePair.get(1).length() == 4) {
-                dateRange.add(dateFmt1.parse("31/12/" + dateRangePair.get(1)));
-            } else {
-                try {
-                    List<Date> dates = parseDateRange(dateRangePair.get(1));
-                    if (dates != null && dates.size() > 0)
-                        dateRange.add(dates.get(dates.size() - 1));
-                    else
-                        dateRange.add(null);
-                } catch (ParseException e) {
-                    boolean isFromDate = false;
-                    dateRange.add(parseDate(dateRangePair.get(1), isFromDate));
+            if (endDate != null) {
+                cal.setTime(endDate);
+            }
+            
+            System.out.println("dateRangePair: " + startDateToken + "," + endDateToken);
+            Date startDate = null;
+            if (startDateToken.length() > 0) {
+                if (YEAR.isYear(startDateToken)) {
+                    startDate = constructDate(true, startDateToken, "JAN", "1");
+                } else if (MONTH.getMonthOfYear(startDateToken) != null) {
+                    int monthOfYear = MONTH.getMonthOfYear(startDateToken);
+                    cal.set(Calendar.DAY_OF_MONTH, 1);
+                    cal.set(Calendar.MONTH, monthOfYear - 1);
+                    startDate = cal.getTime();
+                } else {
+                    if (INSTANT.isDay(startDateToken, cal.getActualMaximum(Calendar.DAY_OF_MONTH))) {
+                        cal.set(Calendar.DAY_OF_MONTH, Integer.parseInt(startDateToken));
+                        startDate = cal.getTime();
+                    } else {
+                        try {
+                            List<Date> dates = parseDateRange(startDateToken, endDate);
+                            if (dates != null && dates.size() > 0)
+                                startDate = dates.get(0);
+                        } catch (ParseException e) {
+                            boolean isFromDate = true;
+                            startDate = parseDate(startDateToken, isFromDate, cal);
+                        }
+                    }
                 }
             }
+            dateRange.add(startDate);
+            dateRange.add(endDate);
         }
         if (dateRange.isEmpty()) return parseCircaDateRange(dateRangeExpr);
         return dateRange;
@@ -210,14 +181,13 @@ public class DateParser {
             addDecade = true;
             dateRangeExpr = dateRangeExpr.substring(0, dateRangeExpr.length() - 1);
         }
-        Pattern circaPattern = Pattern.compile(circaDateRangePattern);
+        Pattern circaPattern = CIRCAINTERVAL.getPatterns()[0];
         Matcher matcher = circaPattern.matcher(dateRangeExpr);
         if (matcher.matches()) {
             int startYear = Integer.parseInt(matcher.group(1));
             int endYear = (addDecade)? startYear + 9 : startYear;
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy:MM:dd");
-            dateRange.add(dateFormat.parse(startYear + ":01:01"));
-            dateRange.add(dateFormat.parse(endYear + ":12:31"));
+            dateRange.add(constructDate(true, "" + startYear, "JAN", "1"));
+            dateRange.add(constructDate(false, "" + endYear, "DEC", "31"));
         }
         return dateRange;
     }
@@ -230,10 +200,28 @@ public class DateParser {
      * @throws ParseException
      */
     public static Date parseDate(String dateExpr, boolean isFromDate) throws ParseException {
+        return parseDate(dateExpr, isFromDate, null);
+    }
+    public static Date parseDate(String dateExpr, boolean isFromDate, Calendar cal) throws ParseException {
         if (dateExpr == null) return null;
+        dateExpr = dateExpr.trim().replace(",", "");
+        // check for decade in dateExpr
+        if (dateExpr.endsWith("s")) {
+            return parseCircaDateRange("c." + dateExpr).get((isFromDate)?0:1);
+        }
         // parse year
-        Map.Entry<Pattern, List<String>> yearAndRestMatch = getMatchedExprPair(dateExpr.trim(), yrPatterns);
-        if (yearAndRestMatch == null) return null;
+        Map.Entry<Pattern, List<String>> yearAndRestMatch = getMatchedExprPair(dateExpr.trim(), YEAR.getPatterns());
+        if (yearAndRestMatch == null) {
+            if (cal == null) throw new RuntimeException("failed to extract year for date expression " + dateExpr);
+            Integer month;
+            if (INSTANT.isDay(dateExpr, cal.getActualMaximum(Calendar.DAY_OF_MONTH))) {
+                cal.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dateExpr) - 1);
+            } else if ((month = MONTH.getMonthOfYear(dateExpr)) != null) {
+                cal.set(Calendar.DAY_OF_MONTH, 0);
+                cal.set(Calendar.MONTH, MONTH.getMonthOfYear(dateExpr), month - 1);
+            }
+            return cal.getTime();
+        }
         
         String year = "";
         String restExpr = "";
@@ -247,17 +235,23 @@ public class DateParser {
         }
         
         // parse month
-        List<String> mnthAbbrList = Arrays.asList(monthAbbr);
-        if (restExpr == null || restExpr.isEmpty()) 
-            return constructDate(isFromDate, year, null, null, mnthAbbrList);
+        if (restExpr == null || restExpr.isEmpty() || SEASON.isSeason(restExpr)) 
+            return constructDate(isFromDate, year, null, null);
         
-        if (mnthAbbrList.contains(restExpr.toUpperCase())) {
-            Date potentialDate = constructDate(isFromDate, year, restExpr, null, mnthAbbrList);
+        if (MONTH.getMonthOfYear(restExpr.trim()) != null) {
+            int monthOfYear = MONTH.getMonthOfYear(restExpr.trim());
+            cal.set(Calendar.MONTH, monthOfYear - 1);
+            int daysOfMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+            String date = restExpr.substring(restExpr.length() - 2).replaceAll("\\D", "");
+            if (!INSTANT.isDay(date, daysOfMonth)) date = null;
+            Date potentialDate = constructDate(isFromDate, year, restExpr, date);
+            log.debug("date: " + date + ", daysOfMonth: " + daysOfMonth + ", monthOfYear " + monthOfYear);
+            
             if (potentialDate != null) return potentialDate;
         }
         
         // parse date
-        Map.Entry<Pattern, List<String>> dateAndRestMatch = getMatchedExprPair(restExpr, dtPatterns);
+        Map.Entry<Pattern, List<String>> dateAndRestMatch = getMatchedExprPair(restExpr, INSTANT.getPatterns());
         if (dateAndRestMatch == null) return null;
         String date = "";
         String month = "";
@@ -269,7 +263,7 @@ public class DateParser {
             month = dateAndRestMatch.getValue().get(0);
             date = dateAndRestMatch.getValue().get(1);            
         }
-        return constructDate(isFromDate, year, month, date, mnthAbbrList);
+        return constructDate(isFromDate, year, month, date);
     }
 
     /**
@@ -283,35 +277,28 @@ public class DateParser {
      * @return the constructed date
      * @throws ParseException
      */
-    private static Date constructDate(boolean isFromDate, String year, String month, String date,
-            List<String> mnthAbbrList) throws ParseException {
+    private static Date constructDate(boolean isFromDate, String year, String month, String date) throws ParseException {
+        Calendar cal = Calendar.getInstance();
+        cal.clear();
+        // System.out.println("year " + year + ", month " + month);
+        if (INSTANT.isYear(year))
+            cal.set(Calendar.YEAR, Integer.parseInt(year)); 
+        Integer monthOfYear = null;
         if (month == null) {
-            month = (isFromDate)?"JAN":"DEC";
+            monthOfYear = (isFromDate)?1:12;
+        } else {
+            monthOfYear = MONTH.getMonthOfYear(month);
         }
-       
-        SimpleDateFormat dateFmt1 = new SimpleDateFormat(DATE_PATTERN1);
-        SimpleDateFormat dateFmt2 = new SimpleDateFormat(DATE_PATTERN2);
-        SimpleDateFormat dateFmt = (mnthAbbrList.contains(month.toUpperCase())) ? dateFmt2 : dateFmt1;
-        String fmttedMonth = (mnthAbbrList.contains(month.toUpperCase())) ? month.toUpperCase().substring(0,3) : month.toUpperCase();
-        
-        if (date != null && !date.isEmpty())
-            return dateFmt.parse(date + "/" + fmttedMonth + "/" + year);
-
-        if (isFromDate)
-            return dateFmt.parse("01/" + fmttedMonth + "/" + year);
-        else {
-            Calendar cal = Calendar.getInstance();
-            cal.clear();
-            cal.set(Calendar.YEAR, Integer.parseInt(year));
-            cal.set(Calendar.MONTH, monthLu.get(month.toUpperCase()) - 1);
-            // Note: not sure sometimes time is over clocked, hence the work around below
-            Date newTime = dateFmt.parse("" + cal.getActualMaximum(Calendar.DAY_OF_MONTH) + "/" + fmttedMonth + "/" + year);
-            SimpleDateFormat fmt = new SimpleDateFormat("MMM");
-            String monthInNewTime = fmt.format(newTime);
-            if (!monthInNewTime.toUpperCase().equals(fmttedMonth))
-                return new Date(newTime.getTime() - 2);            
-            return newTime;
-        }
+        cal.set(Calendar.MONTH, monthOfYear - 1);
+        int daysOfMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);              
+        if (INSTANT.isDay(date, daysOfMonth)) {
+            cal.set(Calendar.DAY_OF_MONTH, Integer.parseInt(date));
+        } else if (isFromDate) {
+            cal.set(Calendar.DAY_OF_MONTH, 1);
+        } else {
+            cal.set(Calendar.DAY_OF_MONTH, daysOfMonth);
+        }    
+        return cal.getTime();
     }
     
     /**
@@ -338,22 +325,24 @@ public class DateParser {
         IllegalStateException error = null;
         for (Pattern pattern : patterns) {
             try {
-                Matcher matcher = pattern.matcher(expr);
-                if (matcher.find()) {
-                    MatchResult result = matcher.toMatchResult();
-                    String from = null;
-                    String to = null;
-                    if (result.groupCount() == 1) {
-                        from = matcher.toMatchResult().group(1).trim();
-                        to = null;
-                    } else if (result.groupCount() > 1) {
-                        from = matcher.toMatchResult().group(1).trim();
-                        to = matcher.toMatchResult().group(2).trim();
+                if (pattern != null) {
+                    Matcher matcher = pattern.matcher(expr);
+                    if (matcher.find()) {
+                        MatchResult result = matcher.toMatchResult();
+                        String from = null;
+                        String to = null;
+                        if (result.groupCount() == 1) {
+                            from = matcher.toMatchResult().group(1).trim();
+                            to = null;
+                        } else if (result.groupCount() > 1) {
+                            from = matcher.toMatchResult().group(1).trim();
+                            to = matcher.toMatchResult().group(2).trim();
+                        }
+                        exprPair.add(from);
+                        exprPair.add(to);
+                        match.put(pattern, exprPair);
+                        return match.entrySet().iterator().next();
                     }
-                    exprPair.add(from);
-                    exprPair.add(to);
-                    match.put(pattern, exprPair);
-                    return match.entrySet().iterator().next();
                 }
             } catch (IllegalStateException e) {
                 // if landed this exception, then try to parse the expression with the next pattern
