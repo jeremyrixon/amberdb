@@ -85,7 +85,6 @@ public class DateParser {
             try {
                 return parseCircaDateRange(dateRangeExpr);
             } catch (Exception e) {
-                // dateRangeExpr = dateRangeExpr.replaceAll("c.", "").replaceAll("c", "");
                 dateRangeExpr = CIRCAINSTANT.getPlainExprFromCircaDate(dateRangeExpr);
             }
         }
@@ -136,7 +135,7 @@ public class DateParser {
                 cal.setTime(endDate);
             }
             
-            System.out.println("dateRangePair: " + startDateToken + "," + endDateToken);
+            log.debug("dateRangePair: " + startDateToken + "," + endDateToken);
             Date startDate = null;
             if (startDateToken.length() > 0) {
                 if (YEAR.isYear(startDateToken)) {
@@ -280,7 +279,7 @@ public class DateParser {
     private static Date constructDate(boolean isFromDate, String year, String month, String date) throws ParseException {
         Calendar cal = Calendar.getInstance();
         cal.clear();
-        // System.out.println("year " + year + ", month " + month);
+
         if (INSTANT.isYear(year))
             cal.set(Calendar.YEAR, Integer.parseInt(year)); 
         Integer monthOfYear = null;
