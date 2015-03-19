@@ -5,6 +5,8 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,10 +52,9 @@ public class AmberLookupsTest {
 
         values = lookups.findActiveLookupsFor("reelSize");
         actuals = populateArray(values);
-        String[] expectedReelSize = { "2in", "2 min", "3in IEC", "4in IEC", "5in IEC", "5in NAB", "5 min", "6in IEC", "7in IEC", "7in NAB", "8.25in IEC", "10in NAB",
-                                      "10in IEC", "12 min", "120 min", "122 min", "125 min", "180 min", "30 min", "40 min", "45 min", "46 min",
-                                      "60 min", "63 min", "65 min", "650MB", "74 min", "90 min", "95 min", "96 min", "80 min", "4.7 GB"};
-        Arrays.sort(expectedReelSize, NaturalSort.getNaturalComparatorIgnoreCaseAscii());
+        String[] expectedReelSize = { "2 min", "2in", "3in IEC", "4.7 GB", "4in IEC", "5 min", "5in IEC", "5in NAB", "6in IEC", "7in IEC", "7in NAB", "8.25in IEC", 
+                "10in IEC", "10in NAB", "12 min", "30 min", "40 min", "45 min", "46 min", "60 min", "63 min", "65 min", "74 min", "80 min", "90 min", "95 min", 
+                "96 min", "120 min", "122 min", "125 min", "180 min", "650MB"};
         assertArrayEquals(expectedReelSize, actuals);
 
         values = lookups.findActiveLookupsFor("channel");
