@@ -606,7 +606,7 @@ public class CollectionBuilder {
             Map<String, String> mapping = parser.getFieldsMap(nodes.get(0), featuresCfg, basePath);
             String featureType = mapping.get("odd-type");
             try {
-                if (featureType != null || !featureType.isEmpty()) {
+                if (featureType != null && !featureType.isEmpty()) {
                     EADFeature feature = collectionWork.addEADFeature();
                     feature.setFeatureType(featureType);
                     feature.setFeatureId(mapping.get("id"));

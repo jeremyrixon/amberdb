@@ -277,8 +277,7 @@ public class ComponentBuilder {
         }
         try {
             if (folderTypes.size() == 1) {
-                String folderNumber = (containerNumber == null) ? ""
-                        : containerNumber.toString();
+                String folderNumber = containerNumber.toString();
                 String folder = "container " + folderTypes.get(0) + " "
                         + folderNumber + "(id:" + ((containerId == null)?"":containerId.toString()) + ")";
                 folder += (containerLabel == null || containerLabel.toString()
@@ -298,12 +297,8 @@ public class ComponentBuilder {
                             new TypeReference<String[]>() {
                             });
                 String[] containerNumbers = null;
-                if (containerNumber != null) {
-                    containerNumbers = mapper.readValue(containerNumber,
-                            new TypeReference<String[]>() {
-                            });
-                    folderNumbers = Arrays.asList(containerNumbers);
-                }
+                containerNumbers = mapper.readValue(containerNumber, new TypeReference<String[]>() {});
+                folderNumbers = Arrays.asList(containerNumbers);
                 String[] containerLabels = null;
                 if (containerLabel != null)
                     containerLabels = mapper.readValue(containerLabel,
