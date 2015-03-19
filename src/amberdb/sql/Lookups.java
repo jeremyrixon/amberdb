@@ -299,7 +299,7 @@ public abstract class Lookups extends Tools {
         String lookupDataJson = new com.fasterxml.jackson.databind.ObjectMapper().writerWithDefaultPrettyPrinter()
                 .writeValueAsString(lookupData);
         out.write(lookupDataJson.getBytes(Charset.defaultCharset()));
-        out.write("\n".getBytes());
+        out.write("\n".getBytes(Charset.defaultCharset()));
         out.flush();
     }
 }
