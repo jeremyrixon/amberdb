@@ -185,6 +185,27 @@ public abstract class LookupsSchema {
       + "('reelSize', '8.25in IEC'),"
       + "('reelSize', '10in NAB'),"
       + "('reelSize', '10in IEC'),"
+      + "('reelSize', '12 min'), "
+      + "('reelSize', '120 min'), "
+      + "('reelSize', '122 min'), "
+      + "('reelSize', '125 min'), "
+      + "('reelSize', '180 min'), "
+      + "('reelSize', '2 min'), "
+      + "('reelSize', '30 min'), "
+      + "('reelSize', '40 min'), "
+      + "('reelSize', '45 min'), "
+      + "('reelSize', '46 min'), "
+      + "('reelSize', '5 min'), "
+      + "('reelSize', '60 min'), "
+      + "('reelSize', '63 min'), "
+      + "('reelSize', '65 min'), "
+      + "('reelSize', '650MB'), "
+      + "('reelSize', '74 min'), "
+      + "('reelSize', '90 min'), "
+      + "('reelSize', '95 min'), "
+      + "('reelSize', '96 min'), "
+      + "('reelSize', '80 min'), "
+      + "('reelSize', '4.7 GB'), "
       + "('channel', '0.5'),"
       + "('channel', '1'),"
       + "('channel', '2'),"
@@ -1044,7 +1065,6 @@ public abstract class LookupsSchema {
             + "('materialType', 'Moving Image', 'Moving Image')"
             )
     public abstract void seedMaterialTypesLookups();
-        
     
     @SqlUpdate("UPDATE tools SET toolTypeId = :toolTypeId where id > 0 and id < 11")
     public abstract void updateToolTypeForToolsGroup1(@Bind("toolTypeId")Long toolTypeId);
