@@ -202,7 +202,7 @@ public abstract class Tools implements Transactional<Tools>{
             activeToolsFor.add(tool);
         else if (filterFldName.equalsIgnoreCase("toolCategory") && toolCategory.toUpperCase().contains(filterFldValue.toUpperCase()))
             activeToolsFor.add(tool);
-        else if (includeId != null && tool.getId() == includeId)
+        else if (includeId != null && tool.getId().equals(includeId))
             activeToolsFor.add(tool);
     }    
     
