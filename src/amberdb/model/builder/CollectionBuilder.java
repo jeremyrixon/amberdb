@@ -606,7 +606,7 @@ public class CollectionBuilder {
             Map<String, String> mapping = parser.getFieldsMap(nodes.get(0), featuresCfg, basePath);
             String featureType = mapping.get("odd-type");
             try {
-                if (featureType != null || !featureType.isEmpty()) {
+                if (featureType != null && !featureType.isEmpty()) {
                     EADFeature feature = collectionWork.addEADFeature();
                     feature.setFeatureType(featureType);
                     feature.setFeatureId(mapping.get("id"));
@@ -959,8 +959,10 @@ public class CollectionBuilder {
             if (dateRangeList.get(dateRangeInAS) == null) {
                 SimpleDateFormat fmt = new SimpleDateFormat("dd/MM/yyyy");
                 ObjectNode dateRange = om.createObjectNode();
-                dateRange.put("startDate", fmt.format(work.asEADWork().getStartDate()));
-                dateRange.put("endDate", fmt.format(work.asEADWork().getEndDate()));
+                Date startDate = work.asEADWork().getStartDate();
+                dateRange.put("startDate", (startDate == null)?"":fmt.format(startDate));
+                Date endDate = work.asEADWork().getEndDate();
+                dateRange.put("endDate", (endDate == null)?"":fmt.format(endDate));
                 ((ObjectNode) dateRangeList).put(dateRangeInAS, dateRange);  
             } 
         }
