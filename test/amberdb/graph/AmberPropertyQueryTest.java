@@ -240,7 +240,7 @@ public class AmberPropertyQueryTest {
         assertTrue(results.remove(v1));
         assertTrue(results.remove(v3));
     }
-
+    
     
     void s(String s) {
         System.out.println(s);

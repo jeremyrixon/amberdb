@@ -297,11 +297,28 @@ public class AmberSession implements AutoCloseable {
 
     /**
      * Finds nodes that have a given value in a json string list property.
-     * @param <T>
+     * @param propertyName The property to search on
+     * @param value The value to search for
+     * @param <T> The class of Object to return (eg: Work, Copy, Node)
      */
     public <T> List<T> findModelByValueInJsonList(String propertyName, String value, Class<T> T) {
         List<T> nodes = new ArrayList<>();
         for (Vertex match : getAmberGraph().getVerticesByJsonListValue(propertyName, value)) {
+            nodes.add((T) graph.frame(match, T));
+        }
+        return nodes;
+    }
+    
+ 
+    /**
+     * Finds nodes that have a property containing the given value.
+     * @param propertyName The property to search on
+     * @param value The value to search for
+     * @param <T> The class of Object to return (eg: Work, Copy, Node)
+     */
+    public <T> List<T> findModelByValue(String propertyName, Object value, Class<T> T) {
+        List<T> nodes = new ArrayList<>();
+        for (Vertex match : getAmberGraph().getVertices(propertyName, value)) {
             nodes.add((T) graph.frame(match, T));
         }
         return nodes;

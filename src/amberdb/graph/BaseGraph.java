@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.Lists;
-import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Features;
 import com.tinkerpop.blueprints.Graph;
