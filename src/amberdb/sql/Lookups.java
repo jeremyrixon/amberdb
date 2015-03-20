@@ -298,8 +298,8 @@ public abstract class Lookups extends Tools {
     protected void printLookupData(OutputStream out, List<List<String>> lookupData) throws IOException {
         String lookupDataJson = new com.fasterxml.jackson.databind.ObjectMapper().writerWithDefaultPrettyPrinter()
                 .writeValueAsString(lookupData);
-        out.write(lookupDataJson.getBytes());
-        out.write("\n".getBytes());
+        out.write(lookupDataJson.getBytes(Charset.defaultCharset()));
+        out.write("\n".getBytes(Charset.defaultCharset()));
         out.flush();
     }
 }

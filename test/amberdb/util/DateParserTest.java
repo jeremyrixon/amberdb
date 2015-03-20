@@ -20,7 +20,7 @@ public class DateParserTest {
        null,
        "       ",
        " - 1799",
-       "1732 - ",
+       "1732 -",
        "1732  ",
        "  1799",
        "c.1990s", // circa date
@@ -29,7 +29,7 @@ public class DateParserTest {
        "Mar 1817 - Sep 1916",
        "03.Mar.1817/09.Sep.1916",
        "1732.Mar",
-       "1732.Mar.9",
+       "1732 Mar 9",
        "12 September 1984",
        "May 1993"
     };
@@ -66,7 +66,7 @@ public class DateParserTest {
         expectedToDate.add(null);
         expectedToDate.add(null);
         expectedToDate.add(dateFmt.parse("31/12/1799"));
-        expectedToDate.add(null);
+        expectedToDate.add(dateFmt.parse("01/01/1732"));
         expectedToDate.add(dateFmt.parse("31/12/1732"));
         expectedToDate.add(dateFmt.parse("31/12/1799"));
         expectedToDate.add(dateFmt.parse("31/12/1999"));
@@ -75,7 +75,7 @@ public class DateParserTest {
         expectedToDate.add(dateFmt.parse("30/09/1916"));
         expectedToDate.add(dateFmt.parse("09/09/1916"));
         expectedToDate.add(dateFmt.parse("31/03/1732"));
-        expectedToDate.add(dateFmt.parse("09/03/1732"));
+        expectedToDate.add(dateFmt.parse("09/03/1732"));  // to chk
         expectedToDate.add(dateFmt.parse("12/09/1984"));
         expectedToDate.add(dateFmt.parse("31/05/1993"));
     }
@@ -133,10 +133,10 @@ public class DateParserTest {
         assertEquals(expectedEndDate7, dateFormat.format(dates7.get(1)));
         
         String dateRange8 = "9-15 December 1938";
-        String expectedStartDate8 = null;
+        String expectedStartDate8 = "09-12-1938";
         String expectedEndDate8 = "15-12-1938";
         List<Date> dates8 = DateParser.parseDateRange(dateRange8);
-        assertEquals(expectedStartDate8, dates8.get(0));
+        assertEquals(expectedStartDate8, dateFormat.format(dates8.get(0)));
         assertEquals(expectedEndDate8, dateFormat.format(dates8.get(1)));
         
         String dateRange9 = "c.1928-2002";
@@ -154,6 +154,13 @@ public class DateParserTest {
         String expectedEndDate = "31-12-1999";
         List<Date> dates = DateParser.parseCircaDateRange(dateRange);
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+        assertEquals(expectedStartDate, dateFormat.format(dates.get(0)));
+        assertEquals(expectedEndDate, dateFormat.format(dates.get(1)));
+        
+        dateRange = "1910-c.1990";
+        expectedStartDate = "01-01-1910";
+        expectedEndDate = "31-12-1990";
+        dates = DateParser.parseDateRange(dateRange);
         assertEquals(expectedStartDate, dateFormat.format(dates.get(0)));
         assertEquals(expectedEndDate, dateFormat.format(dates.get(1)));
     }
@@ -224,5 +231,10 @@ public class DateParserTest {
             }
             i++;
         }
+    }
+    
+    @Test(expected = ParseException.class)
+    public void testInvalidDateRangeWithMonthInInvalidFormat() throws ParseException {
+        List<Date> dateRange = DateParser.parseDateRange("1954-02-02");
     }
 }

@@ -190,16 +190,18 @@ public class ComponentBuilder {
         Object creator = fieldsMap.get("creator");
         if (creator != null && !creator.toString().isEmpty()) {
             log.debug("component work " + componentWork.getObjId() + ": creator: " + creator.toString());
-            componentWork.setCreator(creator.toString());
+            componentWork.setCreator(creator.toString().replace("\",\"", ";").replace("\"", "").replace("[", "").replace("]", ""));
         }
         
         Object extent = fieldsMap.get("extent");
         if (extent != null && extent instanceof String) {
-            if (!extent.toString().isEmpty())
-                componentWork.setExtent(extent.toString());
+            if (!extent.toString().isEmpty()) {
+                componentWork.setExtent(extent.toString().replace("\"", "").replace("[", "").replace("]", ""));
+            }
         } else if (extent != null) {
             List<String> extentList = (List<String>) extent;
-            componentWork.setExtent(StringUtils.join(extentList, "; "));
+            String extentValue = StringUtils.join(extentList, "; ");
+            componentWork.setExtent(extentValue.replace("\"", "").replace("[", "").replace("]", ""));
         }
         
         Object scopeContent = fieldsMap.get("scope-n-content");
@@ -223,8 +225,10 @@ public class ComponentBuilder {
                         componentWork.setEndDate(dateList.get(1));
                 }
             } catch (Exception e) {
-                log.info("Failed to parse date range for component work " + componentWork.getObjId());
-                throw new EADValidationException("FAILED_EXTRACT_DATE_RANGE", e, componentWork.getObjId(), (uuid == null)?"":uuid);
+                String workObjId = componentWork.getObjId();
+                log.info("Failed to parse date range for component work " + workObjId);
+                log.debug("EAD validation failed: {}\n{} {}", e.getMessage(), workObjId, (uuid == null)?"":uuid);
+                throw new EADValidationException("FAILED_EXTRACT_DATE_RANGE", e, workObjId, (uuid == null)?"":uuid);
             }
         }
         
@@ -273,8 +277,7 @@ public class ComponentBuilder {
         }
         try {
             if (folderTypes.size() == 1) {
-                String folderNumber = (containerNumber == null) ? ""
-                        : containerNumber.toString();
+                String folderNumber = containerNumber.toString();
                 String folder = "container " + folderTypes.get(0) + " "
                         + folderNumber + "(id:" + ((containerId == null)?"":containerId.toString()) + ")";
                 folder += (containerLabel == null || containerLabel.toString()
@@ -294,12 +297,8 @@ public class ComponentBuilder {
                             new TypeReference<String[]>() {
                             });
                 String[] containerNumbers = null;
-                if (containerNumber != null) {
-                    containerNumbers = mapper.readValue(containerNumber,
-                            new TypeReference<String[]>() {
-                            });
-                    folderNumbers = Arrays.asList(containerNumbers);
-                }
+                containerNumbers = mapper.readValue(containerNumber, new TypeReference<String[]>() {});
+                folderNumbers = Arrays.asList(containerNumbers);
                 String[] containerLabels = null;
                 if (containerLabel != null)
                     containerLabels = mapper.readValue(containerLabel,
