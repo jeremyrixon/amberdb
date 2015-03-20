@@ -88,9 +88,10 @@ public class VersionedVertex {
             if (!v.id.id.equals(id)) sameIds = false;
             if (v.id.end.equals(0L)) current++;
         }
-        if (!sameIds || current > 1)
+        if (!sameIds || current > 1) {
             this.vertices.addAll(vertices);
             throw new RuntimeException("Vertices supplied to VersionedVertex are bad: " + vertices.toString());
+        }    
     }
     
     
