@@ -4,6 +4,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 
 import amberdb.AmberSession;
 import amberdb.relation.IsFileOf;
@@ -115,7 +122,35 @@ public interface File extends Node {
     @Property("encoding")
     public void setEncoding(String encoding);
     
+    /**
+     * This property is encoded as a JSON Array - You probably want to use getToolId to get this property
+     */
+    @Property("toolId")
+    public String getJSONToolId();
 
+    /**
+     * This property is encoded as a JSON Array - You probably want to use setToolId to set this property
+     */
+    @Property("toolId")
+    public void setJSONToolId(String toolId);
+
+    /**
+     * This method handles the JSON deserialisation of the toolId Property
+     * @throws IOException
+     * @throws JsonMappingException
+     * @throws JsonParseException
+     */
+    @JavaHandler
+    public List<Long> getToolId() throws JsonParseException, JsonMappingException, IOException;
+
+    /**
+     * This method handles the JSON serialisation of the toolId Property
+     * @throws IOException
+     * @throws JsonMappingException
+     * @throws JsonParseException
+     */
+    @JavaHandler
+    public void setToolId(List<Long> toolId) throws JsonParseException, JsonMappingException, IOException;
     
     /*
      * Fields migrated from DCM
@@ -151,6 +186,7 @@ public interface File extends Node {
     void removeDescription(final Description description);
 
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, File {
+        static ObjectMapper mapper = new ObjectMapper();
 
         private BlobStore getBlobStore() {
             return AmberSession.ownerOf(g()).getBlobStore();
@@ -212,6 +248,19 @@ public interface File extends Node {
                 setBlobId(blobId);
                 tx.commit();
             }
+        }
+
+        @Override
+        public List<Long> getToolId() throws JsonParseException, JsonMappingException, IOException {
+            String toolId = getJSONToolId();
+            if (toolId == null || toolId.isEmpty())
+                return new ArrayList<Long>();
+            return mapper.readValue(toolId, new TypeReference<List<Long>>() {});
+        }
+
+        @Override
+        public void setToolId(List<Long> toolId) throws JsonParseException, JsonMappingException, IOException {
+            setJSONToolId(mapper.writeValueAsString(toolId));
         }
     }
 }
