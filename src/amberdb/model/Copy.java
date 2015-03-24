@@ -555,7 +555,7 @@ public interface Copy extends Node {
             List<Copy> limitedCopies = new ArrayList<>(); 
             if (copies != null) {
                 for (Copy copy : copies) {
-                    if (copy.getCopyRole().equals(copyRole)) {
+                    if (copy.getCopyRole().equals(copyRole.code())) {
                         limitedCopies.add(copy);
                     }
                 }
@@ -717,7 +717,7 @@ public interface Copy extends Node {
         @Override
         public SoundFile getSoundFile() {
             Object o = getSpecializedFile("audio");
-            return (o == null) ? null : (SoundFile) o; 
+            return (o == null) ? null : (SoundFile) o;
         }
         
         private File getSpecializedFile(String fmt) {
