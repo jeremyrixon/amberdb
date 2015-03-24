@@ -5,7 +5,10 @@ import java.util.List;
 
 public enum CopyrightPolicy {
     PERPETUAL("Perpetual"),
-    OUTOFCOPYRIGHT("Out of Copyright");
+    INCOPYRIGHT("In Copyright"),
+    OUTOFCOPYRIGHT("Out of Copyright"),
+    NOKNOWNRESTRICTIONS("No known copyright restrictions"),
+    MIXEDCOPYRIGHT("Mixed copyright");
     
     private String code;
     
