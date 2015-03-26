@@ -7,6 +7,7 @@ public enum DigitalStatus {
     
     DIGITISED("Digitised"), 
     NON_DIGITISED("Non-digitised"), 
+    CAPTURED("Captured"),
     NOT_CAPTURED("Not Captured"),
     PARTIALLY_DIGITISED("Partially digitised"), 
     PRESERVED_ANALOGUE("Preserved analogue");

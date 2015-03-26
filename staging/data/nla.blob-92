@@ -1,0 +1,914 @@
+{
+  "structure" : {
+    "nla.obj-27876" : "nla.ms",
+    "sub-elements" : [ {
+      "nla.obj-32257" : "aspace_d1ac0117fdba1b9dc09b68e8bb125948"
+    }, {
+      "nla.obj-32273" : "aspace_7275d12ba178fcbb7cf926d0b7bf68cc"
+    }, {
+      "nla.obj-32299" : "aspace_5c65cd1a0dd35517ba04da03d95ffac2"
+    }, {
+      "nla.obj-32317" : "aspace_ff977d51fa95c2d3a318fc7d6fb14451"
+    }, {
+      "nla.obj-32330" : "aspace_563116915a27063fb67dc5de82e2f848"
+    }, {
+      "nla.obj-32358" : "aspace_140a75e0f3a47eb5fbb735c7fba957ae"
+    }, {
+      "nla.obj-32374" : "aspace_1012d592eedcfdbdc6175b91db070e2d"
+    }, {
+      "nla.obj-32396" : "aspace_3c0c615f787a41d4dc4c4104505e55a7"
+    } ]
+  },
+  "content" : {
+    "nla.obj-27876" : {
+      "repository" : "National Library of Australia",
+      "extent" : "0.99 metres,3 archive boxes + 1 medium folio box",
+      "collectionNumber" : "MS 6442",
+      "access" : "[\"Please refer to the collection's catalogue record (http://catalogue.nla.gov.au) for the access conditions.\"]",
+      "preferredCitation" : "[\"Items from this collection should be cited as '[Title or description of manuscript item], Papers of the Saloway Family, National Library of Australia, MS 6442, [box number and series and/or folder number]'.\"]",
+      "creator" : "Saloway Family",
+      "title" : "Papers of the Saloway Family",
+      "subType" : "Work",
+      "subUnitType" : "Collection",
+      "form" : "Manuscript",
+      "bibLevel" : "Set",
+      "collection" : "nla.ms",
+      "bibliography" : "[\"Biographical note 1\",\"Biographical note 2\",\"Biographical note 3\",\"Biographical note 4\"]",
+      "recordSource" : "FA",
+      "rdsAcknowledgementType" : "Sponsor",
+      "accessConditions" : "Restricted",
+      "dateRangeInAS" : "1856-1974",
+      "startDate" : "1856:01:01",
+      "endDate" : "1974:12:31",
+      "background" : [ "Biographical note 1", "Biographical note 2", "Biographical note 3", "Biographical note 4" ],
+      "containerList" : [ {
+        "featureType" : "Container List",
+        "fields" : "[\"Series\",\"Folders/Pieces\",\"Items\",\"Box\"]",
+        "records" : "[[\"1\",\"1-9\",\"1-1029\",\"1\"],[\"1\",\"10-18\",\"1030-1948a\",\"2\"],[\"1\",\"19-26\",\"1949-2819\",\"3\"],[\"1\",\"27-33\",\"2820-3604\",\"4\"],[\"1\",\"34-44\",\"3605-4517\",\"5\"],[\"1\",\"45-54\",\"4518-5380\",\"6\"],[\"1\",\"55-64\",\"5381-6102\",\"7\"],[\"1\",\"65-72\",\"6103-6866\",\"8\"],[\"1\",\"73-81\",\"6867-7908\",\"9\"],[\"1\",\"82-91\",\"7909-8865\",\"10\"],[\"1\",\"92-101\",\"8866-9778\",\"11\"],[\"1\",\"102-105\",\"9779-10015\",\"12\"],[\"2\",\"1-6\",\"1-47\",\"12\"],[\"3\",\"1-2\",\"\",\"13\"],[\"3\",\"3-5\",\"\",\"14\"],[\"3\",\"6-9\",\"\",\"15\"],[\"3\",\"10-13\",\"\",\"16\"],[\"3\",\"14-20\",\"\",\"17\"],[\"3\",\"21-29\",\"\",\"18\"],[\"3\",\"30-34\",\"\",\"19\"],[\"3\",\"35-37\",\"\",\"20\"],[\"4\",\"Publications\",\"\",\"21-37\"],[\"4\",\"Publications\",\"\",\"Folio Box 1\"],[\"5\",\"1-9\",\"1-242\",\"38\"],[\"5\",\"10\",\"243\",\"Folio Box 1\"],[\"5\",\"11-17\",\"244-342\",\"39\"],[\"6\",\"1-3\",\"1-274\",\"40\"],[\"7\",\"1-7\",\"1-146\",\"40\"],[\"7\",\"8-14\",\"147-297\",\"41\"],[\"8\",\"1-3\",\"1-65\",\"42\"],[\"8\",\"4\",\"66-67\",\"Folio Box 1\"],[\"8\",\"5\",\"68\",\"PW Map Drawer 4\"],[\"8\",\"6-10\",\"69-113\",\"42\"],[\"8\",\"11-21\",\"114-199a\",\"43\"],[\"8\",\"22\",\"200-209\",\"Folio Box 2\"],[\"9\",\"1\",\"\",\"43\"],[\"10\",\"1-9\",\"1-1030\",\"43a\"],[\"10\",\"10-18\",\"1031-2127\",\"43b\"],[\"10\",\"19-22\",\"2128-2456\",\"43c\"],[\"10\",\"23-26\",\"2457-2525\",\"43d\"],[\"11\",\"1-4\",\"1-196\",\"44\"],[\"12\",\"1-10\",\"1-498\",\"45\"],[\"12\",\"11-18\",\"499-858\",\"46\"],[\"12\",\"19-24b\",\"859-1691\",\"47\"],[\"12\",\"25-34\",\"1692-2142\",\"48\"],[\"12\",\"35-37\",\"2143-2360b\",\"49\"],[\"13\",\"1-5\",\"1-389\",\"49\"],[\"13\",\"6-12\",\"390-1071\",\"50\"],[\"14\",\"1-2\",\"1-66\",\"50\"],[\"14\",\"3-11\",\"67-355\",\"51\"],[\"14\",\"12-17\",\"356-742\",\"52\"],[\"15\",\"1-2\",\"1-78\",\"52\"],[\"16\",\"1-6\",\"1-512\",\"53\"],[\"17\",\"1-2\",\"1-29\",\"53\"],[\"17\",\"3-4\",\"30-88\",\"54\"],[\"18\",\"1-6\",\"1-88\",\"54\"],[\"18\",\"7-8\",\"89-121\",\"55\"],[\"19\",\"1-2\",\"1-179\",\"55\"],[\"20\",\"1-6\",\"1-255\",\"55\"],[\"20\",\"7-18\",\"256-662\",\"56\"],[\"20\",\"19-27\",\"663-1161\",\"57\"],[\"20\",\"28-32\",\"1162-1353\",\"58\"],[\"21\",\"1-1b\",\"1-83\",\"58\"],[\"21\",\"2-8\",\"84-824\",\"59\"],[\"21\",\"9-17\",\"825-1180\",\"60\"],[\"21\",\"18-24\",\"1181-1535\",\"61\"],[\"21\",\"25-31\",\"1536-1863\",\"62\"],[\"21\",\"32-36\",\"1864-1990\",\"63\"],[\"21\",\"36a\",\"1991-2010\",\"Folio Box 2\"],[\"21\",\"37-38\",\"2012-2038\",\"63\"],[\"21\",\"39-42\",\"2039-2079\",\"64\"],[\"21\",\"43-46\",\"2080-2128\",\"65\"],[\"21\",\"47-50\",\"2129-2186\",\"66\"],[\"21\",\"51-54\",\"2187-2242\",\"67\"],[\"22\",\"1-7\",\"1-173\",\"68\"],[\"23\",\"1-3\",\"1-41\",\"68\"],[\"23\",\"4-12\",\"42-229\",\"69\"],[\"24\",\"1\",\"1-13\",\"69\"],[\"24\",\"2-9\",\"14-425b\",\"70\"],[\"25\",\"1\",\"1-65\",\"70\"],[\"25\",\"2-12\",\"66-1161\",\"71\"],[\"25\",\"13-21\",\"1162-2169\",\"72\"],[\"25\",\"22-31\",\"2170-2840\",\"73\"],[\"25\",\"32-42\",\"2841-3557\",\"74\"],[\"25\",\"43-47\",\"3558-3729\",\"75\"],[\"25\",\"48\",\"3730\",\"Folio Box 2\"],[\"25\",\"49\",\"3731-3732\",\"PW Map Drawer 4\"],[\"26\",\"1-6\",\"1-287\",\"75\"],[\"26\",\"7-9\",\"288-343\",\"76\"],[\"27\",\"1-6\",\"1-247\",\"76\"],[\"28\",\"1\",\"1-5\",\"76\"],[\"28\",\"2-11\",\"6-584\",\"77\"],[\"28\",\"12-19\",\"No numbers\",\"78\"],[\"29\",\"1-2\",\"1-160\",\"78\"],[\"29\",\"3-4\",\"No numbers\",\"79\"],[\"30\",\"1-4\",\"1-189\",\"79\"],[\"30\",\"5-15\",\"190-505\",\"80\"],[\"31\",\"1-6\",\"1-206\",\"81\"],[\"32\",\"1-3\",\"1-118\",\"81\"],[\"33\",\"1-2\",\"1-17\",\"81\"],[\"33\",\"3-4\",\"18-179\",\"82\"],[\"34\",\"1-5\",\"1-23\",\"82\"],[\"35\",\"1\",\"1-18\",\"82\"],[\"36\",\"1-6\",\"1-143\",\"82\"],[\"36\",\"7\",\"No numbers\",\"83\"],[\"37\",\"1-9\",\"1-48\",\"83\"],[\"38\",\"1-2\",\"1-108\",\"83\"],[\"39\",\"1-14\",\"1-358\",\"84\"],[\"40\",\"1\",\"1-78\",\"85\"],[\"41\",\"1-13\",\"1-640\",\"85\"],[\"41\",\"14\",\"No Numbers\",\"86\"],[\"42\",\"1-6\",\"1-614\",\"86\"],[\"43\",\"1-2\",\"1-31\",\"86\"],[\"44\",\"1\",\"1-46\",\"87\"],[\"45\",\"1-11\",\"1-418\",\"87\"],[\"46\",\"1\",\"1-19\",\"87\"],[\"46\",\"2-14\",\"20-521\",\"88\"],[\"47\",\"1-2\",\"1-77\",\"88\"],[\"48\",\"1-4\",\"1-123\",\"89\"],[\"49\",\"1-9\",\"1-420\",\"89\"],[\"50\",\"1-2\",\"1-14\",\"89\"],[\"50\",\"3-17\",\"15-976\",\"90\"],[\"51\",\"1\",\"1-8\",\"90\"],[\"51\",\"2-7\",\"9-270\",\"91\"],[\"52\",\"1-8\",\"1-540\",\"91\"],[\"52\",\"9-22\",\"541-1388\",\"92\"],[\"52\",\"22\",\"1389\",\"Folio Box 1\"],[\"53\",\"1-12\",\"1-448\",\"93\"],[\"54\",\"1\",\"1-39\",\"93\"],[\"54\",\"2-3\",\"40-55c\",\"94\"],[\"55\",\"1-2\",\"1-31\",\"94\"],[\"56\",\"1-10\",\"1-361\",\"94\"],[\"56\",\"11-14\",\"362-414\",\"95\"],[\"57\",\"1-2\",\"1-139\",\"95\"],[\"58\",\"1-5\",\"1-75\",\"95\"],[\"58\",\"5a-5b\",\"76-77\",\"Folio Boxes 3-4\"],[\"58\",\"5c-11\",\"78-133\",\"96\"],[\"58\",\"12\",\"134-153\",\"97\"],[\"59\",\"1-3\",\"1-92\",\"97\"],[\"60\",\"1-4\",\"1-245\",\"97\"],[\"61\",\"1-6\",\"1-324\",\"97\"],[\"61\",\"7-9\",\"325-452\",\"98\"],[\"62\",\"1-7\",\"1-403\",\"98\"],[\"62\",\"8-17\",\"404-1135\",\"99\"],[\"62\",\"18-19\",\"1136-1146\",\"100\"],[\"63\",\"1-4\",\"1-335\",\"100\"],[\"63\",\"5-8\",\"336-743\",\"101\"],[\"64\",\"1-6\",\"1-80\",\"101\"],[\"64\",\"7-14\",\"80a-217\",\"102\"],[\"65\",\"1-5\",\"1-355\",\"102\"],[\"65\",\"6-9\",\"356-652\",\"103\"],[\"66\",\"1-9\",\"1-321\",\"103\"],[\"67\",\"1-15\",\"1-869\",\"104\"],[\"68\",\"1-7\",\"1-165\",\"105\"],[\"69\",\"1-4\",\"1-128\",\"105\"],[\"70\",\"1\",\"1-56\",\"105\"],[\"71\",\"1-8\",\"1-624\",\"106\"],[\"71\",\"9-17\",\"625-897\",\"107\"],[\"71\",\"18-24\",\"898-1204\",\"108\"],[\"72\",\"1-4\",\"1-183\",\"108\"],[\"72\",\"5-6\",\"184-252\",\"109\"],[\"73\",\"1-6\",\"1-161\",\"109\"],[\"74\",\"1\",\"1-43\",\"109\"],[\"75\",\"1-4\",\"1-129\",\"109\"],[\"75\",\"5-12\",\"130-209\",\"109\"],[\"75\",\"12a\",\"210-211\",\"Folio box\"],[\"75\",\"13\",\"212-230\",\"109\"],[\"75\",\"14-15\",\"231-247\",\"111\"],[\"76\",\"1-2\",\"1-83\",\"111\"],[\"77\",\"1-3\",\"1-58\",\"111\"],[\"78\",\"1\",\"1-67\",\"111\"],[\"79\",\"1\",\"1-103\",\"111\"],[\"80\",\"1\",\"1-55\",\"111\"],[\"81\",\"1-3\",\"1-72\",\"111\"],[\"81\",\"4-5\",\"73-103\",\"112\"],[\"82\",\"1-6\",\"1-101\",\"112\"]]"
+      } ],
+      "correspondenceIndex" : [ {
+        "entityName" : "[\"Hemphill, Rosemary\"]",
+        "correspondenceRef" : "26.1/3"
+      }, {
+        "entityName" : "[\"Henderson, Moya\"]",
+        "correspondenceRef" : "26.1/3"
+      }, {
+        "entityName" : "[\"Hayden, Bill\"]",
+        "correspondenceRef" : "1.1/24"
+      }, {
+        "entityName" : "[\"Hazzard, Shirley\"]",
+        "correspondenceRef" : "26.1/3"
+      }, {
+        "entityName" : "[\"Hardman, Marion\"]",
+        "correspondenceRef" : "1.1/23"
+      }, {
+        "entityName" : "[\"Hardy, Gill\"]",
+        "correspondenceRef" : "26.1/3"
+      }, {
+        "entityName" : "[\"Greene, Graham C.\"]",
+        "correspondenceRef" : "1.2/65, 26.1/2"
+      }, {
+        "entityName" : "[\"Halmagyi, Alice\"]",
+        "correspondenceRef" : "26.1/3"
+      }, {
+        "entityName" : "[\"James, Graham\"]",
+        "correspondenceRef" : "26.1/3"
+      }, {
+        "entityName" : "[\"Jamieson, Lyn\"]",
+        "correspondenceRef" : "26.1/3"
+      }, {
+        "entityName" : "[\"Ingram, Ken\"]",
+        "correspondenceRef" : "26.1/3"
+      }, {
+        "entityName" : "[\"Irwin, E.W.\"]",
+        "correspondenceRef" : "1.1/29"
+      }, {
+        "entityName" : "[\"Hiller, Christine\"]",
+        "correspondenceRef" : "1.1/25"
+      }, {
+        "entityName" : "[\"Horne, Myfanwy\"]",
+        "correspondenceRef" : "1.1/26, 26.1/3"
+      }, {
+        "entityName" : "[\"Hertzberg (née Keesing), Nancy\"]",
+        "correspondenceRef" : "26.1/3"
+      }, {
+        "entityName" : "[\"Hill, Mary\"]",
+        "correspondenceRef" : "26.1/3"
+      }, {
+        "entityName" : "[\"Gabriel, Susan\"]",
+        "correspondenceRef" : "26.1/2"
+      }, {
+        "entityName" : "[\"Frost, Hans\"]",
+        "correspondenceRef" : "26.1/2"
+      }, {
+        "entityName" : "[\"Fitzpatrick, Kate\"]",
+        "correspondenceRef" : "26.1/2"
+      }, {
+        "entityName" : "[\"Fitzgerald, Halliday and Co.\"]",
+        "correspondenceRef" : "1.1/18"
+      }, {
+        "entityName" : "[\"Farwell, Noni\"]",
+        "correspondenceRef" : "26.1/2"
+      }, {
+        "entityName" : "[\"Falkiner, Suzanne\"]",
+        "correspondenceRef" : "26.1/2"
+      }, {
+        "entityName" : "[\"Falkenberg, Elizabeth\"]",
+        "correspondenceRef" : "1.1/17, 26.1/2"
+      }, {
+        "entityName" : "[\"Fairfax, Mary, Lady\"]",
+        "correspondenceRef" : "1.1/16"
+      }, {
+        "entityName" : "[\"Green, Dorothy\"]",
+        "correspondenceRef" : "1.1/21, 26.1/2"
+      }, {
+        "entityName" : "[\"Gosse, Fayette\"]",
+        "correspondenceRef" : "26.1/2"
+      }, {
+        "entityName" : "[\"Giffin, Michael, Reverend\"]",
+        "correspondenceRef" : "26.1/2"
+      }, {
+        "entityName" : "[\"Gell (née Garland), Sally\"]",
+        "correspondenceRef" : "26.1/2"
+      }, {
+        "entityName" : "[\"Gazzard, Marea\"]",
+        "correspondenceRef" : "26.1/2"
+      }, {
+        "entityName" : "[\"Garrett, Tony\"]",
+        "correspondenceRef" : "26.1/2"
+      }, {
+        "entityName" : "[\"Garland, Peggy\"]",
+        "correspondenceRef" : "1.1/20, 26.1/2"
+      }, {
+        "entityName" : "[\"Garland, David\"]",
+        "correspondenceRef" : "1.1/19"
+      }, {
+        "entityName" : "[\"Li, Yao\"]",
+        "correspondenceRef" : "26.1/4"
+      }, {
+        "entityName" : "[\"Wallace-Crabbe, Robin and Virginia\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"Liddell, Robert\"]",
+        "correspondenceRef" : "1.1/36, 26.1/4"
+      }, {
+        "entityName" : "[\"Walker, Kerry\"]",
+        "correspondenceRef" : "1.1/60"
+      }, {
+        "entityName" : "[\"Lloyd-James, Charles\"]",
+        "correspondenceRef" : "1.1/37"
+      }, {
+        "entityName" : "[\"Waters, Ronald\"]",
+        "correspondenceRef" : "1.1/61"
+      }, {
+        "entityName" : "[\"Lloyd-James, Trish\"]",
+        "correspondenceRef" : "26.1/4"
+      }, {
+        "entityName" : "[\"Watters, Frank\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"Lambadaridou, Effie\"]",
+        "correspondenceRef" : "26.1/4"
+      }, {
+        "entityName" : "[\"Wellham, Robert\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"Lambert, Gene\"]",
+        "correspondenceRef" : "26.1/4"
+      }, {
+        "entityName" : "[\"Wheeler, Kevin\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"Layford, Stephen\"]",
+        "correspondenceRef" : "1.1/35"
+      }, {
+        "entityName" : "[\"Whetton, Joan\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"Levis, Ken\"]",
+        "correspondenceRef" : "26.1/4"
+      }, {
+        "entityName" : "[\"White, Guy\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"Tzanner, Sergio\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"Malouf, David\"]",
+        "correspondenceRef" : "26.1/4"
+      }, {
+        "entityName" : "[\"Uren, Tom \"]",
+        "correspondenceRef" : "1.1/57"
+      }, {
+        "entityName" : "[\"Manion, Margaret\"]",
+        "correspondenceRef" : "26.1/4"
+      }, {
+        "entityName" : "[\"Vaile, Amanda\"]",
+        "correspondenceRef" : "1.2/65, 26.1/6"
+      }, {
+        "entityName" : "[\"Mathew, Ray\"]",
+        "correspondenceRef" : "26.1/4"
+      }, {
+        "entityName" : "[\"Veith, Diana\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"Mavroviti, Elly\"]",
+        "correspondenceRef" : "26.1/4"
+      }, {
+        "entityName" : "[\"Volk, Barbara\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"Locke Elliott, Sumner\"]",
+        "correspondenceRef" : "26.1/4"
+      }, {
+        "entityName" : "[\"Waddell, Thea\"]",
+        "correspondenceRef" : "1.1/59"
+      }, {
+        "entityName" : "[\"Lonie, John\"]",
+        "correspondenceRef" : "26.1/4"
+      }, {
+        "entityName" : "[\"Wagner, Gunther\"]",
+        "correspondenceRef" : "1.1/58"
+      }, {
+        "entityName" : "[\"Lyssiotis, Peter\"]",
+        "correspondenceRef" : "26.1/4"
+      }, {
+        "entityName" : "[\"Waites, Jim\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"Mackriell, Keith \"]",
+        "correspondenceRef" : "1.2/65"
+      }, {
+        "entityName" : "[\"Kahan, Louis\"]",
+        "correspondenceRef" : "26.1/3"
+      }, {
+        "entityName" : "[\"Wran, Neville\"]",
+        "correspondenceRef" : "1.2/65"
+      }, {
+        "entityName" : "[\"Joyner, Kevin, Reverend\\n      \"]",
+        "correspondenceRef" : "1.1/28, 26.1/3"
+      }, {
+        "entityName" : "[\"Woolf, Cecil\"]",
+        "correspondenceRef" : "1.2/65"
+      }, {
+        "entityName" : "[\"Kelly, Leo\"]",
+        "correspondenceRef" : "26.1/3"
+      }, {
+        "entityName" : "[\"Yeend, Peter\"]",
+        "correspondenceRef" : "1.1/63"
+      }, {
+        "entityName" : "[\"Kefala, Antigone\"]",
+        "correspondenceRef" : "26.1/3"
+      }, {
+        "entityName" : "[\"Yang, William\"]",
+        "correspondenceRef" : "1.1/62"
+      }, {
+        "entityName" : "[\"Johnson, Heather\"]",
+        "correspondenceRef" : "26.1/3"
+      }, {
+        "entityName" : "[\"Jones, Barry\"]",
+        "correspondenceRef" : "1.1/27"
+      }, {
+        "entityName" : "[\"Joyner, Mauli\"]",
+        "correspondenceRef" : "26.1/3"
+      }, {
+        "entityName" : "[\"Johnson, Patricia (Molly)\"]",
+        "correspondenceRef" : "26.1/3"
+      }, {
+        "entityName" : "[\"Whitford, Peter\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"Krinsk, Julius\"]",
+        "correspondenceRef" : "26.1/3"
+      }, {
+        "entityName" : "[\"White, Aviva\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"Knight, Elizabeth\"]",
+        "correspondenceRef" : "1.1/33"
+      }, {
+        "entityName" : "[\"Wilkins, Lesley\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"Kyriacos, Nicholas\"]",
+        "correspondenceRef" : "1.1/32, 26.1/3"
+      }, {
+        "entityName" : "[\"Wighton, Rosemary (aka Wody)\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"Kruse, Axel \"]",
+        "correspondenceRef" : "1.1/31"
+      }, {
+        "entityName" : "[\"Withycombe, Betty\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"King, Michael\"]",
+        "correspondenceRef" : "1.1/30, 26.1/3"
+      }, {
+        "entityName" : "[\"Windsor, Gerard\"]",
+        "correspondenceRef" : "1.2/65"
+      }, {
+        "entityName" : "[\"Kenny, Janet\"]",
+        "correspondenceRef" : "26.1/3"
+      }, {
+        "entityName" : "[\"Woods, Grant\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"Knéeshaw, Elizabeth\"]",
+        "correspondenceRef" : "26.1/3"
+      }, {
+        "entityName" : "[\"Wolfe, Peter\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"Kirschner, Shilli\"]",
+        "correspondenceRef" : "26.1/3"
+      }, {
+        "entityName" : "[\"Shaw, Pat\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Baranay, Inez\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Slatyer, Adair\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Barton, Ken\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Sharpe, Martin\"]",
+        "correspondenceRef" : "1.1/52, 26.1/5"
+      }, {
+        "entityName" : "[\"Australia Council\"]",
+        "correspondenceRef" : "1.2/65"
+      }, {
+        "entityName" : "[\"Shaw, Michael\"]",
+        "correspondenceRef" : "1.2/65"
+      }, {
+        "entityName" : "[\"Bandler, Faith\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Seymour, Alan\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Bleesens, Peter\"]",
+        "correspondenceRef" : "1.1/6"
+      }, {
+        "entityName" : "[\"Sharman, Jim\"]",
+        "correspondenceRef" : "1.1/51, 26.1/5"
+      }, {
+        "entityName" : "[\"Bird, Sally\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Scott Rogers, Jean\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Beatson, Peter\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Scott-Mitchell, Claire\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Benson, Mary\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Black, Hermann\"]",
+        "correspondenceRef" : "1.2/65"
+      }, {
+        "entityName" : "[\"Sanvan, Anne\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Bolton (Dobson), Rosemary\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Schien, Gina\"]",
+        "correspondenceRef" : "1.1/50"
+      }, {
+        "entityName" : "[\"Björkstén, Ingmar\"]",
+        "correspondenceRef" : "1.2/65, 26.1/1"
+      }, {
+        "entityName" : "[\"Rushdie, Salman\"]",
+        "correspondenceRef" : "1.1/49"
+      }, {
+        "entityName" : "[\"Black, John\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Ryan, Leo, June, Kerry and Brett\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Bruce, Joan\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Riches, Pierre\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Butterley, Nigel\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Runciman, Steven\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Brady, Veronica\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Renton, Max\"]",
+        "correspondenceRef" : "1.1/47"
+      }, {
+        "entityName" : "[\"Browne, Coral\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Richardson, Hilda\"]",
+        "correspondenceRef" : "1.1/48"
+      }, {
+        "entityName" : "[\"Tzanner, Ross\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"Tzannes, Alec and Wendy\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"Tzahanatzis, Ero and Stathis\"]",
+        "correspondenceRef" : "1.1/56"
+      }, {
+        "entityName" : "[\"Tyler Coppin, Acton\"]",
+        "correspondenceRef" : "1.1/55"
+      }, {
+        "entityName" : "[\"Tresise, Jack\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"Akerholt, May-Brit\"]",
+        "correspondenceRef" : "1.1/1, 26.1/1"
+      }, {
+        "entityName" : "[\"Thomas, Audrey\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"Adrian, Richard\"]",
+        "correspondenceRef" : "1.2/65"
+      }, {
+        "entityName" : "[\"Tennant, Kylie\"]",
+        "correspondenceRef" : "1.1/54"
+      }, {
+        "entityName" : "[\"Aboriginal Education Council\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Teece, Angus and Viva\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"Armfield, Len\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Taubman, Jean\"]",
+        "correspondenceRef" : "26.1/6"
+      }, {
+        "entityName" : "[\"Arena, Franca\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Struck, Terry\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Angles Family\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Sumner, John\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Allison, James\"]",
+        "correspondenceRef" : "1.1/2, 26.1/1"
+      }, {
+        "entityName" : "[\"Stockdale, John\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Art Gallery of New South Wales\"]",
+        "correspondenceRef" : "1.1/5"
+      }, {
+        "entityName" : "[\"Stewart, Frances\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Arrighi, Nike\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Solling, Wendy\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Arrighi, Luciana\"]",
+        "correspondenceRef" : "1.1/4, 26.1/1"
+      }, {
+        "entityName" : "[\"Smgynedin, Peter\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Armfield, Neil\"]",
+        "correspondenceRef" : "1.1/3"
+      }, {
+        "entityName" : "[\"Sligo, John\"]",
+        "correspondenceRef" : "1.1/53"
+      }, {
+        "entityName" : "[\"Murray-Smith, Anita\"]",
+        "correspondenceRef" : "26.1/4"
+      }, {
+        "entityName" : "[\"Cracknell, Ruth\"]",
+        "correspondenceRef" : "1.1/10, 26.1/1"
+      }, {
+        "entityName" : "[\"Nicks, Rowan\"]",
+        "correspondenceRef" : "26.1/4"
+      }, {
+        "entityName" : "[\"Curnow, Tim\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Nolan, Jinx\"]",
+        "correspondenceRef" : "1.1/43, 26.1/5"
+      }, {
+        "entityName" : "[\"Dabbs, Jennifer\"]",
+        "correspondenceRef" : "26.1/2"
+      }, {
+        "entityName" : "[\"Nolan, Sidney\"]",
+        "correspondenceRef" : "1.1/43"
+      }, {
+        "entityName" : "[\"Dawson, Alexandra\"]",
+        "correspondenceRef" : "26.1/2"
+      }, {
+        "entityName" : "[\"Moore, Gwen and David\"]",
+        "correspondenceRef" : "1.1/42, 26.1/4"
+      }, {
+        "entityName" : "[\"de Carvalho, Joan\"]",
+        "correspondenceRef" : "26.1/2"
+      }, {
+        "entityName" : "[\"Mortimer, Owen C.\"]",
+        "correspondenceRef" : "26.1/4"
+      }, {
+        "entityName" : "[\"de Maistre, Roy\"]",
+        "correspondenceRef" : "1.1/11"
+      }, {
+        "entityName" : "[\"Morton-Saner, Athena\"]",
+        "correspondenceRef" : "1.2/65"
+      }, {
+        "entityName" : "[\"Digby, Desmond\"]",
+        "correspondenceRef" : "1.1/12"
+      }, {
+        "entityName" : "[\"Mundey, Jack\"]",
+        "correspondenceRef" : "26.1/4"
+      }, {
+        "entityName" : "[\"Duffield, Pat\"]",
+        "correspondenceRef" : "26.1/2"
+      }, {
+        "entityName" : "[\"Dunlop, John and Maria\"]",
+        "correspondenceRef" : "26.1/2"
+      }, {
+        "entityName" : "[\"Miller, Harry \"]",
+        "correspondenceRef" : "1.2/65"
+      }, {
+        "entityName" : "[\"Dutton, Geoffrey and Ninette\"]",
+        "correspondenceRef" : "1.1/14, 1.2/65, 26.1/2"
+      }, {
+        "entityName" : "[\"Miller, Patti (and Tony Reeder)\"]",
+        "correspondenceRef" : "26.1/4"
+      }, {
+        "entityName" : "[\"Dutton, Ninette\"]",
+        "correspondenceRef" : "26.1/2"
+      }, {
+        "entityName" : "[\"Mobbs, Barbara\"]",
+        "correspondenceRef" : "1.1/39"
+      }, {
+        "entityName" : "[\"Elms, Lauris\"]",
+        "correspondenceRef" : "26.1/2"
+      }, {
+        "entityName" : "[\"Montefiore, Keitha\"]",
+        "correspondenceRef" : "1.1/41"
+      }, {
+        "entityName" : "[\"Eremos Institute\"]",
+        "correspondenceRef" : "26.1/2"
+      }, {
+        "entityName" : "[\"McInerny, Sally\"]",
+        "correspondenceRef" : "26.1/4"
+      }, {
+        "entityName" : "[\"Enright, Nick\"]",
+        "correspondenceRef" : "1.1/15"
+      }, {
+        "entityName" : "[\"McMahon, G.\"]",
+        "correspondenceRef" : "26.1/4"
+      }, {
+        "entityName" : "[\"Evans, Faith\"]",
+        "correspondenceRef" : "26.1/2"
+      }, {
+        "entityName" : "[\"McQueen, Humphrey\"]",
+        "correspondenceRef" : "26.1/4"
+      }, {
+        "entityName" : "[\"Fairfax, James\"]",
+        "correspondenceRef" : "1.2/65"
+      }, {
+        "entityName" : "[\"Milgate, Dinah\"]",
+        "correspondenceRef" : "26.1/4"
+      }, {
+        "entityName" : "[\"Prerauer, Maria\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Cameron, Jane\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Polymeropoulos, Notis and Ulrike\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Calomerrs [?], J.\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Reagan (née Lascaris), Anna \"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Casey, Maie\"]",
+        "correspondenceRef" : "1.1/7"
+      }, {
+        "entityName" : "[\"Raft, Philippa\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Carnegie, Margaret\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Peck, Gillian\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Chapman, Norma\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Peck, Frances\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Chapman, Jill\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Polymeropoulos (née Lascaris), Elly\"]",
+        "correspondenceRef" : "1.1/46"
+      }, {
+        "entityName" : "[\"Clark, Axel and Alison\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Phelan, Nancy\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Chater, Gordon\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Clarke, Lynne\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"[Osborne], Jenya\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Clark, Manning\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Osborne, Charles\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Coleing, John\"]",
+        "correspondenceRef" : "1.1/8"
+      }, {
+        "entityName" : "[\"Partlett, Launa\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Coleing, Tony\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Otton, Barbara\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Coombs, H.C. (Nugget)\"]",
+        "correspondenceRef" : "1.1/9"
+      }, {
+        "entityName" : "[\"Oertel, Rudolph\"]",
+        "correspondenceRef" : "1.1/45"
+      }, {
+        "entityName" : "[\"Connely, Agnes\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"O'Dee, John\"]",
+        "correspondenceRef" : "26.1/5"
+      }, {
+        "entityName" : "[\"Council of City of Sydney\"]",
+        "correspondenceRef" : "1.2/65"
+      }, {
+        "entityName" : "[\"O'Neill, Noel\"]",
+        "correspondenceRef" : "1.1/38, 26.1/5"
+      }, {
+        "entityName" : "[\"Costigan, Michael\"]",
+        "correspondenceRef" : "26.1/1"
+      }, {
+        "entityName" : "[\"Olsen Family\"]",
+        "correspondenceRef" : "1.1/44"
+      } ]
+    },
+    "nla.obj-32257" : {
+      "repository" : "National Library of Australia",
+      "creator" : "First Creator",
+      "title" : "Typescript copies of an autobiographical sketch written by Mary Kirby Reeves, and an account of the voyage from Liverpool to Melbourne in the Queen of the west in 1856 written by J.W. Reeves.",
+      "digitalStatus" : "Not Captured",
+      "subType" : "Work",
+      "subUnitType" : "File",
+      "form" : "Manuscript",
+      "bibLevel" : "Set",
+      "collection" : "nla.ms",
+      "recordSource" : "FA",
+      "localSystemNumber" : "aspace_d1ac0117fdba1b9dc09b68e8bb125948",
+      "rdsAcknowledgementType" : "Sponsor",
+      "rdsAcknowledgementReceiver" : "NLA",
+      "eadUpdateReviewRequired" : "N",
+      "accessConditions" : "Restricted",
+      "subUnitNo" : "1",
+      "scopeContent" : "Mary Kirby Reeves was the mother of Annie Saloway ",
+      "dateRangeInAS" : "1818-1899",
+      "folder" : "[\"container box 1(id:):Mixed Material\"]",
+      "startDate" : "1818:01:01",
+      "endDate" : "1899:12:31",
+      "containerList" : [ ],
+      "correspondenceIndex" : [ ]
+    },
+    "nla.obj-32273" : {
+      "repository" : "National Library of Australia",
+      "creator" : "Second Creator",
+      "title" : "Letters written by Mary Reeves and her daughter Annie to their family in Oak House, West Bromuich, Bridgnorth, England.",
+      "digitalStatus" : "Not Captured",
+      "subType" : "Work",
+      "subUnitType" : "File",
+      "form" : "Manuscript",
+      "bibLevel" : "Set",
+      "collection" : "nla.ms",
+      "recordSource" : "FA",
+      "localSystemNumber" : "aspace_7275d12ba178fcbb7cf926d0b7bf68cc",
+      "rdsAcknowledgementType" : "Sponsor",
+      "rdsAcknowledgementReceiver" : "NLA",
+      "eadUpdateReviewRequired" : "N",
+      "accessConditions" : "Restricted",
+      "subUnitNo" : "2",
+      "folder" : "[\"container box 2(id:):Mixed Material\"]",
+      "startDate" : null,
+      "endDate" : null,
+      "containerList" : [ ],
+      "correspondenceIndex" : [ ]
+    },
+    "nla.obj-32299" : {
+      "repository" : "National Library of Australia",
+      "creator" : "Third Creator",
+      "title" : "Correspondence between Annie and her future husband, Rev. Henry Saloway.",
+      "digitalStatus" : "Not Captured",
+      "subType" : "Work",
+      "subUnitType" : "File",
+      "form" : "Manuscript",
+      "bibLevel" : "Set",
+      "collection" : "nla.ms",
+      "recordSource" : "FA",
+      "localSystemNumber" : "aspace_5c65cd1a0dd35517ba04da03d95ffac2",
+      "rdsAcknowledgementType" : "Sponsor",
+      "rdsAcknowledgementReceiver" : "NLA",
+      "eadUpdateReviewRequired" : "N",
+      "accessConditions" : "Restricted",
+      "subUnitNo" : "3",
+      "dateRangeInAS" : "1884-1888",
+      "folder" : "[\"container box 3(id:):Mixed Material\"]",
+      "startDate" : "1884:01:01",
+      "endDate" : "1888:12:31",
+      "containerList" : [ ],
+      "correspondenceIndex" : [ ]
+    },
+    "nla.obj-32317" : {
+      "repository" : "National Library of Australia",
+      "title" : "A photograph album.",
+      "digitalStatus" : "Not Captured",
+      "subType" : "Work",
+      "subUnitType" : "File",
+      "form" : "Manuscript",
+      "bibLevel" : "Set",
+      "collection" : "nla.ms",
+      "recordSource" : "FA",
+      "localSystemNumber" : "aspace_ff977d51fa95c2d3a318fc7d6fb14451",
+      "rdsAcknowledgementType" : "Sponsor",
+      "rdsAcknowledgementReceiver" : "NLA",
+      "eadUpdateReviewRequired" : "N",
+      "accessConditions" : "Restricted",
+      "subUnitNo" : "4",
+      "folder" : "[\"container box 4(id:):Mixed Material\"]",
+      "startDate" : null,
+      "endDate" : null,
+      "containerList" : [ ],
+      "correspondenceIndex" : [ ]
+    },
+    "nla.obj-32330" : {
+      "repository" : "National Library of Australia",
+      "creator" : "Forth Creator",
+      "title" : "A diary documenting Olive E. Saloway's nursing service overseas during World War I.",
+      "digitalStatus" : "Not Captured",
+      "subType" : "Work",
+      "subUnitType" : "File",
+      "form" : "Manuscript",
+      "bibLevel" : "Set",
+      "collection" : "nla.ms",
+      "recordSource" : "FA",
+      "localSystemNumber" : "aspace_563116915a27063fb67dc5de82e2f848",
+      "rdsAcknowledgementType" : "Sponsor",
+      "rdsAcknowledgementReceiver" : "NLA",
+      "eadUpdateReviewRequired" : "N",
+      "accessConditions" : "Restricted",
+      "subUnitNo" : "5",
+      "folder" : "[\"container box 5(id:):Mixed Material\"]",
+      "startDate" : null,
+      "endDate" : null,
+      "containerList" : [ ],
+      "correspondenceIndex" : [ ]
+    },
+    "nla.obj-32358" : {
+      "repository" : "National Library of Australia",
+      "title" : "Joseph F. King's scrap book documenting his service with the 1st Australian Wireless Signal Squadron, Melbourne to Mesopotamia.",
+      "digitalStatus" : "Not Captured",
+      "subType" : "Work",
+      "subUnitType" : "File",
+      "form" : "Manuscript",
+      "bibLevel" : "Set",
+      "collection" : "nla.ms",
+      "recordSource" : "FA",
+      "localSystemNumber" : "aspace_140a75e0f3a47eb5fbb735c7fba957ae",
+      "rdsAcknowledgementType" : "Sponsor",
+      "rdsAcknowledgementReceiver" : "NLA",
+      "eadUpdateReviewRequired" : "N",
+      "accessConditions" : "Restricted",
+      "subUnitNo" : "6",
+      "dateRangeInAS" : "1916-1919",
+      "folder" : "[\"container box 6(id:):Mixed Material\"]",
+      "startDate" : "1916:01:01",
+      "endDate" : "1919:12:31",
+      "containerList" : [ ],
+      "correspondenceIndex" : [ ]
+    },
+    "nla.obj-32374" : {
+      "repository" : "National Library of Australia",
+      "creator" : "Fifth Creator",
+      "title" : "A collection of letters written by Nurse Annie King (later Cox) to her parents (Mr and Mrs J.F. King of Melbourne) during a trip to England and Europe.",
+      "digitalStatus" : "Not Captured",
+      "subType" : "Work",
+      "subUnitType" : "File",
+      "form" : "Manuscript",
+      "bibLevel" : "Set",
+      "collection" : "nla.ms",
+      "recordSource" : "FA",
+      "localSystemNumber" : "aspace_1012d592eedcfdbdc6175b91db070e2d",
+      "rdsAcknowledgementType" : "Sponsor",
+      "rdsAcknowledgementReceiver" : "NLA",
+      "eadUpdateReviewRequired" : "N",
+      "accessConditions" : "Restricted",
+      "subUnitNo" : "7",
+      "scopeContent" : "A photopaper of Gordon Cumming working on a wood carving of the Coat of Arms of the city of Launceston.",
+      "dateRangeInAS" : "1952-1955",
+      "folder" : "[\"container box 7(id:):Mixed Material\"]",
+      "startDate" : "1952:01:01",
+      "endDate" : "1955:12:31",
+      "containerList" : [ ],
+      "correspondenceIndex" : [ ]
+    },
+    "nla.obj-32396" : {
+      "repository" : "National Library of Australia",
+      "creator" : "Sixth Creator",
+      "title" : "Annie Cox budget account books (2).",
+      "digitalStatus" : "Not Captured",
+      "subType" : "Work",
+      "subUnitType" : "File",
+      "form" : "Manuscript",
+      "bibLevel" : "Set",
+      "collection" : "nla.ms",
+      "recordSource" : "FA",
+      "localSystemNumber" : "aspace_3c0c615f787a41d4dc4c4104505e55a7",
+      "rdsAcknowledgementType" : "Sponsor",
+      "rdsAcknowledgementReceiver" : "NLA",
+      "eadUpdateReviewRequired" : "N",
+      "accessConditions" : "Restricted",
+      "subUnitNo" : "8",
+      "dateRangeInAS" : "October 1963-July 1974",
+      "folder" : "[\"container box 8(id:):Mixed Material\"]",
+      "startDate" : "1974:10:01",
+      "endDate" : "1974:07:31",
+      "containerList" : [ ],
+      "correspondenceIndex" : [ ]
+    }
+  },
+  "report" : {
+    "dateRangeReviewRequired" : {
+      "1856-1974" : {
+        "startDate" : "01/01/1856",
+        "endDate" : "31/12/1974"
+      },
+      "1818-1899" : {
+        "startDate" : "01/01/1818",
+        "endDate" : "31/12/1899"
+      },
+      "1884-1888" : {
+        "startDate" : "01/01/1884",
+        "endDate" : "31/12/1888"
+      },
+      "1916-1919" : {
+        "startDate" : "01/01/1916",
+        "endDate" : "31/12/1919"
+      },
+      "1952-1955" : {
+        "startDate" : "01/01/1952",
+        "endDate" : "31/12/1955"
+      },
+      "October 1963-July 1974" : {
+        "startDate" : "01/10/1974",
+        "endDate" : "31/07/1974"
+      }
+    }
+  }
+}
