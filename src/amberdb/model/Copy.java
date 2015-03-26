@@ -9,9 +9,11 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import amberdb.relation.*;
@@ -227,6 +229,9 @@ public interface Copy extends Node {
 
     @Adjacency(label = IsSourceCopyOf.label, direction=Direction.IN)
     public Iterable<Copy> getDerivatives();
+    
+    @JavaHandler
+    public Iterable<Copy> getDerivatives(CopyRole copyRole);
 
     @Adjacency(label = IsSourceCopyOf.label, direction=Direction.OUT)
     public void setSourceCopy(Copy sourceCopy);
@@ -313,6 +318,9 @@ public interface Copy extends Node {
             if (mimeType.startsWith("image")) {
                 file = addImageFile();
                 this.setMaterialType("Image");
+            } else if (mimeType.startsWith("audio")) {
+                file = addSoundFile();
+                this.setMaterialType("Sound");
             } else {
                 file = addFile();
             }
@@ -539,6 +547,20 @@ public interface Copy extends Node {
                 return new HashMap<String,String>();
             return mapper.readValue(otherNumbers, new TypeReference<Map<String, String>>() { } );
             
+        }
+        
+        @Override
+        public Iterable<Copy> getDerivatives(CopyRole copyRole) {
+            Iterable<Copy> copies = getDerivatives();
+            List<Copy> limitedCopies = new ArrayList<>(); 
+            if (copies != null) {
+                for (Copy copy : copies) {
+                    if (copy.getCopyRole().equals(copyRole.code())) {
+                        limitedCopies.add(copy);
+                    }
+                }
+            }
+            return (Iterable<Copy>) limitedCopies;
         }
 
         @Override

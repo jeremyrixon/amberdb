@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -165,6 +166,27 @@ public class CopyTest {
         copy.setDcmRecordUpdater("updater");
         assertEquals("updater", copy.getDcmRecordUpdater());                
         
+    }
+    
+    @Test
+    public void testGetDerivedCopiesWithCopyRole() {
+        Work work = amberDb.addWork();
+        Copy sourceCopy = work.addCopy();
+        sourceCopy.setCopyRole(CopyRole.ORIGINAL_COPY.code());
+        Copy accessCopy1 = work.addCopy();
+        accessCopy1.setCopyRole(CopyRole.ACCESS_COPY.code());
+        accessCopy1.setSourceCopy(sourceCopy);
+        Iterable<Copy> actualAccessCopies = sourceCopy.getDerivatives(CopyRole.ACCESS_COPY);
+        assertEquals(1, Iterables.size(actualAccessCopies));
+        assertEquals(accessCopy1, actualAccessCopies.iterator().next());
+        Copy accessCopy2 = work.addCopy();
+        accessCopy2.setCopyRole(CopyRole.ACCESS_COPY.code());
+        accessCopy2.setSourceCopy(sourceCopy);
+        actualAccessCopies = sourceCopy.getDerivatives(CopyRole.ACCESS_COPY);
+        assertEquals(2, Iterables.size(actualAccessCopies));
+        Iterator<Copy> i = actualAccessCopies.iterator();
+        assertEquals(accessCopy1, i.next());
+        assertEquals(accessCopy2, i.next());
     }
 
     /**
