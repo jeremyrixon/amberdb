@@ -281,5 +281,18 @@ public class CopyTest {
         mCopy.setComasterCopy(d2Copy);
         assertThat(mCopy.getComasterCopy().getNotes(), is("d2"));
     }
+    
+    @Test
+    public void getSoundFile() {
+        Work work = amberDb.addWork();
+        Copy copy = work.addCopy();
+        copy.setCopyRole(CopyRole.LISTENING_1_COPY.code());
+        File f = copy.addFile();
+        f.setMimeType("audio");
+
+        File f2 = copy.getSoundFile();
+        
+        assertEquals(f, f2);
+    }
 }
 
