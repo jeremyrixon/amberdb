@@ -3,6 +3,7 @@ package amberdb.model;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -184,9 +185,13 @@ public class CopyTest {
         accessCopy2.setSourceCopy(sourceCopy);
         actualAccessCopies = sourceCopy.getDerivatives(CopyRole.ACCESS_COPY);
         assertEquals(2, Iterables.size(actualAccessCopies));
-        Iterator<Copy> i = actualAccessCopies.iterator();
-        assertEquals(accessCopy1, i.next());
-        assertEquals(accessCopy2, i.next());
+
+        List<Copy> copies = new ArrayList<>();
+        for (Copy c : actualAccessCopies) {
+            copies.add(c);
+        }
+        assertTrue(copies.remove(accessCopy1));
+        assertTrue(copies.remove(accessCopy2));
     }
 
     /**
@@ -302,6 +307,19 @@ public class CopyTest {
         mCopy.setComasterCopy(d1Copy);
         mCopy.setComasterCopy(d2Copy);
         assertThat(mCopy.getComasterCopy().getNotes(), is("d2"));
+    }
+    
+    @Test
+    public void testGetSoundFile() {
+        Work work = amberDb.addWork();
+        Copy copy = work.addCopy();
+        copy.setCopyRole(CopyRole.LISTENING_1_COPY.code());
+        File f = copy.addFile();
+        f.setMimeType("audio");
+
+        File f2 = copy.getSoundFile();
+        
+        assertEquals(f, f2);
     }
 }
 
