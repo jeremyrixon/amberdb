@@ -610,7 +610,15 @@ public class CollectionBuilder {
                     EADFeature feature = collectionWork.addEADFeature();
                     feature.setFeatureType(featureType);
                     feature.setFeatureId(mapping.get("id"));
-                    List<String> featureFields = toList(mapping.get("odd-fields"));
+                    List<String> featurePara = toList(mapping.get("odd-paragraph"));
+                    List<String> featureFields;
+                    if (featurePara != null) {
+                        featureFields = Arrays.asList(featureType);
+                        feature.setFields(featureFields);
+                        feature.setRecords(fmtFeatureData(featureFields, featurePara));
+                        return;
+                    }
+                    featureFields = toList(mapping.get("odd-fields"));
                     if (featureFields == null) {
                         throw new EADValidationException("FAILED_EXTRACT_FEATURE", featureType + " as there's no fields specified for " + featureType, collectionWork.getObjId());
                     }
@@ -619,16 +627,7 @@ public class CollectionBuilder {
                     if (featureData == null || featureData.size() == 0) {
                         throw new EADValidationException("FAILED_EXTRACT_FEATURE", featureType + " as there's no records specified for " + featureType, collectionWork.getObjId());
                     }
-                    List<List<String>> featureRecords = new ArrayList<>();
-                    for (int i = 0; i < featureData.size(); i++) {
-                        List<String> record = new ArrayList<>();
-                        for (int j = 0; j < featureFields.size(); j++) {
-                            record.add(featureData.get(i + j));
-                        }
-                        featureRecords.add(record);
-                        i = i + 3;
-                    }
-                    feature.setRecords(featureRecords);
+                    feature.setRecords(fmtFeatureData(featureFields, featureData));
                 } else {
                     throw new EADValidationException("FAILED_EXTRACT_FEATURE", "feature as it is missing feature type", collectionWork.getObjId());
                 }
@@ -637,6 +636,19 @@ public class CollectionBuilder {
                 throw new EADValidationException("FAILED_EXTRACT_FEATURE", e, featureType, collectionWork.getObjId());
             }
         }
+    }
+
+    private static List<List<String>> fmtFeatureData(List<String> featureFields, List<String> featureData) {
+        List<List<String>> featureRecords = new ArrayList<>();
+        for (int i = 0; i < featureData.size(); i++) {
+            List<String> record = new ArrayList<>();
+            for (int j = 0; j < featureFields.size(); j++) {
+                record.add(featureData.get(i + j));
+            }
+            featureRecords.add(record);
+            i = i + 3;
+        }
+        return featureRecords;
     }
     
     protected static void extractEntities(EADWork collectionWork, JsonNode entitiesCfg, XmlDocumentParser parser) {
