@@ -56,12 +56,6 @@ public abstract class Lookups extends Tools {
     @SqlQuery("select id, name, value, code, deleted from lookups where id = :id")
     public abstract ListLu findLookup(@Bind("id")Long id);
     
-    @SqlQuery(
-            "SELECT (COUNT(code) = :total) "
-            + "FROM lookups "
-            + "WHERE name = :name")
-    public abstract boolean entriesExist(@Bind("name")String name, @Bind("total")int total);
-    
     public ListLu findLookup(String name, String code) {
         List<ListLu> activeLookups = findActiveLookup(name, code);
         if (activeLookups != null && activeLookups.size() > 0)
@@ -237,7 +231,8 @@ public abstract class Lookups extends Tools {
     }
     
     public synchronized void migrate() {
-        if (!entriesExist("copyStatus", 4)) {
+        List<ListLu> entries = findActiveLookupsFor("copyStatus");
+        if (entries.isEmpty()) {
             addLookupData("copyStatus", "None", "None");
             addLookupData("copyStatus", "Draft", "Draft");
             addLookupData("copyStatus", "Corrected", "Corrected");
