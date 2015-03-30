@@ -56,6 +56,12 @@ public abstract class Lookups extends Tools {
     @SqlQuery("select id, name, value, code, deleted from lookups where id = :id")
     public abstract ListLu findLookup(@Bind("id")Long id);
     
+    @SqlQuery(
+            "SELECT (COUNT(code) = :total) "
+            + "FROM lookups "
+            + "WHERE name = :name")
+    public abstract boolean entriesExist(@Bind("name")String name, @Bind("total")int total);
+    
     public ListLu findLookup(String name, String code) {
         List<ListLu> activeLookups = findActiveLookup(name, code);
         if (activeLookups != null && activeLookups.size() > 0)
@@ -227,6 +233,21 @@ public abstract class Lookups extends Tools {
                 List<String> deleted = padStringArry(lookupData.get("deleted"), ids.size());
                 seedLookupTable(ids, names, codes, values, deleted);
             }
+        }
+    }
+    
+    public synchronized void migrate() {
+        if (!entriesExist("copyStatus", 4)) {
+            addLookupData("copyStatus", "None", "None");
+            addLookupData("copyStatus", "Draft", "Draft");
+            addLookupData("copyStatus", "Corrected", "Corrected");
+            addLookupData("copyStatus", "Complete", "Complete");
+        }
+        
+        ListLu entry = findLookup("surface", "Pthalocyanine Al T-Acetate");
+        if (entry != null) {
+            updLookupData(entry.id, "Pthalocyanine Al", "Pthalocyanine Al");
+            addLookupData("surface", "T-Acetate", "T-Acetate");
         }
     }
     

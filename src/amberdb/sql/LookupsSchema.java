@@ -993,14 +993,7 @@ public abstract class LookupsSchema {
     + "('eadFileValidationMsg', 'FAILED_EXTRACT_DATE_RANGE', 'Failed to extract date range for the component work ${componentWorkObjId} (Archives Space ID: ${componentWorkUUID})'),"
     + "('eadFileValidationMsg', 'FAILED_TO_DETERMINE_START_DATE', 'Failed to extract start date for the component work ${componentWorkObjId} (Archives Space ID: ${componentWorkUUID})')")
     public abstract void seedDataValidationMsgs();
-    
-    @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
-            + "('copyStatus', 'None', 'None'),"
-            + "('copyStatus', 'Draft', 'Draft'),"
-            + "('copyStatus', 'Corrected', 'Corrected'),"
-            + "('copyStatus', 'Complete', 'Complete')")
-    public abstract void seedCopyStatus();
-    
+        
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
     + "('collection','nla.aus', 'Australian'),"
     + "('collection','nla.ms', 'Manuscript'),"
@@ -1152,11 +1145,5 @@ public abstract class LookupsSchema {
             + "FROM information_schema.tables " 
             + "WHERE table_name IN ('LOOKUPS', 'TOOLS', 'lookups', 'tools')")
     public abstract boolean schemaTablesExist();
-    
-    @SqlQuery(
-            "SELECT (COUNT(code) = 4) "
-            + "FROM lookups "
-            + "WHERE name = 'copyStatus'")
-    public abstract boolean copyStatusExist();
 }
 

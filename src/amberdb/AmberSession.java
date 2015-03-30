@@ -169,17 +169,13 @@ public class AmberSession implements AutoCloseable {
     private void initLookupData(DataSource dataSource) {
         lookupsDbi = new DBI(dataSource);
         LookupsSchema luSchema = lookupsDbi.onDemand(LookupsSchema.class);
+        Lookups lookups = getLookups();
         if (!luSchema.schemaTablesExist()) {
-            // maybe log something
             luSchema.createLookupsSchema();
-            List<ListLu> list = getLookups().findActiveLookups();
+            List<ListLu> list = lookups.findActiveLookups();
             luSchema.setupToolsAssociations(list);
         }
-        
-        // TODO: maybe able to do something here to compare new lookup date to be added.
-        if (!luSchema.copyStatusExist()) {
-            luSchema.seedCopyStatus();
-        }
+        lookups.migrate();
     }    
     
     
