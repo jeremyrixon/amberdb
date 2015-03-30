@@ -995,6 +995,13 @@ public abstract class LookupsSchema {
     public abstract void seedDataValidationMsgs();
     
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
+            + "('copyStatus', 'None', 'None'),"
+            + "('copyStatus', 'Draft', 'Draft'),"
+            + "('copyStatus', 'Corrected', 'Corrected'),"
+            + "('copyStatus', 'Complete', 'Complete')")
+    public abstract void seedCopyStatus();
+    
+    @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
     + "('collection','nla.aus', 'Australian'),"
     + "('collection','nla.ms', 'Manuscript'),"
     + "('collection','nla.map', 'Map'),"
@@ -1107,7 +1114,7 @@ public abstract class LookupsSchema {
         seedToolCategoriesLookups();
         seedMaterialTypesLookups();
     }
-    
+
     public void setupToolsAssociations(List<ListLu> lookups) {
         List<ListLu> toolTypes = filterLookups("toolType", lookups);
         List<ListLu> toolCategories = filterLookups("toolCategory", lookups);
@@ -1119,6 +1126,7 @@ public abstract class LookupsSchema {
         updateMaterialTypeForToolsGroup1(getId(materialTypes, "Image"));
         updateMaterialTypeForToolsGroup2(getId(materialTypes, "Text"));
     }
+
     
     protected List<ListLu> filterLookups(String name, List<ListLu> lookups) {
         List<ListLu> filteredLookup = new ArrayList<>();
@@ -1144,5 +1152,11 @@ public abstract class LookupsSchema {
             + "FROM information_schema.tables " 
             + "WHERE table_name IN ('LOOKUPS', 'TOOLS', 'lookups', 'tools')")
     public abstract boolean schemaTablesExist();
+    
+    @SqlQuery(
+            "SELECT (COUNT(code) = 4) "
+            + "FROM lookups "
+            + "WHERE name = 'copyStatus'")
+    public abstract boolean copyStatusExist();
 }
 

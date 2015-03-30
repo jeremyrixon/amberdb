@@ -155,6 +155,18 @@ public class AmberSession implements AutoCloseable {
     private AmberGraph init(DataSource dataSource, Long sessionId) {
 
         // NLA specific lookup table config
+        initLookupData(dataSource);
+
+        // Graph
+        AmberGraph amber = new AmberGraph(dataSource);
+        if (sessionId != null)
+            amber.resume(sessionId);
+
+        return amber;
+    }
+
+
+    private void initLookupData(DataSource dataSource) {
         lookupsDbi = new DBI(dataSource);
         LookupsSchema luSchema = lookupsDbi.onDemand(LookupsSchema.class);
         if (!luSchema.schemaTablesExist()) {
@@ -163,13 +175,11 @@ public class AmberSession implements AutoCloseable {
             List<ListLu> list = getLookups().findActiveLookups();
             luSchema.setupToolsAssociations(list);
         }
-
-        // Graph
-        AmberGraph amber = new AmberGraph(dataSource);
-        if (sessionId != null)
-            amber.resume(sessionId);
-
-        return amber;
+        
+        // TODO: maybe able to do something here to compare new lookup date to be added.
+        if (!luSchema.copyStatusExist()) {
+            luSchema.seedCopyStatus();
+        }
     }    
     
     
