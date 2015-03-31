@@ -70,9 +70,20 @@ public abstract class Lookups extends Tools {
      * Find a list of active values in the named lookups for reference when creating a new record
      */
     public List<ListLu> findActiveLookupsFor(String name) {
+        return findActiveLookupsFor(name, false);
+    }
+    
+    /*
+     * Find a list of active values in the named lookups in specified order for reference when creating a new record
+     */
+    public List<ListLu> findActiveLookupsFor(String name, boolean descOrder) {
         List<ListLu> activeLookups = findLookupsFor(name, "N");
-        if (activeLookups == null) return new ArrayList<>();
-        Collections.sort(activeLookups);
+        if (activeLookups == null) return new ArrayList<>();       
+        if (descOrder) {
+            Collections.sort(activeLookups, Collections.reverseOrder());
+        } else {
+            Collections.sort(activeLookups);
+        }
         return activeLookups;
     }
     
@@ -227,6 +238,22 @@ public abstract class Lookups extends Tools {
                 List<String> deleted = padStringArry(lookupData.get("deleted"), ids.size());
                 seedLookupTable(ids, names, codes, values, deleted);
             }
+        }
+    }
+    
+    public synchronized void migrate() {
+        List<ListLu> entries = findActiveLookupsFor("copyStatus");
+        if (entries.isEmpty()) {
+            addLookupData("copyStatus", "None", "None");
+            addLookupData("copyStatus", "Draft", "Draft");
+            addLookupData("copyStatus", "Corrected", "Corrected");
+            addLookupData("copyStatus", "Complete", "Complete");
+        }
+        
+        ListLu entry = findLookup("surface", "Pthalocyanine Al T-Acetate");
+        if (entry != null) {
+            updLookupData(entry.id, "Pthalocyanine Al", "Pthalocyanine Al");
+            addLookupData("surface", "T-Acetate", "T-Acetate");
         }
     }
     

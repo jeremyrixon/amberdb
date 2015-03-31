@@ -155,14 +155,7 @@ public class AmberSession implements AutoCloseable {
     private AmberGraph init(DataSource dataSource, Long sessionId) {
 
         // NLA specific lookup table config
-        lookupsDbi = new DBI(dataSource);
-        LookupsSchema luSchema = lookupsDbi.onDemand(LookupsSchema.class);
-        if (!luSchema.schemaTablesExist()) {
-            // maybe log something
-            luSchema.createLookupsSchema();
-            List<ListLu> list = getLookups().findActiveLookups();
-            luSchema.setupToolsAssociations(list);
-        }
+        initLookupData(dataSource);
 
         // Graph
         AmberGraph amber = new AmberGraph(dataSource);
@@ -170,6 +163,19 @@ public class AmberSession implements AutoCloseable {
             amber.resume(sessionId);
 
         return amber;
+    }
+
+
+    private void initLookupData(DataSource dataSource) {
+        lookupsDbi = new DBI(dataSource);
+        LookupsSchema luSchema = lookupsDbi.onDemand(LookupsSchema.class);
+        Lookups lookups = getLookups();
+        if (!luSchema.schemaTablesExist()) {
+            luSchema.createLookupsSchema();
+            List<ListLu> list = lookups.findActiveLookups();
+            luSchema.setupToolsAssociations(list);
+        }
+        lookups.migrate();
     }    
     
     
