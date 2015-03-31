@@ -70,9 +70,20 @@ public abstract class Lookups extends Tools {
      * Find a list of active values in the named lookups for reference when creating a new record
      */
     public List<ListLu> findActiveLookupsFor(String name) {
+        return findActiveLookupsFor(name, false);
+    }
+    
+    /*
+     * Find a list of active values in the named lookups in specified order for reference when creating a new record
+     */
+    public List<ListLu> findActiveLookupsFor(String name, boolean descOrder) {
         List<ListLu> activeLookups = findLookupsFor(name, "N");
-        if (activeLookups == null) return new ArrayList<>();
-        Collections.sort(activeLookups);
+        if (activeLookups == null) return new ArrayList<>();       
+        if (descOrder) {
+            Collections.sort(activeLookups, Collections.reverseOrder());
+        } else {
+            Collections.sort(activeLookups);
+        }
         return activeLookups;
     }
     
