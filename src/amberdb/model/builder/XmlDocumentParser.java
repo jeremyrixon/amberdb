@@ -160,6 +160,13 @@ public abstract class XmlDocumentParser {
         String repeatablePath = subElementsCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
         String componentBasePath = subElementsCfg.get(CFG_BASE).getTextValue();
         Nodes baseComponents = getElementsByXPath(doc, componentBasePath);
+        eadUUIDList = listUUIDs(eadUUIDList, subElementsCfg, repeatablePath, componentBasePath, baseComponents);
+
+        return eadUUIDList;
+    }
+
+    private List<String> listUUIDs(List<String> eadUUIDList, JsonNode subElementsCfg, String repeatablePath,
+            String componentBasePath, Nodes baseComponents) {
         if (baseComponents != null) {
             for (int i = 0; i < baseComponents.size(); i++) {
                 Node baseComponent = baseComponents.get(i);
@@ -167,11 +174,12 @@ public abstract class XmlDocumentParser {
                 for (int j = 0; j < components.size(); j++) {
                     Map<String, String> fldsMap = getFieldsMap(components.get(j), subElementsCfg, componentBasePath);
                     String uuid = fldsMap.get("uuid").toString();
-                    eadUUIDList.add(uuid);
+                    if (!eadUUIDList.contains(uuid))
+                        eadUUIDList.add(uuid);
+                    eadUUIDList = listUUIDs(eadUUIDList, subElementsCfg, repeatablePath, componentBasePath, components);
                 }
             }
         }
-
         return eadUUIDList;
     }
     

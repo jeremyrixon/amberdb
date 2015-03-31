@@ -318,7 +318,7 @@ public class CollectionBuilderTest {
             JsonNode statusReport = doc.getReport();
             assertNotNull(statusReport);
             assertNotNull(statusReport.get("eadUpdateReviewRequired"));
-            assertEquals(2, statusReport.get("eadUpdateReviewRequired").size());
+            assertEquals(1, statusReport.get("eadUpdateReviewRequired").size());
             as.commit();
             
             // verify the component of AS id (i.e. updatedCompAsId) is under the first component work 
