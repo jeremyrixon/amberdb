@@ -993,7 +993,7 @@ public abstract class LookupsSchema {
     + "('eadFileValidationMsg', 'FAILED_EXTRACT_DATE_RANGE', 'Failed to extract date range for the component work ${componentWorkObjId} (Archives Space ID: ${componentWorkUUID})'),"
     + "('eadFileValidationMsg', 'FAILED_TO_DETERMINE_START_DATE', 'Failed to extract start date for the component work ${componentWorkObjId} (Archives Space ID: ${componentWorkUUID})')")
     public abstract void seedDataValidationMsgs();
-        
+    
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
     + "('collection','nla.aus', 'Australian'),"
     + "('collection','nla.ms', 'Manuscript'),"
@@ -1107,7 +1107,7 @@ public abstract class LookupsSchema {
         seedToolCategoriesLookups();
         seedMaterialTypesLookups();
     }
-
+    
     public void setupToolsAssociations(List<ListLu> lookups) {
         List<ListLu> toolTypes = filterLookups("toolType", lookups);
         List<ListLu> toolCategories = filterLookups("toolCategory", lookups);
@@ -1119,7 +1119,6 @@ public abstract class LookupsSchema {
         updateMaterialTypeForToolsGroup1(getId(materialTypes, "Image"));
         updateMaterialTypeForToolsGroup2(getId(materialTypes, "Text"));
     }
-
     
     protected List<ListLu> filterLookups(String name, List<ListLu> lookups) {
         List<ListLu> filteredLookup = new ArrayList<>();
