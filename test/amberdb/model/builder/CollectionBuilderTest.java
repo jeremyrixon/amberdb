@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.sql.DataSource;
 import nu.xom.Element;
@@ -318,7 +319,7 @@ public class CollectionBuilderTest {
             JsonNode statusReport = doc.getReport();
             assertNotNull(statusReport);
             assertNotNull(statusReport.get("eadUpdateReviewRequired"));
-            assertEquals(2, statusReport.get("eadUpdateReviewRequired").size());
+            assertEquals(1, statusReport.get("eadUpdateReviewRequired").size());
             as.commit();
             
             // verify the component of AS id (i.e. updatedCompAsId) is under the first component work 
@@ -393,7 +394,7 @@ public class CollectionBuilderTest {
             InputStream in = new FileInputStream(testEADPath.toFile());
             EADParser parser = new EADParser();
             parser.init(collectionWorkId, in, collectCfg);
-            List<String> uuids = parser.listUUIDs();
+            Set<String> uuids = parser.listUUIDs(10);
             assertTrue(!uuids.isEmpty());
             assertEquals(uuids.size(), 8);
         }
