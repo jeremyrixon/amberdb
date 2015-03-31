@@ -3,8 +3,11 @@ package amberdb.model.builder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import nu.xom.Builder;
@@ -153,8 +156,8 @@ public abstract class XmlDocumentParser {
         return nodes;
     }
     
-    public List<String> listUUIDs() {
-        List<String> eadUUIDList = new ArrayList<String>();
+    public Set<String> listUUIDs(int estCapacity) {
+        Set<String> eadUUIDList = Collections.synchronizedSet(new HashSet<String>(estCapacity));
         JsonNode collectionCfg = parsingCfg;
         JsonNode subElementsCfg = collectionCfg.get(CFG_COLLECTION_ELEMENT).get(CFG_SUB_ELEMENTS);
         String repeatablePath = subElementsCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
@@ -165,7 +168,7 @@ public abstract class XmlDocumentParser {
         return eadUUIDList;
     }
 
-    private List<String> listUUIDs(List<String> eadUUIDList, JsonNode subElementsCfg, String repeatablePath,
+    private Set<String> listUUIDs(Set<String> eadUUIDList, JsonNode subElementsCfg, String repeatablePath,
             String componentBasePath, Nodes baseComponents) {
         if (baseComponents != null) {
             for (int i = 0; i < baseComponents.size(); i++) {
@@ -174,8 +177,7 @@ public abstract class XmlDocumentParser {
                 for (int j = 0; j < components.size(); j++) {
                     Map<String, String> fldsMap = getFieldsMap(components.get(j), subElementsCfg, componentBasePath);
                     String uuid = fldsMap.get("uuid").toString();
-                    if (!eadUUIDList.contains(uuid))
-                        eadUUIDList.add(uuid);
+                    eadUUIDList.add(uuid);
                     eadUUIDList = listUUIDs(eadUUIDList, subElementsCfg, repeatablePath, componentBasePath, components);
                 }
             }

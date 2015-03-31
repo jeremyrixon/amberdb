@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import nu.xom.Node;
@@ -182,7 +183,7 @@ public class CollectionBuilder {
         
         parser.init(collection.getObjId(), getFindingAIDFile(collection).openStream(), getDefaultCollectionCfg());
         Map<String, String> currentComponents = componentWorksMap(collection); 
-        List<String> eadUUIDList = parser.listUUIDs();
+        Set<String> eadUUIDList = parser.listUUIDs(currentComponents.size());
         List<String> componentsNotInEAD = new ArrayList<String>();
         
         for (String asId : currentComponents.keySet()) {
