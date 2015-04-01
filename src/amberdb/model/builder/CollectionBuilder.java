@@ -640,14 +640,16 @@ public class CollectionBuilder {
 
     private static List<List<String>> fmtFeatureData(List<String> featureFields, List<String> featureData) {
         List<List<String>> featureRecords = new ArrayList<>();
+        int dataSize = featureData.size();
         int noOfFields = featureFields.size();
-        for (int i = 0; i < featureData.size(); i++) {
+        int i = 0;
+        while (i < dataSize) {
             List<String> record = new ArrayList<>();
             for (int j = 0; j < noOfFields; j++) {
                 record.add(featureData.get(i + j));
             }
             featureRecords.add(record);
-            i = i + noOfFields - 1;
+            i = i + noOfFields;
         }
         return featureRecords;
     }
