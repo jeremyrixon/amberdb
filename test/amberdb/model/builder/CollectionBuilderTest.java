@@ -334,7 +334,7 @@ public class CollectionBuilderTest {
     }
     
     @Test
-    public void testEADCollectionWithGeneralNotesContainerList() throws ValidityException, IOException, ParsingException {
+    public void testEADCollectionWithGeneralNoteContainerList() throws ValidityException, IOException, ParsingException {
         createCollection();
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
