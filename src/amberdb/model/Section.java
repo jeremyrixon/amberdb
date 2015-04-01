@@ -44,6 +44,30 @@ public interface Section extends Work {
 	
 	@JavaHandler
 	public int countExistsOns();
+
+	@Property("abstract")
+	public String getAbstract();
+
+	@Property("abstract")
+	public void setAbstract(String abstractText);
+
+	@Property("captions")
+	public List<String> getCaptions();
+
+	@Property("captions")
+	public void setCaptions(List<String> captions);
+
+	@Property("advertising")
+	public boolean hasAdvertising();
+
+	@Property("advertising")
+	public void setAdvertising(boolean advertising);
+
+	@Property("illustrated")
+	public boolean isIllustrated();
+
+	@Property("illustrated")
+	public void setIllustrated(boolean illustrated);
 	
 	abstract class Impl implements JavaHandlerContext<Vertex>, Section {
         public int countExistsOns() {
