@@ -121,6 +121,7 @@ public class EADConfiguration {
         ((ObjectNode) oddFields).put("odd-type", "ead:head");
         ((ObjectNode) oddFields).put("odd-fields", "ead:table/ead:tgroup/ead:thead/ead:row/ead:entry");
         ((ObjectNode) oddFields).put("odd-record-data", "ead:table/ead:tgroup/ead:tbody/ead:row/ead:entry");
+        ((ObjectNode) oddFields).put("odd-paragraph", "ead:p");
         return oddFields;
     }
     

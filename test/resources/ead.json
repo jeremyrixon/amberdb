@@ -54,7 +54,8 @@
         "id":                 "@id",
         "odd-type":           "ead:head",
         "odd-fields":         "ead:table/ead:tgroup/ead:thead/ead:row/ead:entry",
-        "odd-record-data":    "ead:table/ead:tgroup/ead:tbody/ead:row/ead:entry"
+        "odd-record-data":    "ead:table/ead:tgroup/ead:tbody/ead:row/ead:entry",
+        "odd-paragraph":      "ead:p"
       }
     },
     "index": {

@@ -22,6 +22,8 @@ import nu.xom.Elements;
 import nu.xom.Node;
 import nu.xom.ParsingException;
 import nu.xom.ValidityException;
+
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
@@ -333,18 +335,31 @@ public class CollectionBuilderTest {
     }
     
     @Test
-    public void testEADCollectionWithCorrespondenceIdxContainerList() throws ValidityException, IOException, ParsingException {
+    public void testEADCollectionWithGeneralNoteContainerList() throws ValidityException, IOException, ParsingException {
         createCollection();
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
-            List<EADFeature> containerList = collectionWork.asEADWork().getEADFeatures();
-            assertEquals("number of container list", 1, containerList.size()); 
-            assertEquals("number of columns", 4, containerList.get(0).getFields().size());
-            assertEquals("number of records", 176, containerList.get(0).getRecords().size());
-            assertEquals("first container record: Series", "1", containerList.get(0).getRecords().get(0).get(0));
-            assertEquals("first container record: Series", "1-9", containerList.get(0).getRecords().get(0).get(1));
-            assertEquals("first container record: Series", "1-1029", containerList.get(0).getRecords().get(0).get(2));
-            assertEquals("first container record: Series", "1", containerList.get(0).getRecords().get(0).get(3));
+            List<EADFeature> features = collectionWork.asEADWork().getEADFeatures();
+            assertEquals("features extracted", 2, features.size());
+            assertEquals("first feature heading", "General", features.get(0).getFeatureType());
+            assertEquals("second feature heading", "Container List", features.get(1).getFeatureType());
+            
+            // verify extracted general note
+            List<String> generalFields = features.get(0).getFields();
+            List<List<String>> generalRecords = features.get(0).getRecords();
+            assertEquals("general notes size", 2, generalRecords.size());
+            assertEquals("no. of fields for general notes", 1, generalFields.size());
+            assertEquals("no. of records for general notes", 2, generalRecords.size());
+            
+            // verify extracted container list
+            List<String> containerListFields = features.get(1).getFields();
+            List<List<String>> containerListRecords = features.get(1).getRecords();
+            assertEquals("container list size", 176, containerListRecords.size());
+            assertEquals("no. of fields for container record", 4, containerListFields.size());
+            assertEquals("first container record: Series", "1", containerListRecords.get(0).get(0));
+            assertEquals("first container record: Series", "1-9", containerListRecords.get(0).get(1));
+            assertEquals("first container record: Series", "1-1029", containerListRecords.get(0).get(2));
+            assertEquals("first container record: Series", "1", containerListRecords.get(0).get(3));
         }
     }
     
