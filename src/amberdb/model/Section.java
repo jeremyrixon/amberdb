@@ -58,7 +58,7 @@ public interface Section extends Work {
 	public void setCaptions(List<String> captions);
 
 	@Property("advertising")
-	public boolean hasAdvertising();
+	public boolean isAdvertising();
 
 	@Property("advertising")
 	public void setAdvertising(boolean advertising);
@@ -68,6 +68,12 @@ public interface Section extends Work {
 
 	@Property("illustrated")
 	public void setIllustrated(boolean illustrated);
+
+	@Property("printedPageNumber")
+	public String getPrintedPageNumber();
+
+	@Property("printedPageNumber")
+	public void setPrintedPageNumber(String printedPageNumber);
 	
 	abstract class Impl implements JavaHandlerContext<Vertex>, Section {
         public int countExistsOns() {
