@@ -23,7 +23,6 @@ import nu.xom.Node;
 import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 
-import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
@@ -193,13 +192,13 @@ public class CollectionBuilderTest {
            ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
            ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "yes");
            parser.init(collectionWorkId, eadIn, parserCfg);
-           List<String> filteredElementCfg = parser.parseFiltersCfg();
+           Set<String> filteredElementCfg = parser.parseFiltersCfg();
            assertFalse(hasFilteredEADElement(parser.doc.getRootElement(), filteredElementCfg));
            assertEquals(collectionWork.getCopy(CopyRole.FINDING_AID_COPY), collectionWork.getCopy(CopyRole.FINDING_AID_FILTERED_COPY).getSourceCopy());
         }
     }
     
-    private boolean hasFilteredEADElement(Node node, List<String> filterList) {
+    private boolean hasFilteredEADElement(Node node, Set<String> filterList) {
         Elements elements = ((Element) node).getChildElements();
         if (elements != null) {
             for (int i = 0; i < elements.size(); i++) {
@@ -283,7 +282,7 @@ public class CollectionBuilderTest {
             InputStream in = new FileInputStream(testEADPath.toFile());
             EADParser parser = new EADParser();
             parser.init(collectionWorkId, in, collectCfg);
-            List<String> componentsNotInEAD = CollectionBuilder.reloadEADPreChecks(collectionWork.asEADWork(), parser);
+            Set<String> componentsNotInEAD = CollectionBuilder.reloadEADPreChecks(collectionWork.asEADWork(), parser);
             assertTrue(componentsNotInEAD.isEmpty());
         }
     }
@@ -384,7 +383,7 @@ public class CollectionBuilderTest {
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
             boolean storeCopy = true;
-            Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
+            CollectionBuilder.generateJson(collectionWork, storeCopy);
             Map<String, String> componentWorksMap = CollectionBuilder.componentWorksMap(collectionWork);
             assertTrue(!componentWorksMap.isEmpty());
             assertEquals(componentWorksMap.size(), 8);
@@ -397,8 +396,8 @@ public class CollectionBuilderTest {
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
             boolean storeCopy = true;
-            Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
-            List<String> currentDOs = CollectionBuilder.digitisedItemList(collectionWork);
+            CollectionBuilder.generateJson(collectionWork, storeCopy);
+            Set<String> currentDOs = CollectionBuilder.digitisedItemList(collectionWork);
             assertTrue(currentDOs.isEmpty());
         }
     }

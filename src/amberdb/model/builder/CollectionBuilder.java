@@ -6,8 +6,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -151,7 +153,7 @@ public class CollectionBuilder {
      * @throws ParsingException 
      * @throws ValidityException 
      */
-    public static List<String> reloadEADPreChecks(Work collectionWork) throws ValidityException, ParsingException, IOException {
+    public static Set<String> reloadEADPreChecks(Work collectionWork) throws ValidityException, ParsingException, IOException {
         return reloadEADPreChecks(collectionWork.asEADWork(), null);
     }
     
@@ -168,7 +170,7 @@ public class CollectionBuilder {
      * @throws ParsingException 
      * @throws ValidityException 
      */
-    public static List<String> reloadEADPreChecks(EADWork collection, XmlDocumentParser parser) throws ValidityException, ParsingException, IOException {
+    public static Set<String> reloadEADPreChecks(EADWork collection, XmlDocumentParser parser) throws ValidityException, ParsingException, IOException {
         if (collection == null) {
             String errMsg = "Failed to perform EAD reload prechecks as the input collection work is null.";
             log.error(errMsg);
@@ -184,7 +186,7 @@ public class CollectionBuilder {
         parser.init(collection.getObjId(), getFindingAIDFile(collection).openStream(), getDefaultCollectionCfg());
         Map<String, String> currentComponents = componentWorksMap(collection); 
         Set<String> eadUUIDList = parser.listUUIDs(currentComponents.size());
-        List<String> componentsNotInEAD = new ArrayList<String>();
+        Set<String> componentsNotInEAD = Collections.synchronizedSet(new HashSet<String>());
         
         for (String asId : currentComponents.keySet()) {
             if (asId != null && !asId.isEmpty() && !eadUUIDList.contains(asId)) {
@@ -233,11 +235,11 @@ public class CollectionBuilder {
      *         
      * @throws IOException
      */
-    protected static List<String> digitisedItemList(Work collectionWork) throws IOException {
+    protected static Set<String> digitisedItemList(Work collectionWork) throws IOException {
         // Get a list of EAD component works in the current collection work
         // structure which has digital objects attached
         JsonNode content = getFindingAIDJsonDocument(collectionWork).getContent();
-        List<String> objIdList = new ArrayList<>();
+        Set<String> objIdList = Collections.synchronizedSet(new HashSet<String>());
 
         if (content != null && content.getFieldNames() != null) {
             Iterator<String> fieldNames = content.getFieldNames();
@@ -353,8 +355,8 @@ public class CollectionBuilder {
         
         String collectionLevel = collectionWork.getBibLevel();
         // precheck
-        List<String> list = CollectionBuilder.reloadEADPreChecks(collectionWork);
-        List<String> currentDOs = digitisedItemList(collectionWork);
+        Set<String> list = CollectionBuilder.reloadEADPreChecks(collectionWork);
+        Set<String> currentDOs = digitisedItemList(collectionWork);
         
         // initializing the parser
         parser.init(collectionWork.getObjId(), eadFile.openStream(), collectionCfg);

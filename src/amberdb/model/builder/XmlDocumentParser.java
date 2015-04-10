@@ -2,10 +2,8 @@ package amberdb.model.builder;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,7 +41,7 @@ public abstract class XmlDocumentParser {
     protected static final ObjectMapper mapper = new ObjectMapper();
     protected String collectionObjId;
     protected JsonNode parsingCfg;
-    protected List<String> filters;
+    protected Set<String> filters;
     protected boolean validateXML;
     protected boolean storeCopy;
     protected Builder builder;
@@ -90,7 +88,7 @@ public abstract class XmlDocumentParser {
         return nodes;
     }
     
-    public List<String> getFilters() {
+    public Set<String> getFilters() {
         return filters;
     }
     
@@ -116,14 +114,18 @@ public abstract class XmlDocumentParser {
         return false;
     }
     
-    protected List<String> parseFiltersCfg() {
+    protected Set<String> parseFiltersCfg() {
         JsonNode filtersCfg = parsingCfg.get(CFG_COLLECTION_ELEMENT).get(CFG_EXCLUDE_ELEMENTS);
-        filters = new ArrayList<>();
-        if (filtersCfg.isArray() && ((ArrayNode) filtersCfg).size() > 0) {
-            for (int i = 0; i < ((ArrayNode) filtersCfg).size(); i++)
-                filters.add(((ArrayNode) filtersCfg).get(i).getTextValue().toUpperCase());
+        if (filtersCfg.isArray()) {
+            ArrayNode filtersArray = (ArrayNode) filtersCfg;
+            int filtersCfgSize = filtersArray.size();
+            filters = Collections.synchronizedSet(new HashSet<String>(filtersCfgSize));
+            for (int i = 0; i < filtersCfgSize; i++) {
+                    filters.add(filtersArray.get(i).getTextValue().toUpperCase());
+            }
+            return filters;
         }
-        return filters;
+        return Collections.synchronizedSet(new HashSet<String>());
     }
     
     public void filterEAD(Node node) { 
