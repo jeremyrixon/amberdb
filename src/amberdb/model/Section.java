@@ -45,12 +45,6 @@ public interface Section extends Work {
 	@JavaHandler
 	public int countExistsOns();
 
-	@Property("abstract")
-	public String getAbstract();
-
-	@Property("abstract")
-	public void setAbstract(String abstractText);
-
 	@Property("captions")
 	public List<String> getCaptions();
 
@@ -58,16 +52,16 @@ public interface Section extends Work {
 	public void setCaptions(List<String> captions);
 
 	@Property("advertising")
-	public boolean isAdvertising();
+	public Boolean isAdvertising();
 
 	@Property("advertising")
-	public void setAdvertising(boolean advertising);
+	public void setAdvertising(Boolean advertising);
 
 	@Property("illustrated")
-	public boolean isIllustrated();
+	public Boolean isIllustrated();
 
 	@Property("illustrated")
-	public void setIllustrated(boolean illustrated);
+	public void setIllustrated(Boolean illustrated);
 
 	@Property("printedPageNumber")
 	public String getPrintedPageNumber();
