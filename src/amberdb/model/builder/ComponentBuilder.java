@@ -3,10 +3,13 @@ package amberdb.model.builder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import nu.xom.Element;
 import nu.xom.Node;
@@ -45,8 +48,8 @@ public class ComponentBuilder {
      * @throws JsonMappingException 
      * @throws JsonParseException 
      */
-    public static List<EADWork> mergeComponents(EADWork collectionWork, EADWork parentWork, JsonNode... components) throws JsonParseException, JsonMappingException, IOException {
-        List<EADWork> componentWorks = new ArrayList<>();
+    public static Set<EADWork> mergeComponents(EADWork collectionWork, EADWork parentWork, JsonNode... components) throws JsonParseException, JsonMappingException, IOException {
+        Set<EADWork> componentWorks = Collections.synchronizedSet(new HashSet<EADWork>(components.length));
         for (JsonNode component : components) {
             componentWorks.add(mergeComponent(collectionWork, parentWork, component));
         }
