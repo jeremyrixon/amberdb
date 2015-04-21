@@ -255,6 +255,17 @@ public abstract class Lookups extends Tools {
             updLookupData(entry.id, "Pthalocyanine Al", "Pthalocyanine Al");
             addLookupData("surface", "T-Acetate", "T-Acetate");
         }
+
+        // Add bitRate lookup
+        String brName = "bitRate";
+        List<ListLu> bitRateEntries = findActiveLookupsFor(brName);
+        if (bitRateEntries.isEmpty()) {
+            addLookupData(brName, "16", "16");
+            addLookupData(brName, "24", "24");
+            addLookupData(brName, "48", "48");
+            addLookupData(brName, "128", "128");
+            addLookupData(brName, "256", "256");
+        }
     }
     
     protected List<String> padStringArry(List<String> strArry, int length) {
