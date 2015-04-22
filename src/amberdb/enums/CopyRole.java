@@ -48,15 +48,15 @@ public enum CopyRole {
     WORKING_COPY("w", "Working"),
     EDITED_COPY("ed", "Edited"),
     FILTERED_COPY("fc", "Filtered"),
-    PAPER_TRANSCRIPT("tp", "Paper transcript"),
-    ELECTRONIC_TRANSCRIPT("te", "Electronic transcript"),
-    RTF_TRANSCRIPT("tt", "rtf transcript"),
-    TRANSCRIPT_COPY("tr", "Other Transcript"),
     PAPER_SUMMARY("sp", "Paper Summary"),
+    PAPER_TRANSCRIPT("tp", "Paper transcript"),
     ELECTRONIC_SUMMARY("se", "Electronic Summary"),
-    SUMMARY_COPY("s", "Other Summary"),
+    ELECTRONIC_TRANSCRIPT("te", "Electronic transcript"),
+    TIME_CODED_SUMMARY("sc", "Time coded Summary"),
     TIME_CODED_TRANSCRIPT_COPY("tc", "Time coded transcript"),
-    TIME_CODED_SUMMARY("sc", "Time coded Summary");
+    SUMMARY_COPY("s", "Other Summary"),
+    RTF_TRANSCRIPT("tt", "rtf transcript"),
+    TRANSCRIPT_COPY("tr", "Other Transcript");
 
     private String code;
     private String display;
