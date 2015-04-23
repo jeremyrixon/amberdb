@@ -13,6 +13,7 @@ import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,6 +69,11 @@ public class DateParser {
      *       for corresponding date extracted from the input date range expression. 
      */
     public static List<Date> parseDateRange(String dateRangeExpr) throws ParseException {
+        String numberInStrExpr = "(.*)?([0-9]+)(.*)?";
+        if (dateRangeExpr != null) dateRangeExpr = dateRangeExpr.trim();
+        if (!StringUtils.isEmpty(dateRangeExpr) && !dateRangeExpr.matches(numberInStrExpr)) {
+            throw new ParseException("Invalid date expression: " + dateRangeExpr, 0);
+        }
         return parseDateRange(dateRangeExpr, null);
     }
     public static List<Date> parseDateRange(String dateRangeExpr, Date defaultDate) throws ParseException {
