@@ -71,7 +71,7 @@ public interface File extends Node {
     @Property("fileSize")
     public void setFileSize(long fileSize);
 
-    @Property("fileSize")
+    @JavaHandler
     public long getFileSize();
     
     @Property("compression")
@@ -165,7 +165,7 @@ public interface File extends Node {
     public Copy getCopy();
 
     @JavaHandler
-    public long getSize() throws NoSuchBlobException, IOException;
+    public long getSize();
 
     @JavaHandler
     public SeekableByteChannel openChannel() throws IOException;
@@ -199,6 +199,12 @@ public interface File extends Node {
             return getBlobStore().get(getBlobId());
         }
         
+        @Override
+        public long getFileSize() {
+            Long fileSize = this.asVertex().getProperty("fileSize");
+            return (fileSize == null)? 0L : fileSize;  
+        }
+        
         /**
          * Return the size of the blob. If an exception occurs try and 
          * return the fileSize property. If that fails, return 0L.
@@ -209,11 +215,7 @@ public interface File extends Node {
                 return getBlob().size();
             } catch (NoSuchBlobException | IOException e) {
                 // As a last resort see if the file has a size property to return
-                try {
-                    return getFileSize();
-                } catch (Exception ex) {
-                    return 0L;
-                }
+                return getFileSize();
             }
         }
 
