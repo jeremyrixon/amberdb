@@ -77,8 +77,20 @@ public class DateParserTest {
     }
     
     @Test(expected = ParseException.class)
-    public void testInvalidDateRange() throws ParseException {
+    public void testInvalidDateRangeWithoutNumber() throws ParseException {
         String str = "invalid date range str";
+        List<Date> dateRange = DateParser.parseDateRange(str);
+    }
+    
+    @Test(expected = ParseException.class)
+    public void testInvalidDateRangeWithNumber() throws ParseException {
+        String str = "19th century";
+        List<Date> dateRange = DateParser.parseDateRange(str);
+    }
+    
+    @Test(expected = ParseException.class)
+    public void testInvalidDateRangeWithAHyphen() throws ParseException {
+        String str = "19th-century";
         List<Date> dateRange = DateParser.parseDateRange(str);
     }
     
