@@ -74,7 +74,11 @@ public class DateParser {
         if (!StringUtils.isEmpty(dateRangeExpr) && !dateRangeExpr.matches(numberInStrExpr)) {
             throw new ParseException("Invalid date expression: " + dateRangeExpr, 0);
         }
-        return parseDateRange(dateRangeExpr, null);
+        try {
+            return parseDateRange(dateRangeExpr, null);
+        } catch (ParseException e) {
+            throw new ParseException("Invalid date expression: " + dateRangeExpr, 0);
+        }
     }
     public static List<Date> parseDateRange(String dateRangeExpr, Date defaultDate) throws ParseException {
         if (dateRangeExpr == null || dateRangeExpr.trim().isEmpty()) return null;
@@ -224,6 +228,8 @@ public class DateParser {
             } else if ((month = MONTH.getMonthOfYear(dateExpr)) != null) {
                 cal.set(Calendar.DAY_OF_MONTH, 0);
                 cal.set(Calendar.MONTH, MONTH.getMonthOfYear(dateExpr), month - 1);
+            } else {
+                throw new ParseException("Invalid date expression: " + dateExpr, 0);
             }
             return cal.getTime();
         }
