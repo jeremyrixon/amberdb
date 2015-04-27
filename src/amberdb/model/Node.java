@@ -321,28 +321,30 @@ public interface Node extends VertexFrame {
 
         @Override
         public void addCommentsInternal(String comment) {
-            if (comment == null || comment.length() == 0) {
-                return;
-            }
-            String commentsInternal = getCommentsInternal();
-            if (commentsInternal != null) {
-                setCommentsInternal(commentsInternal + "\n" + comment);
-            }
-            else {
-                setCommentsInternal(comment);
-            }
+            addComments(comment, "commentsInternal");
         }
 
         @Override
         public void addCommentsExternal(String comment) {
-            String commentsExternal = getCommentsExternal();
-            if (commentsExternal != null) {
-                setCommentsExternal(commentsExternal + "\n" + comment);
+            addComments(comment, "commentsExternal");
+        }
+
+        private void addComments(String comment, String propertyName) {
+            if (comment == null || comment.length() == 0) {
+                return;
+            }
+
+            AmberVertex amberVertex = this.asAmberVertex();
+            String value = amberVertex.getProperty(propertyName);
+
+            if (value != null) {
+                amberVertex.setProperty(propertyName, value + "\n" + comment);
             }
             else {
-                setCommentsExternal(comment);
+                amberVertex.setProperty(propertyName, comment);
             }
         }
+
 
         @Override
         public void setOrder(Node adjacent, String label, Direction direction, Integer order) {
