@@ -354,6 +354,12 @@ public interface Work extends Node {
     @Property("ingestLocked")
     public void setIngestLocked(Boolean ingestLocked);
 
+    @Property("ingestJobId")
+    public Long getIngestJobId();
+
+    @Property("ingestJobId")
+    public void setIngestJobId(Long ingestJobId);
+
     @Property("moreIlmsDetailsRequired")
     public Boolean getMoreIlmsDetailsRequired();
 
