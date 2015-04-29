@@ -310,7 +310,8 @@ public class AmberSession implements AutoCloseable {
     public <T> List<T> findModelByValueInJsonList(String propertyName, String value, Class<T> T) {
         List<T> nodes = new ArrayList<>();
         for (Vertex match : getAmberGraph().getVerticesByJsonListValue(propertyName, value)) {
-            nodes.add((T) graph.frame(match, T));
+            // add matched vertex from framed graph
+            nodes.add((T) graph.getVertex(match.getId(), T));
         }
         return nodes;
     }
@@ -325,7 +326,8 @@ public class AmberSession implements AutoCloseable {
     public <T> List<T> findModelByValue(String propertyName, Object value, Class<T> T) {
         List<T> nodes = new ArrayList<>();
         for (Vertex match : getAmberGraph().getVertices(propertyName, value)) {
-            nodes.add((T) graph.frame(match, T));
+            // add matched vertex from framed graph
+            nodes.add((T) graph.getVertex(match.getId(), T));
         }
         return nodes;
     }
