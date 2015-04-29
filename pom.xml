@@ -3,7 +3,7 @@
 
   <groupId>au.gov.nla</groupId>
   <artifactId>amberdb</artifactId>
-  <version>1.1.299-SNAPSHOT</version>
+  <version>1.1.300-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>amberdb</name>
   <description>Digital library domain model</description>
