@@ -23,7 +23,7 @@ public class DateParser {
     
     /**
      * parseDateRange: returns the from date and to date in a list of date.
-     * example dates can be parsed:
+     * examples of acceptable date formats can be parsed accurately:
      *   date range in AS                  start date      end date
      *   null                              null            null
      *   c.1936                            01-01-1936      31-12-1936
@@ -35,15 +35,26 @@ public class DateParser {
      *   [November] 1935                   01-11-1935      30-11-1935
      *   9-15 December 1938                09-12-1938      15-12-1938
      *   1935-1936                         01-01-1935      31-12-1936
+     *   Mar 1817 - Sep 1916               01-03-1817      30-09-1916
+     *   03.Mar.1817/09.Sep.1916           03-03-1817      09-09-1916
+     *   03.Mar.1817 - 09.Sep.1916         03-03-1817      09-09-1916
      *   1935-c.1936                       01-01-1935      31-12-1936
      *   1914, 1919-1960 (bulk 1930-1958)  01-01-1914      31-12-1960
-     *   
+     * 
+     * detectable invalid date formats are the following will throw ParseException 
+     * (Invalid date expression..):
+     *   text string does not contain any numbers
+     *   text string containing only 1-2 digit numbers
+     * 
+     * limitation: correctness of dates extracted from text string besides
+     * the above text expression formats are not guaranteed.
+     *     
      * @param dateRangeExpr - input date range string
      * @return the from date and to date of the date range in a date list.
      * @throws ParseException
      * 
      * Note: Defaults: if there's no end date found in the date Range e.g. 1932 -
-     *       the end date is then defaults to 31/12/9999
+     *       the end date is then defaults to null.
      *
      *       It is ok to not specify a start date e.g. - 1799, in this case, the
      *       start date in the returned date range will be null.
@@ -76,7 +87,7 @@ public class DateParser {
         }
         try {
             return parseDateRange(dateRangeExpr, null);
-        } catch (ParseException e) {
+        } catch (Exception e) {
             throw new ParseException("Invalid date expression: " + dateRangeExpr, 0);
         }
     }
