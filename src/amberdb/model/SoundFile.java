@@ -84,6 +84,11 @@ public interface SoundFile extends File {
     @Property("fileContainer")
     public void setFileContainer(String fileContainer);
 
+    @Property("bitDepth")
+    public String getBitDepth();
+    @Property("bitDepth")
+    public void setBitDepth(String bitDepth);
+
     @Property("bitrate")
     public String getBitrate();    
     @Property("bitrate")
