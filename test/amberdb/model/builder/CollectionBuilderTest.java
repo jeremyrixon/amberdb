@@ -170,7 +170,7 @@ public class CollectionBuilderTest {
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
             boolean storeCopy = true;
-            Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
+            Document doc = CollectionBuilder.generateJson(collectionWork);
             System.out.println("doc: " + doc.toJson());
             JsonNode content = doc.getContent();
             Iterator<String> it = content.getFieldNames();
@@ -181,7 +181,7 @@ public class CollectionBuilderTest {
                 i++;
             }
             assertEquals(9, i);
-            assertEquals(collectionWork.getCopy(CopyRole.FINDING_AID_COPY), collectionWork.getCopy(CopyRole.FINDING_AID_VIEW_COPY).getSourceCopy());
+//            assertEquals(collectionWork.getCopy(CopyRole.FINDING_AID_COPY), collectionWork.getCopy(CopyRole.FINDING_AID_VIEW_COPY).getSourceCopy());
         }
     }
         
@@ -283,7 +283,7 @@ public class CollectionBuilderTest {
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
             boolean storeCopy = true;
-            Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
+            Document doc = CollectionBuilder.generateJson(collectionWork);
             InputStream in = new FileInputStream(testEADPath.toFile());
             EADParser parser = new EADParser();
             parser.init(collectionWorkId, in, collectCfg);
@@ -302,7 +302,7 @@ public class CollectionBuilderTest {
             Work collectionWork = as.findWork(collectionWorkId);
             collectionWork.setCollection("nla.ms");
             boolean storeCopy = true;
-            Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
+            Document doc = CollectionBuilder.generateJson(collectionWork);
             assertNull(doc.getReport().get("eadUpdateReviewRequired"));
             // verify the component of AS id (i.e updedCompASId) has collection work as its parent
             Map<String, String> uuidToPIMap = CollectionBuilder.componentWorksMap(collectionWork);
@@ -321,7 +321,7 @@ public class CollectionBuilderTest {
             //         - add new component works from the updated EAD.
             //         - update existing component works from the updated EAD.
             CollectionBuilder.reloadCollection(collectionWork);
-            doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
+            doc = CollectionBuilder.generateJson(collectionWork);
             JsonNode statusReport = doc.getReport();
             assertNotNull(statusReport);
             assertNotNull(statusReport.get("eadUpdateReviewRequired"));
@@ -388,7 +388,6 @@ public class CollectionBuilderTest {
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
             boolean storeCopy = true;
-            CollectionBuilder.generateJson(collectionWork, storeCopy);
             Map<String, String> componentWorksMap = CollectionBuilder.componentWorksMap(collectionWork);
             assertTrue(!componentWorksMap.isEmpty());
             assertEquals(componentWorksMap.size(), 8);
@@ -401,7 +400,6 @@ public class CollectionBuilderTest {
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
             boolean storeCopy = true;
-            CollectionBuilder.generateJson(collectionWork, storeCopy);
             Set<String> currentDOs = CollectionBuilder.digitisedItemList(collectionWork);
             assertTrue(currentDOs.isEmpty());
         }

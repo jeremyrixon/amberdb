@@ -138,7 +138,6 @@ public class CollectionBuilder {
         // initializing the parser
         parser.init(collectionWork.getObjId(), eadFile.openStream(), collectionCfg);
         processCollection(collectionWork, eadFile.openStream(), collectionCfg, parser);
-        generateJson(collectionWork, parser.storeCopy());
     }
     
     /**
@@ -264,14 +263,14 @@ public class CollectionBuilder {
     protected static Document getFindingAIDJsonDocument(Work collectionWork) throws IOException {
         Copy eadJsonCopy = collectionWork.getCopy(CopyRole.FINDING_AID_VIEW_COPY);
         if (eadJsonCopy == null || eadJsonCopy.getFile() == null) {
-            return generateJson(collectionWork, true);
+            return generateJson(collectionWork);
         }
         File eadJsonFile = eadJsonCopy.getFile();
         JsonNode eadJson = mapper.readTree(eadJsonFile.openStream());
         Document doc = new Document(eadJson.get("structure"), eadJson.get("content"));
         return doc;
     }
-    
+
     /**
      * reloadCollection parses the updated EAD file attached to the top-level
      * collection work with the input field mapping from collectionCfg, and
@@ -367,9 +366,6 @@ public class CollectionBuilder {
         //            under the collectionWork.
         processCollection(collectionWork, eadFile.openStream(), collectionCfg, parser);
              
-        // Step 2: generate the FINDING_AID_VIEW_COPY json from the updated FINDING_AID_COPY EAD attached to collectionWork
-        generateJson(collectionWork, parser.storeCopy);
-        
         // mark the list of EAD works which requires review
         for (String objId : list) {
             EADWork eadWork = collectionWork.asEADWork().getEADWork(PIUtil.parse(objId));
@@ -400,48 +396,44 @@ public class CollectionBuilder {
      * generateJson generates a document in json format consist the mapping of the structure and
      * the content for top level collection metadata and its components and sub-components:
      *  - the structure is a json tree with top node at collection level and branches and leaves
-     *    of components and sub-components. 
-     *  - the content is a json array of items (including the collection and its components and 
-     *    sub-components) in a flat structure, and each item within the array contains the required 
+     *    of components and sub-components.
+     *  - the content is a json array of items (including the collection and its components and
+     *    sub-components) in a flat structure, and each item within the array contains the required
      *    metadata for the delivery.
-     *    
+     *
      * If the storeCopy flag is set to true, the generated Json document will be stored as a finding aid view copy
-     * of the top level collection work. 
-     * 
+     * of the top level collection work.
+     *
      * Store Copy rule: if the collectionWork has already an existing finding aid view copy, and the existing
      *                  copy will be deleted and the newly generated view copy will be stored.
-     *                
+     *
      * @param collectionWork - the top level work of a collection with a FINDING_AID_COPY attached.
-     * @param storeCopy      - flag whether or not to store the generated json as a finding aid
-     *                         view copy to the top level work.
      * @return Document      - the newly generated document containing structure and content json
      *                         nodes.
      * @throws IOException
      */
-    public static Document generateJson(Work collectionWork, boolean storeCopy) throws IOException {
+    public static Document generateJson(Work collectionWork) throws IOException {
         if (collectionWork == null) {
             String errMsg = "Failed to generate collection json as the input collection work is null.";
             log.error(errMsg);
             throw new IllegalArgumentException(errMsg);
         }
-        
+
         ObjectNode structure = mapper.createObjectNode();
         ObjectNode content = mapper.createObjectNode();
         ObjectNode statusReport = mapper.createObjectNode();
-        
+
         // create the document from the work.
         traverseCollection(collectionWork, structure, content, statusReport);
         Document doc = new Document(structure, content);
-        
+
         // set status report if there's any ead work requiring review
         if (statusReport.size() > 0) doc.setStatusReport(statusReport);
-        
+
         // store the document as a copy to collectionWork.
-        if (storeCopy)
-            storeEADCopy(collectionWork, CopyRole.FINDING_AID_VIEW_COPY, doc.toJson(), "application/json");
         return doc;
     }
-    
+
     /**
      * filterEAD: filter the input EAD document so that only elements required for delivery are retained in the EAD document.
      * 
