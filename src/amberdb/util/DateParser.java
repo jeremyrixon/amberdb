@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DateParser {
-    static final SimpleDateFormat dateFmt = new SimpleDateFormat("dd/MM/yyyy");
+    static final SimpleDateFormat dateFmt = new SimpleDateFormat("yyyy");
     static final Logger log = LoggerFactory.getLogger(DateParser.class);    
     static final String bulkDateRangePrefix= "(bulk";   
     
@@ -68,7 +68,9 @@ public class DateParser {
      *
      *       limitation for year extraction: it's assumed that any
      *       year value should have the length between 3 - 4 digits in order to be
-     *       recognized as a year value.
+     *       recognized as a year value.  Year value should appear either at the
+     *       beginning of a date expression (followed by a space or / or -) or at the 
+     *       end of a date expression (preceed by a space or / or -).
      *       
      *       limitation for month extraction: it's assumed month is expressed in
      *       full text or 3 letter abbreviation (case insensitive).
@@ -95,6 +97,7 @@ public class DateParser {
     }
     public static List<Date> parseDateRange(String dateRangeExpr, Date defaultDate) throws ParseException {
         if (dateRangeExpr == null || dateRangeExpr.trim().isEmpty()) return null;
+        dateRangeExpr = dateRangeExpr.trim();
         Calendar cal = Calendar.getInstance();
         if (defaultDate != null) cal.setTime(defaultDate);
         
@@ -114,7 +117,12 @@ public class DateParser {
         
         // parse the date range
         List<String> dateRangePair = getExprPair(dateRangeExpr, INTERVAL.getPatterns());
-        if (dateRangePair == null) {
+        if (dateRangePair == null && dateRangeExpr.length() > 2) {
+            Integer year = parseYear(dateRangeExpr);           
+            if (year == null) {
+                throw new ParseException("Failed to parse date expr: " + dateRangeExpr, 0);
+            }
+            cal.set(Calendar.YEAR, year);
             Date fromDate = parseDate(dateRangeExpr, true, cal);
             Date toDate = parseDate(dateRangeExpr, false, cal);
             dateRange.add(fromDate);
@@ -125,6 +133,14 @@ public class DateParser {
         if (dateRangePair.size() == 2) {
             String startDateToken = (dateRangePair.get(0) == null)?"":dateRangePair.get(0).trim();
             String endDateToken = (dateRangePair.get(1) == null)?"":dateRangePair.get(1).trim();
+            Integer startYear = parseYear(startDateToken);
+            Integer endYear = parseYear(endDateToken);
+            if (startYear == null && endYear == null) {
+                throw new ParseException("Failed to parse date expr: " + dateRangeExpr, 0);
+            } else if (startYear == null) {
+                cal.set(Calendar.YEAR, endYear);
+            }
+            
             if (endDateToken.isEmpty()) {
                 defaultDate = constructDate(false, "9999", "DEC", "31");
             } else if (endDateToken.length() < 3 && startDateToken.length() >=4 && YEAR.isYear(startDateToken.substring(0, 4))) {
@@ -191,13 +207,40 @@ public class DateParser {
         return dateRange;
     }
     
-    public static boolean isToday(Date date) {
-        if (date == null) {
-            return false;
+    private static Integer parseYear(String dateRangeExpr) {
+        if (dateRangeExpr.endsWith("s")) {
+            dateRangeExpr = dateRangeExpr.substring(0, dateRangeExpr.length() - 1);
         }
-        String today = dateFmt.format(Calendar.getInstance().getTime());
-        String indate = dateFmt.format(date);
-        return today.equals(indate);
+        String yearStrAtStart = "";
+        String yearStrAtEnd = "";
+        int yearLength = 3;
+        if (StringUtils.isEmpty(dateRangeExpr)) {
+            return null;
+        }
+        if (dateRangeExpr.length() > 3) {
+            yearLength = 4;
+        } else if (dateRangeExpr.length() < 3){
+            return null;
+        }
+        yearStrAtStart = dateRangeExpr.substring(0, yearLength).trim();
+        yearStrAtEnd = dateRangeExpr.substring(dateRangeExpr.length() - yearLength).trim();
+        Integer year = null;
+        try {
+            year = Integer.parseInt(yearStrAtStart);
+        } catch (NumberFormatException e) {
+            try {
+                year = Integer.parseInt(yearStrAtEnd);
+            } catch (NumberFormatException ex) {
+                year = null;
+            }
+        }
+        if (dateRangeExpr.startsWith("" + year + " ") || dateRangeExpr.startsWith("" + year + "/") || 
+            dateRangeExpr.startsWith("" + year + "-") || dateRangeExpr.startsWith("" + year + ".") ||
+            dateRangeExpr.endsWith(" " + year) || dateRangeExpr.endsWith("/" + year) || dateRangeExpr.endsWith("-" + year) || 
+            dateRangeExpr.endsWith("." + year) || dateRangeExpr.equals(""+year)) {
+            return year;
+        }
+        return null;
     }
     
     /**
@@ -212,13 +255,18 @@ public class DateParser {
             addDecade = true;
             dateRangeExpr = dateRangeExpr.substring(0, dateRangeExpr.length() - 1);
         }
-        Pattern circaPattern = CIRCAINTERVAL.getPatterns()[0];
-        Matcher matcher = circaPattern.matcher(dateRangeExpr);
-        if (matcher.matches()) {
-            int startYear = Integer.parseInt(matcher.group(1));
-            int endYear = (addDecade)? startYear + 9 : startYear;
-            dateRange.add(constructDate(true, "" + startYear, "JAN", "1"));
-            dateRange.add(constructDate(false, "" + endYear, "DEC", "31"));
+        try {
+            Pattern circaPattern = CIRCAINTERVAL.getPatterns()[0];
+            Matcher matcher = circaPattern.matcher(dateRangeExpr);
+            if (matcher.matches()) {
+                int startYear = Integer.parseInt(matcher.group(1));
+                int endYear = (addDecade) ? startYear + 9 : startYear;
+                dateRange.add(constructDate(true, "" + startYear, "JAN", "1"));
+                dateRange.add(constructDate(false, "" + endYear, "DEC", "31"));
+            }
+        } catch (Exception e) {
+            dateRangeExpr = dateRangeExpr.replace("c.", "");
+            dateRange = parseDateRange(dateRangeExpr);
         }
         return dateRange;
     }
@@ -233,13 +281,20 @@ public class DateParser {
     public static Date parseDate(String dateExpr, boolean isFromDate) throws ParseException {
         return parseDate(dateExpr, isFromDate, null);
     }
+    
     public static Date parseDate(String dateExpr, boolean isFromDate, Calendar cal) throws ParseException {
         if (dateExpr == null) return null;
         dateExpr = dateExpr.trim().replace(",", "");
         // check for decade in dateExpr
         if (dateExpr.endsWith("s")) {
-            return parseCircaDateRange("c." + dateExpr).get((isFromDate)?0:1);
-        }
+            try {
+                return parseCircaDateRange("c." + dateExpr).get((isFromDate)?0:1);
+            } catch (ParseException e) {
+                dateExpr = dateExpr.substring(0, dateExpr.length() - 1);
+                return parseDate(dateExpr, isFromDate, cal);
+            }
+        } 
+        
         // parse year
         Map.Entry<Pattern, List<String>> yearAndRestMatch = getMatchedExprPair(dateExpr.trim(), YEAR.getPatterns());
         if (yearAndRestMatch == null) {

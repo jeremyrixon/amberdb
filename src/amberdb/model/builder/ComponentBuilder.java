@@ -244,14 +244,8 @@ public class ComponentBuilder {
             try {
                 dateList = DateParser.parseDateRange(dateRange);
                 if (dateList != null && dateList.size() > 0) {
-                    if (DateParser.isToday(dateList.get(0))) {
-                        throw new EADValidationException("FAILED_EXTRACT_DATE_RANGE", work.getObjId(), (uuid == null)?"":uuid);
-                    }
                     work.setStartDate(dateList.get(0));
                     if (dateList.size() > 1) {
-                        if (DateParser.isToday(dateList.get(1))) {
-                            throw new EADValidationException("FAILED_EXTRACT_DATE_RANGE", work.getObjId(), (uuid == null)?"":uuid);
-                        }
                         work.setEndDate(dateList.get(1));
                     }
                 }
