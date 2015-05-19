@@ -69,8 +69,8 @@ public class DateParser {
      *       limitation for year extraction: it's assumed that any
      *       year value should have the length between 3 - 4 digits in order to be
      *       recognized as a year value.  Year value should appear either at the
-     *       beginning of a date expression (followed by a space or / or -) or at the 
-     *       end of a date expression (preceed by a space or / or -).
+     *       beginning of a date expression (followed by a space or / or - or .) or at the 
+     *       end of a date expression (preceed by a space or / or - or .).
      *       
      *       limitation for month extraction: it's assumed month is expressed in
      *       full text or 3 letter abbreviation (case insensitive).
