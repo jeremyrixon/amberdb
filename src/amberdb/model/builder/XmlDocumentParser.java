@@ -63,7 +63,7 @@ public abstract class XmlDocumentParser {
     public void setInputStream(InputStream in) throws ValidityException, ParsingException, IOException {
         try (InputStreamReader reader = new InputStreamReader(in, "utf8")) {
             builder = new Builder(validateXML());
-            doc = builder.build(in);
+            doc = builder.build(reader);
             qualifiedName = doc.getRootElement().getQualifiedName();
             namespaceURI = doc.getRootElement().getNamespaceURI();
             xc = new XPathContext();
