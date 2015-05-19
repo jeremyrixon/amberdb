@@ -64,6 +64,7 @@ public class EADConfiguration {
         ((ObjectNode) summaryFields).put("creator", "//ead:ead/ead:archdesc/ead:did/ead:origination/ead:persname");
         ((ObjectNode) summaryFields).put("title", "//ead:ead/ead:archdesc/ead:did/ead:unittitle");
         ((ObjectNode) summaryFields).put("date-range", "//ead:ead/ead:archdesc/ead:did/ead:unitdate");
+        ((ObjectNode) summaryFields).put("normal-date-range", "//ead:ead/ead:archdesc/ead:did/ead:unitdate@normal");
         ((ObjectNode) summaryFields).put("extent", "//ead:ead/ead:archdesc/ead:did/ead:physdesc/ead:extent");
         return summaryFields;
     }
@@ -186,6 +187,7 @@ public class EADConfiguration {
         ((ObjectNode) mappedFields).put("creator", "ead:did/ead:origination/ead:persname");
         ((ObjectNode) mappedFields).put("extent", "ead:did/ead:physdesc/ead:extent");
         ((ObjectNode) mappedFields).put("date-range", "ead:did/ead:unitdate");
+        ((ObjectNode) mappedFields).put("normal-date-range", "ead:did/ead:unitdate@normal");
         ((ObjectNode) mappedFields).put("scope-n-content", "ead:scopecontent/ead:p");
         ((ObjectNode) mappedFields).put("container-number", "ead:did/ead:container");
         ((ObjectNode) mappedFields).put("container-label", "ead:did/ead:container/@label");

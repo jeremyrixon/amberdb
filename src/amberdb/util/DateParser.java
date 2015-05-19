@@ -3,6 +3,7 @@ package amberdb.util;
 import static amberdb.enums.DateExpression.*;
 
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -18,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DateParser {
+    static final SimpleDateFormat dateFmt = new SimpleDateFormat("dd/MM/yyyy");
     static final Logger log = LoggerFactory.getLogger(DateParser.class);    
     static final String bulkDateRangePrefix= "(bulk";   
     
@@ -187,6 +189,15 @@ public class DateParser {
         }
         if (dateRange.isEmpty()) return parseCircaDateRange(dateRangeExpr);
         return dateRange;
+    }
+    
+    public static boolean isToday(Date date) {
+        if (date == null) {
+            return false;
+        }
+        String today = dateFmt.format(Calendar.getInstance().getTime());
+        String indate = dateFmt.format(date);
+        return today.equals(indate);
     }
     
     /**
