@@ -2,6 +2,7 @@ package amberdb.model.builder;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -60,12 +61,14 @@ public abstract class XmlDocumentParser {
     }
     
     public void setInputStream(InputStream in) throws ValidityException, ParsingException, IOException {
-        builder = new Builder(validateXML());
-        doc = builder.build(in);
-        qualifiedName = doc.getRootElement().getQualifiedName();
-        namespaceURI = doc.getRootElement().getNamespaceURI();
-        xc = new XPathContext();
-        xc.addNamespace(qualifiedName, namespaceURI);
+        try (InputStreamReader reader = new InputStreamReader(in, "utf8")) {
+            builder = new Builder(validateXML());
+            doc = builder.build(reader);
+            qualifiedName = doc.getRootElement().getQualifiedName();
+            namespaceURI = doc.getRootElement().getNamespaceURI();
+            xc = new XPathContext();
+            xc.addNamespace(qualifiedName, namespaceURI);
+        }
     }
     
     public Nodes traverse(Document doc) {
