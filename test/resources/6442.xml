@@ -34,6 +34,14 @@
   <prefercite>
     <head>Preferred citation</head>
 <p>Items from this collection should be cited as '[Title or description of manuscript item], Papers of the Saloway Family, National Library of Australia, MS 6442, [box number and series and/or folder number]'.</p>  </prefercite>
+<odd id="aspace_fbea61bea9981a6fae0fcf2627a631c9">
+    <head>General</head>
+<p>Descriptions of medieval manuscript items are taken from the following two publications:
+Sinclair: K.V. Sinclair. Descriptive catalogue of medieval and Renaissance Western manuscripts in Australia, Sydney, Sydney University Press, 1969 (NL 091.0216 S616)
+Manion &amp; Vines: Margaret M. Manion and Vera F. Vines. Medieval and Renaissance illuminated manuscripts in Australian collections, Melbourne, Thames and Hudson, 1984 (NL 745.670740994 M278)
+Page references are included with the description of each item.  Fuller descriptions can be found in these publications.</p>
+<p>Additional references: Monkey rock the world!</p>
+</odd>
 <odd id="7f9910f54af17847149b1eb671731cad">
     <head>Container List</head>
 <table>
@@ -2164,9 +2172,9 @@
     <p>Biographical note 4</p>
   </bioghist>
   <dsc>
-<c01 id="aspace_d1ac0117fdba1b9dc09b68e8bb125948" level="file"><did><origination label="creator"><persname normal="Creator, First">First Creator</persname></origination><unittitle>Typescript copies of an autobiographical sketch written by Mary Kirby Reeves, and an account of the voyage from Liverpool to Melbourne in the <emph render="underline">Queen of the west</emph> in 1856 written by J.W. Reeves.</unittitle><unitid>1</unitid><unitdate type="inclusive">1818-1899</unitdate><container type="box" label="Mixed Material">1</container></did><scopecontent><head>Scope and Contents</head><p>Mary Kirby Reeves was the mother of Annie Saloway </p></scopecontent></c01>
+<c01 id="aspace_d1ac0117fdba1b9dc09b68e8bb125948" level="file"><did><origination label="creator"><persname normal="Creator, First">First Creator</persname></origination><unittitle>Typescript copies of an autobiographical sketch written by Mary Kirby Reeves, and an account of the voyage from Liverpool to Melbourne in the <emph render="underline">Queen of the west</emph> in 1856 written by J.W. Reeves.</unittitle><unitid>1</unitid><unitdate type="inclusive" normal="1818-1899">1818-1899</unitdate><container type="box" label="Mixed Material">1</container></did><scopecontent><head>Scope and Contents</head><p>Mary Kirby Reeves was the mother of Annie Saloway </p></scopecontent></c01>
     <c01 id="aspace_7275d12ba178fcbb7cf926d0b7bf68cc" level="file"><did><origination label="creator"><persname normal="Creator, Second">Second Creator</persname></origination><unittitle>Letters written by Mary Reeves and her daughter Annie to their family in Oak House, West Bromuich, Bridgnorth, England.</unittitle><unitid>2</unitid><container type="box" label="Mixed Material">2</container></did></c01>
-    <c01 id="aspace_5c65cd1a0dd35517ba04da03d95ffac2" level="file"><did><origination label="creator"><persname normal="Creator, Third">Third Creator</persname></origination><unittitle>Correspondence between Annie and her future husband, Rev. Henry Saloway.</unittitle><unitid>3</unitid><unitdate type="inclusive">1884-1888</unitdate><container type="box" label="Mixed Material">3</container></did></c01>
+    <c01 id="aspace_5c65cd1a0dd35517ba04da03d95ffac2" level="file"><did><origination label="creator"><persname normal="Creator, Third">Third Creator</persname></origination><unittitle>Correspondence between Annie and her future husband, Rev. Henry Saloway.</unittitle><unitid>3</unitid><unitdate type="inclusive" normal="1884-1888">1884-1888</unitdate><container type="box" label="Mixed Material">3</container></did></c01>
     <c01 id="aspace_ff977d51fa95c2d3a318fc7d6fb14451" level="file"><did><unittitle>A photograph album.</unittitle><unitid>4</unitid><container type="box" label="Mixed Material">4</container></did></c01>
     <c01 id="aspace_563116915a27063fb67dc5de82e2f848" level="file"><did><origination label="creator"><persname normal="Creator, Forth">Forth Creator</persname></origination><unittitle>A diary documenting Olive E. Saloway's nursing service overseas during World War I.</unittitle><unitid>5</unitid><container type="box" label="Mixed Material">5</container></did></c01>
     <c01 id="aspace_140a75e0f3a47eb5fbb735c7fba957ae" level="file"><did><unittitle>Joseph F. King's scrap book documenting his service with the 1st Australian Wireless Signal Squadron, Melbourne to Mesopotamia.</unittitle><unitdate type="inclusive">1916-1919</unitdate><unitid>6</unitid><container type="box" label="Mixed Material">6</container></did></c01>

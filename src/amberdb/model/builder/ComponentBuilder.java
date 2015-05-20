@@ -3,15 +3,18 @@ package amberdb.model.builder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import nu.xom.Element;
 import nu.xom.Node;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -45,8 +48,8 @@ public class ComponentBuilder {
      * @throws JsonMappingException 
      * @throws JsonParseException 
      */
-    public static List<EADWork> mergeComponents(EADWork collectionWork, EADWork parentWork, JsonNode... components) throws JsonParseException, JsonMappingException, IOException {
-        List<EADWork> componentWorks = new ArrayList<>();
+    public static Set<EADWork> mergeComponents(EADWork collectionWork, EADWork parentWork, JsonNode... components) throws IOException {
+        Set<EADWork> componentWorks = Collections.synchronizedSet(new HashSet<EADWork>(components.length));
         for (JsonNode component : components) {
             componentWorks.add(mergeComponent(collectionWork, parentWork, component));
         }
@@ -73,7 +76,7 @@ public class ComponentBuilder {
      * @throws JsonMappingException 
      * @throws JsonParseException 
      */
-    public static EADWork mergeComponent(EADWork collectionWork, EADWork parentWork, JsonNode component) throws JsonParseException, JsonMappingException, IOException {
+    public static EADWork mergeComponent(EADWork collectionWork, EADWork parentWork, JsonNode component) throws IOException {
         EADWork componentWork;
         
         if (component.get("nlaObjId") == null) {
@@ -105,138 +108,154 @@ public class ComponentBuilder {
         return componentWork;
     }
     
-    protected static EADWork updateComponentData(EADWork componentWork, JsonNode component) throws JsonParseException, JsonMappingException, IOException {
+    protected static EADWork updateComponentData(EADWork componentWork, JsonNode component) throws IOException {
         String compJson = mapper.writeValueAsString(component);
         Map<String, String> fieldsMap = mapper.readValue(compJson, new TypeReference<HashMap<String, String>>(){});
         mapWorkMD(componentWork, component.get("uuid").getTextValue(), fieldsMap);
         return componentWork;
     }
     
-    protected static void mapWorkMD(EADWork componentWork, String uuid, Map<String, String> fieldsMap) throws JsonParseException, JsonMappingException, IOException {
-        /* ObjectMapper om = new ObjectMapper();
-        System.out.println("fld map for " + componentWork.getObjId());
-        System.out.println(om.writerWithDefaultPrettyPrinter().writeValueAsString(fieldsMap)); */
-        componentWork.setSubType("Work");      
-        componentWork.setForm("Manuscript");
-      
-        componentWork.setBibLevel(BibLevel.SET.code());
-        
-        String collection = componentWork.getParent().getCollection();
-        componentWork.setCollection(collection);
-        componentWork.setRecordSource("FA");        
-        componentWork.setLocalSystemNumber(uuid);
-        componentWork.setRdsAcknowledgementType("Sponsor");
-        if (fieldsMap.get("sponsor") != null)
-            componentWork.asEADWork().setRdsAcknowledgementReceiver(fieldsMap.get("sponsor"));
-        else    
-            componentWork.asEADWork().setRdsAcknowledgementReceiver("NLA");
-        
-        // eadUpdateReviewRequired appears on the child levels only
-        if (componentWork.getEADUpdateReviewRequired() == null)
-            componentWork.setEADUpdateReviewRequired("N"); 
-        
-        String accessConditions = componentWork.getParent().getAccessConditions();
-        if (componentWork.getAccessConditions() == null) {
-            if (accessConditions != null && !accessConditions.isEmpty())
-                componentWork.setAccessConditions(accessConditions);
+    protected static void mapWorkMD(EADWork componentWork, String uuid, Map<String, String> fieldsMap) {
+        try {
+            componentWork.setSubType("Work");
+            componentWork.setForm("Manuscript");
+
+            componentWork.setBibLevel(BibLevel.SET.code());
+
+            String collection = componentWork.getParent().getCollection();
+            componentWork.setCollection(collection);
+            componentWork.setRecordSource("FA");
+            componentWork.setLocalSystemNumber(uuid);
+            componentWork.setRdsAcknowledgementType("Sponsor");
+            if (fieldsMap.get("sponsor") != null)
+                componentWork.asEADWork().setRdsAcknowledgementReceiver(fieldsMap.get("sponsor"));
             else
-                componentWork.setAccessConditions(AccessCondition.RESTRICTED.code());
-        }
-        if (componentWork.getDigitalStatus() == null)
-            componentWork.setDigitalStatus(DigitalStatus.NOT_CAPTURED.code());
-        
-        List<String> constraints = componentWork.getParent().getConstraint();
-        componentWork.setConstraint(constraints);
-        
-        Date expiryDate = componentWork.getParent().getExpiryDate();
-        componentWork.setExpiryDate(expiryDate);
-        
-        String internalAccessConditions = AccessCondition.OPEN.code();
-        String copyrightPolicy = CopyrightPolicy.OUTOFCOPYRIGHT.code();
-        if (componentWork.getCollection() != null && componentWork.getCollection().equalsIgnoreCase("nla.ms")) {
-            internalAccessConditions = AccessCondition.RESTRICTED.code();
-            copyrightPolicy = CopyrightPolicy.PERPETUAL.code();
-        }
-        if (componentWork.getInternalAccessConditions() == null)
-            componentWork.setInternalAccessConditions(internalAccessConditions);
-        componentWork.setCopyrightPolicy(copyrightPolicy);
-        componentWork.setSensitiveMaterial("No");
-              
-        String componentLevel = fieldsMap.get("component-level");
-        if (componentLevel != null && !componentLevel.isEmpty()) {
-            log.debug("component work " + componentWork.getObjId() + ": componentLevel: " + componentLevel.toString());
-            
-            SubUnitType subUnitType = SubUnitType.fromString(componentLevel.toString());
-            if (subUnitType == null)
-                throw new IllegalArgumentException("Invalid subunit type " + componentLevel.toString() + " for work " + componentWork.getObjId() + ".");
-            componentWork.setSubUnitType(subUnitType.code());
-            // determine bib level with business rule borrowed from DCM
-            String bibLevel = mapBibLevel(componentLevel);
-            componentWork.setBibLevel(bibLevel);
-        }
-        
-        String componentNumber = fieldsMap.get("component-number");
-        if (componentNumber != null && !componentNumber.isEmpty()) {
-            log.debug("component work " + componentWork.getObjId() + ": componentNumber: " + componentNumber.toString());
-            componentWork.setSubUnitNo(componentNumber.toString());
-        }
-        
-        Object unitTitle = fieldsMap.get("title");
-        if (unitTitle != null && !unitTitle.toString().isEmpty()) {
-            log.debug("component work " + componentWork.getObjId() + ": unit title: " + unitTitle.toString());
-            componentWork.setTitle(unitTitle.toString());
-        }
-        
-        Object creator = fieldsMap.get("creator");
-        if (creator != null && !creator.toString().isEmpty()) {
-            log.debug("component work " + componentWork.getObjId() + ": creator: " + creator.toString());
-            componentWork.setCreator(creator.toString().replace("\",\"", ";").replace("\"", "").replace("[", "").replace("]", ""));
-        }
-        
-        Object extent = fieldsMap.get("extent");
-        if (extent != null && extent instanceof String) {
-            if (!extent.toString().isEmpty()) {
-                componentWork.setExtent(extent.toString().replace("\"", "").replace("[", "").replace("]", ""));
+                componentWork.asEADWork().setRdsAcknowledgementReceiver("NLA");
+
+            // eadUpdateReviewRequired appears on the child levels only
+            if (componentWork.getEADUpdateReviewRequired() == null)
+                componentWork.setEADUpdateReviewRequired("N");
+
+            String accessConditions = componentWork.getParent().getAccessConditions();
+            if (componentWork.getAccessConditions() == null) {
+                if (accessConditions != null && !accessConditions.isEmpty())
+                    componentWork.setAccessConditions(accessConditions);
+                else
+                    componentWork.setAccessConditions(AccessCondition.RESTRICTED.code());
             }
-        } else if (extent != null) {
-            List<String> extentList = (List<String>) extent;
-            String extentValue = StringUtils.join(extentList, "; ");
-            componentWork.setExtent(extentValue.replace("\"", "").replace("[", "").replace("]", ""));
+            if (componentWork.getDigitalStatus() == null)
+                componentWork.setDigitalStatus(DigitalStatus.NOT_CAPTURED.code());
+
+            List<String> constraints = componentWork.getParent().getConstraint();
+            componentWork.setConstraint(constraints);
+
+            Date expiryDate = componentWork.getParent().getExpiryDate();
+            componentWork.setExpiryDate(expiryDate);
+
+            String internalAccessConditions = AccessCondition.OPEN.code();
+            String copyrightPolicy = CopyrightPolicy.OUTOFCOPYRIGHT.code();
+            if (componentWork.getCollection() != null && componentWork.getCollection().equalsIgnoreCase("nla.ms")) {
+                internalAccessConditions = AccessCondition.RESTRICTED.code();
+                copyrightPolicy = CopyrightPolicy.PERPETUAL.code();
+            }
+            if (componentWork.getInternalAccessConditions() == null)
+                componentWork.setInternalAccessConditions(internalAccessConditions);
+            componentWork.setCopyrightPolicy(copyrightPolicy);
+            componentWork.setSensitiveMaterial("No");
+
+            String componentLevel = fieldsMap.get("component-level");
+            if (componentLevel != null && !componentLevel.isEmpty()) {
+                log.debug("component work " + componentWork.getObjId() + ": componentLevel: "
+                        + componentLevel.toString());
+
+                SubUnitType subUnitType = SubUnitType.fromString(componentLevel.toString());
+                if (subUnitType == null)
+                    throw new IllegalArgumentException("Invalid subunit type " + componentLevel.toString()
+                            + " for work " + componentWork.getObjId() + ".");
+                componentWork.setSubUnitType(subUnitType.code());
+                // determine bib level with business rule borrowed from DCM
+                String bibLevel = mapBibLevel(componentLevel);
+                componentWork.setBibLevel(bibLevel);
+            }
+
+            String componentNumber = fieldsMap.get("component-number");
+            if (componentNumber != null && !componentNumber.isEmpty()) {
+                log.debug("component work " + componentWork.getObjId() + ": componentNumber: "
+                        + componentNumber.toString());
+                componentWork.setSubUnitNo(componentNumber.toString());
+            }
+
+            Object unitTitle = fieldsMap.get("title");
+            if (unitTitle != null && !unitTitle.toString().isEmpty()) {
+                log.debug("component work " + componentWork.getObjId() + ": unit title: " + unitTitle.toString());
+                componentWork.setTitle(unitTitle.toString());
+            }
+
+            Object creator = fieldsMap.get("creator");
+            if (creator != null && !creator.toString().isEmpty()) {
+                log.debug("component work " + componentWork.getObjId() + ": creator: " + creator.toString());
+                componentWork.setCreator(creator.toString().replace("\",\"", ";").replace("\"", "").replace("[", "")
+                        .replace("]", ""));
+            }
+
+            Object extent = fieldsMap.get("extent");
+            if (extent != null && extent instanceof String) {
+                if (!extent.toString().isEmpty()) {
+                    componentWork.setExtent(extent.toString().replace("\"", "").replace("[", "").replace("]", ""));
+                }
+            } else if (extent != null) {
+                List<String> extentList = (List<String>) extent;
+                String extentValue = StringUtils.join(extentList, "; ");
+                componentWork.setExtent(extentValue.replace("\"", "").replace("[", "").replace("]", ""));
+            }
+
+            Object scopeContent = fieldsMap.get("scope-n-content");
+            if (scopeContent != null && !scopeContent.toString().isEmpty()) {
+                log.debug("component work " + componentWork.getObjId() + ": scope and content: "
+                        + scopeContent.toString());
+                componentWork.setScopeContent(scopeContent.toString());
+            }
+
+            try {
+                String dateRange = fieldsMap.get("normal-date-range");
+                extractDateRange(componentWork, uuid, dateRange);
+            } catch (EADValidationException e) {
+                String dateRange = fieldsMap.get("date-range");
+                extractDateRange(componentWork, uuid, dateRange);
+            }
+
+            Object dcmWorkPID = fieldsMap.get("dcmpi");
+            if (dcmWorkPID != null)
+                componentWork.setDcmWorkPid(dcmWorkPID.toString());
+
+            mapContainer(componentWork, fieldsMap);
+        } catch (EADValidationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new EADValidationException("Failed to extract metadata for component work %s (Archives Space ID: %s)", e, componentWork.getObjId(), (uuid == null)?"":uuid);
         }
-        
-        Object scopeContent = fieldsMap.get("scope-n-content");
-        if (scopeContent != null && !scopeContent.toString().isEmpty()) {
-            log.debug("component work " + componentWork.getObjId() + ": scope and content: " + scopeContent.toString());
-            componentWork.setScopeContent(scopeContent.toString());
-        }
-        Object dateRange = fieldsMap.get("date-range");
-        if (dateRange != null && !dateRange.toString().isEmpty()) {
-            log.debug("component work " + componentWork.getObjId() + ": date range: " + dateRange.toString());
-            componentWork.setDateRangeInAS(dateRange.toString());
+    }
+    
+    protected static void extractDateRange(EADWork work, String uuid, String dateRange) {
+        if (dateRange != null && !dateRange.isEmpty()) {
+            log.debug("work " + work.getObjId() + ": date range: " + dateRange);
+            work.setDateRangeInAS(dateRange);
             List<Date> dateList;
             try {
-                dateList = DateParser.parseDateRange(dateRange.toString());
+                dateList = DateParser.parseDateRange(dateRange);
                 if (dateList != null && dateList.size() > 0) {
-                    if (dateList.get(0) == null) {
-                        throw new EADValidationException("FAILED_TO_DETERMINE_START_DATE", componentWork.getObjId(), (uuid == null)?"":uuid);
+                    work.setStartDate(dateList.get(0));
+                    if (dateList.size() > 1) {
+                        work.setEndDate(dateList.get(1));
                     }
-                    componentWork.setStartDate(dateList.get(0));
-                    if (dateList.size() > 1)
-                        componentWork.setEndDate(dateList.get(1));
                 }
             } catch (Exception e) {
-                String workObjId = componentWork.getObjId();
-                log.info("Failed to parse date range for component work " + workObjId);
+                String workObjId = work.getObjId();
+                log.info("Failed to parse date range for work " + workObjId);
                 log.debug("EAD validation failed: {}\n{} {}", e.getMessage(), workObjId, (uuid == null)?"":uuid);
                 throw new EADValidationException("FAILED_EXTRACT_DATE_RANGE", e, workObjId, (uuid == null)?"":uuid);
             }
         }
-        
-        Object dcmWorkPID = fieldsMap.get("dcmpi");
-        if (dcmWorkPID != null)
-            componentWork.setDcmWorkPid(dcmWorkPID.toString());
-
-        mapContainer(componentWork, fieldsMap);
     }
 
     private static String mapBibLevel(Object componentLevel) {

@@ -155,14 +155,7 @@ public class AmberSession implements AutoCloseable {
     private AmberGraph init(DataSource dataSource, Long sessionId) {
 
         // NLA specific lookup table config
-        lookupsDbi = new DBI(dataSource);
-        LookupsSchema luSchema = lookupsDbi.onDemand(LookupsSchema.class);
-        if (!luSchema.schemaTablesExist()) {
-            // maybe log something
-            luSchema.createLookupsSchema();
-            List<ListLu> list = getLookups().findActiveLookups();
-            luSchema.setupToolsAssociations(list);
-        }
+        initLookupData(dataSource);
 
         // Graph
         AmberGraph amber = new AmberGraph(dataSource);
@@ -170,6 +163,19 @@ public class AmberSession implements AutoCloseable {
             amber.resume(sessionId);
 
         return amber;
+    }
+
+
+    private void initLookupData(DataSource dataSource) {
+        lookupsDbi = new DBI(dataSource);
+        LookupsSchema luSchema = lookupsDbi.onDemand(LookupsSchema.class);
+        Lookups lookups = getLookups();
+        if (!luSchema.schemaTablesExist()) {
+            luSchema.createLookupsSchema();
+            List<ListLu> list = lookups.findActiveLookups();
+            luSchema.setupToolsAssociations(list);
+        }
+        lookups.migrate();
     }    
     
     
@@ -304,7 +310,8 @@ public class AmberSession implements AutoCloseable {
     public <T> List<T> findModelByValueInJsonList(String propertyName, String value, Class<T> T) {
         List<T> nodes = new ArrayList<>();
         for (Vertex match : getAmberGraph().getVerticesByJsonListValue(propertyName, value)) {
-            nodes.add((T) graph.frame(match, T));
+            // add matched vertex from framed graph
+            nodes.add((T) graph.getVertex(match.getId(), T));
         }
         return nodes;
     }
@@ -319,7 +326,8 @@ public class AmberSession implements AutoCloseable {
     public <T> List<T> findModelByValue(String propertyName, Object value, Class<T> T) {
         List<T> nodes = new ArrayList<>();
         for (Vertex match : getAmberGraph().getVertices(propertyName, value)) {
-            nodes.add((T) graph.frame(match, T));
+            // add matched vertex from framed graph
+            nodes.add((T) graph.getVertex(match.getId(), T));
         }
         return nodes;
     }

@@ -22,7 +22,9 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import amberdb.AmberDb;
 import amberdb.AmberSession;
@@ -45,6 +47,9 @@ public class ComponentBuilderTest {
     Path testEADPath;
     String[] testEADFiles = { "test/resources/6442.xml" };
     
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
+    
     @Before
     public void setUp() throws IOException, ValidityException, ParsingException {
         testEADPath = Paths.get("test/resources/6442.xml");
@@ -55,7 +60,7 @@ public class ComponentBuilderTest {
 
         // create the top-level work
         DataSource ds = JdbcConnectionPool.create("jdbc:h2:mem:cache", "store", "collection");
-        db = new AmberDb(ds, Paths.get("."));
+        db = new AmberDb(ds, folder.getRoot().toPath());
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.addWork(); 
             collectionWork.setSubType("Work");

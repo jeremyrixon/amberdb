@@ -1,38 +1,5 @@
 package amberdb.model.builder;
 
-import static org.junit.Assert.*;
-
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ByteArrayInputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import javax.sql.DataSource;
-import nu.xom.Element;
-import nu.xom.Elements;
-import nu.xom.Node;
-import nu.xom.ParsingException;
-import nu.xom.ValidityException;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.node.ObjectNode;
-import org.codehaus.jackson.JsonProcessingException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import amberdb.AmberDb;
 import amberdb.AmberSession;
 import amberdb.enums.AccessCondition;
@@ -41,6 +8,31 @@ import amberdb.model.Copy;
 import amberdb.model.EADEntity;
 import amberdb.model.EADFeature;
 import amberdb.model.Work;
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import nu.xom.*;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ObjectNode;
+import org.h2.jdbcx.JdbcConnectionPool;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.sql.DataSource;
+import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+
+import static org.junit.Assert.*;
 
 public class CollectionBuilderTest {
     static final Logger log = LoggerFactory.getLogger(CollectionBuilderTest.class);
@@ -62,6 +54,9 @@ public class CollectionBuilderTest {
             "aspace_3c0c615f787a41d4dc4c4104505e55a7"
     };
     
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
+    
     @Before
     public void setUp() throws JsonProcessingException, IOException {
         testEADPath = Paths.get("test/resources/6442.xml");
@@ -76,7 +71,7 @@ public class CollectionBuilderTest {
 
         // create the top-level work
         DataSource ds = JdbcConnectionPool.create("jdbc:h2:mem:cache", "store", "collection");
-        db = new AmberDb(ds, Paths.get("."));
+        db = new AmberDb(ds, folder.getRoot().toPath());
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.addWork(); 
             collectionWork.setSubType("Work");
@@ -158,27 +153,6 @@ public class CollectionBuilderTest {
     }
     
     @Test
-    public void testGenerateJson() throws IOException, ValidityException, ParsingException {
-        createCollection();
-        try (AmberSession as = db.begin()) {
-            Work collectionWork = as.findWork(collectionWorkId);
-            boolean storeCopy = true;
-            Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
-            System.out.println("doc: " + doc.toJson());
-            JsonNode content = doc.getContent();
-            Iterator<String> it = content.getFieldNames();
-            assertTrue(it.hasNext());
-            int i = 0;
-            while (it.hasNext()) {
-                it.next();
-                i++;
-            }
-            assertEquals(9, i);
-            assertEquals(collectionWork.getCopy(CopyRole.FINDING_AID_COPY), collectionWork.getCopy(CopyRole.FINDING_AID_VIEW_COPY).getSourceCopy());
-        }
-    }
-        
-    @Test
     public void testFilterEAD() throws IOException, ValidityException, ParsingException {
         try (AmberSession as = db.begin()) {
            Work collectionWork = as.findWork(collectionWorkId);
@@ -190,13 +164,13 @@ public class CollectionBuilderTest {
            ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
            ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "yes");
            parser.init(collectionWorkId, eadIn, parserCfg);
-           List<String> filteredElementCfg = parser.parseFiltersCfg();
+           Set<String> filteredElementCfg = parser.parseFiltersCfg();
            assertFalse(hasFilteredEADElement(parser.doc.getRootElement(), filteredElementCfg));
            assertEquals(collectionWork.getCopy(CopyRole.FINDING_AID_COPY), collectionWork.getCopy(CopyRole.FINDING_AID_FILTERED_COPY).getSourceCopy());
         }
     }
     
-    private boolean hasFilteredEADElement(Node node, List<String> filterList) {
+    private boolean hasFilteredEADElement(Node node, Set<String> filterList) {
         Elements elements = ((Element) node).getChildElements();
         if (elements != null) {
             for (int i = 0; i < elements.size(); i++) {
@@ -276,11 +250,11 @@ public class CollectionBuilderTest {
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
             boolean storeCopy = true;
-            Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
+//            Document doc = CollectionBuilder.generateJson(collectionWork);
             InputStream in = new FileInputStream(testEADPath.toFile());
             EADParser parser = new EADParser();
             parser.init(collectionWorkId, in, collectCfg);
-            List<String> componentsNotInEAD = CollectionBuilder.reloadEADPreChecks(collectionWork.asEADWork(), parser);
+            Set<String> componentsNotInEAD = CollectionBuilder.reloadEADPreChecks(collectionWork.asEADWork(), parser);
             assertTrue(componentsNotInEAD.isEmpty());
         }
     }
@@ -294,9 +268,7 @@ public class CollectionBuilderTest {
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
             collectionWork.setCollection("nla.ms");
-            boolean storeCopy = true;
-            Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
-            assertNull(doc.getReport().get("eadUpdateReviewRequired"));
+            assertEquals(CollectionBuilder.getWorksRequiringReview(collectionWork).size(), 0);
             // verify the component of AS id (i.e updedCompASId) has collection work as its parent
             Map<String, String> uuidToPIMap = CollectionBuilder.componentWorksMap(collectionWork);
             Work componentToUpdate = as.findWork(uuidToPIMap.get(updedCompASId));
@@ -314,11 +286,7 @@ public class CollectionBuilderTest {
             //         - add new component works from the updated EAD.
             //         - update existing component works from the updated EAD.
             CollectionBuilder.reloadCollection(collectionWork);
-            doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
-            JsonNode statusReport = doc.getReport();
-            assertNotNull(statusReport);
-            assertNotNull(statusReport.get("eadUpdateReviewRequired"));
-            assertEquals(2, statusReport.get("eadUpdateReviewRequired").size());
+            assertEquals(1, CollectionBuilder.getWorksRequiringReview(collectionWork).size());
             as.commit();
             
             // verify the component of AS id (i.e. updatedCompAsId) is under the first component work 
@@ -332,18 +300,40 @@ public class CollectionBuilderTest {
     }
     
     @Test
-    public void testEADCollectionWithCorrespondenceIdxContainerList() throws ValidityException, IOException, ParsingException {
+    public void testEADCollectionWithGeneralNoteContainerList() throws ValidityException, IOException, ParsingException {
         createCollection();
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
-            List<EADFeature> containerList = collectionWork.asEADWork().getEADFeatures();
-            assertEquals("number of container list", 1, containerList.size()); 
-            assertEquals("number of columns", 4, containerList.get(0).getFields().size());
-            assertEquals("number of records", 176, containerList.get(0).getRecords().size());
-            assertEquals("first container record: Series", "1", containerList.get(0).getRecords().get(0).get(0));
-            assertEquals("first container record: Series", "1-9", containerList.get(0).getRecords().get(0).get(1));
-            assertEquals("first container record: Series", "1-1029", containerList.get(0).getRecords().get(0).get(2));
-            assertEquals("first container record: Series", "1", containerList.get(0).getRecords().get(0).get(3));
+            List<EADFeature> features = collectionWork.asEADWork().getEADFeatures();
+            assertEquals("features extracted", 2, features.size());
+            ImmutableMap<String, EADFeature> stringEADFeatureImmutableMap =
+                    Maps.uniqueIndex(features, new Function<EADFeature, String>() {
+                        @Override
+                        public String apply(EADFeature eadFeature) {
+                            return eadFeature.getFeatureType();
+                        }
+                    });
+            assertTrue("first feature heading", stringEADFeatureImmutableMap.containsKey("General"));
+            assertTrue("second feature heading", stringEADFeatureImmutableMap.containsKey("Container List"));
+            
+            // verify extracted general note
+            EADFeature generalFeature = stringEADFeatureImmutableMap.get("General");
+            EADFeature containerFeature = stringEADFeatureImmutableMap.get("Container List");
+            List<String> generalFields = generalFeature.getFields();
+            List<List<String>> generalRecords = generalFeature.getRecords();
+            assertEquals("general notes size", 2, generalRecords.size());
+            assertEquals("no. of fields for general notes", 1, generalFields.size());
+            assertEquals("no. of records for general notes", 2, generalRecords.size());
+            
+            // verify extracted container list
+            List<String> containerListFields = containerFeature.getFields();
+            List<List<String>> containerListRecords = containerFeature.getRecords();
+            assertEquals("container list size", 176, containerListRecords.size());
+            assertEquals("no. of fields for container record", 4, containerListFields.size());
+            assertEquals("first container record: Series", "1", containerListRecords.get(0).get(0));
+            assertEquals("first container record: Series", "1-9", containerListRecords.get(0).get(1));
+            assertEquals("first container record: Series", "1-1029", containerListRecords.get(0).get(2));
+            assertEquals("first container record: Series", "1", containerListRecords.get(0).get(3));
         }
     }
     
@@ -368,7 +358,6 @@ public class CollectionBuilderTest {
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
             boolean storeCopy = true;
-            Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
             Map<String, String> componentWorksMap = CollectionBuilder.componentWorksMap(collectionWork);
             assertTrue(!componentWorksMap.isEmpty());
             assertEquals(componentWorksMap.size(), 8);
@@ -381,8 +370,7 @@ public class CollectionBuilderTest {
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
             boolean storeCopy = true;
-            Document doc = CollectionBuilder.generateJson(collectionWork, storeCopy);
-            List<String> currentDOs = CollectionBuilder.digitisedItemList(collectionWork);
+            Set<String> currentDOs = CollectionBuilder.digitisedItemList(collectionWork);
             assertTrue(currentDOs.isEmpty());
         }
     }
@@ -393,7 +381,7 @@ public class CollectionBuilderTest {
             InputStream in = new FileInputStream(testEADPath.toFile());
             EADParser parser = new EADParser();
             parser.init(collectionWorkId, in, collectCfg);
-            List<String> uuids = parser.listUUIDs();
+            Set<String> uuids = parser.listUUIDs(10);
             assertTrue(!uuids.isEmpty());
             assertEquals(uuids.size(), 8);
         }

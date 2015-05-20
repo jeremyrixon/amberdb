@@ -148,11 +148,17 @@ public interface Node extends VertexFrame {
     @Property("commentsInternal")
     public void setCommentsInternal(String commentsInternal);
 
+    @JavaHandler
+    public void addCommentsInternal(String comment);
+
     @Property("commentsExternal")
     public String getCommentsExternal();
 
     @Property("commentsExternal")
     public void setCommentsExternal(String commentsExternal);
+
+    @JavaHandler
+    public void addCommentsExternal(String comment);
     
     @Adjacency(label = DescriptionOf.label, direction= Direction.IN)
     public Iterable<Description> getDescriptions();
@@ -312,6 +318,33 @@ public interface Node extends VertexFrame {
         public void setAlias(List<String> alias) throws JsonParseException, JsonMappingException, IOException {
             setJSONAlias(mapper.writeValueAsString(alias));
         }
+
+        @Override
+        public void addCommentsInternal(String comment) {
+            addComments(comment, "commentsInternal");
+        }
+
+        @Override
+        public void addCommentsExternal(String comment) {
+            addComments(comment, "commentsExternal");
+        }
+
+        private void addComments(String comment, String propertyName) {
+            if (comment == null || comment.length() == 0) {
+                return;
+            }
+
+            AmberVertex amberVertex = this.asAmberVertex();
+            String value = amberVertex.getProperty(propertyName);
+
+            if (value != null) {
+                amberVertex.setProperty(propertyName, value + "\n" + comment);
+            }
+            else {
+                amberVertex.setProperty(propertyName, comment);
+            }
+        }
+
 
         @Override
         public void setOrder(Node adjacent, String label, Direction direction, Integer order) {

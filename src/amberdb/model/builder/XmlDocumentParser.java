@@ -2,9 +2,11 @@ package amberdb.model.builder;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.InputStreamReader;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import nu.xom.Builder;
@@ -40,7 +42,7 @@ public abstract class XmlDocumentParser {
     protected static final ObjectMapper mapper = new ObjectMapper();
     protected String collectionObjId;
     protected JsonNode parsingCfg;
-    protected List<String> filters;
+    protected Set<String> filters;
     protected boolean validateXML;
     protected boolean storeCopy;
     protected Builder builder;
@@ -59,12 +61,14 @@ public abstract class XmlDocumentParser {
     }
     
     public void setInputStream(InputStream in) throws ValidityException, ParsingException, IOException {
-        builder = new Builder(validateXML());
-        doc = builder.build(in);
-        qualifiedName = doc.getRootElement().getQualifiedName();
-        namespaceURI = doc.getRootElement().getNamespaceURI();
-        xc = new XPathContext();
-        xc.addNamespace(qualifiedName, namespaceURI);
+        try (InputStreamReader reader = new InputStreamReader(in, "utf8")) {
+            builder = new Builder(validateXML());
+            doc = builder.build(reader);
+            qualifiedName = doc.getRootElement().getQualifiedName();
+            namespaceURI = doc.getRootElement().getNamespaceURI();
+            xc = new XPathContext();
+            xc.addNamespace(qualifiedName, namespaceURI);
+        }
     }
     
     public Nodes traverse(Document doc) {
@@ -87,7 +91,7 @@ public abstract class XmlDocumentParser {
         return nodes;
     }
     
-    public List<String> getFilters() {
+    public Set<String> getFilters() {
         return filters;
     }
     
@@ -113,14 +117,18 @@ public abstract class XmlDocumentParser {
         return false;
     }
     
-    protected List<String> parseFiltersCfg() {
+    protected Set<String> parseFiltersCfg() {
         JsonNode filtersCfg = parsingCfg.get(CFG_COLLECTION_ELEMENT).get(CFG_EXCLUDE_ELEMENTS);
-        filters = new ArrayList<>();
-        if (filtersCfg.isArray() && ((ArrayNode) filtersCfg).size() > 0) {
-            for (int i = 0; i < ((ArrayNode) filtersCfg).size(); i++)
-                filters.add(((ArrayNode) filtersCfg).get(i).getTextValue().toUpperCase());
+        if (filtersCfg.isArray()) {
+            ArrayNode filtersArray = (ArrayNode) filtersCfg;
+            int filtersCfgSize = filtersArray.size();
+            filters = Collections.synchronizedSet(new HashSet<String>(filtersCfgSize));
+            for (int i = 0; i < filtersCfgSize; i++) {
+                    filters.add(filtersArray.get(i).getTextValue().toUpperCase());
+            }
+            return filters;
         }
-        return filters;
+        return Collections.synchronizedSet(new HashSet<String>());
     }
     
     public void filterEAD(Node node) { 
@@ -153,13 +161,20 @@ public abstract class XmlDocumentParser {
         return nodes;
     }
     
-    public List<String> listUUIDs() {
-        List<String> eadUUIDList = new ArrayList<String>();
+    public Set<String> listUUIDs(int estCapacity) {
+        Set<String> eadUUIDList = Collections.synchronizedSet(new HashSet<String>(estCapacity));
         JsonNode collectionCfg = parsingCfg;
         JsonNode subElementsCfg = collectionCfg.get(CFG_COLLECTION_ELEMENT).get(CFG_SUB_ELEMENTS);
         String repeatablePath = subElementsCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
         String componentBasePath = subElementsCfg.get(CFG_BASE).getTextValue();
         Nodes baseComponents = getElementsByXPath(doc, componentBasePath);
+        eadUUIDList = listUUIDs(eadUUIDList, subElementsCfg, repeatablePath, componentBasePath, baseComponents);
+
+        return eadUUIDList;
+    }
+
+    private Set<String> listUUIDs(Set<String> eadUUIDList, JsonNode subElementsCfg, String repeatablePath,
+            String componentBasePath, Nodes baseComponents) {
         if (baseComponents != null) {
             for (int i = 0; i < baseComponents.size(); i++) {
                 Node baseComponent = baseComponents.get(i);
@@ -168,10 +183,10 @@ public abstract class XmlDocumentParser {
                     Map<String, String> fldsMap = getFieldsMap(components.get(j), subElementsCfg, componentBasePath);
                     String uuid = fldsMap.get("uuid").toString();
                     eadUUIDList.add(uuid);
+                    eadUUIDList = listUUIDs(eadUUIDList, subElementsCfg, repeatablePath, componentBasePath, components);
                 }
             }
         }
-
         return eadUUIDList;
     }
     

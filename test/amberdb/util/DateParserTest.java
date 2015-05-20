@@ -7,12 +7,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.regex.MatchResult;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class DateParserTest {
@@ -78,6 +74,24 @@ public class DateParserTest {
         expectedToDate.add(dateFmt.parse("09/03/1732"));  // to chk
         expectedToDate.add(dateFmt.parse("12/09/1984"));
         expectedToDate.add(dateFmt.parse("31/05/1993"));
+    }
+    
+    @Test(expected = ParseException.class)
+    public void testInvalidDateRangeWithoutNumber() throws ParseException {
+        String str = "invalid date range str";
+        List<Date> dateRange = DateParser.parseDateRange(str);
+    }
+    
+    @Test(expected = ParseException.class)
+    public void testInvalidDateRangeWithNumber() throws ParseException {
+        String str = "19th century";
+        List<Date> dateRange = DateParser.parseDateRange(str);
+    }
+    
+    @Test(expected = ParseException.class)
+    public void testInvalidDateRangeWithAHyphen() throws ParseException {
+        String str = "19th-century";
+        List<Date> dateRange = DateParser.parseDateRange(str);
     }
     
     @Test

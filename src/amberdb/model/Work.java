@@ -347,6 +347,18 @@ public interface Work extends Node {
 
     @Property("sendToIlms")
     public void setSendToIlms(Boolean sendToIlms);
+    
+    @Property("ingestLocked")
+    public Boolean getIngestLocked();
+
+    @Property("ingestLocked")
+    public void setIngestLocked(Boolean ingestLocked);
+
+    @Property("ingestJobId")
+    public Long getIngestJobId();
+
+    @Property("ingestJobId")
+    public void setIngestJobId(Long ingestJobId);
 
     @Property("moreIlmsDetailsRequired")
     public Boolean getMoreIlmsDetailsRequired();

@@ -3,6 +3,7 @@ package amberdb.util;
 import static amberdb.enums.DateExpression.*;
 
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -13,16 +14,18 @@ import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DateParser {
+    static final SimpleDateFormat dateFmt = new SimpleDateFormat("yyyy");
     static final Logger log = LoggerFactory.getLogger(DateParser.class);    
     static final String bulkDateRangePrefix= "(bulk";   
     
     /**
      * parseDateRange: returns the from date and to date in a list of date.
-     * example dates can be parsed:
+     * examples of acceptable date formats can be parsed accurately:
      *   date range in AS                  start date      end date
      *   null                              null            null
      *   c.1936                            01-01-1936      31-12-1936
@@ -34,15 +37,26 @@ public class DateParser {
      *   [November] 1935                   01-11-1935      30-11-1935
      *   9-15 December 1938                09-12-1938      15-12-1938
      *   1935-1936                         01-01-1935      31-12-1936
+     *   Mar 1817 - Sep 1916               01-03-1817      30-09-1916
+     *   03.Mar.1817/09.Sep.1916           03-03-1817      09-09-1916
+     *   03.Mar.1817 - 09.Sep.1916         03-03-1817      09-09-1916
      *   1935-c.1936                       01-01-1935      31-12-1936
      *   1914, 1919-1960 (bulk 1930-1958)  01-01-1914      31-12-1960
-     *   
+     * 
+     * detectable invalid date formats are the following will throw ParseException 
+     * (Invalid date expression..):
+     *   text string does not contain any numbers
+     *   text string containing only 1-2 digit numbers
+     * 
+     * limitation: correctness of dates extracted from text string besides
+     * the above text expression formats are not guaranteed.
+     *     
      * @param dateRangeExpr - input date range string
      * @return the from date and to date of the date range in a date list.
      * @throws ParseException
      * 
      * Note: Defaults: if there's no end date found in the date Range e.g. 1932 -
-     *       the end date is then defaults to 31/12/9999
+     *       the end date is then defaults to null.
      *
      *       It is ok to not specify a start date e.g. - 1799, in this case, the
      *       start date in the returned date range will be null.
@@ -54,7 +68,9 @@ public class DateParser {
      *
      *       limitation for year extraction: it's assumed that any
      *       year value should have the length between 3 - 4 digits in order to be
-     *       recognized as a year value.
+     *       recognized as a year value.  Year value should appear either at the
+     *       beginning of a date expression (followed by a space or / or - or .) or at the 
+     *       end of a date expression (preceed by a space or / or - or .).
      *       
      *       limitation for month extraction: it's assumed month is expressed in
      *       full text or 3 letter abbreviation (case insensitive).
@@ -68,10 +84,20 @@ public class DateParser {
      *       for corresponding date extracted from the input date range expression. 
      */
     public static List<Date> parseDateRange(String dateRangeExpr) throws ParseException {
-        return parseDateRange(dateRangeExpr, null);
+        String numberInStrExpr = "(.*)?([0-9]+)(.*)?";
+        if (dateRangeExpr != null) dateRangeExpr = dateRangeExpr.trim();
+        if (!StringUtils.isEmpty(dateRangeExpr) && !dateRangeExpr.matches(numberInStrExpr)) {
+            throw new ParseException("Invalid date expression: " + dateRangeExpr, 0);
+        }
+        try {
+            return parseDateRange(dateRangeExpr, null);
+        } catch (Exception e) {
+            throw new ParseException("Invalid date expression: " + dateRangeExpr, 0);
+        }
     }
     public static List<Date> parseDateRange(String dateRangeExpr, Date defaultDate) throws ParseException {
         if (dateRangeExpr == null || dateRangeExpr.trim().isEmpty()) return null;
+        dateRangeExpr = dateRangeExpr.trim();
         Calendar cal = Calendar.getInstance();
         if (defaultDate != null) cal.setTime(defaultDate);
         
@@ -91,7 +117,12 @@ public class DateParser {
         
         // parse the date range
         List<String> dateRangePair = getExprPair(dateRangeExpr, INTERVAL.getPatterns());
-        if (dateRangePair == null) {
+        if (dateRangePair == null && dateRangeExpr.length() > 2) {
+            Integer year = parseYear(dateRangeExpr);           
+            if (year == null) {
+                throw new ParseException("Failed to parse date expr: " + dateRangeExpr, 0);
+            }
+            cal.set(Calendar.YEAR, year);
             Date fromDate = parseDate(dateRangeExpr, true, cal);
             Date toDate = parseDate(dateRangeExpr, false, cal);
             dateRange.add(fromDate);
@@ -102,6 +133,14 @@ public class DateParser {
         if (dateRangePair.size() == 2) {
             String startDateToken = (dateRangePair.get(0) == null)?"":dateRangePair.get(0).trim();
             String endDateToken = (dateRangePair.get(1) == null)?"":dateRangePair.get(1).trim();
+            Integer startYear = parseYear(startDateToken);
+            Integer endYear = parseYear(endDateToken);
+            if (startYear == null && endYear == null) {
+                throw new ParseException("Failed to parse date expr: " + dateRangeExpr, 0);
+            } else if (startYear == null) {
+                cal.set(Calendar.YEAR, endYear);
+            }
+            
             if (endDateToken.isEmpty()) {
                 defaultDate = constructDate(false, "9999", "DEC", "31");
             } else if (endDateToken.length() < 3 && startDateToken.length() >=4 && YEAR.isYear(startDateToken.substring(0, 4))) {
@@ -168,6 +207,42 @@ public class DateParser {
         return dateRange;
     }
     
+    private static Integer parseYear(String dateRangeExpr) {
+        if (dateRangeExpr.endsWith("s")) {
+            dateRangeExpr = dateRangeExpr.substring(0, dateRangeExpr.length() - 1);
+        }
+        String yearStrAtStart = "";
+        String yearStrAtEnd = "";
+        int yearLength = 3;
+        if (StringUtils.isEmpty(dateRangeExpr)) {
+            return null;
+        }
+        if (dateRangeExpr.length() > 3) {
+            yearLength = 4;
+        } else if (dateRangeExpr.length() < 3){
+            return null;
+        }
+        yearStrAtStart = dateRangeExpr.substring(0, yearLength).trim();
+        yearStrAtEnd = dateRangeExpr.substring(dateRangeExpr.length() - yearLength).trim();
+        Integer year = null;
+        try {
+            year = Integer.parseInt(yearStrAtStart);
+        } catch (NumberFormatException e) {
+            try {
+                year = Integer.parseInt(yearStrAtEnd);
+            } catch (NumberFormatException ex) {
+                year = null;
+            }
+        }
+        if (dateRangeExpr.startsWith("" + year + " ") || dateRangeExpr.startsWith("" + year + "/") || 
+            dateRangeExpr.startsWith("" + year + "-") || dateRangeExpr.startsWith("" + year + ".") ||
+            dateRangeExpr.endsWith(" " + year) || dateRangeExpr.endsWith("/" + year) || dateRangeExpr.endsWith("-" + year) || 
+            dateRangeExpr.endsWith("." + year) || dateRangeExpr.equals(""+year)) {
+            return year;
+        }
+        return null;
+    }
+    
     /**
      * parseCircaDateRange: returns the from date and to date 10 years apart starting from
      *                      01/01/<circa year>
@@ -180,13 +255,18 @@ public class DateParser {
             addDecade = true;
             dateRangeExpr = dateRangeExpr.substring(0, dateRangeExpr.length() - 1);
         }
-        Pattern circaPattern = CIRCAINTERVAL.getPatterns()[0];
-        Matcher matcher = circaPattern.matcher(dateRangeExpr);
-        if (matcher.matches()) {
-            int startYear = Integer.parseInt(matcher.group(1));
-            int endYear = (addDecade)? startYear + 9 : startYear;
-            dateRange.add(constructDate(true, "" + startYear, "JAN", "1"));
-            dateRange.add(constructDate(false, "" + endYear, "DEC", "31"));
+        try {
+            Pattern circaPattern = CIRCAINTERVAL.getPatterns()[0];
+            Matcher matcher = circaPattern.matcher(dateRangeExpr);
+            if (matcher.matches()) {
+                int startYear = Integer.parseInt(matcher.group(1));
+                int endYear = (addDecade) ? startYear + 9 : startYear;
+                dateRange.add(constructDate(true, "" + startYear, "JAN", "1"));
+                dateRange.add(constructDate(false, "" + endYear, "DEC", "31"));
+            }
+        } catch (Exception e) {
+            dateRangeExpr = dateRangeExpr.replace("c.", "");
+            dateRange = parseDateRange(dateRangeExpr);
         }
         return dateRange;
     }
@@ -201,13 +281,20 @@ public class DateParser {
     public static Date parseDate(String dateExpr, boolean isFromDate) throws ParseException {
         return parseDate(dateExpr, isFromDate, null);
     }
+    
     public static Date parseDate(String dateExpr, boolean isFromDate, Calendar cal) throws ParseException {
         if (dateExpr == null) return null;
         dateExpr = dateExpr.trim().replace(",", "");
         // check for decade in dateExpr
         if (dateExpr.endsWith("s")) {
-            return parseCircaDateRange("c." + dateExpr).get((isFromDate)?0:1);
-        }
+            try {
+                return parseCircaDateRange("c." + dateExpr).get((isFromDate)?0:1);
+            } catch (ParseException e) {
+                dateExpr = dateExpr.substring(0, dateExpr.length() - 1);
+                return parseDate(dateExpr, isFromDate, cal);
+            }
+        } 
+        
         // parse year
         Map.Entry<Pattern, List<String>> yearAndRestMatch = getMatchedExprPair(dateExpr.trim(), YEAR.getPatterns());
         if (yearAndRestMatch == null) {
@@ -218,6 +305,8 @@ public class DateParser {
             } else if ((month = MONTH.getMonthOfYear(dateExpr)) != null) {
                 cal.set(Calendar.DAY_OF_MONTH, 0);
                 cal.set(Calendar.MONTH, MONTH.getMonthOfYear(dateExpr), month - 1);
+            } else {
+                throw new ParseException("Invalid date expression: " + dateExpr, 0);
             }
             return cal.getTime();
         }

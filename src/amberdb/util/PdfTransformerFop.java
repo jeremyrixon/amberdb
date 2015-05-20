@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
-import java.nio.file.Path;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;

@@ -6,6 +6,7 @@ import java.util.List;
 public enum AccessCondition {
     RESTRICTED("Restricted", true, true),
     UNRESTRICTED("Unrestricted", true, false),
+    METADATA_ONLY("Metadata Only", true, false),
     INTERNAL_ACCESS_ONLY("Internal access only", true, false),
     OPEN("Open", false, true),
     CLOSED("Closed", false, true);
