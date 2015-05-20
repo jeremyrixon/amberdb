@@ -5,10 +5,15 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.ToDoubleFunction;
+import java.util.function.ToIntFunction;
+import java.util.function.ToLongFunction;
 
 import amberdb.util.WorkUtils;
 import com.google.common.collect.Iterables;
@@ -930,6 +935,9 @@ public interface Work extends Node {
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public Iterable<Copy> getCopies();
 
+    @JavaHandler
+    public List<Copy> getOrderedCopies();
+    
     @GremlinGroovy("it.in('isCopyOf').has('copyRole',role.code)")
     public Iterable<Copy> getCopies(@GremlinParam("role") CopyRole role);
 
@@ -1170,6 +1178,20 @@ public interface Work extends Node {
         @Override
         public int countCopies() {
             return Lists.newArrayList(this.getCopies()).size();
+        }
+        
+        @Override
+        public List<Copy> getOrderedCopies() {
+            final Comparator<Copy> comparator = new Comparator<Copy>() {
+                public int compare(Copy o1, Copy o2) {
+                    Long o1Id = o1.getId();
+                    Long o2Id = o2.getId();
+                    return (o1Id == o2Id)? 0 : (o1Id < o2Id)? 1 : -1;
+                }               
+            };
+            List<Copy> copies = Lists.newArrayList(this.getCopies());
+            copies.sort(comparator);
+            return copies;
         }
 
         @Override
