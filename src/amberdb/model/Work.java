@@ -930,6 +930,9 @@ public interface Work extends Node {
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public Iterable<Copy> getCopies();
 
+    @GremlinGroovy("it.in('isCopyOf').order{it.a.id <=> it.b.id}")
+    public Iterable<Copy> getOrderedCopies();
+    
     @GremlinGroovy("it.in('isCopyOf').has('copyRole',role.code)")
     public Iterable<Copy> getCopies(@GremlinParam("role") CopyRole role);
 

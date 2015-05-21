@@ -321,5 +321,51 @@ public class CopyTest {
         
         assertEquals(f, f2);
     }
+    
+    @Test
+    public void testGetOrderedCopies() {
+        Long[] cpIds = new Long[11];
+        Work work = amberDb.addWork();
+        Copy o = work.addCopy();
+        cpIds[0] = o.getId();
+        o.setCopyRole(CopyRole.ORIGINAL_COPY.code());
+        Copy m = work.addCopy();
+        cpIds[1] = m.getId();
+        m.setCopyRole(CopyRole.MASTER_COPY.code());
+        Copy d = work.addCopy();
+        cpIds[2] = d.getId();
+        d.setCopyRole(CopyRole.DIGITAL_DISTRIBUTION_COPY.code());
+        Copy rm = work.addCopy();
+        cpIds[3] = rm.getId();
+        rm.setCopyRole(CopyRole.RELATED_METADATA_COPY.code());
+        Copy s = work.addCopy();
+        cpIds[4] = s.getId();
+        rm.setCopyRole(CopyRole.SUMMARY_COPY.code());
+        Copy tr = work.addCopy();
+        cpIds[5] = tr.getId();
+        tr.setCopyRole(CopyRole.TRANSCRIPT_COPY.code());
+        Copy l1 = work.addCopy();
+        cpIds[6] = l1.getId();
+        l1.setCopyRole(CopyRole.LISTENING_1_COPY.code());
+        Copy l2 = work.addCopy();
+        cpIds[7] = l2.getId();
+        l2.setCopyRole(CopyRole.LISTENING_2_COPY.code());
+        Copy l3 = work.addCopy();
+        cpIds[8] = l3.getId();
+        l3.setCopyRole(CopyRole.LISTENING_3_COPY.code());
+        Copy w = work.addCopy();
+        cpIds[9] = w.getId();
+        w.setCopyRole(CopyRole.WORKING_COPY.code());
+        Copy ad = work.addCopy();
+        cpIds[10] = ad.getId();
+        ad.setCopyRole(CopyRole.ANALOGUE_DISTRIBUTION_COPY.code());
+        
+        Iterable<Copy> copies = work.getOrderedCopies();
+        int i = 0;
+        for (Copy copy : copies) {
+            assertTrue(cpIds[i] == copy.getId());
+            i++;
+        }
+    }
 }
 
