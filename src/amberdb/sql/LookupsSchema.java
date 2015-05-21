@@ -1008,7 +1008,7 @@ public abstract class LookupsSchema {
     
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
             + "('copyType', 'p', 'Physical'),"
-            + "('copyType', 'd', 'Captured'),"
+            + "('copyType', 'd', 'Digitised'),"
             + "('copyType', 'b', 'Born Digital')")
     public abstract void seedCopyTypeList();
     
