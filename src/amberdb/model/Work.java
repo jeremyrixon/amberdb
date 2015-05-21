@@ -935,8 +935,8 @@ public interface Work extends Node {
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public Iterable<Copy> getCopies();
 
-    @JavaHandler
-    public List<Copy> getOrderedCopies();
+    @GremlinGroovy("it.in('isCopyOf').order{it.a.id <=> it.b.id}")
+    public Iterable<Copy> getOrderedCopies();
     
     @GremlinGroovy("it.in('isCopyOf').has('copyRole',role.code)")
     public Iterable<Copy> getCopies(@GremlinParam("role") CopyRole role);
@@ -1178,20 +1178,6 @@ public interface Work extends Node {
         @Override
         public int countCopies() {
             return Lists.newArrayList(this.getCopies()).size();
-        }
-        
-        @Override
-        public List<Copy> getOrderedCopies() {
-            final Comparator<Copy> comparator = new Comparator<Copy>() {
-                public int compare(Copy o1, Copy o2) {
-                    Long o1Id = o1.getId();
-                    Long o2Id = o2.getId();
-                    return (o1Id == o2Id)? 0 : (o1Id < o2Id)? 1 : -1;
-                }               
-            };
-            List<Copy> copies = Lists.newArrayList(this.getCopies());
-            copies.sort(comparator);
-            return copies;
         }
 
         @Override
