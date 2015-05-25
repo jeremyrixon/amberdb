@@ -3,7 +3,7 @@
 
   <groupId>au.gov.nla</groupId>
   <artifactId>amberdb</artifactId>
-  <version>1.1.306-SNAPSHOT</version>
+  <version>1.1.307-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>amberdb</name>
   <description>Digital library domain model</description>
@@ -77,7 +77,7 @@
     <dependency>
       <groupId>au.gov.nla</groupId>
       <artifactId>doss</artifactId>
-      <version>1.0.4</version>
+      <version>1.0.5</version>
     </dependency>
     <dependency>
       <groupId>org.jdbi</groupId>
@@ -199,10 +199,10 @@
       <version>2.6.2</version>
     </dependency>
     <dependency>
-      <groupId>xom</groupId>
-      <artifactId>xom</artifactId>
-      <version>1.2.5</version>
-    </dependency>
+    <groupId>com.io7m.xom</groupId>
+    <artifactId>xom</artifactId>
+    <version>1.2.10</version>
+  </dependency>
     <dependency>
       <groupId>org.apache.avalon.framework</groupId>
       <artifactId>avalon-framework-impl</artifactId>
