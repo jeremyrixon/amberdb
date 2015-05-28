@@ -8,12 +8,12 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 import amberdb.util.WorkUtils;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -1272,8 +1272,13 @@ public interface Work extends Node {
         }
 
         @Override
-        public Set<String> getConstraint() throws JsonParseException, JsonMappingException, IOException {          
-            return Sets.newHashSet(deserialiseJSONString(getJSONConstraint()));
+        public Set<String> getConstraint() throws JsonParseException, JsonMappingException, IOException { 
+            List<String> list = deserialiseJSONString(getJSONConstraint());
+            LinkedHashSet<String> constraint = new LinkedHashSet<>();
+            for (String entry : list) {
+                constraint.add(entry);
+            }
+            return constraint;
         }
 
         @Override

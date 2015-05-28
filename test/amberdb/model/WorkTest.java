@@ -1,10 +1,6 @@
 package amberdb.model;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,15 +8,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.tinkerpop.blueprints.Direction;
@@ -455,8 +450,8 @@ public class WorkTest {
     @Test
     public void testGetSetConstraint() throws IOException {
         Work work = db.addWork();
-        Set<String> constraints = work.getConstraint();
-        assertEquals(0, constraints.size());
+        Set<String> constraints = new LinkedHashSet<>();
+        assertEquals(0, work.getConstraint().size());
         assertFalse(constraints.contains("testingc"));
         constraints.add("testing");
         constraints.add("testinga");
