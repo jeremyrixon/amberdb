@@ -24,6 +24,8 @@ import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Sets;
+
 import amberdb.PIUtil;
 import amberdb.enums.AccessCondition;
 import amberdb.enums.BibLevel;
@@ -146,7 +148,7 @@ public class ComponentBuilder {
             if (componentWork.getDigitalStatus() == null)
                 componentWork.setDigitalStatus(DigitalStatus.NOT_CAPTURED.code());
 
-            List<String> constraints = componentWork.getParent().getConstraint();
+            Set<String> constraints = componentWork.getParent().getConstraint();
             componentWork.setConstraint(constraints);
 
             Date expiryDate = componentWork.getParent().getExpiryDate();

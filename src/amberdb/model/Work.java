@@ -9,9 +9,11 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import amberdb.util.WorkUtils;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -771,7 +773,7 @@ public interface Work extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public void setConstraint(List<String> constraint) throws JsonParseException, JsonMappingException, IOException;
+    public void setConstraint(Set<String> constraint) throws JsonParseException, JsonMappingException, IOException;
 
     /**
      * This method handles the JSON deserialisation of the constraint Property
@@ -781,7 +783,7 @@ public interface Work extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public List<String> getConstraint() throws JsonParseException, JsonMappingException, IOException;
+    public Set<String> getConstraint() throws JsonParseException, JsonMappingException, IOException;
 
     @Property("rights")
     public String getRights();
@@ -1270,12 +1272,12 @@ public interface Work extends Node {
         }
 
         @Override
-        public List<String> getConstraint() throws JsonParseException, JsonMappingException, IOException {          
-            return deserialiseJSONString(getJSONConstraint());
+        public Set<String> getConstraint() throws JsonParseException, JsonMappingException, IOException {          
+            return Sets.newHashSet(deserialiseJSONString(getJSONConstraint()));
         }
 
         @Override
-        public void setConstraint(List<String> constraint) throws JsonParseException, JsonMappingException, IOException {           
+        public void setConstraint(Set<String> constraint) throws JsonParseException, JsonMappingException, IOException {           
             setJSONConstraint(serialiseToJSON(constraint));
         }
         

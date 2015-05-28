@@ -12,9 +12,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
@@ -453,7 +455,7 @@ public class WorkTest {
     @Test
     public void testGetSetConstraint() throws IOException {
         Work work = db.addWork();
-        List<String> constraints = work.getConstraint();
+        Set<String> constraints = work.getConstraint();
         assertEquals(0, constraints.size());
         assertFalse(constraints.contains("testingc"));
         constraints.add("testing");
