@@ -1275,9 +1275,7 @@ public interface Work extends Node {
         public Set<String> getConstraint() throws JsonParseException, JsonMappingException, IOException { 
             List<String> list = deserialiseJSONString(getJSONConstraint());
             LinkedHashSet<String> constraint = new LinkedHashSet<>();
-            for (String entry : list) {
-                constraint.add(entry);
-            }
+            constraint.addAll(list);
             return constraint;
         }
 
