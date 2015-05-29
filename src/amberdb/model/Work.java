@@ -13,7 +13,9 @@ import java.util.List;
 import java.util.Set;
 
 import amberdb.util.WorkUtils;
+
 import com.google.common.collect.Iterables;
+
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -29,7 +31,6 @@ import amberdb.relation.Represents;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberQuery;
 import amberdb.graph.AmberVertex;
-
 import static amberdb.graph.BranchType.*;
 
 import com.google.common.collect.Lists;
@@ -391,6 +392,9 @@ public interface Work extends Node {
 
     @JavaHandler
     public IPTC getIPTC();
+    
+    @JavaHandler
+    public boolean isCopy();
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
@@ -1417,6 +1421,11 @@ public interface Work extends Node {
         @Override
         public GeoCoding getGeoCoding() {
             return (GeoCoding) getDescription("GeoCoding");
+        }
+        
+        @Override
+        public boolean isCopy() {
+            return this.asVertex().getProperty("type").equals("Copy");
         }
 
         @Override
