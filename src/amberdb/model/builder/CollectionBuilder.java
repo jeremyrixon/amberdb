@@ -229,8 +229,8 @@ public class CollectionBuilder {
     }
 
     private static void getObjsInTreeR(Work collectionWork, List<Work> populateList) {
-        populateList.add(collectionWork);
         for (Work child : collectionWork.getChildren()) {
+            populateList.add(collectionWork);
             getObjsInTreeR(child, populateList);
         }
     }
