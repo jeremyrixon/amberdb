@@ -210,13 +210,13 @@ public class CollectionBuilder {
         return objIdList;
     }
 
-    public static List<Work> getWorksRequiringReview(Work collectionWork) {
+    public static List<String> getWorksRequiringReview(Work collectionWork) {
         List<Work> works = getObjIdsInTree(collectionWork);
-        List<Work> worksForReview = new ArrayList<>();
+        List<String> worksForReview = new ArrayList<>();
         for (Work work : works) {
             EADWork eadWork = work.asEADWork();
             if ("Y".equals(eadWork.getEADUpdateReviewRequired())) {
-                worksForReview.add(work);
+                worksForReview.add(work.getObjId());
             }
         }
         return worksForReview;
