@@ -378,7 +378,6 @@ public interface Copy extends Node {
                     }
 
                     ImageFile acf = ac.getImageFile();
-                    acf.setLocation(jp2ImgPath.toString());
 
                     // add image metadata based on the master image metadata
                     // this is used by some nla delivery systems eg: tarkine
