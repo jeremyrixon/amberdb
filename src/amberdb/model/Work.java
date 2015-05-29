@@ -8,10 +8,14 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import amberdb.util.WorkUtils;
+
 import com.google.common.collect.Iterables;
+
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -27,7 +31,6 @@ import amberdb.relation.Represents;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberQuery;
 import amberdb.graph.AmberVertex;
-
 import static amberdb.graph.BranchType.*;
 
 import com.google.common.collect.Lists;
@@ -389,6 +392,9 @@ public interface Work extends Node {
 
     @JavaHandler
     public IPTC getIPTC();
+    
+    @JavaHandler
+    public boolean isCopy();
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
@@ -771,7 +777,7 @@ public interface Work extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public void setConstraint(List<String> constraint) throws JsonParseException, JsonMappingException, IOException;
+    public void setConstraint(Set<String> constraint) throws JsonParseException, JsonMappingException, IOException;
 
     /**
      * This method handles the JSON deserialisation of the constraint Property
@@ -781,7 +787,7 @@ public interface Work extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public List<String> getConstraint() throws JsonParseException, JsonMappingException, IOException;
+    public Set<String> getConstraint() throws JsonParseException, JsonMappingException, IOException;
 
     @Property("rights")
     public String getRights();
@@ -930,6 +936,9 @@ public interface Work extends Node {
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public Iterable<Copy> getCopies();
 
+    @GremlinGroovy("it.in('isCopyOf').order{it.a.id <=> it.b.id}")
+    public Iterable<Copy> getOrderedCopies();
+    
     @GremlinGroovy("it.in('isCopyOf').has('copyRole',role.code)")
     public Iterable<Copy> getCopies(@GremlinParam("role") CopyRole role);
 
@@ -1267,12 +1276,15 @@ public interface Work extends Node {
         }
 
         @Override
-        public List<String> getConstraint() throws JsonParseException, JsonMappingException, IOException {          
-            return deserialiseJSONString(getJSONConstraint());
+        public Set<String> getConstraint() throws JsonParseException, JsonMappingException, IOException { 
+            List<String> list = deserialiseJSONString(getJSONConstraint());
+            LinkedHashSet<String> constraint = new LinkedHashSet<>();
+            constraint.addAll(list);
+            return constraint;
         }
 
         @Override
-        public void setConstraint(List<String> constraint) throws JsonParseException, JsonMappingException, IOException {           
+        public void setConstraint(Set<String> constraint) throws JsonParseException, JsonMappingException, IOException {           
             setJSONConstraint(serialiseToJSON(constraint));
         }
         
@@ -1409,6 +1421,11 @@ public interface Work extends Node {
         @Override
         public GeoCoding getGeoCoding() {
             return (GeoCoding) getDescription("GeoCoding");
+        }
+        
+        @Override
+        public boolean isCopy() {
+            return this.asVertex().getProperty("type").equals("Copy");
         }
 
         @Override

@@ -16,6 +16,7 @@
         "creator":            "//ead:ead/ead:archdesc/ead:did/ead:origination/ead:persname",
         "title":              "//ead:ead/ead:archdesc/ead:did/ead:unittitle",
         "date-range":         "//ead:ead/ead:archdesc/ead:did/ead:unitdate",
+        "normal-date-range":  "//ead:ead/ead:archdesc/ead:did/ead:unitdate/@normal",
         "extent":             "//ead:ead/ead:archdesc/ead:did/ead:physdesc/ead:extent" },
       "introduction": {
         "repository":         "//ead:ead/ead:archdesc/ead:did/ead:repository/ead:corpname",
@@ -101,6 +102,7 @@
           "creator":            "ead:did/ead:origination/ead:persname",
           "extent":             "ead:did/ead:physdesc/ead:extent",
           "date-range":         "ead:did/ead:unitdate",
+          "normal-date-range":  "ead:did/ead:unitdate/@normal",
           "scope-n-content":    "ead:scopecontent/ead:p",
           "container-number":   "ead:did/ead:container",
           "container-label":    "ead:did/ead:container/@label",
