@@ -5,8 +5,8 @@ import java.util.List;
 
 public enum DigitalStatus {
     
-    DIGITISED("Digitised"), 
-    NON_DIGITISED("Non-digitised"), 
+    DIGITISED("Captured"), 
+    NON_DIGITISED("Not Captured"), 
     CAPTURED("Captured"),
     NOT_CAPTURED("Not Captured"),
     PARTIALLY_DIGITISED("Partially digitised"), 

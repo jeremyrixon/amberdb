@@ -210,13 +210,13 @@ public class CollectionBuilder {
         return objIdList;
     }
 
-    public static List<Work> getWorksRequiringReview(Work collectionWork) {
+    public static List<String> getWorksRequiringReview(Work collectionWork) {
         List<Work> works = getObjIdsInTree(collectionWork);
-        List<Work> worksForReview = new ArrayList<>();
+        List<String> worksForReview = new ArrayList<>();
         for (Work work : works) {
             EADWork eadWork = work.asEADWork();
             if ("Y".equals(eadWork.getEADUpdateReviewRequired())) {
-                worksForReview.add(work);
+                worksForReview.add(work.getObjId());
             }
         }
         return worksForReview;
@@ -229,8 +229,8 @@ public class CollectionBuilder {
     }
 
     private static void getObjsInTreeR(Work collectionWork, List<Work> populateList) {
-        populateList.add(collectionWork);
         for (Work child : collectionWork.getChildren()) {
+            populateList.add(child);
             getObjsInTreeR(child, populateList);
         }
     }
@@ -731,21 +731,13 @@ public class CollectionBuilder {
             log.debug("collection work " + collectionWork.getObjId() + ": scope and content: " + scopeContent);
             collectionWork.asEADWork().setScopeContent(scopeContent);
         }
-        String dateRange = fieldsMap.get("date-range");
-        if (dateRange != null && !dateRange.isEmpty()) {
-            log.debug("collection work " + collectionWork.getObjId() + ": date range: " + dateRange);
-            collectionWork.asEADWork().setDateRangeInAS(dateRange.toString());
-            List<Date> dateList;
-            try {
-                dateList = DateParser.parseDateRange(dateRange);
-            } catch (ParseException e) {
-                throw new EADValidationException("FAILED_EXTRACT_DATE_RANGE", e, collectionWork.getObjId(), "");
-            }
-            if (dateList != null && dateList.size() > 0) {
-                collectionWork.setStartDate(dateList.get(0));
-                if (dateList.size() > 1)
-                    collectionWork.setEndDate(dateList.get(1));
-            }
+        
+        try{
+            String dateRange = fieldsMap.get("normal-date-range");
+            ComponentBuilder.extractDateRange(collectionWork.asEADWork(), null, dateRange);
+        } catch (EADValidationException e) {
+            String dateRange = fieldsMap.get("date-range");
+            ComponentBuilder.extractDateRange(collectionWork.asEADWork(), null, dateRange);
         }
         
         // setting Arrangement
