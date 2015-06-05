@@ -5,7 +5,6 @@ import amberdb.enums.AccessCondition;
 import amberdb.enums.CopyRole;
 import amberdb.enums.DigitalStatus;
 import amberdb.model.*;
-import amberdb.util.DateParser;
 import doss.core.Writables;
 import nu.xom.Node;
 import nu.xom.Nodes;
@@ -22,7 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -357,48 +355,6 @@ public class CollectionBuilder {
     }
     
     /**
-     * filterEAD: filter the input EAD document so that only elements required for delivery are retained in the EAD document.
-     * 
-     *                    If the storeCopy flag is configured to be true in the parser, the filtered EAD document will be stored 
-     *                    as a FINDING_AID__FILTERED_COPY to the top level collection work.
-     *                    
-     *                    Note: the EAD elements not required for delivery are specified in the "excludes" section of the collectionCfg provided.
-     * 
-     * @param collectionWork - the top level work of a collection with a FINDING_AID_COPY attached.
-     * @param parser         - the XML document parser for parsing the EAD.
-     * @return String        - the XML string of the filtered EAD document
-     * @throws IOException
-     * @throws ParsingException 
-     * @throws ValidityException 
-     */
-    protected static String filterEAD(Work collectionWork, XmlDocumentParser parser) throws IOException, ValidityException, ParsingException {
-        if (collectionWork == null) {
-            String errMsg = "Failed to find finding aid copy for to filter EAD as the input collection work is null.";
-            log.error(errMsg);
-            throw new IllegalArgumentException(errMsg);
-        }
-        
-        if (parser == null) {
-            String warnMsg = "No parser found for parsing the collection data, switched to use the default parser";
-            log.info(warnMsg);
-            parser = getDefaultXmlDocumentParser();
-            parser.init(collectionWork.getObjId(), getFindingAIDFile(collectionWork).openStream(), getDefaultCollectionCfg());
-        } else {
-            parser.setInputStream(getFindingAIDFile(collectionWork).openStream());
-        }
-        
-        // filter EAD document
-        Node rootElement = parser.doc.getRootElement();
-        parser.filterEAD(rootElement);
-        String filteredEAD = rootElement.getDocument().toXML();
-        
-        // if storeCopy is set, also attach the filtered EAD xml document as a FINDING_AID__FILTERED_COPY to the collection level work
-        if (parser.storeCopy)
-            storeEADCopy(collectionWork, CopyRole.FINDING_AID_FILTERED_COPY, filteredEAD, "application/xml");
-        return filteredEAD;
-    }
-    
-    /**
      * extractEADComponent: extract the xml segment for the input EAD component.
      * 
      *                      If the storeCopy flag is configured to be true in the parser, the extracted xml segment for the EAD component 
@@ -488,12 +444,7 @@ public class CollectionBuilder {
         if (entitiesCfg != null)
             extractEntities(collectionWork.asEADWork(), entitiesCfg, parser);
         
-        // filter out elements to be excluded during delivery from the EAD, 
-        // and by default configuration, the filtered EAD document will be stored
-        // as the FINDING_AID__FILTERED_COPY of the top level collection work.
-        filterEAD(collectionWork, parser);
-        
-        // traverse EAD components, and create work for each component under the top-level work, 
+        // traverse EAD components, and create work for each component under the top-level work,
         // and map its metadata
         JsonNode subElementsCfg = collectionCfg.get(CFG_SUB_ELEMENTS);
         
