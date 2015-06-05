@@ -152,24 +152,6 @@ public class CollectionBuilderTest {
         }
     }
     
-    @Test
-    public void testFilterEAD() throws IOException, ValidityException, ParsingException {
-        try (AmberSession as = db.begin()) {
-           Work collectionWork = as.findWork(collectionWorkId);
-           XmlDocumentParser parser = CollectionBuilder.getDefaultXmlDocumentParser();
-           parser.storeCopy = true;
-           String filteredEAD = filterSampleEAD(collectionWork, parser);
-           InputStream eadIn = new ByteArrayInputStream(filteredEAD.getBytes());
-           JsonNode parserCfg = CollectionBuilder.getDefaultCollectionCfg();
-           ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
-           ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "yes");
-           parser.init(collectionWorkId, eadIn, parserCfg);
-           Set<String> filteredElementCfg = parser.parseFiltersCfg();
-           assertFalse(hasFilteredEADElement(parser.doc.getRootElement(), filteredElementCfg));
-           assertEquals(collectionWork.getCopy(CopyRole.FINDING_AID_COPY), collectionWork.getCopy(CopyRole.FINDING_AID_FILTERED_COPY).getSourceCopy());
-        }
-    }
-    
     private boolean hasFilteredEADElement(Node node, Set<String> filterList) {
         Elements elements = ((Element) node).getChildElements();
         if (elements != null) {
@@ -185,25 +167,12 @@ public class CollectionBuilderTest {
         return false;
     }
 
-    private String filterSampleEAD(Work collectionWork, XmlDocumentParser parser) throws FileNotFoundException, ValidityException,
-            ParsingException, IOException {
-        Path testEADPath = Paths.get("test/resources/6442.xml");
-        InputStream eadData = new FileInputStream(testEADPath.toFile());
-        JsonNode parserCfg = CollectionBuilder.getDefaultCollectionCfg();
-        ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
-        ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "yes");
-        parser.init(collectionWorkId, eadData, parserCfg);
-        String filteredEAD = CollectionBuilder.filterEAD(collectionWork, parser);
-        return filteredEAD;
-    }
-    
     @Test
     public void testExtractFirstEADComponent() throws IOException, ValidityException, ParsingException {
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
             Work componentWork = collectionWork.asEADWork().addEADWork();
             XmlDocumentParser parser = CollectionBuilder.getDefaultXmlDocumentParser();
-            String filteredEAD = filterSampleEAD(collectionWork, parser);
             Elements components = ((Element) parser.getElementsByXPath(parser.doc, "//ead:ead/ead:archdesc/ead:dsc").get(0)).getChildElements();
             Element component = null;
             for (int i = 0; i < components.size(); i++) {
