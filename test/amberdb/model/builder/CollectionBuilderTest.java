@@ -173,6 +173,12 @@ public class CollectionBuilderTest {
             Work collectionWork = as.findWork(collectionWorkId);
             Work componentWork = collectionWork.asEADWork().addEADWork();
             XmlDocumentParser parser = CollectionBuilder.getDefaultXmlDocumentParser();
+            Path testEADPath = Paths.get("test/resources/6442.xml");
+            InputStream eadData = new FileInputStream(testEADPath.toFile());
+            JsonNode parserCfg = CollectionBuilder.getDefaultCollectionCfg();
+            ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
+            ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "yes");
+            parser.init(collectionWorkId, eadData, parserCfg);
             Elements components = ((Element) parser.getElementsByXPath(parser.doc, "//ead:ead/ead:archdesc/ead:dsc").get(0)).getChildElements();
             Element component = null;
             for (int i = 0; i < components.size(); i++) {
