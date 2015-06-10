@@ -62,12 +62,13 @@ public class Jp2Converter {
 
     public void convertFile(Path srcFilePath, Path dstFilePath) throws Exception {
         // Use metadata-extractor to get image info of the source image
-        convertFile(srcFilePath,  new ImageInfo(srcFilePath), dstFilePath);
+        convertFile(srcFilePath, new ImageInfo(srcFilePath), dstFilePath);
     }
 
     public void convertFile(Path srcFilePath, Path dstFilePath, Map<String, String> imgInfoMap) throws Exception {
         // Image info of the source image is passed in as a map
-        convertFile(srcFilePath,  new ImageInfo(imgInfoMap), dstFilePath);
+        ImageInfo imgInfo = (imgInfoMap != null && imgInfoMap.size() > 0) ? new ImageInfo(imgInfoMap) : new ImageInfo(srcFilePath);
+        convertFile(srcFilePath, imgInfo, dstFilePath);
     }
 
     public void convertFile(Path srcFilePath, Path dstFilePath, String mimeType,
@@ -77,10 +78,11 @@ public class Jp2Converter {
     }
 
     private void convertFile(Path srcFilePath, ImageInfo imgInfo, Path dstFilePath) throws Exception {
-        // Main method to convert an image to a jp2 - imgInfo has to be accurate!
-        // Jp2 file must end with .jp2
-        if (!dstFilePath.getFileName().toString().endsWith(".jp2")) {
-            throw new Exception("Jpeg2000 file (" + dstFilePath.toString() + ") must end with .jp2");
+        // Main method to convert an image to a jpeg2000 file (jp2 or jpx) - imgInfo has to be accurate!
+        // Jpeg2000 file must end with .jp2 or .jpx
+        String dstFilename = dstFilePath.getFileName().toString();
+        if (!dstFilename.endsWith(".jp2") && !dstFilename.endsWith(".jpx")) {
+            throw new Exception("Jpeg2000 file (" + dstFilePath.toString() + ") must end with .jp2 or .jpx");
         }
 
         // For now, only convert tiff or jpeg to jp2
@@ -115,16 +117,8 @@ public class Jp2Converter {
 
             Path fileToCreateJp2 = Files.exists(tmpFilePath) ? tmpFilePath : srcFilePath;
 
-            // Create jp2
-            try {
-                // Create jp2 with kakadu kdu_compress
-                createJp2(fileToCreateJp2, dstFilePath);
-            } catch (Exception e1) {
-                // It'd be good to send an email to someone so we know what's wrong!
-                log.debug("Kakadu kdu_compress error: {}\n{}", fileToCreateJp2.toString(), e1.toString());
-                // Can't create jp2 with kakadu kdu_compress, try using imagemagick convert
-                createJp2ImageMagick(fileToCreateJp2, dstFilePath);
-            }
+            // Create jp2 using kakadu kdu_compress
+            createJp2(fileToCreateJp2, dstFilePath);
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
