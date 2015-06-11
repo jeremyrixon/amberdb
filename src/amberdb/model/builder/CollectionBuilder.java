@@ -5,6 +5,7 @@ import amberdb.enums.AccessCondition;
 import amberdb.enums.CopyRole;
 import amberdb.enums.DigitalStatus;
 import amberdb.model.*;
+import com.google.common.base.Joiner;
 import doss.core.Writables;
 import nu.xom.Node;
 import nu.xom.Nodes;
@@ -90,10 +91,16 @@ public class CollectionBuilder {
         }
         
         // initializing the parser
-        parser.init(collectionWork.getObjId(), eadFile.openStream(), collectionCfg);
-        processCollection(collectionWork, eadFile.openStream(), collectionCfg, parser);
+        try (InputStream fileStream = eadFile.openStream()) {
+            parser.init(collectionWork.getObjId(), fileStream, collectionCfg);
+        }
+        processCollection(collectionWork, collectionCfg, parser);
     }
-    
+
+    public static void createCollection(Work collectionWork, JsonNode collectCfg) throws ParsingException, IOException {
+        createCollection(collectionWork, collectCfg, null);
+    }
+
     /**
      * reloadEADPreChecks checks each EADwork within the collectionWork and returns a list of EADwork object id
      * if these EADwork does not exist in the new EAD file for reload.  
@@ -263,6 +270,10 @@ public class CollectionBuilder {
     public static void reloadCollection(Work collectionWork) throws EADValidationException, IOException, ValidityException, ParsingException {
         reloadCollection(collectionWork, null, null);
     }
+
+    public static void reloadCollection(Work collectionWork, JsonNode collectCfg) throws ParsingException, IOException {
+        reloadCollection(collectionWork, collectCfg, null);
+    }
     
     /**
      * reloadCollection parses the updated EAD file attached to the top-level
@@ -326,7 +337,7 @@ public class CollectionBuilder {
         //          - compare and update the metadata in collectionWork from the updated EAD finding aid header.
         //          - iterate through each component in the updated EAD, and merge the component into the collection of works
         //            under the collectionWork.
-        processCollection(collectionWork, eadFile.openStream(), collectionCfg, parser);
+        processCollection(collectionWork, collectionCfg, parser);
              
         // mark the list of EAD works which requires review
         for (String objId : list) {
@@ -419,9 +430,14 @@ public class CollectionBuilder {
         eadCopy.setSourceCopy(work.getCopy(CopyRole.FINDING_AID_COPY));
     }
     
-    protected static void processCollection(Work collectionWork, InputStream in, JsonNode eadCfg, XmlDocumentParser parser) throws EADValidationException, ValidityException, ParsingException, IOException {
+    protected static void processCollection(Work collectionWork, JsonNode eadCfg, XmlDocumentParser parser) throws EADValidationException, ValidityException, ParsingException, IOException {
         boolean newCollection = true;
         Map<String, String> componentWorks;
+
+        Set<String> dupUuids = parser.listDuplicateUUIDs();
+        if (dupUuids.size() != 0) {
+            throw new EADValidationException("EAD file contained duplicate IDs: " + Joiner.on(", ").join(dupUuids));
+        }
 
         if (collectionWork.getChildren() != null && collectionWork.getChildren().iterator().hasNext()) {
             newCollection = false;
@@ -444,7 +460,7 @@ public class CollectionBuilder {
         if (entitiesCfg != null)
             extractEntities(collectionWork.asEADWork(), entitiesCfg, parser);
         
-        // traverse EAD components, and create work for each component under the top-level work,
+        // getNodeChildren EAD components, and create work for each component under the top-level work,
         // and map its metadata
         JsonNode subElementsCfg = collectionCfg.get(CFG_SUB_ELEMENTS);
         
@@ -455,7 +471,7 @@ public class CollectionBuilder {
             log.debug("sub elements found: " +  eadElements.size() + " for query " + basePath);
             if (eadElements != null && eadElements.size() > 0) {
                 for (int i = 0; i < eadElements.size(); i++) {
-                    Nodes eadSubElements = parser.traverse(eadElements.get(i), repeatablePath);
+                    Nodes eadSubElements = parser.getNodeChildren(eadElements.get(i), repeatablePath);
                     log.debug("sub elements found: " +  eadSubElements.size() + " for query repeatable path " + repeatablePath);
                     traverseEAD(collectionWork.asEADWork(), collectionWork.asEADWork(), eadSubElements, subElementsCfg, parser, newCollection, componentWorks);
                 }
@@ -611,7 +627,7 @@ public class CollectionBuilder {
             workInCollection.getParentEdge().setRelOrder(i + 1);
             
             String repeatablePath = elementCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
-            Nodes nextLevel = parser.traverse(eadElement, repeatablePath);
+            Nodes nextLevel = parser.getNodeChildren(eadElement, repeatablePath);
             if (nextLevel != null)
                 traverseEAD(collectionWork, workInCollection, nextLevel, elementCfg, parser, newCollection, componentWorks);
         }
@@ -795,5 +811,4 @@ public class CollectionBuilder {
         ComponentBuilder.mapWorkMD(workInCollection, uuid, fieldsMap);
         return workInCollection;
     }
-
 }

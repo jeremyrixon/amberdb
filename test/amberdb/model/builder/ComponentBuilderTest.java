@@ -226,7 +226,7 @@ public class ComponentBuilderTest {
             InputStream in = new FileInputStream(testEADPath.toFile());
             parser = new EADParser();
             parser.init(collectionWorkId, in, collectCfg);
-            CollectionBuilder.processCollection(collectionWork, in, collectCfg, parser);
+            CollectionBuilder.processCollection(collectionWork, collectCfg, parser);
             as.commit();
         }
     }
