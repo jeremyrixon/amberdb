@@ -68,13 +68,7 @@ public abstract class XmlDocumentParser {
         }
     }
     
-    public Nodes traverse(Document doc) {
-        Nodes nodes = new Nodes();
-        nodes.append(doc.getRootElement());  
-        return nodes;
-    }
-    
-    public Nodes traverse(Node node, String repeatablePath) {
+    public Nodes getNodeChildren(Node node, String repeatablePath) {
         String fmttedRepeatablePath = repeatablePath.replace(qualifiedName + ":", "").toUpperCase();
         Nodes nodes = new Nodes();
         Elements elements = ((Element) node).getChildElements();
@@ -145,7 +139,7 @@ public abstract class XmlDocumentParser {
         return nodes;
     }
 
-    public List<String> listDuplicateUUIDs() {
+    public Set<String> listDuplicateUUIDs() {
         List<String> eadUUIDList = getUUIDsAsList(100);
         Set<String> dupDetector = new HashSet<>();
         Iterator<String> iter = eadUUIDList.iterator();
@@ -156,7 +150,7 @@ public abstract class XmlDocumentParser {
             }
             dupDetector.add(curr);
         }
-        return eadUUIDList;
+        return new HashSet<>(eadUUIDList);
     }
     
     public Set<String> listUUIDs(int estCapacity) {
@@ -172,26 +166,24 @@ public abstract class XmlDocumentParser {
         String repeatablePath = subElementsCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
         String componentBasePath = subElementsCfg.get(CFG_BASE).getTextValue();
         Nodes baseComponents = getElementsByXPath(doc, componentBasePath);
-        eadUUIDList = listUUIDs(eadUUIDList, subElementsCfg, repeatablePath, componentBasePath, baseComponents);
+        listUUIDs(eadUUIDList, subElementsCfg, repeatablePath, componentBasePath, baseComponents);
         return eadUUIDList;
     }
 
-    private List<String> listUUIDs(List<String> eadUUIDList, JsonNode subElementsCfg, String repeatablePath,
+    private void listUUIDs(List<String> eadUUIDList, JsonNode subElementsCfg, String repeatablePath,
                                    String componentBasePath, Nodes baseComponents) {
         if (baseComponents != null) {
             for (int i = 0; i < baseComponents.size(); i++) {
                 Node baseComponent = baseComponents.get(i);
-                Nodes components = traverse(baseComponent, repeatablePath);
+                Nodes components = getNodeChildren(baseComponent, repeatablePath);
                 for (int j = 0; j < components.size(); j++) {
                     Map<String, String> fldsMap = getFieldsMap(components.get(j), subElementsCfg, componentBasePath);
                     String uuid = fldsMap.get("uuid").toString();
                     eadUUIDList.add(uuid);
-                    eadUUIDList = listUUIDs(eadUUIDList, subElementsCfg, repeatablePath, componentBasePath,
-                                            components);
                 }
+                listUUIDs(eadUUIDList, subElementsCfg, repeatablePath, componentBasePath, components);
             }
         }
-        return eadUUIDList;
     }
     
     public Document getDocument() {

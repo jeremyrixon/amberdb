@@ -42,7 +42,6 @@ public class CollectionBuilderTest {
     JsonNode collectCfg;
     Path testEADPath;
     Path testUpdedEADPath;
-    String[] testEADFiles = { "test/resources/6442.xml" };
     String[] expectedUuids = {
             "aspace_d1ac0117fdba1b9dc09b68e8bb125948",
             "aspace_7275d12ba178fcbb7cf926d0b7bf68cc",
@@ -56,11 +55,13 @@ public class CollectionBuilderTest {
     
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
-    
+    private Path testDupEadPath;
+
     @Before
     public void setUp() throws JsonProcessingException, IOException {
         testEADPath = Paths.get("test/resources/6442.xml");
         testUpdedEADPath = Paths.get("test/resources/6442_updated.xml");
+        testDupEadPath = Paths.get("test/resources/6442_dup.xml");
         
         objectMapper = new ObjectMapper();
         // collectCfg = objectMapper.readTree(new File("test/resources/ead.json"));
@@ -152,21 +153,6 @@ public class CollectionBuilderTest {
         }
     }
     
-    private boolean hasFilteredEADElement(Node node, Set<String> filterList) {
-        Elements elements = ((Element) node).getChildElements();
-        if (elements != null) {
-            for (int i = 0; i < elements.size(); i++) {
-                Element element = elements.get(i);
-                if (filterList.contains(element.getLocalName().toUpperCase())) {
-                    return true;
-                } else {
-                    return hasFilteredEADElement(element, filterList);
-                }
-            }
-        }
-        return false;
-    }
-
     @Test
     public void testExtractFirstEADComponent() throws IOException, ValidityException, ParsingException {
         try (AmberSession as = db.begin()) {
@@ -273,6 +259,26 @@ public class CollectionBuilderTest {
             assertEquals(fistCompASId, updatedComponent.getParent().getLocalSystemNumber());
         }
     }
+
+    @Test(expected = EADValidationException.class)
+    public void testDupInEad() throws ValidityException, IOException, ParsingException {
+
+        // create collection from EAD
+        createCollection();
+        try (AmberSession as = db.begin()) {
+            Work collectionWork = as.findWork(collectionWorkId);
+            collectionWork.setCollection("nla.ms");
+
+            Copy ead = collectionWork.getCopy(CopyRole.FINDING_AID_COPY);
+            collectionWork.removeCopy(ead);
+            collectionWork.addCopy(testDupEadPath, CopyRole.FINDING_AID_COPY, "application/xml");
+
+            // step 2: reload collection from updated EAD:
+            //         - add new component works from the updated EAD.
+            //         - update existing component works from the updated EAD.
+            CollectionBuilder.reloadCollection(collectionWork);
+        }
+    }
     
     @Test
     public void testEADCollectionWithGeneralNoteContainerList() throws ValidityException, IOException, ParsingException {
@@ -368,7 +374,7 @@ public class CollectionBuilderTest {
             InputStream in = new FileInputStream(testEADPath.toFile());
             EADParser parser = new EADParser();
             parser.init(collectionWorkId, in, collectCfg);
-            CollectionBuilder.processCollection(collectionWork, in, collectCfg, parser);
+            CollectionBuilder.processCollection(collectionWork, collectCfg, parser);
             as.commit();
         }
     }
