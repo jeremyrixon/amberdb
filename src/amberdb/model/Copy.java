@@ -362,6 +362,10 @@ public interface Copy extends Node {
                 // generate the derivative.
                 Path jp2ImgPath = generateJp2Image(doss, jp2Converter, imgConverter, stage, imgBlobId);
 
+                // Set mimetype based on file extension
+                String jp2Filename = jp2ImgPath.getFileName().toString();
+                String jp2MimeType = "image/" + jp2Filename.substring(jp2Filename.lastIndexOf('.') + 1);
+
                 // add the derived jp2 image to this Copy's work as an access copy
                 Copy ac = null;
                 if (jp2ImgPath != null) {
@@ -370,7 +374,7 @@ public interface Copy extends Node {
                     // Replace the derivative for this copy, not all.
                     Iterable<Copy> derivatives = this.getDerivatives();
                     if (Iterables.size(derivatives) == 0) {
-                        ac = work.addCopy(jp2ImgPath, CopyRole.ACCESS_COPY, "image/jp2");
+                        ac = work.addCopy(jp2ImgPath, CopyRole.ACCESS_COPY, jp2MimeType);
                         ac.setSourceCopy(this);
                     } else {
                         ac = Iterables.get(derivatives, 0);
@@ -386,6 +390,7 @@ public interface Copy extends Node {
                     acf.setResolution(imgFile.getResolution());
                     acf.setFileFormat("jpeg2000");
                     acf.setFileSize(Files.size(jp2ImgPath));
+                    acf.setMimeType(jp2MimeType);
                 }
                 return ac;
 
@@ -638,9 +643,6 @@ public interface Copy extends Node {
             Path srcImgPath = stage.resolve(imgBlobId + imgFilename.substring(imgFilename.lastIndexOf('.')));  // where to put the source retrieved from the amber blob
             copyBlobToFile(doss.get(imgBlobId), srcImgPath);       // get the blob from amber
 
-            // Jp2 file
-            Path jp2ImgPath = stage.resolve(imgBlobId + ".jp2"); // name the jpeg2000 derivative after the original uncompressed blob
-
             // Convert to jp2
             Jp2Converter jp2c = new Jp2Converter(jp2Converter, imgConverter);
 
@@ -648,7 +650,7 @@ public interface Copy extends Node {
             // check 4 properties from ImageFile: compression, samplesPerPixel, bitsPerSample and photometric
             // If they all exist and have proper values, pass them in a Map to Jp2Converter.
             // Otherwise, let Jp2Converter find out from the source file.
-
+            Map<String, String> imgInfoMap = null;
             ImageFile imgFile = this.getImageFile();
             if (imgFile != null && "image/tiff".equals(imgFile.getMimeType())) {
                 // Only check image properties for tiff files
@@ -657,19 +659,24 @@ public interface Copy extends Node {
                 int bitsPerSample = parseIntFromStr(imgFile.getBitDepth());
                 int photometric = parseIntFromStr(imgFile.getPhotometric());
                 if (compression >= 0 && samplesPerPixel >= 0 && bitsPerSample >= 0 && photometric >= 0) {
-                    Map<String, String> imgInfoMap = new HashMap<String, String>();
+                    imgInfoMap = new HashMap<String, String>();
                     imgInfoMap.put("mimeType", imgFile.getMimeType());
                     imgInfoMap.put("compression", "" + compression);
                     imgInfoMap.put("samplesPerPixel", "" + samplesPerPixel);
                     imgInfoMap.put("bitsPerSample", "" + bitsPerSample);
                     imgInfoMap.put("photometric", "" + photometric);
-                    jp2c.convertFile(srcImgPath, jp2ImgPath, imgInfoMap);
-                } else {
-                    jp2c.convertFile(srcImgPath, jp2ImgPath);
                 }
-            } else {
-                // No image file or not a tiff tile
-                jp2c.convertFile(srcImgPath, jp2ImgPath);
+            }
+
+            Path jp2ImgPath = null;
+            // Try to convert it to .jp2
+            try {
+                jp2ImgPath = stage.resolve(imgBlobId + ".jp2"); // name the jpeg2000 derivative after the original uncompressed blob
+                jp2c.convertFile(srcImgPath, jp2ImgPath, imgInfoMap);
+            } catch (Exception e1) {
+                // If failed, try to convert it to .jpx
+                jp2ImgPath = stage.resolve(imgBlobId + ".jpx");
+                jp2c.convertFile(srcImgPath, jp2ImgPath, imgInfoMap);
             }
 
             // NOTE: to return null at this point to cater for TiffEcho and JP2Echo test cases running in Travis env.
