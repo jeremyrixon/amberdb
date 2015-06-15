@@ -812,7 +812,24 @@ public interface Work extends Node {
     
     @JavaHandler
     public List<String> getSensitiveReason() throws JsonParseException, JsonMappingException, IOException;
+    
+    @Property("restrictionsOnAccess")
+    public String getJSONRestrictionsOnAccess();
 
+    @Property("restrictionsOnAccess")
+    public void setJSONRestrictionsOnAccess(String restrictionsOnAccess);
+    
+    @JavaHandler
+    public void setRestrictionsOnAccess(List<String> restrictionsOnAccess) throws JsonParseException, JsonMappingException, IOException;
+    
+    @JavaHandler
+    public List<String> getRestrictionsOnAccess() throws JsonParseException, JsonMappingException, IOException;
+
+    @Property("findingAidNote")
+    public String getFindingAidNote();
+
+    @Property("findingAidNote")
+    public void setFindingAidNote(String findingAidNote);
 
     @Property("uniformTitle")
     public String getUniformTitle();
