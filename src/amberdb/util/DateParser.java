@@ -130,7 +130,7 @@ public class DateParser {
             return dateRange;
         }
         
-        if (dateRangePair.size() == 2) {
+        if (dateRangePair != null && dateRangePair.size() == 2) {
             String startDateToken = (dateRangePair.get(0) == null)?"":dateRangePair.get(0).trim();
             String endDateToken = (dateRangePair.get(1) == null)?"":dateRangePair.get(1).trim();
             Integer startYear = parseYear(startDateToken);
@@ -145,7 +145,7 @@ public class DateParser {
                 defaultDate = constructDate(false, "9999", "DEC", "31");
             } else if (endDateToken.length() < 3 && startDateToken.length() >=4 && YEAR.isYear(startDateToken.substring(0, 4))) {
                 int defaultYear = Integer.parseInt(startDateToken.substring(0, 4));
-                cal.set(defaultYear, 12, 31);
+                cal.set(defaultYear, 11, 31);
                 if (INSTANT.isDay(endDateToken, cal.getActualMaximum(Calendar.DAY_OF_MONTH)))
                     cal.set(Calendar.DAY_OF_MONTH, Integer.parseInt(endDateToken));
                 if (cal.get(Calendar.YEAR) != defaultYear) {

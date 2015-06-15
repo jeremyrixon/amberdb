@@ -154,7 +154,7 @@ public interface SoundFile extends File {
                                                                  StringUtils.leftPad("" + second, 2, "0")}, ":") +
                                   ((fractionStr != null && !fractionStr.isEmpty()) ? ":" + fractionStr : "");
                 setDuration(duration);
-            } else if (durationAsSeconds < 0) {
+            } else if (durationAsSeconds != null && durationAsSeconds < 0) {
                 throw new Exception("Invalid duration: " + durationAsSeconds);
             }
         }

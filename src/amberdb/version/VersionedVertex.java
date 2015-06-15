@@ -170,6 +170,10 @@ public class VersionedVertex {
         return vertices;
     }
     
+    @Override
+    public int hashCode() {
+        return vertices.hashCode();
+    }
     
     public boolean equals(Object o) {
         if (o instanceof VersionedVertex) {

@@ -12,7 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class DateParserTest {
-    static final String[] testDateRangeExprs = {
+    final String[] testDateRangeExprs = {
        null,
        "       ",
        " - 1799",
@@ -30,17 +30,17 @@ public class DateParserTest {
        "May 1993"
     };
         
-    static final String[] dateRangePattern = { 
+    final String[] dateRangePattern = { 
         "(.*)\\s*-\\s*(.*)",
         "(.*)\\s*/\\s*(.*)"};
     
-    static final String[] bulkDateRangePattern = {
+    final String[] bulkDateRangePattern = {
         "\\s*\\(bulk (.*)\\s*-\\s*(.*)\\)"
     };
     
-    static List<Date> expectedFromDate = new ArrayList<>();
-    static List<Date> expectedToDate = new ArrayList<>();
-    static final SimpleDateFormat dateFmt = new SimpleDateFormat("dd/MM/yyyy");
+    List<Date> expectedFromDate = new ArrayList<>();
+    List<Date> expectedToDate = new ArrayList<>();
+    final SimpleDateFormat dateFmt = new SimpleDateFormat("dd/MM/yyyy");
     
     @Before
     public void setup() throws ParseException {
@@ -245,10 +245,5 @@ public class DateParserTest {
             }
             i++;
         }
-    }
-    
-    @Test(expected = ParseException.class)
-    public void testInvalidDateRangeWithMonthInInvalidFormat() throws ParseException {
-        List<Date> dateRange = DateParser.parseDateRange("1954-02-02");
     }
 }
