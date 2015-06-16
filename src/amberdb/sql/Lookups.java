@@ -247,7 +247,8 @@ public abstract class Lookups extends Tools {
             addLookupData("copyStatus", "None", "None");
             addLookupData("copyStatus", "Draft", "Draft");
             addLookupData("copyStatus", "Corrected", "Corrected");
-            addLookupData("copyStatus", "Complete", "Complete");
+            addLookupData("copyStatus", "Complete", "Complete");           
+
         }
         
         ListLu entry = findLookup("surface", "Pthalocyanine Al T-Acetate");
@@ -266,6 +267,16 @@ public abstract class Lookups extends Tools {
             addLookupData(brName, "128", "128");
             addLookupData(brName, "256", "256");
         }
+        
+        List<ListLu> algorithms = findActiveLookupsFor("algorithm");
+        if (algorithms.isEmpty()) {
+            addLookupData("algorithm", "ATRAC", "ATRAC");
+            addLookupData("algorithm", "ANALOGUE", "ANALOGUE");
+            addLookupData("algorithm", "PCM", "PCM");
+            addLookupData("algorithm", "MP3-MPEG1Layer3", "MP3-MPEG1Layer3");
+            addLookupData("algorithm", "PASC", "PASC");
+        }
+        
     }
     
     protected List<String> padStringArry(List<String> strArry, int length) {

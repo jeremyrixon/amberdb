@@ -23,6 +23,17 @@ public abstract class LookupsSchema {
             + "deleted   varchar(1) default 'N' )")
     public abstract void createLookupTable();
     
+    /*
+     * Link Lookups table - stores relationships between 2 lookups
+     */
+    @SqlUpdate(
+            "CREATE TABLE IF NOT EXISTS link_lookups ("
+            + "linkId        bigint(11) PRIMARY KEY AUTO_INCREMENT, "
+            + "name      varchar(50), "
+            + "id1       bigint(11), "
+            + "id2       bigint(11) )")
+    public abstract void createLinkLookupsTable();
+    
 
     /*
      * Tools lookup table - stores tools related reference data
@@ -46,6 +57,11 @@ public abstract class LookupsSchema {
             "CREATE INDEX lookups_id_idx "
             + "ON lookups(id, deleted)")
     public abstract void createLookupsIdIndex();
+    
+    @SqlUpdate(
+            "CREATE INDEX link_lookups_linkId_idx "
+            + "ON link_lookups(linkId, name)")
+    public abstract void createLinkLookupsIdIndex();
     
     @SqlUpdate(
             "CREATE INDEX lookups_name_idx "
@@ -1006,6 +1022,15 @@ public abstract class LookupsSchema {
     + "('collection','nla.con', 'Conservation')")
     public abstract void seedCollectionList();
     
+    @SqlUpdate("INSERT INTO link_lookups (name, id1, id2) VALUES"
+            + "('carrier-algorithm','43', '1440'),"
+            + "('carrier-algorithm','40', '1443')")
+            public abstract void seedLinkLookupsList();
+            
+    
+    
+    
+    
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
             + "('copyType', 'p', 'Physical'),"
             + "('copyType', 'd', 'Digitised'),"
@@ -1087,6 +1112,7 @@ public abstract class LookupsSchema {
     
     public void createLookupsSchema() {
         createLookupTable();
+        createLinkLookupsTable();
         createLookupsIdIndex();
         createLookupsNameIndex();
         createLookupsNameCodeIndex();
@@ -1142,7 +1168,7 @@ public abstract class LookupsSchema {
     @SqlQuery(
             "SELECT (COUNT(table_name) = 2) "
             + "FROM information_schema.tables " 
-            + "WHERE table_name IN ('LOOKUPS', 'TOOLS', 'lookups', 'tools')")
+            + "WHERE table_name IN ('LOOKUPS', 'TOOLS', 'lookups', 'tools', 'link_lookups')")
     public abstract boolean schemaTablesExist();
 }
 

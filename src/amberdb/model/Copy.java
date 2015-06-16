@@ -128,6 +128,12 @@ public interface Copy extends Node {
     @Property("carrier")
     public void setCarrier(String carrier);
     
+    @Property("algorithm")
+    public String getAlgorithm();
+    
+    @Property("algorithm")
+    public void setAlgorithm(String algorithm);
+        
     @Property("bestCopy")
     public String getBestCopy();
 
