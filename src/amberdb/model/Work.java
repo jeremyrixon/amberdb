@@ -1314,6 +1314,26 @@ public interface Work extends Node {
         public void setSensitiveReason(List<String> sensitiveReason) throws JsonParseException, JsonMappingException, IOException {          
             setJSONSensitiveReason(serialiseToJSON(sensitiveReason));
         }
+        
+        @Override
+        public List<String> getFindingAidNote() throws JsonParseException, JsonMappingException, IOException {           
+            return deserialiseJSONString(getJSONFindingAidNote());
+        }
+
+        @Override
+        public void setFindingAidNote(List<String> findingAidNote) throws JsonParseException, JsonMappingException, IOException {          
+            setJSONFindingAidNote(serialiseToJSON(findingAidNote));
+        }
+        
+        @Override
+        public List<String> getSensitiveReason() throws JsonParseException, JsonMappingException, IOException {           
+            return deserialiseJSONString(getJSONSensitiveReason());
+        }
+
+        @Override
+        public void setSensitiveReason(List<String> sensitiveReason) throws JsonParseException, JsonMappingException, IOException {          
+            setJSONSensitiveReason(serialiseToJSON(sensitiveReason));
+        }
 
         @Override
         public List<String> getSeries() throws JsonParseException, JsonMappingException, IOException {
