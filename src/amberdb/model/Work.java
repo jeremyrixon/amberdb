@@ -812,7 +812,30 @@ public interface Work extends Node {
     
     @JavaHandler
     public List<String> getSensitiveReason() throws JsonParseException, JsonMappingException, IOException;
+    
+    @Property("restrictionsOnAccess")
+    public String getJSONRestrictionsOnAccess();
 
+    @Property("restrictionsOnAccess")
+    public void setJSONRestrictionsOnAccess(String restrictionsOnAccess);
+    
+    @JavaHandler
+    public void setRestrictionsOnAccess(List<String> restrictionsOnAccess) throws JsonParseException, JsonMappingException, IOException;
+    
+    @JavaHandler
+    public List<String> getRestrictionsOnAccess() throws JsonParseException, JsonMappingException, IOException;
+
+    @Property("findingAidNote")
+    public String getJSONFindingAidNote();
+
+    @Property("findingAidNote")
+    public void setJSONFindingAidNote(String findingAidNote);
+    
+    @JavaHandler
+    public void setFindingAidNote(List<String> findingAidNote) throws JsonParseException, JsonMappingException, IOException;
+    
+    @JavaHandler
+    public List<String> getFindingAidNote() throws JsonParseException, JsonMappingException, IOException;
 
     @Property("uniformTitle")
     public String getUniformTitle();
@@ -1290,6 +1313,26 @@ public interface Work extends Node {
         @Override
         public void setSensitiveReason(List<String> sensitiveReason) throws JsonParseException, JsonMappingException, IOException {          
             setJSONSensitiveReason(serialiseToJSON(sensitiveReason));
+        }
+        
+        @Override
+        public List<String> getRestrictionsOnAccess() throws JsonParseException, JsonMappingException, IOException {           
+            return deserialiseJSONString(getJSONRestrictionsOnAccess());
+        }
+
+        @Override
+        public void setRestrictionsOnAccess(List<String> restrictionsOnAccess) throws JsonParseException, JsonMappingException, IOException {          
+            setJSONRestrictionsOnAccess(serialiseToJSON(restrictionsOnAccess));
+        }
+        
+        @Override
+        public List<String> getFindingAidNote() throws JsonParseException, JsonMappingException, IOException {           
+            return deserialiseJSONString(getJSONFindingAidNote());
+        }
+
+        @Override
+        public void setFindingAidNote(List<String> findingAidNote) throws JsonParseException, JsonMappingException, IOException {          
+            setJSONFindingAidNote(serialiseToJSON(findingAidNote));
         }
 
         @Override
