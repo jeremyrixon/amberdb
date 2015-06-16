@@ -1316,6 +1316,16 @@ public interface Work extends Node {
         }
         
         @Override
+        public List<String> getRestrictionsOnAccess() throws JsonParseException, JsonMappingException, IOException {           
+            return deserialiseJSONString(getJSONRestrictionsOnAccess());
+        }
+
+        @Override
+        public void setRestrictionsOnAccess(List<String> restrictionsOnAccess) throws JsonParseException, JsonMappingException, IOException {          
+            setJSONRestrictionsOnAccess(serialiseToJSON(restrictionsOnAccess));
+        }
+        
+        @Override
         public List<String> getFindingAidNote() throws JsonParseException, JsonMappingException, IOException {           
             return deserialiseJSONString(getJSONFindingAidNote());
         }
@@ -1323,16 +1333,6 @@ public interface Work extends Node {
         @Override
         public void setFindingAidNote(List<String> findingAidNote) throws JsonParseException, JsonMappingException, IOException {          
             setJSONFindingAidNote(serialiseToJSON(findingAidNote));
-        }
-        
-        @Override
-        public List<String> getSensitiveReason() throws JsonParseException, JsonMappingException, IOException {           
-            return deserialiseJSONString(getJSONSensitiveReason());
-        }
-
-        @Override
-        public void setSensitiveReason(List<String> sensitiveReason) throws JsonParseException, JsonMappingException, IOException {          
-            setJSONSensitiveReason(serialiseToJSON(sensitiveReason));
         }
 
         @Override
