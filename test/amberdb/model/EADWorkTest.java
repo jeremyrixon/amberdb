@@ -14,8 +14,8 @@ import org.junit.Test;
 import amberdb.AmberSession;
 
 public class EADWorkTest {
-    private static EADWork componentWork;
-    private static AmberSession db;
+    private EADWork componentWork;
+    private AmberSession db;
     
     @Before
     public void setup() throws IOException, InstantiationException {
@@ -41,7 +41,7 @@ public class EADWorkTest {
         assertEquals(expectedFolder, componentWork.getFolder());
     }
     
-    private static void setTestDataInH2(AmberSession db) {
+    private void setTestDataInH2(AmberSession db) {
         EADWork collectionWork = db.addWork().asEADWork();
         componentWork = collectionWork.addEADWork(); 
         componentWork.setSubType("series");
