@@ -826,10 +826,16 @@ public interface Work extends Node {
     public List<String> getRestrictionsOnAccess() throws JsonParseException, JsonMappingException, IOException;
 
     @Property("findingAidNote")
-    public String getFindingAidNote();
+    public String getJSONFindingAidNote();
 
     @Property("findingAidNote")
-    public void setFindingAidNote(String findingAidNote);
+    public void setJSONFindingAidNote(String findingAidNote);
+    
+    @JavaHandler
+    public void setFindingAidNote(List<String> findingAidNote) throws JsonParseException, JsonMappingException, IOException;
+    
+    @JavaHandler
+    public List<String> getFindingAidNote() throws JsonParseException, JsonMappingException, IOException;
 
     @Property("uniformTitle")
     public String getUniformTitle();
