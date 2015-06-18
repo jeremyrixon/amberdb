@@ -1022,7 +1022,7 @@ public abstract class LookupsSchema {
     @SqlUpdate("INSERT INTO carrier_algorithm (name, carrierId, algorithmId) VALUES"
             + "('carrier-algorithm','43', '1440'),"
             + "('carrier-algorithm','40', '1443')")
-            public abstract void seedLinkLookupsList();
+            public abstract void seedCarrierAlgorithmList();
             
     
     
@@ -1129,6 +1129,7 @@ public abstract class LookupsSchema {
         seedToolTypesLookups();
         seedToolCategoriesLookups();
         seedMaterialTypesLookups();
+        seedCarrierAlgorithmList();
     }
     
     public void setupToolsAssociations(List<ListLu> lookups) {
