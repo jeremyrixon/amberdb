@@ -73,11 +73,7 @@ public class OcrCheck {
         return ocrOutOfBound(this.work);
     }
     
-    private boolean ocrOutOfBound(Work work) throws UnsupportedEncodingException, IOException {
-        return ocrOutOfBound(work, null);
-    }
-    
-    private ImageFile getImage() {
+    protected ImageFile getImage() {
         if (hasImageCopy != null) {
             return image;
         }
@@ -93,6 +89,10 @@ public class OcrCheck {
             image = null;
         }
         return image;
+    }
+    
+    private boolean ocrOutOfBound(Work work) throws UnsupportedEncodingException, IOException {
+        return ocrOutOfBound(work, null);
     }
     
     private boolean ocrOutOfBound(ImageFile image, int x, int y, int w, int h) {
