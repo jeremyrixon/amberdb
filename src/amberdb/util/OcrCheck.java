@@ -105,7 +105,7 @@ public class OcrCheck {
         }
 
         if (image == null) {
-            return false;
+            throw new RuntimeException("No image is found for the work " + work.getObjId());
         }
         
         Integer imageWidth = image.getImageWidth();
