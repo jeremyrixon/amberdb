@@ -436,7 +436,7 @@ public class CollectionBuilder {
 
         Set<String> dupUuids = parser.listDuplicateUUIDs();
         if (dupUuids.size() != 0) {
-            throw new EADValidationException("EAD file contained duplicate IDs: " + Joiner.on(", ").join(dupUuids));
+            throw new EADValidationException("DUPLICATE_UUID", Joiner.on(", ").join(dupUuids));
         }
 
         if (collectionWork.getChildren() != null && collectionWork.getChildren().iterator().hasNext()) {
