@@ -96,11 +96,11 @@ public class OcrCheck {
     }
     
     private boolean ocrOutOfBound(ImageFile image, int x, int y, int w, int h) {
-        if (x <= 0 || y <=0) {
+        if (x < 0 || y < 0) {
             throw new RuntimeException("Invalid ocr bounding box x and y from (x: " + x + ", y: " + y + ")");
         }
         
-        if (w <= 0 || h <=0) {
+        if (w <= 0 || h <= 0) {
             throw new RuntimeException("Invalid ocr bounding box width and length from (w: " + w + ", h: " + h + ")");
         }
 
@@ -144,14 +144,14 @@ public class OcrCheck {
     
     private boolean ocrOutOfBound(Work work, InputStream in) throws UnsupportedEncodingException, IOException {
         if (work instanceof Page) {
-            Copy ocrJson = work.getCopy(CopyRole.OCR_JSON_COPY);
-            if (ocrJson == null) {
-                return false;
-            }
-
             ImageFile image = getImage();            
             InputStream ocrStream = in;
             if (ocrStream == null) {
+                Copy ocrJson = work.getCopy(CopyRole.OCR_JSON_COPY);
+                if (ocrJson == null) {
+                    return false;
+                }
+                
                 File ocrJsonFile = ocrJson.getFile();
                 if (ocrJsonFile == null) {
                     return false;

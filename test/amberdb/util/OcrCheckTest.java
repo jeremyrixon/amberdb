@@ -15,12 +15,13 @@ import org.junit.Test;
 import amberdb.AmberSession;
 import amberdb.enums.CopyRole;
 import amberdb.model.ImageFile;
+import amberdb.model.Page;
 import amberdb.model.Work;
 import amberdb.model.Copy;
 
 public class OcrCheckTest {
-    private Work blinkyBillMaster;
-    private Work blinkyBillCoMaster;
+    private Page blinkyBillMaster;
+    private Page blinkyBillCoMaster;
     private AmberSession db;
     java.io.File jsonFile = Paths.get("test").resolve("resources").resolve("nla.obj-20673-oc.json").toFile();
     
@@ -28,11 +29,14 @@ public class OcrCheckTest {
     public void init() throws IOException, ParseException {
         db = new AmberSession();
         SimpleDateFormat dateFmt = new SimpleDateFormat("dd-MMM-yyyy");
-        blinkyBillMaster = db.addWork();
+        Work book1 = db.addWork();
+        blinkyBillMaster = book1.addPage();
         Copy[] copies = new Copy[3];
         copies[0] = blinkyBillMaster.addCopy(Paths.get("test").resolve("resources").resolve("nla.obj-20673-m.tif"), CopyRole.MASTER_COPY, "image/tiff");
         copies[0].getImageFile().setFileName("nla.obj-20673-m.tif");
-        blinkyBillCoMaster = db.addWork();
+        
+        Work book2 = db.addWork();
+        blinkyBillCoMaster = book2.addPage();
         copies[1] = blinkyBillCoMaster.addCopy(Paths.get("test").resolve("resources").resolve("nla.obj-20673-m.tif"), CopyRole.MASTER_COPY, "image/tiff");
         copies[2] = blinkyBillCoMaster.addCopy(Paths.get("test").resolve("resources").resolve("nla.obj-20673-c.tif"), CopyRole.CO_MASTER_COPY, "image/tiff");
         copies[1].getImageFile().setFileName("nla.obj-20673-m.tif");
@@ -48,6 +52,26 @@ public class OcrCheckTest {
         }
         blinkyBillCoMaster.addCopy(jsonFile.toPath(), CopyRole.OCR_JSON_COPY, "application/json");
         db.commit();
+    }
+    
+    @Test
+    public void testOcrOutOfBound() throws UnsupportedEncodingException, FileNotFoundException, IOException {
+        OcrCheck ocrChk = new OcrCheck(blinkyBillMaster);
+        
+        // test ocrOutOfBound(int x, int y, int w, int h)
+        boolean outOfBound1 = ocrChk.ocrOutOfBound(2189, 300, 400, 450);
+        assertTrue("Ocr is out of bound", outOfBound1);
+        boolean outOfBound2 = ocrChk.ocrOutOfBound(0, 2188, 400, 450);
+        assertFalse("Ocr is out of bound", outOfBound2);
+        
+        // test ocrOutOfBound(java.io.File jsonFile)
+        boolean outOfBound3 = ocrChk.ocrOutOfBound(jsonFile);
+        assertTrue("Ocr is out of bound", outOfBound3);
+        
+        // test ocrOutOfBound()
+        OcrCheck ocrChk1 = new OcrCheck(blinkyBillCoMaster);
+        boolean outOfBound4 = ocrChk1.ocrOutOfBound();
+        assertTrue("Ocr is out of bound", outOfBound4);
     }
     
     @Test
