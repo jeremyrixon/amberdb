@@ -1,18 +1,10 @@
 package amberdb.sql;
-
-import java.util.List;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 
-import org.skife.jdbi.v2.sqlobject.Bind;
-import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
-import org.skife.jdbi.v2.sqlobject.SqlBatch;
-import org.skife.jdbi.v2.sqlobject.SqlQuery;
-import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 
 @Entity
-public abstract class CarrierAlgorithm {
+public  class CarrierAlgorithm {
     @Column
     Long linkId;
     @Column
@@ -26,6 +18,14 @@ public abstract class CarrierAlgorithm {
         this.name = name;
         this.carrierId = carrierId;
         this.algorithmId = algorithmId;
+                  
+    }
+    
+    public CarrierAlgorithm(Long linkId, String name, Long carrierId, Long string){
+        this.linkId = linkId;
+        this.name = name;
+        this.carrierId = carrierId;
+        this.algorithmId = string;
                   
     }
 

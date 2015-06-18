@@ -58,6 +58,16 @@ public abstract class LookupsSchema {
             + "ON lookups(id, deleted)")
     public abstract void createLookupsIdIndex();
     
+    @SqlUpdate(
+            "CREATE INDEX carrier_algorithm_id_idx "
+            + "ON carrier_algorithm(linkId)")
+    public abstract void createCarrierAlgorithmLinkIdIndex();
+    
+    @SqlUpdate(
+            "CREATE INDEX carrier_algorithm_carrier_algorithm_idx "
+            + "ON carrier_algorithm(carrierId, algorithmId)")
+    public abstract void createCarrierAlgorithmIndex();
+    
   
     
     @SqlUpdate(
@@ -1103,6 +1113,8 @@ public abstract class LookupsSchema {
         createLookupTable();
         createCarrierAlgorithmTable();
         createLookupsIdIndex();
+        createCarrierAlgorithmLinkIdIndex();
+        createCarrierAlgorithmIndex();
         createLookupsNameIndex();
         createLookupsNameCodeIndex();
         createToolsTable();

@@ -147,6 +147,12 @@ public abstract class Lookups extends Tools {
         }
     }
     
+    public static class CarrierAlgorithmMapper implements ResultSetMapper<CarrierAlgorithm> {
+        public CarrierAlgorithm map(int index, ResultSet r, StatementContext ctx) throws SQLException {
+            return new CarrierAlgorithm(r.getLong("linkId"), r.getString("name"), r.getLong("carrierId"), r.getLong("algorithmId"));
+        }
+    }
+    
     public Long addLookup(String name, String code, String value) {
         System.out.println("lookups: start time : " + fmtDate(new Date()));
         Long newId = addLookupData(name, code, value);
@@ -227,9 +233,11 @@ public abstract class Lookups extends Tools {
                                               @Bind("deleted") List<String> deleted);
     
     
+    @RegisterMapper(Lookups.CarrierAlgorithmMapper.class)
     @SqlQuery("select distinct linkId, name, carrierId, algorithmId,  from carrier_algorithm where name = :name")
     public abstract List<CarrierAlgorithm> findCarrierAlgorithmsByName(@Bind("name") String name);
     
+    @RegisterMapper(Lookups.CarrierAlgorithmMapper.class)
     @SqlQuery("select distinct linkId, name, carrierId, algorithmId  from carrier_algorithm where name = :name and carrierId = :carrierId")
     public abstract List<CarrierAlgorithm> findCarrierAlgorithmByNameAndId(@Bind("name") String name, @Bind("carrierId")Long carrierId );
     
