@@ -66,7 +66,6 @@ public class CollectionBuilderTest {
         objectMapper = new ObjectMapper();
         // collectCfg = objectMapper.readTree(new File("test/resources/ead.json"));
         collectCfg = CollectionBuilder.getDefaultCollectionCfg();
-        ObjectMapper mapper = new ObjectMapper();
         ((ObjectNode) collectCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
         ((ObjectNode) collectCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "no");
 
@@ -210,7 +209,6 @@ public class CollectionBuilderTest {
         createCollection();
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
-            boolean storeCopy = true;
 //            Document doc = CollectionBuilder.generateJson(collectionWork);
             InputStream in = new FileInputStream(testEADPath.toFile());
             EADParser parser = new EADParser();
@@ -338,7 +336,6 @@ public class CollectionBuilderTest {
         createCollection();
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
-            boolean storeCopy = true;
             Map<String, String> componentWorksMap = CollectionBuilder.componentWorksMap(collectionWork);
             assertTrue(!componentWorksMap.isEmpty());
             assertEquals(componentWorksMap.size(), 8);
@@ -350,7 +347,6 @@ public class CollectionBuilderTest {
         createCollection();
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
-            boolean storeCopy = true;
             Set<String> currentDOs = CollectionBuilder.digitisedItemList(collectionWork);
             assertTrue(currentDOs.isEmpty());
         }

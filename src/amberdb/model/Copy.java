@@ -369,7 +369,7 @@ public interface Copy extends Node {
                 Path jp2ImgPath = generateJp2Image(doss, jp2Converter, imgConverter, stage, imgBlobId);
 
                 // Set mimetype based on file extension
-                String jp2Filename = jp2ImgPath.getFileName().toString();
+                String jp2Filename = (jp2ImgPath == null || jp2ImgPath.getFileName() == null)? "" : jp2ImgPath.getFileName().toString();
                 String jp2MimeType = "image/" + jp2Filename.substring(jp2Filename.lastIndexOf('.') + 1);
 
                 // add the derived jp2 image to this Copy's work as an access copy
@@ -404,13 +404,15 @@ public interface Copy extends Node {
                 throw e;
             } finally {
                 // clean up temporary working space
-                java.io.File[] files = stage.toFile().listFiles();
-                if (files != null) {
-                    for (java.io.File f : files) {
-                        f.delete();
+                if (stage != null) {
+                    java.io.File[] files = stage.toFile().listFiles();
+                    if (files != null) {
+                        for (java.io.File f : files) {
+                            f.delete();
+                        }
                     }
+                    stage.toFile().delete();
                 }
-                stage.toFile().delete();
             }
         }
         
@@ -468,12 +470,14 @@ public interface Copy extends Node {
                 return pc;
             } finally {
                 // clean up temporary working space
-                java.io.File[] files = stage.toFile().listFiles();
-                if (files != null) {
-                    for (java.io.File f : files)
-                        f.delete();
+                if (stage != null) {
+                    java.io.File[] files = stage.toFile().listFiles();
+                    if (files != null) {
+                        for (java.io.File f : files)
+                            f.delete();
+                    }
+                    stage.toFile().delete();
                 }
-                stage.toFile().delete();
             }
         }
 

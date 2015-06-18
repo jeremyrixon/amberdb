@@ -80,14 +80,17 @@ public class Jp2Converter {
     private void convertFile(Path srcFilePath, ImageInfo imgInfo, Path dstFilePath) throws Exception {
         // Main method to convert an image to a jpeg2000 file (jp2 or jpx) - imgInfo has to be accurate!
         // Jpeg2000 file must end with .jp2 or .jpx
+        if (dstFilePath == null || dstFilePath.getParent() == null || dstFilePath.getFileName() == null) {
+            throw new RuntimeException("Invalid Jpeg2000 file destination path.");
+        }
         String dstFilename = dstFilePath.getFileName().toString();
         if (!dstFilename.endsWith(".jp2") && !dstFilename.endsWith(".jpx")) {
-            throw new Exception("Jpeg2000 file (" + dstFilePath.toString() + ") must end with .jp2 or .jpx");
+            throw new RuntimeException("Jpeg2000 file (" + dstFilePath.toString() + ") must end with .jp2 or .jpx");
         }
 
         // For now, only convert tiff or jpeg to jp2
         if (!("image/tiff".equals(imgInfo.mimeType) || "image/jpeg".equals(imgInfo.mimeType))) {
-            throw new Exception("Not a tiff or a jpeg file");
+            throw new RuntimeException("Not a tiff or a jpeg file");
         }
 
         long startTime = System.currentTimeMillis();

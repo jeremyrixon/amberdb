@@ -468,7 +468,7 @@ public class CollectionBuilder {
             String basePath = subElementsCfg.get(CFG_BASE).getTextValue();
             String repeatablePath = subElementsCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
             Nodes eadElements = parser.getElementsByXPath(parser.getDocument(), basePath);
-            log.debug("sub elements found: " +  eadElements.size() + " for query " + basePath);
+            log.debug("sub elements found: " +  ((eadElements == null)? 0 : eadElements.size()) + " for query " + basePath);
             if (eadElements != null && eadElements.size() > 0) {
                 for (int i = 0; i < eadElements.size(); i++) {
                     Nodes eadSubElements = parser.getNodeChildren(eadElements.get(i), repeatablePath);

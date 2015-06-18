@@ -170,6 +170,9 @@ public class VersionedVertex {
         return vertices;
     }
     
+    public int hashCode() {
+        return super.hashCode();
+    }
     
     public boolean equals(Object o) {
         if (o instanceof VersionedVertex) {

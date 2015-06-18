@@ -226,6 +226,31 @@ public abstract class Lookups extends Tools {
                                               @Bind("value") List<String> value,
                                               @Bind("deleted") List<String> deleted);
     
+    
+    @SqlQuery("select distinct linkId, name, carrierId, algorithmId,  from carrier_algorithm where name = :name")
+    public abstract List<CarrierAlgorithm> findCarrierAlgorithmsByName(@Bind("name") String name);
+    
+    @SqlQuery("select distinct linkId, name, carrierId, algorithmId  from carrier_algorithm where name = :name and carrierId = :carrierId")
+    public abstract List<CarrierAlgorithm> findCarrierAlgorithmByNameAndId(@Bind("name") String name, @Bind("carrierId")Long carrierId );
+    
+    @SqlUpdate("INSERT INTO carrier_algorithm (name, carrierId, algorithmId) VALUES"
+            + "(:name, :carrierId, :algorithmId)")
+    @GetGeneratedKeys
+    public abstract long addCarrierAlgorithmData(@Bind("name") String name,
+                                          @Bind("carrierId") long carrierId,
+                                          @Bind("algorithmId") long algorithmId);
+    
+    @SqlUpdate("UPDATE carrier_algorithm set algorithmId = :algorithmId "
+            + "where name = :name "
+            + "and  carrierId = :carrierId")
+    public abstract void updCarrierAlgorithm(@Bind("algorithmId") long algorithmId,
+                                       @Bind("name") String name,
+                                       @Bind("carrierId") long carrierId);
+    
+    @SqlBatch("DELETE from carrier_algorithm where carrierId = :carrierId and name = :name")
+    protected abstract void deleteCarrierAlgorithm(@Bind("carrierId") Long carrierId,
+                                             @Bind("name") String name);
+    
     public synchronized void seedInitialLookups() throws IOException {
         List<Path> lookupPaths = getLookupFilePaths("amberdb.lookups.", ".file");
         for (Path lookupPath : lookupPaths) {
