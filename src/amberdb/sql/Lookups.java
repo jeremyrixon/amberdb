@@ -25,7 +25,6 @@ import org.skife.jdbi.v2.sqlobject.SqlBatch;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
-import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 import java.util.Properties;
@@ -234,7 +233,7 @@ public abstract class Lookups extends Tools {
     
     
     @RegisterMapper(Lookups.CarrierAlgorithmMapper.class)
-    @SqlQuery("select distinct linkId, name, carrierId, algorithmId,  from carrier_algorithm where name = :name")
+    @SqlQuery("select distinct linkId, name, carrierId, algorithmId  from carrier_algorithm where name = :name")
     public abstract List<CarrierAlgorithm> findCarrierAlgorithmsByName(@Bind("name") String name);
     
     @RegisterMapper(Lookups.CarrierAlgorithmMapper.class)
