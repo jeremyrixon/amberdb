@@ -1018,15 +1018,7 @@ public abstract class LookupsSchema {
     + "('collection','nla.int', 'Internal photograph'),"
     + "('collection','nla.con', 'Conservation')")
     public abstract void seedCollectionList();
-    
-    @SqlUpdate("INSERT INTO carrier_algorithm (name, carrierId, algorithmId) VALUES"
-            + "('carrier-algorithm','43', '1440'),"
-            + "('carrier-algorithm','40', '1443')")
-            public abstract void seedCarrierAlgorithmList();
-            
-    
-    
-    
+
     
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
             + "('copyType', 'p', 'Physical'),"
@@ -1129,7 +1121,6 @@ public abstract class LookupsSchema {
         seedToolTypesLookups();
         seedToolCategoriesLookups();
         seedMaterialTypesLookups();
-        seedCarrierAlgorithmList();
     }
     
     public void setupToolsAssociations(List<ListLu> lookups) {
