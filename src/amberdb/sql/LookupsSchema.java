@@ -28,7 +28,7 @@ public abstract class LookupsSchema {
      */
     @SqlUpdate(
             "CREATE TABLE IF NOT EXISTS carrier_algorithm ("
-            + "linkId        bigint(11), "
+            + "linkId        bigint(11) PRIMARY KEY AUTO_INCREMENT,"
             + "name      varchar(50), "
             + "carrierId       bigint(11), "
             + "algorithmId       bigint(11) )")
