@@ -14,6 +14,7 @@ import java.util.Set;
 
 import amberdb.util.WorkUtils;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 
 import org.codehaus.jackson.JsonParseException;
@@ -208,6 +209,21 @@ public interface Work extends Node {
      */
     @Property("holdingNumber")
     public void setHoldingNumber(String holdingNumber);
+
+    @Property("holdingId")
+    public String getHoldingId();
+
+    /**
+     * Also known as CALLNO
+     */
+    @Property("holdingId")
+    public void setHoldingId(String holdingId);
+
+    @JavaHandler
+    public String getHoldingNumberAndId();
+
+    @JavaHandler
+    public void setHoldingNumberAndId(String holdNumAndId);
 
     @Property("issn")
     public String getISSN();
@@ -1211,6 +1227,23 @@ public interface Work extends Node {
         @Override
         public EADWork asEADWork() {
             return frame(this.asVertex(), EADWork.class);
+        }
+
+        @Override
+        public String getHoldingNumberAndId() {
+            return getHoldingNumber() + (getHoldingId() != null ? ("|:|" + getHoldingId()) : "");
+        }
+
+        @Override
+        public void setHoldingNumberAndId(String holdNumAndId) {
+            List<String> splitted = Lists.newArrayList(Splitter.on("|:|").split(holdNumAndId));
+            if (splitted.size() == 2) {
+                setHoldingNumber(splitted.get(0));
+                setHoldingId(splitted.get(1));
+            }
+            else if (splitted.size() == 1) {
+                setHoldingNumber(splitted.get(0));
+            }
         }
         
         private List<Edge> parts() {
