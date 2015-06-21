@@ -42,7 +42,6 @@ public class CollectionBuilderTest {
     JsonNode collectCfg;
     Path testEADPath;
     Path testUpdedEADPath;
-    String[] testEADFiles = { "test/resources/6442.xml" };
     String[] expectedUuids = {
             "aspace_d1ac0117fdba1b9dc09b68e8bb125948",
             "aspace_7275d12ba178fcbb7cf926d0b7bf68cc",
@@ -56,16 +55,17 @@ public class CollectionBuilderTest {
     
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
-    
+    private Path testDupEadPath;
+
     @Before
     public void setUp() throws JsonProcessingException, IOException {
         testEADPath = Paths.get("test/resources/6442.xml");
         testUpdedEADPath = Paths.get("test/resources/6442_updated.xml");
+        testDupEadPath = Paths.get("test/resources/6442_dup.xml");
         
         objectMapper = new ObjectMapper();
         // collectCfg = objectMapper.readTree(new File("test/resources/ead.json"));
         collectCfg = CollectionBuilder.getDefaultCollectionCfg();
-        ObjectMapper mapper = new ObjectMapper();
         ((ObjectNode) collectCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
         ((ObjectNode) collectCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "no");
 
@@ -153,57 +153,17 @@ public class CollectionBuilderTest {
     }
     
     @Test
-    public void testFilterEAD() throws IOException, ValidityException, ParsingException {
-        try (AmberSession as = db.begin()) {
-           Work collectionWork = as.findWork(collectionWorkId);
-           XmlDocumentParser parser = CollectionBuilder.getDefaultXmlDocumentParser();
-           parser.storeCopy = true;
-           String filteredEAD = filterSampleEAD(collectionWork, parser);
-           InputStream eadIn = new ByteArrayInputStream(filteredEAD.getBytes());
-           JsonNode parserCfg = CollectionBuilder.getDefaultCollectionCfg();
-           ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
-           ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "yes");
-           parser.init(collectionWorkId, eadIn, parserCfg);
-           Set<String> filteredElementCfg = parser.parseFiltersCfg();
-           assertFalse(hasFilteredEADElement(parser.doc.getRootElement(), filteredElementCfg));
-           assertEquals(collectionWork.getCopy(CopyRole.FINDING_AID_COPY), collectionWork.getCopy(CopyRole.FINDING_AID_FILTERED_COPY).getSourceCopy());
-        }
-    }
-    
-    private boolean hasFilteredEADElement(Node node, Set<String> filterList) {
-        Elements elements = ((Element) node).getChildElements();
-        if (elements != null) {
-            for (int i = 0; i < elements.size(); i++) {
-                Element element = elements.get(i);
-                if (filterList.contains(element.getLocalName().toUpperCase())) {
-                    return true;
-                } else {
-                    return hasFilteredEADElement(element, filterList);
-                }
-            }
-        }
-        return false;
-    }
-
-    private String filterSampleEAD(Work collectionWork, XmlDocumentParser parser) throws FileNotFoundException, ValidityException,
-            ParsingException, IOException {
-        Path testEADPath = Paths.get("test/resources/6442.xml");
-        InputStream eadData = new FileInputStream(testEADPath.toFile());
-        JsonNode parserCfg = CollectionBuilder.getDefaultCollectionCfg();
-        ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
-        ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "yes");
-        parser.init(collectionWorkId, eadData, parserCfg);
-        String filteredEAD = CollectionBuilder.filterEAD(collectionWork, parser);
-        return filteredEAD;
-    }
-    
-    @Test
     public void testExtractFirstEADComponent() throws IOException, ValidityException, ParsingException {
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
             Work componentWork = collectionWork.asEADWork().addEADWork();
             XmlDocumentParser parser = CollectionBuilder.getDefaultXmlDocumentParser();
-            String filteredEAD = filterSampleEAD(collectionWork, parser);
+            Path testEADPath = Paths.get("test/resources/6442.xml");
+            InputStream eadData = new FileInputStream(testEADPath.toFile());
+            JsonNode parserCfg = CollectionBuilder.getDefaultCollectionCfg();
+            ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
+            ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "yes");
+            parser.init(collectionWorkId, eadData, parserCfg);
             Elements components = ((Element) parser.getElementsByXPath(parser.doc, "//ead:ead/ead:archdesc/ead:dsc").get(0)).getChildElements();
             Element component = null;
             for (int i = 0; i < components.size(); i++) {
@@ -249,7 +209,6 @@ public class CollectionBuilderTest {
         createCollection();
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
-            boolean storeCopy = true;
 //            Document doc = CollectionBuilder.generateJson(collectionWork);
             InputStream in = new FileInputStream(testEADPath.toFile());
             EADParser parser = new EADParser();
@@ -296,6 +255,26 @@ public class CollectionBuilderTest {
             Work updatedComponent = as.findWork(newUUIDToPIMap.get(updedCompASId));
             assertNotEquals(collectionWork, updatedComponent.getParent());
             assertEquals(fistCompASId, updatedComponent.getParent().getLocalSystemNumber());
+        }
+    }
+
+    @Test(expected = EADValidationException.class)
+    public void testDupInEad() throws ValidityException, IOException, ParsingException {
+
+        // create collection from EAD
+        createCollection();
+        try (AmberSession as = db.begin()) {
+            Work collectionWork = as.findWork(collectionWorkId);
+            collectionWork.setCollection("nla.ms");
+
+            Copy ead = collectionWork.getCopy(CopyRole.FINDING_AID_COPY);
+            collectionWork.removeCopy(ead);
+            collectionWork.addCopy(testDupEadPath, CopyRole.FINDING_AID_COPY, "application/xml");
+
+            // step 2: reload collection from updated EAD:
+            //         - add new component works from the updated EAD.
+            //         - update existing component works from the updated EAD.
+            CollectionBuilder.reloadCollection(collectionWork);
         }
     }
     
@@ -357,7 +336,6 @@ public class CollectionBuilderTest {
         createCollection();
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
-            boolean storeCopy = true;
             Map<String, String> componentWorksMap = CollectionBuilder.componentWorksMap(collectionWork);
             assertTrue(!componentWorksMap.isEmpty());
             assertEquals(componentWorksMap.size(), 8);
@@ -369,7 +347,6 @@ public class CollectionBuilderTest {
         createCollection();
         try (AmberSession as = db.begin()) {
             Work collectionWork = as.findWork(collectionWorkId);
-            boolean storeCopy = true;
             Set<String> currentDOs = CollectionBuilder.digitisedItemList(collectionWork);
             assertTrue(currentDOs.isEmpty());
         }
@@ -393,7 +370,7 @@ public class CollectionBuilderTest {
             InputStream in = new FileInputStream(testEADPath.toFile());
             EADParser parser = new EADParser();
             parser.init(collectionWorkId, in, collectCfg);
-            CollectionBuilder.processCollection(collectionWork, in, collectCfg, parser);
+            CollectionBuilder.processCollection(collectionWork, collectCfg, parser);
             as.commit();
         }
     }

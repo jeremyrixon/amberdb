@@ -14,6 +14,7 @@ import java.util.Set;
 
 import amberdb.util.WorkUtils;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 
 import org.codehaus.jackson.JsonParseException;
@@ -208,6 +209,21 @@ public interface Work extends Node {
      */
     @Property("holdingNumber")
     public void setHoldingNumber(String holdingNumber);
+
+    @Property("holdingId")
+    public String getHoldingId();
+
+    /**
+     * Also known as CALLNO
+     */
+    @Property("holdingId")
+    public void setHoldingId(String holdingId);
+
+    @JavaHandler
+    public String getHoldingNumberAndId();
+
+    @JavaHandler
+    public void setHoldingNumberAndId(String holdNumAndId);
 
     @Property("issn")
     public String getISSN();
@@ -812,7 +828,30 @@ public interface Work extends Node {
     
     @JavaHandler
     public List<String> getSensitiveReason() throws JsonParseException, JsonMappingException, IOException;
+    
+    @Property("restrictionsOnAccess")
+    public String getJSONRestrictionsOnAccess();
 
+    @Property("restrictionsOnAccess")
+    public void setJSONRestrictionsOnAccess(String restrictionsOnAccess);
+    
+    @JavaHandler
+    public void setRestrictionsOnAccess(List<String> restrictionsOnAccess) throws JsonParseException, JsonMappingException, IOException;
+    
+    @JavaHandler
+    public List<String> getRestrictionsOnAccess() throws JsonParseException, JsonMappingException, IOException;
+
+    @Property("findingAidNote")
+    public String getJSONFindingAidNote();
+
+    @Property("findingAidNote")
+    public void setJSONFindingAidNote(String findingAidNote);
+    
+    @JavaHandler
+    public void setFindingAidNote(List<String> findingAidNote) throws JsonParseException, JsonMappingException, IOException;
+    
+    @JavaHandler
+    public List<String> getFindingAidNote() throws JsonParseException, JsonMappingException, IOException;
 
     @Property("uniformTitle")
     public String getUniformTitle();
@@ -1189,6 +1228,23 @@ public interface Work extends Node {
         public EADWork asEADWork() {
             return frame(this.asVertex(), EADWork.class);
         }
+
+        @Override
+        public String getHoldingNumberAndId() {
+            return getHoldingNumber() + (getHoldingId() != null ? ("|:|" + getHoldingId()) : "");
+        }
+
+        @Override
+        public void setHoldingNumberAndId(String holdNumAndId) {
+            List<String> splitted = Lists.newArrayList(Splitter.on("|:|").split(holdNumAndId));
+            if (splitted.size() == 2) {
+                setHoldingNumber(splitted.get(0));
+                setHoldingId(splitted.get(1));
+            }
+            else if (splitted.size() == 1) {
+                setHoldingNumber(splitted.get(0));
+            }
+        }
         
         private List<Edge> parts() {
             return (gremlin().inE(IsPartOf.label) == null) ? null : gremlin().inE(IsPartOf.label).toList();
@@ -1290,6 +1346,26 @@ public interface Work extends Node {
         @Override
         public void setSensitiveReason(List<String> sensitiveReason) throws JsonParseException, JsonMappingException, IOException {          
             setJSONSensitiveReason(serialiseToJSON(sensitiveReason));
+        }
+        
+        @Override
+        public List<String> getRestrictionsOnAccess() throws JsonParseException, JsonMappingException, IOException {           
+            return deserialiseJSONString(getJSONRestrictionsOnAccess());
+        }
+
+        @Override
+        public void setRestrictionsOnAccess(List<String> restrictionsOnAccess) throws JsonParseException, JsonMappingException, IOException {          
+            setJSONRestrictionsOnAccess(serialiseToJSON(restrictionsOnAccess));
+        }
+        
+        @Override
+        public List<String> getFindingAidNote() throws JsonParseException, JsonMappingException, IOException {           
+            return deserialiseJSONString(getJSONFindingAidNote());
+        }
+
+        @Override
+        public void setFindingAidNote(List<String> findingAidNote) throws JsonParseException, JsonMappingException, IOException {          
+            setJSONFindingAidNote(serialiseToJSON(findingAidNote));
         }
 
         @Override

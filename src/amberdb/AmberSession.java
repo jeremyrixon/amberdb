@@ -31,6 +31,7 @@ import amberdb.model.Section;
 import amberdb.model.SoundFile;
 import amberdb.model.Tag;
 import amberdb.model.Work;
+import amberdb.sql.CarrierAlgorithm;
 import amberdb.sql.ListLu;
 import amberdb.sql.Lookups;
 import amberdb.sql.LookupsSchema;
@@ -175,6 +176,9 @@ public class AmberSession implements AutoCloseable {
             List<ListLu> list = lookups.findActiveLookups();
             luSchema.setupToolsAssociations(list);
         }
+        if(!luSchema.carrierAlgorithmTableExist()){
+            luSchema.createCarrierAlgorithmTable();
+        }
         lookups.migrate();
     }    
     
@@ -187,6 +191,7 @@ public class AmberSession implements AutoCloseable {
     public Lookups getLookups() {
         return lookupsDbi.onDemand(Lookups.class);
     }
+    
     
     
     public void setLocalMode(boolean localModeOn) {

@@ -3,10 +3,7 @@ package amberdb.model.builder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import nu.xom.Builder;
@@ -71,13 +68,7 @@ public abstract class XmlDocumentParser {
         }
     }
     
-    public Nodes traverse(Document doc) {
-        Nodes nodes = new Nodes();
-        nodes.append(doc.getRootElement());  
-        return nodes;
-    }
-    
-    public Nodes traverse(Node node, String repeatablePath) {
+    public Nodes getNodeChildren(Node node, String repeatablePath) {
         String fmttedRepeatablePath = repeatablePath.replace(qualifiedName + ":", "").toUpperCase();
         Nodes nodes = new Nodes();
         Elements elements = ((Element) node).getChildElements();
@@ -101,8 +92,9 @@ public abstract class XmlDocumentParser {
         
         String validateXMLCfg = parsingCfg.get(CFG_COLLECTION_ELEMENT).get(CFG_VALIDATE_XML).getTextValue();
         if (validateXMLCfg != null && (validateXMLCfg.equalsIgnoreCase("yes") 
-                || validateXMLCfg.equalsIgnoreCase("y") || validateXMLCfg.equalsIgnoreCase("true")))
-                		return true;
+            || validateXMLCfg.equalsIgnoreCase("y") || validateXMLCfg.equalsIgnoreCase("true"))) {
+            return true;
+        }
         return false;
     }
     
@@ -131,20 +123,6 @@ public abstract class XmlDocumentParser {
         return Collections.synchronizedSet(new HashSet<String>());
     }
     
-    public void filterEAD(Node node) { 
-        Elements elements = ((Element) node).getChildElements();
-        if (elements != null) {
-            for (int i = 0; i < elements.size(); i++) {
-                Element element = elements.get(i);
-                if (filters.contains((element.getLocalName().toUpperCase()))) {
-                    ((Element) node).removeChild(element);
-                } else {
-                    filterEAD(element);
-                }
-            }
-        }
-    }
-    
     public Nodes getElementsByXPath(Document doc, String xpath) {
         String qualifiedName = doc.getRootElement().getQualifiedName();
         String namespaceURI = doc.getRootElement().getNamespaceURI();
@@ -160,34 +138,52 @@ public abstract class XmlDocumentParser {
         }
         return nodes;
     }
+
+    public Set<String> listDuplicateUUIDs() {
+        List<String> eadUUIDList = getUUIDsAsList(100);
+        Set<String> dupDetector = new HashSet<>();
+        Iterator<String> iter = eadUUIDList.iterator();
+        while(iter.hasNext()) {
+            String curr = iter.next();
+            if (!dupDetector.contains(curr)) {
+                iter.remove();;
+            }
+            dupDetector.add(curr);
+        }
+        return new HashSet<>(eadUUIDList);
+    }
     
     public Set<String> listUUIDs(int estCapacity) {
-        Set<String> eadUUIDList = Collections.synchronizedSet(new HashSet<String>(estCapacity));
+        List<String> eadUUIDList = getUUIDsAsList(estCapacity);
+
+        return new HashSet<>(eadUUIDList);
+    }
+
+    private List<String> getUUIDsAsList(int estCapacity) {
+        List<String> eadUUIDList = new ArrayList<>(estCapacity);
         JsonNode collectionCfg = parsingCfg;
         JsonNode subElementsCfg = collectionCfg.get(CFG_COLLECTION_ELEMENT).get(CFG_SUB_ELEMENTS);
         String repeatablePath = subElementsCfg.get(CFG_REPEATABLE_ELEMENTS).getTextValue();
         String componentBasePath = subElementsCfg.get(CFG_BASE).getTextValue();
         Nodes baseComponents = getElementsByXPath(doc, componentBasePath);
-        eadUUIDList = listUUIDs(eadUUIDList, subElementsCfg, repeatablePath, componentBasePath, baseComponents);
-
+        listUUIDs(eadUUIDList, subElementsCfg, repeatablePath, componentBasePath, baseComponents);
         return eadUUIDList;
     }
 
-    private Set<String> listUUIDs(Set<String> eadUUIDList, JsonNode subElementsCfg, String repeatablePath,
-            String componentBasePath, Nodes baseComponents) {
+    private void listUUIDs(List<String> eadUUIDList, JsonNode subElementsCfg, String repeatablePath,
+                                   String componentBasePath, Nodes baseComponents) {
         if (baseComponents != null) {
             for (int i = 0; i < baseComponents.size(); i++) {
                 Node baseComponent = baseComponents.get(i);
-                Nodes components = traverse(baseComponent, repeatablePath);
+                Nodes components = getNodeChildren(baseComponent, repeatablePath);
                 for (int j = 0; j < components.size(); j++) {
                     Map<String, String> fldsMap = getFieldsMap(components.get(j), subElementsCfg, componentBasePath);
                     String uuid = fldsMap.get("uuid").toString();
                     eadUUIDList.add(uuid);
-                    eadUUIDList = listUUIDs(eadUUIDList, subElementsCfg, repeatablePath, componentBasePath, components);
                 }
+                listUUIDs(eadUUIDList, subElementsCfg, repeatablePath, componentBasePath, components);
             }
         }
-        return eadUUIDList;
     }
     
     public Document getDocument() {
@@ -243,19 +239,6 @@ public abstract class XmlDocumentParser {
         return nodes;
     }
     
-    protected String constructPath(Document doc, String elementPath, Node node) {
-        String qualifiedName = doc.getRootElement().getQualifiedName();
-        if (node == null) return getBasePath(doc);
-        
-        String elementLocalName = ((Element) node).getLocalName();
-        log.debug("elementPath : " + elementPath + ", element local name: " + elementLocalName);
-        String newPath = elementPath;
-        if (elementPath.lastIndexOf('/') > 0)
-            newPath = elementPath.substring(0, elementPath.lastIndexOf('/')) + "/" + qualifiedName + ":" + elementLocalName;
-        
-        return newPath;
-    }
-    
     protected String getBasePath(Document doc) {
         String qualifiedName = doc.getRootElement().getQualifiedName();
         return "//" + qualifiedName + ":" + qualifiedName;
@@ -266,10 +249,6 @@ public abstract class XmlDocumentParser {
         return qualifiedElementName.replace(qualifiedName + ":", "");
     } 
     
-    protected Map<Node, String> getFieldValues(Document doc, String xpath) {
-        return getFieldValues(getElementsByXPath(doc, xpath));
-    }
-
     private Map<Node, String> getFieldValues(Nodes nodes) {
         Map<Node, String> map = new ConcurrentHashMap<>();
         if (nodes != null && nodes.size() > 0) {

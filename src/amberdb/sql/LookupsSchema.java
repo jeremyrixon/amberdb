@@ -23,6 +23,17 @@ public abstract class LookupsSchema {
             + "deleted   varchar(1) default 'N' )")
     public abstract void createLookupTable();
     
+    /*
+     * Link Lookups table - stores relationships between 2 lookups
+     */
+    @SqlUpdate(
+            "CREATE TABLE IF NOT EXISTS carrier_algorithm ("
+            + "linkId        bigint(11) PRIMARY KEY AUTO_INCREMENT,"
+            + "name      varchar(50), "
+            + "carrierId       bigint(11), "
+            + "algorithmId       bigint(11) )")
+    public abstract void createCarrierAlgorithmTable();
+    
 
     /*
      * Tools lookup table - stores tools related reference data
@@ -46,6 +57,18 @@ public abstract class LookupsSchema {
             "CREATE INDEX lookups_id_idx "
             + "ON lookups(id, deleted)")
     public abstract void createLookupsIdIndex();
+    
+    @SqlUpdate(
+            "CREATE INDEX carrier_algorithm_id_idx "
+            + "ON carrier_algorithm(linkId)")
+    public abstract void createCarrierAlgorithmLinkIdIndex();
+    
+    @SqlUpdate(
+            "CREATE INDEX carrier_algorithm_carrier_algorithm_idx "
+            + "ON carrier_algorithm(carrierId, algorithmId)")
+    public abstract void createCarrierAlgorithmIndex();
+    
+  
     
     @SqlUpdate(
             "CREATE INDEX lookups_name_idx "
@@ -1005,6 +1028,7 @@ public abstract class LookupsSchema {
     + "('collection','nla.int', 'Internal photograph'),"
     + "('collection','nla.con', 'Conservation')")
     public abstract void seedCollectionList();
+
     
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
             + "('copyType', 'p', 'Physical'),"
@@ -1087,7 +1111,10 @@ public abstract class LookupsSchema {
     
     public void createLookupsSchema() {
         createLookupTable();
+        createCarrierAlgorithmTable();
         createLookupsIdIndex();
+        createCarrierAlgorithmLinkIdIndex();
+        createCarrierAlgorithmIndex();
         createLookupsNameIndex();
         createLookupsNameCodeIndex();
         createToolsTable();
@@ -1144,5 +1171,12 @@ public abstract class LookupsSchema {
             + "FROM information_schema.tables " 
             + "WHERE table_name IN ('LOOKUPS', 'TOOLS', 'lookups', 'tools')")
     public abstract boolean schemaTablesExist();
+    
+    
+    @SqlQuery(
+            "SELECT (COUNT(table_name) = 1 ) "
+            + "FROM information_schema.tables " 
+            + "WHERE table_name IN ('carrier_algorithm', 'CARRIER_ALGORITHM')")
+    public abstract boolean carrierAlgorithmTableExist();
 }
 

@@ -97,14 +97,14 @@ public class AmberHistory {
         for (VersionedVertex v : vertices) {
             TVertexDiff diff = v.getDiff(txn1, txn2);
             TTransition change = diff.getTransition();
-            TId id = diff.getId()[0];
+            Long id = diff.getId()[0].getId();
 
             // Deletion trumps all changes - don't replace
             if (modifiedIds.get(id) != null
                     && modifiedIds.get(id).equals(TTransition.DELETED.toString())) {
                 continue;
             }
-            modifiedIds.put(id.getId(), change.toString());
+            modifiedIds.put(id, change.toString());
         }
         
         // find and return the vertices for any changed edge
