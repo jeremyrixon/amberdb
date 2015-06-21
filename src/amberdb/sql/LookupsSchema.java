@@ -64,8 +64,8 @@ public abstract class LookupsSchema {
     public abstract void createCarrierAlgorithmLinkIdIndex();
     
     @SqlUpdate(
-            "CREATE INDEX carrier_algorithm_carrier_algorithm_idx "
-            + "ON carrier_algorithm(carrierId, algorithmId)")
+            "CREATE INDEX carrier_algorithm_carrier_name_idx "
+            + "ON carrier_algorithm(name, carrierId)")
     public abstract void createCarrierAlgorithmIndex();
     
   
