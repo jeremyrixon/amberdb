@@ -25,7 +25,6 @@ import org.skife.jdbi.v2.sqlobject.SqlBatch;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
-import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 import java.util.Properties;
@@ -147,6 +146,12 @@ public abstract class Lookups extends Tools {
         }
     }
     
+    public static class CarrierAlgorithmMapper implements ResultSetMapper<CarrierAlgorithm> {
+        public CarrierAlgorithm map(int index, ResultSet r, StatementContext ctx) throws SQLException {
+            return new CarrierAlgorithm(r.getLong("linkId"), r.getString("name"), r.getLong("carrierId"), r.getLong("algorithmId"));
+        }
+    }
+    
     public Long addLookup(String name, String code, String value) {
         System.out.println("lookups: start time : " + fmtDate(new Date()));
         Long newId = addLookupData(name, code, value);
@@ -226,6 +231,33 @@ public abstract class Lookups extends Tools {
                                               @Bind("value") List<String> value,
                                               @Bind("deleted") List<String> deleted);
     
+    
+    @RegisterMapper(Lookups.CarrierAlgorithmMapper.class)
+    @SqlQuery("select distinct linkId, name, carrierId, algorithmId  from carrier_algorithm where name = :name")
+    public abstract List<CarrierAlgorithm> findCarrierAlgorithmsByName(@Bind("name") String name);
+    
+    @RegisterMapper(Lookups.CarrierAlgorithmMapper.class)
+    @SqlQuery("select distinct linkId, name, carrierId, algorithmId  from carrier_algorithm where name = :name and carrierId = :carrierId")
+    public abstract List<CarrierAlgorithm> findCarrierAlgorithmByNameAndId(@Bind("name") String name, @Bind("carrierId")Long carrierId );
+    
+    @SqlUpdate("INSERT INTO carrier_algorithm (name, carrierId, algorithmId) VALUES"
+            + "(:name, :carrierId, :algorithmId)")
+    @GetGeneratedKeys
+    public abstract long addCarrierAlgorithmData(@Bind("name") String name,
+                                          @Bind("carrierId") long carrierId,
+                                          @Bind("algorithmId") long algorithmId);
+    
+    @SqlUpdate("UPDATE carrier_algorithm set algorithmId = :algorithmId "
+            + "where name = :name "
+            + "and  carrierId = :carrierId")
+    public abstract void updCarrierAlgorithm(@Bind("algorithmId") long algorithmId,
+                                       @Bind("name") String name,
+                                       @Bind("carrierId") long carrierId);
+    
+    @SqlBatch("DELETE from carrier_algorithm where carrierId = :carrierId and name = :name")
+    protected abstract void deleteCarrierAlgorithm(@Bind("carrierId") Long carrierId,
+                                             @Bind("name") String name);
+    
     public synchronized void seedInitialLookups() throws IOException {
         List<Path> lookupPaths = getLookupFilePaths("amberdb.lookups.", ".file");
         for (Path lookupPath : lookupPaths) {
@@ -247,7 +279,8 @@ public abstract class Lookups extends Tools {
             addLookupData("copyStatus", "None", "None");
             addLookupData("copyStatus", "Draft", "Draft");
             addLookupData("copyStatus", "Corrected", "Corrected");
-            addLookupData("copyStatus", "Complete", "Complete");
+            addLookupData("copyStatus", "Complete", "Complete");           
+
         }
         
         ListLu entry = findLookup("surface", "Pthalocyanine Al T-Acetate");
@@ -266,6 +299,16 @@ public abstract class Lookups extends Tools {
             addLookupData(brName, "128", "128");
             addLookupData(brName, "256", "256");
         }
+        
+        List<ListLu> algorithms = findActiveLookupsFor("algorithm");
+        if (algorithms.isEmpty()) {
+            addLookupData("algorithm", "ATRAC", "ATRAC");
+            addLookupData("algorithm", "ANALOGUE", "ANALOGUE");
+            addLookupData("algorithm", "PCM", "PCM");
+            addLookupData("algorithm", "MP3-MPEG1Layer3", "MP3-MPEG1Layer3");
+            addLookupData("algorithm", "PASC", "PASC");
+        }
+        
     }
     
     protected List<String> padStringArry(List<String> strArry, int length) {

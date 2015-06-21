@@ -27,6 +27,10 @@ public class LookupRefresh {
             luSchema.createLookupsSchema();
         }
         
+        if (!luSchema.carrierAlgorithmTableExist()) {
+            luSchema.createCarrierAlgorithmTable();
+        }
+        
         List<ListLu> fromLu = lookupsDbi.onDemand(Lookups.class).findActiveLookups();
         Map<String, ListLu> fromMap = indexLookups(fromLu);
         Map<String, ListLu> toMap = indexLookups(destLookups.findActiveLookups());
