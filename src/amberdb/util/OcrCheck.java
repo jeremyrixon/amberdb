@@ -139,6 +139,10 @@ public class OcrCheck {
         if (w > imageWidth || h > imageLength) {
             return true;
         }
+        
+        if ((x + w) > imageWidth || (y + h) > imageLength) {
+            return true;
+        }
         return false;
     }
     
