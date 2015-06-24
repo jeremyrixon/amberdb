@@ -152,6 +152,8 @@ public abstract class Lookups extends Tools {
         }
     }
     
+   
+    
     public Long addLookup(String name, String code, String value) {
         System.out.println("lookups: start time : " + fmtDate(new Date()));
         Long newId = addLookupData(name, code, value);
@@ -239,6 +241,11 @@ public abstract class Lookups extends Tools {
     @RegisterMapper(Lookups.CarrierAlgorithmMapper.class)
     @SqlQuery("select distinct linkId, name, carrierId, algorithmId  from carrier_algorithm where name = :name and carrierId = :carrierId")
     public abstract List<CarrierAlgorithm> findCarrierAlgorithmByNameAndId(@Bind("name") String name, @Bind("carrierId")Long carrierId );
+    
+    
+    @RegisterMapper(Lookups.ListLuMapper.class)
+    @SqlQuery("select al.id, al.code, al.value, al.name  from carrier_algorithm ca, lookups al, lookups cl  where cl.code = :name and ca.carrierId = cl.id and al.id=ca.algorithmId")
+    public abstract ListLu findAlgorithmByCarrierName(@Bind("name") String name);
     
     @SqlUpdate("INSERT INTO carrier_algorithm (name, carrierId, algorithmId) VALUES"
             + "(:name, :carrierId, :algorithmId)")
