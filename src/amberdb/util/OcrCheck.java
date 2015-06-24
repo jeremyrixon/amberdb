@@ -36,8 +36,8 @@ public class OcrCheck {
      * ocrOutOfBound: validate the input co-ords x, y, w, h are within the corresponding width and length of the image the ocr
      * @param x - the start value in x axis
      * @param y - the start value in y axis
-     * @param w - the width of the ocr bounding box
-     * @param h - the length of the ocr bounding box
+     * @param w - the translation of x value by the width of the ocr bounding box
+     * @param h - the translation of y value by the length of the ocr bounding box
      * @return indicator whether the generated ocr content is outside the image width and length.
      */
     public boolean ocrOutOfBound(int x, int y, int w, int h) {
@@ -139,14 +139,10 @@ public class OcrCheck {
         if (w > imageWidth || h > imageLength) {
             return true;
         }
-        
-        if ((x + w) > imageWidth || (y + h) > imageLength) {
-            return true;
-        }
         return false;
     }
     
-    private boolean ocrOutOfBound(Work work, InputStream in) throws UnsupportedEncodingException, IOException {
+    public boolean ocrOutOfBound(Work work, InputStream in) throws UnsupportedEncodingException, IOException {
         if (work instanceof Page) {
             ImageFile image = getImage();            
             InputStream ocrStream = in;
@@ -165,9 +161,13 @@ public class OcrCheck {
             
             try (InputStreamReader isr = new InputStreamReader(new GZIPInputStream(ocrStream), "utf8")) {
                 JsonNode ocr = new ObjectMapper().readTree(isr);
-                ArrayNode paragraphs = (ArrayNode) ocr.get("print").get("ps");
-                if (paragraphs.size() > 0) {
-                    String firstBoundingBox = paragraphs.get(0).get("b").asText();
+                JsonNode element = ocr.get("print").get("ps");
+                if (element == null) {
+                    element = ocr.get("print").get("zs");
+                }
+                ArrayNode ocrTextArry = (ArrayNode) element;
+                if (ocrTextArry.size() > 0) {
+                    String firstBoundingBox = ocrTextArry.get(0).get("b").asText();
                     String[] coOrds = firstBoundingBox.split(",");
                     if (coOrds == null || coOrds.length != 4) {
                         throw new RuntimeException("Invalid bounding box " + firstBoundingBox + " in ocr json for work " + work.getObjId());
@@ -190,7 +190,7 @@ public class OcrCheck {
             if (pages == null || pages.isEmpty()) {
                 return false;
             }
-            return ocrOutOfBound(pages.get(0));
+            return ocrOutOfBound(pages.get(0), in);
         }
     }
 }
