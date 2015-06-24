@@ -165,9 +165,9 @@ public class OcrCheck {
                 if (element == null) {
                     element = ocr.get("print").get("zs");
                 }
-                ArrayNode paragraphs = (ArrayNode) element;
-                if (paragraphs.size() > 0) {
-                    String firstBoundingBox = paragraphs.get(0).get("b").asText();
+                ArrayNode ocrTextArry = (ArrayNode) element;
+                if (ocrTextArry.size() > 0) {
+                    String firstBoundingBox = ocrTextArry.get(0).get("b").asText();
                     String[] coOrds = firstBoundingBox.split(",");
                     if (coOrds == null || coOrds.length != 4) {
                         throw new RuntimeException("Invalid bounding box " + firstBoundingBox + " in ocr json for work " + work.getObjId());
@@ -190,7 +190,7 @@ public class OcrCheck {
             if (pages == null || pages.isEmpty()) {
                 return false;
             }
-            return ocrOutOfBound(pages.get(0),in);
+            return ocrOutOfBound(pages.get(0), in);
         }
     }
 }
