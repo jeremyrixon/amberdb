@@ -1236,13 +1236,18 @@ public interface Work extends Node {
 
         @Override
         public void setHoldingNumberAndId(String holdNumAndId) {
-            List<String> splitted = Lists.newArrayList(Splitter.on("|:|").split(holdNumAndId));
-            if (splitted.size() == 2) {
-                setHoldingNumber(splitted.get(0));
-                setHoldingId(splitted.get(1));
-            }
-            else if (splitted.size() == 1) {
-                setHoldingNumber(splitted.get(0));
+            if (holdNumAndId == null || holdNumAndId.isEmpty()) {
+                setHoldingNumber(null);
+                setHoldingId(null);
+            } else {
+                List<String> splitted = Lists.newArrayList(Splitter.on("|:|").split(holdNumAndId));
+                if (splitted.size() == 2) {
+                    setHoldingNumber(splitted.get(0));
+                    setHoldingId(splitted.get(1));
+                }
+                else if (splitted.size() == 1) {
+                    setHoldingNumber(splitted.get(0));
+                }
             }
         }
         
