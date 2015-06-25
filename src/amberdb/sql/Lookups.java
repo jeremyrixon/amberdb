@@ -235,7 +235,7 @@ public abstract class Lookups extends Tools {
     
     
     @RegisterMapper(Lookups.CarrierAlgorithmMapper.class)
-    @SqlQuery("select distinct linkId, name, carrierId, algorithmId  from carrier_algorithm where name = :name")
+    @SqlQuery("select distinct ca.linkId, ca.name, ca.carrierId, ca.algorithmId from carrier_algorithm ca, lookups l  where ca.name = :name and ca.algorithmId = l.id  order by l.code asc")
     public abstract List<CarrierAlgorithm> findCarrierAlgorithmsByName(@Bind("name") String name);
     
     @RegisterMapper(Lookups.CarrierAlgorithmMapper.class)
@@ -244,7 +244,7 @@ public abstract class Lookups extends Tools {
     
     
     @RegisterMapper(Lookups.ListLuMapper.class)
-    @SqlQuery("select al.id, al.code, al.value, al.name  from carrier_algorithm ca, lookups al, lookups cl  where cl.code = :name and ca.carrierId = cl.id and al.id=ca.algorithmId")
+    @SqlQuery("select al.id, al.code, al.value, al.name, al.deleted from carrier_algorithm ca, lookups al, lookups cl  where cl.code = :name and ca.carrierId = cl.id and al.id=ca.algorithmId")
     public abstract ListLu findAlgorithmByCarrierName(@Bind("name") String name);
     
     @SqlUpdate("INSERT INTO carrier_algorithm (name, carrierId, algorithmId) VALUES"
