@@ -6,7 +6,11 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -16,8 +20,12 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-
 import org.junit.rules.TemporaryFolder;
+
+
+
+
+
 
 
 import com.tinkerpop.blueprints.Vertex;
@@ -239,6 +247,62 @@ public class AmberPropertyQueryTest {
         assertEquals(2, results.size());
         assertTrue(results.remove(v1));
         assertTrue(results.remove(v3));
+    }
+    
+    @Test
+    public void testJsonDuplicateValueQueries() throws Exception {
+
+        Vertex v1 = graph.addVertex(null);
+        v1.setProperty("alias-list", "[\"abba\",\"beta\",\"delta\",\"gama\"]");
+        v1.setProperty("collection", "nla.aus");
+
+        Vertex v2 = graph.addVertex(null);
+        v2.setProperty("alias-list", "[\"babba\",\"beta\",\"delta\",\"gama\"]");
+        v2.setProperty("collection", "nla.aus");
+
+        Vertex v3 = graph.addVertex(null);
+        v3.setProperty("alias-list", "[\"beta\",\"delta\",\"gama\",\"abba\"]");
+        v3.setProperty("collection", "nla.aus");
+
+        graph.commit("tester", "testing duplicates in the json value");
+
+//        AmberVertexQuery avq = graph.newVertexQuery();
+//        List<Vertex> results = avq.executeVericesByNameAndCollectionSearch("alias-list", "nla.aus");
+//        Map<String, Set<Long>> tempMap = new HashMap<String, Set<Long>>();
+//        for(Vertex v :results){
+//           System.out.println(v.getProperty("alias-list"));
+//           String values = v.getProperty("alias-list");
+//           Long id = (Long)v.getId();
+//           values = values.substring(2, values.length() -2);
+//           System.out.println("values = " + values);
+//           String[] vals = values.split("\",\"");
+//           System.out.println("size = " + vals.length);
+//           for(int i = 0; i < vals.length; i++){
+//               System.out.println(vals[i]);
+//               if(tempMap.containsKey(vals[i])){
+//                   Set<Long> existingSet = tempMap.get(vals[i]);
+//                   existingSet.add(id);
+//               }else{
+//                   Set<Long> newSet = new HashSet<Long>();
+//                   newSet.add(id);
+//                   tempMap.put(vals[i], newSet);
+//                   }
+//           }
+//         
+//         
+//        }
+//        System.out.println(tempMap.size());
+//        
+//        for(String key : tempMap.keySet()){
+//            if(tempMap.get(key).size() < 2){
+//                tempMap.remove(key);
+//            }
+//            
+//        }
+
+   //     assertEquals(3, results.size());
+  //      assertTrue(results.remove(v1));
+  //      assertTrue(results.remove(v3));
     }
     
     
