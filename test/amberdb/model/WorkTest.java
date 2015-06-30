@@ -3,17 +3,9 @@ package amberdb.model;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import org.apache.commons.collections.IteratorUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -342,6 +334,46 @@ public class WorkTest {
         for (int i = 0; i < 20; i++) {
             assertEquals(((Page) pages.get(i)).getTitle(), "page "+(19-i));
         }
+    }
+
+    @Test
+    public void testAddDeliveryWork() {
+        Work work = db.addWork();
+
+        Work deliveryWork = db.addWork();
+        work.addDeliveryWork(deliveryWork);
+
+        Collection<Work> list = IteratorUtils.toList(work.getDeliveryWorks().iterator());
+
+        assertFalse(list.isEmpty());
+    }
+
+    @Test
+    public void testRemoveDeliveryWork() {
+        Work work = db.addWork();
+
+        Work deliveryWork = db.addWork();
+        work.addDeliveryWork(deliveryWork);
+
+        Collection<Work> list = IteratorUtils.toList(work.getDeliveryWorks().iterator());
+        assertFalse(list.isEmpty());
+
+        work.removeDeliveryWork(deliveryWork);
+
+        list = IteratorUtils.toList(work.getDeliveryWorks().iterator());
+        assertTrue(list.isEmpty());
+    }
+
+    @Test
+    public void testRetrieveDeliveryWorkInterview() {
+        Work work = db.addWork();
+
+        Work deliveryWork = db.addWork();
+        deliveryWork.setInterview(work);
+        work.addDeliveryWork(deliveryWork);
+
+        assertTrue(deliveryWork.getInterview() != null);
+        assertTrue(deliveryWork.getInterview().equals(work));
     }
     
     private void setTestDataInH2(AmberSession sess) {

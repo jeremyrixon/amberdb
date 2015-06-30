@@ -12,6 +12,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import amberdb.relation.*;
 import amberdb.util.WorkUtils;
 
 import com.google.common.base.Splitter;
@@ -25,10 +26,6 @@ import org.codehaus.jackson.type.TypeReference;
 import amberdb.InvalidSubtypeException;
 import amberdb.enums.CopyRole;
 import amberdb.enums.SubType;
-import amberdb.relation.DescriptionOf;
-import amberdb.relation.IsCopyOf;
-import amberdb.relation.IsPartOf;
-import amberdb.relation.Represents;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberQuery;
 import amberdb.graph.AmberVertex;
@@ -905,7 +902,35 @@ public interface Work extends Node {
     @Property("australianContent")
     public void setAustralianContent(Boolean australianContent);
 
+    @Property("materialFromMultipleSources")
+    public void setMaterialFromMultipleSources(Boolean materialFromMultipleSources);
 
+    @Property("materialFromMultipleSources")
+    public Boolean getMaterialFromMultipleSources();
+
+    @Adjacency(label = ExistsOn.label, direction = Direction.OUT)
+    public Iterable<Work> getDeliveryWorks();
+
+    @Adjacency(label = ExistsOn.label, direction = Direction.OUT)
+    public void addDeliveryWork(Work deliveryWork);
+
+    @Adjacency(label = ExistsOn.label, direction = Direction.OUT)
+    public void removeDeliveryWork(Work deliveryWork);
+
+    @JavaHandler
+    public List<String> getDeliveryWorkIds();
+
+    @JavaHandler
+    public void removeDeliveryWorks();
+
+    @Adjacency(label = ExistsOn.label, direction = Direction.IN)
+    public void setInterview(final Work interview);
+
+    @Adjacency(label = ExistsOn.label, direction = Direction.IN)
+    public Work getInterview();
+
+    @Adjacency(label = ExistsOn.label, direction = Direction.IN)
+    public void removeInterview(final Work interview);
 
     @Adjacency(label = IsPartOf.label)
     public void setParent(final Work parent);
@@ -1312,11 +1337,11 @@ public interface Work extends Node {
         }
 
         public List<Work> getPartsOf(String subType) {
-            return getPartsOf(Arrays.asList(new String[] { subType }));
+            return getPartsOf(Arrays.asList(new String[]{subType}));
         }
 
         public List<Work> getExistsOn(String subType) {
-            return getExistsOn(Arrays.asList(new String[] { subType }));
+            return getExistsOn(Arrays.asList(new String[]{subType}));
         }
 
         @Override
@@ -1567,6 +1592,27 @@ public interface Work extends Node {
                 return work;
             }
             return null;
+        }
+
+        @Override
+        public List<String> getDeliveryWorkIds() {
+            Iterable<Work> deliveryWorks = getDeliveryWorks();
+
+            List<String> ids = new ArrayList<>();
+            for (Work work : deliveryWorks) {
+                ids.add(work.getObjId());
+            }
+
+            return ids;
+        }
+
+        @Override
+        public void removeDeliveryWorks() {
+            Iterable<Work> deliveryWorks = getDeliveryWorks();
+            for (Work dw : deliveryWorks) {
+                dw.removeInterview(this);
+                removeDeliveryWork(dw);
+            }
         }
     }
 }
