@@ -12,8 +12,7 @@ public enum SubType {
     VOLUME("volume"),
     COLLECTION("collection"),
     SERIES("series"),
-    FOLDER("folder"),
-    DELIVERY_WORK("delivery work");
+    FOLDER("folder");
 
     private String code;
 
