@@ -369,11 +369,11 @@ public class WorkTest {
         Work work = db.addWork();
 
         Work deliveryWork = db.addWork();
-        deliveryWork.setInterview(work);
+        deliveryWork.setDeliveryWorkParent(work);
         work.addDeliveryWork(deliveryWork);
 
-        assertTrue(deliveryWork.getInterview() != null);
-        assertTrue(deliveryWork.getInterview().equals(work));
+        assertTrue(deliveryWork.getDeliveryWorkParent() != null);
+        assertTrue(deliveryWork.getDeliveryWorkParent().equals(work));
     }
     
     private void setTestDataInH2(AmberSession sess) {
