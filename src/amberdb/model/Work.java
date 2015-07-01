@@ -924,13 +924,13 @@ public interface Work extends Node {
     public void removeDeliveryWorks();
 
     @Adjacency(label = ExistsOn.label, direction = Direction.IN)
-    public void setInterview(final Work interview);
+    public void setDeliveryWorkParent(final Work interview);
 
     @Adjacency(label = ExistsOn.label, direction = Direction.IN)
-    public Work getInterview();
+    public Work getDeliveryWorkParent();
 
     @Adjacency(label = ExistsOn.label, direction = Direction.IN)
-    public void removeInterview(final Work interview);
+    public void removeDeliveryWorkParent(final Work interview);
 
     @Adjacency(label = IsPartOf.label)
     public void setParent(final Work parent);
@@ -1610,8 +1610,7 @@ public interface Work extends Node {
         public void removeDeliveryWorks() {
             Iterable<Work> deliveryWorks = getDeliveryWorks();
             for (Work dw : deliveryWorks) {
-                dw.removeInterview(this);
-                removeDeliveryWork(dw);
+                dw.removeDeliveryWorkParent(this);
             }
         }
     }
