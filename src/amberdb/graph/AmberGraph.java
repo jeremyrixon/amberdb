@@ -675,11 +675,11 @@ public class AmberGraph extends BaseGraph
     }
     
     
-    public  Map<String, Set<AliasItem>> getItemsByAliases(String name, String collection) {
+    public  Map<String, Set<AliasItem>> getDuplicateAliases(String name, String collection) {
 
       AmberVertexQuery avq = new AmberVertexQuery(this); 
       List<Vertex> results = avq.executeVericesByNameAndCollectionSearch(name, collection);
-      Map<String, Set<AliasItem>> tempMap = new HashMap<String, Set<AliasItem>>();
+      Map<String, Set<AliasItem>> aliasMap = new HashMap<String, Set<AliasItem>>();
       for(Vertex v :results){
          String values = v.getProperty(name);
          if(values != null && values.length() > 3){
@@ -694,16 +694,15 @@ public class AmberGraph extends BaseGraph
              aliasItem.setType(type);
              aliasItem.setTitle(title);
          
-             values = values.substring(2, values.length() -2);
-             String[] vals = values.split("\",\"");
+             String[] vals = values.substring(2, values.length() -2).split("\",\"");
              for(int i = 0; i < vals.length; i++){
-                 if(tempMap.containsKey(vals[i])){
-                     Set<AliasItem> existingSet = tempMap.get(vals[i]);
+                 if(aliasMap.containsKey(vals[i])){
+                     Set<AliasItem> existingSet = aliasMap.get(vals[i]);
                      existingSet.add(aliasItem);
                  }else{
                      Set<AliasItem> newSet = new HashSet<AliasItem>();
                      newSet.add(aliasItem);
-                     tempMap.put(vals[i], newSet);
+                     aliasMap.put(vals[i], newSet);
                  }
              }
          }
@@ -711,17 +710,14 @@ public class AmberGraph extends BaseGraph
        
       }
       
-      int mapSize = tempMap.keySet().toArray().length;
-      Object[] keys = (Object[])tempMap.keySet().toArray();
+      Object[] keys = (Object[])aliasMap.keySet().toArray();
       for(Object key :keys){
-//      for(int i = 0; i < mapSize; i++){  
-//          String key = (String)tempMap.keySet().toArray()[i];
-          if(tempMap.get(key).size() < 2){
-              tempMap.remove(key);
+          if(aliasMap.get(key).size() < 2){
+              aliasMap.remove(key);
           }
       }
       
-      return tempMap;
+      return aliasMap;
     }
     
      

@@ -276,12 +276,16 @@ public class AmberPropertyQueryTest {
 
         graph.commit("tester", "testing duplicates in the json value");
 
-        Map<String, Set<AliasItem>> aliasMap = graph.getItemsByAliases("alias-list", "nla.aus");
-        System.out.println(aliasMap.size());
+        Map<String, Set<AliasItem>> aliasMap = graph.getDuplicateAliases("alias-list", "nla.aus");
+    
+        assertEquals(4, aliasMap.size());
+        assertEquals(3, aliasMap.get("beta").size());
+        assertEquals(3, aliasMap.get("delta").size());
+        assertEquals(3, aliasMap.get("gama").size());
+        assertEquals(2, aliasMap.get("abba").size());
+        assertEquals(null,aliasMap.get("babba"));
+        assertEquals(null,aliasMap.get("baraba"));
 
-   //     assertEquals(3, results.size());
-  //      assertTrue(results.remove(v1));
-  //      assertTrue(results.remove(v3));
     }
     
     
