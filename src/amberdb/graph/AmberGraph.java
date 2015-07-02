@@ -689,35 +689,43 @@ public class AmberGraph extends BaseGraph
              type = type == null ? "":type;
              String title =  v.getProperty("title");
              title = title == null ? "":title;
-             AliasItem aliasItem = new AliasItem();
-             aliasItem.setPi(pi);
-             aliasItem.setType(type);
-             aliasItem.setTitle(title);
+             AliasItem aliasItem = new AliasItem(pi, type, title);
+             
          
              String[] vals = values.substring(2, values.length() -2).split("\",\"");
-             for(int i = 0; i < vals.length; i++){
-                 if(aliasMap.containsKey(vals[i])){
-                     Set<AliasItem> existingSet = aliasMap.get(vals[i]);
-                     existingSet.add(aliasItem);
-                 }else{
-                     Set<AliasItem> newSet = new HashSet<AliasItem>();
-                     newSet.add(aliasItem);
-                     aliasMap.put(vals[i], newSet);
-                 }
-             }
+             addToAliasMap(aliasMap, aliasItem, vals);
          }
-       
-       
+  
       }
       
-      Object[] keys = (Object[])aliasMap.keySet().toArray();
-      for(Object key :keys){
-          if(aliasMap.get(key).size() < 2){
-              aliasMap.remove(key);
-          }
-      }
+      removeSingleAliases(aliasMap);
       
       return aliasMap;
+    }
+
+
+    private void addToAliasMap(Map<String, Set<AliasItem>> aliasMap,
+            AliasItem aliasItem, String[] vals) {
+        for(int i = 0; i < vals.length; i++){
+             if(aliasMap.containsKey(vals[i])){
+                 Set<AliasItem> existingSet = aliasMap.get(vals[i]);
+                 existingSet.add(aliasItem);
+             }else{
+                 Set<AliasItem> newSet = new HashSet<AliasItem>();
+                 newSet.add(aliasItem);
+                 aliasMap.put(vals[i], newSet);
+             }
+         }
+    }
+
+
+    private void removeSingleAliases(Map<String, Set<AliasItem>> aliasMap) {
+        Object[] keys = (Object[])aliasMap.keySet().toArray();
+          for(Object key :keys){
+              if(aliasMap.get(key).size() < 2){
+                  aliasMap.remove(key);
+              }
+          }
     }
     
      
