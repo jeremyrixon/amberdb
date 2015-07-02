@@ -932,6 +932,15 @@ public interface Work extends Node {
     @Adjacency(label = ExistsOn.label, direction = Direction.IN)
     public void removeDeliveryWorkParent(final Work interview);
 
+    @Incidence(label = ExistsOn.label, direction = Direction.IN)
+    public Iterable<ExistsOn> getDeliveryWorkParentEdges();
+
+    @JavaHandler
+    public ExistsOn getDeliveryWorkParentEdge();
+
+    @JavaHandler
+    public void setDeliveryWorkOrder(int position);
+
     @Adjacency(label = IsPartOf.label)
     public void setParent(final Work parent);
 
@@ -1612,6 +1621,17 @@ public interface Work extends Node {
             for (Work dw : deliveryWorks) {
                 dw.removeDeliveryWorkParent(this);
             }
+        }
+
+        @Override
+        public void setDeliveryWorkOrder(int position) {
+            getDeliveryWorkParentEdge().setRelOrder(position);
+        }
+
+        @Override
+        public ExistsOn getDeliveryWorkParentEdge() {
+            Iterator<ExistsOn> iterator = getDeliveryWorkParentEdges().iterator();
+            return (iterator != null && iterator.hasNext()) ? iterator.next() : null;
         }
     }
 }
