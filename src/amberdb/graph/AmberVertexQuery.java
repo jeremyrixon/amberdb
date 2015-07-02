@@ -214,4 +214,5 @@ public class AmberVertexQuery extends AmberQueryBase {
         }
         return vertices;
     }
+
 }
