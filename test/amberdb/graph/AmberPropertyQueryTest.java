@@ -28,6 +28,10 @@ import org.junit.rules.TemporaryFolder;
 
 
 
+
+
+import amberdb.model.AliasItem;
+
 import com.tinkerpop.blueprints.Vertex;
 
 
@@ -255,50 +259,25 @@ public class AmberPropertyQueryTest {
         Vertex v1 = graph.addVertex(null);
         v1.setProperty("alias-list", "[\"abba\",\"beta\",\"delta\",\"gama\"]");
         v1.setProperty("collection", "nla.aus");
+        v1.setProperty("type", "Work");
+        v1.setProperty("title", "title1");
 
         Vertex v2 = graph.addVertex(null);
-        v2.setProperty("alias-list", "[\"babba\",\"beta\",\"delta\",\"gama\"]");
+        v2.setProperty("alias-list", "[\"babba\",\"beta\",\"baraba\",\"delta\",\"gama\"]");
         v2.setProperty("collection", "nla.aus");
+        v2.setProperty("type", "Work");
+        v2.setProperty("title", "title2");
 
         Vertex v3 = graph.addVertex(null);
         v3.setProperty("alias-list", "[\"beta\",\"delta\",\"gama\",\"abba\"]");
         v3.setProperty("collection", "nla.aus");
+        v3.setProperty("type", "Copy");
+        v3.setProperty("title", "title3");
 
         graph.commit("tester", "testing duplicates in the json value");
 
-//        AmberVertexQuery avq = graph.newVertexQuery();
-//        List<Vertex> results = avq.executeVericesByNameAndCollectionSearch("alias-list", "nla.aus");
-//        Map<String, Set<Long>> tempMap = new HashMap<String, Set<Long>>();
-//        for(Vertex v :results){
-//           System.out.println(v.getProperty("alias-list"));
-//           String values = v.getProperty("alias-list");
-//           Long id = (Long)v.getId();
-//           values = values.substring(2, values.length() -2);
-//           System.out.println("values = " + values);
-//           String[] vals = values.split("\",\"");
-//           System.out.println("size = " + vals.length);
-//           for(int i = 0; i < vals.length; i++){
-//               System.out.println(vals[i]);
-//               if(tempMap.containsKey(vals[i])){
-//                   Set<Long> existingSet = tempMap.get(vals[i]);
-//                   existingSet.add(id);
-//               }else{
-//                   Set<Long> newSet = new HashSet<Long>();
-//                   newSet.add(id);
-//                   tempMap.put(vals[i], newSet);
-//                   }
-//           }
-//         
-//         
-//        }
-//        System.out.println(tempMap.size());
-//        
-//        for(String key : tempMap.keySet()){
-//            if(tempMap.get(key).size() < 2){
-//                tempMap.remove(key);
-//            }
-//            
-//        }
+        Map<String, Set<AliasItem>> aliasMap = graph.getItemsByAliases("alias-list", "nla.aus");
+        System.out.println(aliasMap.size());
 
    //     assertEquals(3, results.size());
   //      assertTrue(results.remove(v1));

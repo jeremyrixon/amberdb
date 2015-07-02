@@ -226,13 +226,20 @@ public class AmberVertexQuery extends AmberQueryBase {
                     + "SELECT DISTINCT p.id \n"
                     + "FROM property p \n"
                     + ", property cp \n"
+                    + ", property tp \n"
                     + "WHERE p.txn_end = 0" 
                     + " AND cp.txn_end = 0 "
                     + " AND cp.id = p.id "
+                    + " AND tp.id = p.id "
+                    + " AND tp.name= :typeName "
+                    + " AND (tp.value = :type1 or  tp.value = :type2)"
                     + " AND cp.name = :collection"
                     + " AND p.name = :name "
                     + " AND cp.value = :value");
             q.bind("name", name);
+            q.bind("typeName", "type");
+            q.bind("type1", AmberProperty.encode("Work"));
+            q.bind("type2", AmberProperty.encode("Copy"));
             q.bind("collection", "collection");
             q.bind("value", AmberProperty.encode(collectionName));
             q.execute();

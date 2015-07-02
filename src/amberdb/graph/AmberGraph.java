@@ -20,9 +20,11 @@ import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 
+import amberdb.PIUtil;
 import amberdb.graph.dao.AmberDao;
 import amberdb.graph.dao.AmberDaoH2;
 import amberdb.graph.dao.AmberDaoMySql;
+import amberdb.model.AliasItem;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -671,6 +673,58 @@ public class AmberGraph extends BaseGraph
         }
         return vertices;        
     }
+    
+    
+    public  Map<String, Set<AliasItem>> getItemsByAliases(String name, String collection) {
+
+      AmberVertexQuery avq = new AmberVertexQuery(this); 
+      List<Vertex> results = avq.executeVericesByNameAndCollectionSearch(name, collection);
+      Map<String, Set<AliasItem>> tempMap = new HashMap<String, Set<AliasItem>>();
+      for(Vertex v :results){
+         String values = v.getProperty(name);
+         if(values != null && values.length() > 3){
+             Long id = (Long)v.getId();
+             String pi = PIUtil.format(id);
+             String type = v.getProperty("type");
+             type = type == null ? "":type;
+             String title =  v.getProperty("title");
+             title = title == null ? "":title;
+             AliasItem aliasItem = new AliasItem();
+             aliasItem.setPi(pi);
+             aliasItem.setType(type);
+             aliasItem.setTitle(title);
+         
+             values = values.substring(2, values.length() -2);
+             String[] vals = values.split("\",\"");
+             for(int i = 0; i < vals.length; i++){
+                 if(tempMap.containsKey(vals[i])){
+                     Set<AliasItem> existingSet = tempMap.get(vals[i]);
+                     existingSet.add(aliasItem);
+                 }else{
+                     Set<AliasItem> newSet = new HashSet<AliasItem>();
+                     newSet.add(aliasItem);
+                     tempMap.put(vals[i], newSet);
+                 }
+             }
+         }
+       
+       
+      }
+      
+      int mapSize = tempMap.keySet().toArray().length;
+      Object[] keys = (Object[])tempMap.keySet().toArray();
+      for(Object key :keys){
+//      for(int i = 0; i < mapSize; i++){  
+//          String key = (String)tempMap.keySet().toArray()[i];
+          if(tempMap.get(key).size() < 2){
+              tempMap.remove(key);
+          }
+      }
+      
+      return tempMap;
+    }
+    
+     
     
     
 
