@@ -20,11 +20,9 @@ import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 
-import amberdb.PIUtil;
 import amberdb.graph.dao.AmberDao;
 import amberdb.graph.dao.AmberDaoH2;
 import amberdb.graph.dao.AmberDaoMySql;
-import amberdb.model.AliasItem;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -672,65 +670,7 @@ public class AmberGraph extends BaseGraph
             }
         }
         return vertices;        
-    }
-    
-    
-    public  Map<String, Set<AliasItem>> getDuplicateAliases(String name, String collection) {
-
-      AmberVertexQuery avq = new AmberVertexQuery(this); 
-      List<Vertex> results = avq.executeVericesByNameAndCollectionSearch(name, collection);
-      Map<String, Set<AliasItem>> aliasMap = new HashMap<String, Set<AliasItem>>();
-      for(Vertex v :results){
-         String values = v.getProperty(name);
-         if(values != null && values.length() > 3){
-             Long id = (Long)v.getId();
-             String pi = PIUtil.format(id);
-             String type = v.getProperty("type");
-             type = type == null ? "":type;
-             String title =  v.getProperty("title");
-             title = title == null ? "":title;
-             AliasItem aliasItem = new AliasItem(pi, type, title);
-             
-         
-             String[] vals = values.substring(2, values.length() -2).split("\",\"");
-             addToAliasMap(aliasMap, aliasItem, vals);
-         }
-  
-      }
-      
-      removeSingleAliases(aliasMap);
-      
-      return aliasMap;
-    }
-
-
-    private void addToAliasMap(Map<String, Set<AliasItem>> aliasMap,
-            AliasItem aliasItem, String[] vals) {
-        for(int i = 0; i < vals.length; i++){
-             if(aliasMap.containsKey(vals[i])){
-                 Set<AliasItem> existingSet = aliasMap.get(vals[i]);
-                 existingSet.add(aliasItem);
-             }else{
-                 Set<AliasItem> newSet = new HashSet<AliasItem>();
-                 newSet.add(aliasItem);
-                 aliasMap.put(vals[i], newSet);
-             }
-         }
-    }
-
-
-    private void removeSingleAliases(Map<String, Set<AliasItem>> aliasMap) {
-        Object[] keys = (Object[])aliasMap.keySet().toArray();
-          for(Object key :keys){
-              if(aliasMap.get(key).size() < 2){
-                  aliasMap.remove(key);
-              }
-          }
-    }
-    
-     
-    
-    
+    }    
 
     
     /**
@@ -869,6 +809,14 @@ public class AmberGraph extends BaseGraph
                 }
             }
         }
+    }
+
+    public String getTempTableDrop() {
+        return tempTableDrop;
+    }
+
+    public String getTempTableEngine() {
+        return tempTableEngine;
     }
 }
 

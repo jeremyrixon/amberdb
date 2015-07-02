@@ -22,16 +22,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-
-
-
-
-
-
-
-
-import amberdb.model.AliasItem;
-
 import com.tinkerpop.blueprints.Vertex;
 
 
@@ -252,43 +242,8 @@ public class AmberPropertyQueryTest {
         assertTrue(results.remove(v1));
         assertTrue(results.remove(v3));
     }
-    
-    @Test
-    public void testJsonDuplicateValueQueries() throws Exception {
 
-        Vertex v1 = graph.addVertex(null);
-        v1.setProperty("alias-list", "[\"abba\",\"beta\",\"delta\",\"gama\"]");
-        v1.setProperty("collection", "nla.aus");
-        v1.setProperty("type", "Work");
-        v1.setProperty("title", "title1");
 
-        Vertex v2 = graph.addVertex(null);
-        v2.setProperty("alias-list", "[\"babba\",\"beta\",\"baraba\",\"delta\",\"gama\"]");
-        v2.setProperty("collection", "nla.aus");
-        v2.setProperty("type", "Work");
-        v2.setProperty("title", "title2");
-
-        Vertex v3 = graph.addVertex(null);
-        v3.setProperty("alias-list", "[\"beta\",\"delta\",\"gama\",\"abba\"]");
-        v3.setProperty("collection", "nla.aus");
-        v3.setProperty("type", "Copy");
-        v3.setProperty("title", "title3");
-
-        graph.commit("tester", "testing duplicates in the json value");
-
-        Map<String, Set<AliasItem>> aliasMap = graph.getDuplicateAliases("alias-list", "nla.aus");
-    
-        assertEquals(4, aliasMap.size());
-        assertEquals(3, aliasMap.get("beta").size());
-        assertEquals(3, aliasMap.get("delta").size());
-        assertEquals(3, aliasMap.get("gama").size());
-        assertEquals(2, aliasMap.get("abba").size());
-        assertEquals(null,aliasMap.get("babba"));
-        assertEquals(null,aliasMap.get("baraba"));
-
-    }
-    
-    
     void s(String s) {
         System.out.println(s);
     }
