@@ -13,8 +13,6 @@ public class AliasItem {
         this.pi = pi;
         this.type = type;
         this.title = title;
-        
-        
     }
     
     public String getPi() {

@@ -22,8 +22,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import amberdb.model.AliasItem;
-
 import com.tinkerpop.blueprints.Vertex;
 
 
@@ -244,7 +242,8 @@ public class AmberPropertyQueryTest {
         assertTrue(results.remove(v1));
         assertTrue(results.remove(v3));
     }
-        
+
+
     void s(String s) {
         System.out.println(s);
     }
