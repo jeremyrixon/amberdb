@@ -215,20 +215,21 @@ public class AmberVertexQuery extends AmberQueryBase {
         return vertices;
     }
     
-    public List<Vertex> executeVericesByNameAndCollectionSearch(String name, String collectionName) {
+    public List<Vertex> executeVerticesByNameAndCollectionSearch(String name, String collectionName) {
 
         List<Vertex> vertices;
         try (Handle h = graph.dbi().open()) {
             h.begin();
-            h.execute("DROP " + graph.tempTableDrop + " TABLE IF EXISTS vp; CREATE TEMPORARY TABLE vp (id BIGINT) " + graph.tempTableEngine + ";");
+            h.execute("DROP " + graph.tempTableDrop + " TABLE IF EXISTS da; CREATE TEMPORARY TABLE da (id BIGINT) " + graph.tempTableEngine + ";");
             Update q = h.createStatement(
-                    "INSERT INTO vp (id) \n"
-                    + "SELECT DISTINCT p.id \n"
-                    + "FROM property p \n"
-                    + ", property cp \n"
-                    + ", property tp \n"
-                    + "WHERE p.txn_end = 0" 
+                    "INSERT INTO da (id) "
+                    + "SELECT DISTINCT p.id "
+                    + "FROM property p "
+                    + ", property cp "
+                    + ", property tp "
+                    + "WHERE p.txn_end = 0 " 
                     + " AND cp.txn_end = 0 "
+                    + " AND tp.txn_end = 0 "
                     + " AND cp.id = p.id "
                     + " AND tp.id = p.id "
                     + " AND tp.name= :typeName "
@@ -244,10 +245,8 @@ public class AmberVertexQuery extends AmberQueryBase {
             q.bind("value", AmberProperty.encode(collectionName));
             q.execute();
             h.commit();
-
-            // and reap the rewards
-            Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h, "vp", "id");
-            vertices = getVertices(h, graph, propMaps, "vp", "id", "id");
+            Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h, "da", "id");
+            vertices = getVertices(h, graph, propMaps, "da", "id", "id");
         }
         return vertices;
     }

@@ -837,7 +837,4 @@ public class AmberSession implements AutoCloseable {
         return loadMultiLevelWorks(ids.toArray(new Long[ids.size()]));
     }
     
-    
-    
-    
 }
