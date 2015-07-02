@@ -6,8 +6,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -31,6 +33,7 @@ import amberdb.model.Section;
 import amberdb.model.SoundFile;
 import amberdb.model.Tag;
 import amberdb.model.Work;
+import amberdb.model.AliasItem;
 import amberdb.sql.CarrierAlgorithm;
 import amberdb.sql.ListLu;
 import amberdb.sql.Lookups;
@@ -40,6 +43,7 @@ import amberdb.graph.AmberHistory;
 import amberdb.graph.AmberMultipartQuery;
 import amberdb.graph.AmberMultipartQuery.QueryClause;
 import amberdb.graph.AmberTransaction;
+import amberdb.query.ObjectsWithPropertyInCollectionQuery;
 import static amberdb.graph.BranchType.*;
 
 import com.google.common.collect.Lists;
@@ -838,6 +842,52 @@ public class AmberSession implements AutoCloseable {
     }
     
     
+    public Map<String, Set<AliasItem>> getDuplicateAliases(String name, String collection) {
+
+        ObjectsWithPropertyInCollectionQuery avq = new ObjectsWithPropertyInCollectionQuery(getAmberGraph());
+        List<Vertex> results = avq.execute(name, collection);
+        Map<String, Set<AliasItem>> aliasMap = new HashMap<String, Set<AliasItem>>();
+        for (Vertex v :results) {
+            String values = v.getProperty(name);
+            if (values != null && values.length() > 3) {
+                Long id = (Long)v.getId();
+                String pi = PIUtil.format(id);
+                String type = v.getProperty("type");
+                type = type == null ? "":type;
+                String title =  v.getProperty("title");
+                title = title == null ? "":title;
+                AliasItem aliasItem = new AliasItem(pi, type, title);
+                
+                String[] vals = values.substring(2, values.length() -2).split("\",\"");
+                addToAliasMap(aliasMap, aliasItem, vals);
+            }
+        }
+        removeSingleAliases(aliasMap);
+        return aliasMap;
+    }
     
     
+    private void addToAliasMap(Map<String, Set<AliasItem>> aliasMap,
+                               AliasItem aliasItem, String[] vals) {
+        for (int i = 0; i < vals.length; i++) {
+            if (aliasMap.containsKey(vals[i])) {
+                Set<AliasItem> existingSet = aliasMap.get(vals[i]);
+                existingSet.add(aliasItem);
+            } else {
+                Set<AliasItem> newSet = new HashSet<AliasItem>();
+                newSet.add(aliasItem);
+                aliasMap.put(vals[i], newSet);
+            }
+        }
+    }
+    
+    
+    private void removeSingleAliases(Map<String, Set<AliasItem>> aliasMap) {
+        Object[] keys = (Object[])aliasMap.keySet().toArray();
+        for (Object key :keys) {
+            if (aliasMap.get(key).size() < 2){
+                aliasMap.remove(key);
+            }
+        }
+    }
 }
