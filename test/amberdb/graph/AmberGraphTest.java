@@ -28,7 +28,6 @@ public class AmberGraphTest extends com.tinkerpop.blueprints.impls.GraphTest {
         
         System.out.println("Setting up graph");
 
-        DataSource sessionDs = JdbcConnectionPool.create("jdbc:h2:mem:","sess","sess");
         DataSource persistentDs = JdbcConnectionPool.create("jdbc:h2:mem:","persist","persist");
         
         graph = new AmberGraph(persistentDs);

@@ -51,7 +51,7 @@ public class AmberQueryBase {
 
         List<Vertex> vertices = new ArrayList<>();
         List<AmberVertexWithState> wrappedVertices = h.createQuery(String.format(
-                "SELECT DISTINCT v.id, v.txn_start, v.txn_end, 'AMB' state "
+                "SELECT DISTINCT v.id, v.txn_start, v.txn_end, 'AMB' state, %1$s.%3$s ord "
                 + "FROM vertex v, %1$s "
                 + "WHERE v.id = %1$s.%2$s "
                 + "AND v.txn_end = 0 "
