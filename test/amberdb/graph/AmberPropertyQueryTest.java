@@ -6,7 +6,11 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -16,9 +20,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-
 import org.junit.rules.TemporaryFolder;
-
 
 import com.tinkerpop.blueprints.Vertex;
 
@@ -240,8 +242,8 @@ public class AmberPropertyQueryTest {
         assertTrue(results.remove(v1));
         assertTrue(results.remove(v3));
     }
-    
-    
+
+
     void s(String s) {
         System.out.println(s);
     }

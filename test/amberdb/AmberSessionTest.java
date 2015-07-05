@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
@@ -31,7 +32,10 @@ import amberdb.graph.AmberGraph;
 import amberdb.model.Copy;
 import amberdb.model.Page;
 import amberdb.model.Work;
+import amberdb.model.AliasItem;
 import amberdb.AmberSession;
+
+import amberdb.query.ObjectsWithPropertyInCollectionQuery;
 
 public class AmberSessionTest {
 
@@ -353,5 +357,41 @@ public class AmberSessionTest {
         
         works = sess.findModelByValue("dcmDateTimeCreated", d1, Work.class);
         assertEquals(2, works.size());
+    }
+
+    @Test
+    public void testJsonDuplicateValueQueries() throws Exception {
+
+        AmberGraph graph = sess.getAmberGraph();
+        
+        Vertex v1 = graph.addVertex(null);
+        v1.setProperty("alias-list", "[\"abba\",\"beta\",\"delta\",\"gama\"]");
+        v1.setProperty("collection", "nla.aus");
+        v1.setProperty("type", "Work");
+        v1.setProperty("title", "title1");
+        
+        Vertex v2 = graph.addVertex(null);
+        v2.setProperty("alias-list", "[\"babba\",\"beta\",\"baraba\",\"delta\",\"gama\"]");
+        v2.setProperty("collection", "nla.aus");
+        v2.setProperty("type", "Work");
+        v2.setProperty("title", "title2");
+        
+        Vertex v3 = graph.addVertex(null);
+        v3.setProperty("alias-list", "[\"beta\",\"delta\",\"gama\",\"abba\"]");
+        v3.setProperty("collection", "nla.aus");
+        v3.setProperty("type", "Copy");
+        v3.setProperty("title", "title3");
+        
+        graph.commit("tester", "testing duplicates in the json value");
+        
+        Map<String, Set<AliasItem>> aliasMap = sess.getDuplicateAliases("alias-list", "nla.aus");
+        
+        assertEquals(4, aliasMap.size());
+        assertEquals(3, aliasMap.get("beta").size());
+        assertEquals(3, aliasMap.get("delta").size());
+        assertEquals(3, aliasMap.get("gama").size());
+        assertEquals(2, aliasMap.get("abba").size());
+        assertEquals(null,aliasMap.get("babba"));
+        assertEquals(null,aliasMap.get("baraba"));
     }
 }

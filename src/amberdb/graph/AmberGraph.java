@@ -670,9 +670,7 @@ public class AmberGraph extends BaseGraph
             }
         }
         return vertices;        
-    }
-    
-    
+    }    
 
     
     /**
@@ -811,6 +809,14 @@ public class AmberGraph extends BaseGraph
                 }
             }
         }
+    }
+
+    public String getTempTableDrop() {
+        return tempTableDrop;
+    }
+
+    public String getTempTableEngine() {
+        return tempTableEngine;
     }
 }
 
