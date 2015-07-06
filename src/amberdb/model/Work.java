@@ -25,6 +25,7 @@ import org.codehaus.jackson.type.TypeReference;
 
 import amberdb.InvalidSubtypeException;
 import amberdb.enums.CopyRole;
+import amberdb.enums.CopyType;
 import amberdb.enums.SubType;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberQuery;
@@ -1139,7 +1140,6 @@ public interface Work extends Node {
     @JavaHandler
     public void orderParts(List<Work> parts);
 
-
     /**
      *
      * Returns the work that contains the access copy to be used for this work's representative image.
@@ -1150,11 +1150,16 @@ public interface Work extends Node {
      */
     @JavaHandler
     public Work getRepresentativeImageWork();
-
     
     @JavaHandler
     public List<String> getJsonList(String propertyName) throws JsonParseException, JsonMappingException, IOException;
     
+    @JavaHandler
+    public boolean hasBornDigitalCopy();
+
+    @JavaHandler
+    public boolean hasMasterCopy();
+
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {
         static ObjectMapper mapper = new ObjectMapper();
 
@@ -1632,6 +1637,17 @@ public interface Work extends Node {
         public ExistsOn getDeliveryWorkParentEdge() {
             Iterator<ExistsOn> iterator = getDeliveryWorkParentEdges().iterator();
             return (iterator != null && iterator.hasNext()) ? iterator.next() : null;
+        }
+
+        @Override
+        public boolean hasBornDigitalCopy() {
+            Copy origCopy = getCopy(CopyRole.ORIGINAL_COPY);
+            return (origCopy != null) && CopyType.BORN_DIGITAL.code().equals(origCopy.getCopyType());
+        }
+
+        @Override
+        public boolean hasMasterCopy() {
+            return getCopy(CopyRole.MASTER_COPY) != null;
         }
     }
 }
