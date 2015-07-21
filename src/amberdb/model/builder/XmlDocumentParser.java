@@ -198,14 +198,14 @@ public abstract class XmlDocumentParser {
     protected String getQualifiedXPath(String xpath) {
         String qualifiedXPath = xpath.replace("//", "");
         
-        if (queryAttribute(xpath)) {
+        if (isAttributeQuery(xpath)) {
             String attribute = qualifiedXPath.substring(qualifiedXPath.indexOf('@'));
             qualifiedXPath = qualifiedXPath.replace("/" + attribute, "");
         }
         return qualifiedXPath;
     }
     
-    protected boolean queryAttribute(String xpath) {
+    protected boolean isAttributeQuery(String xpath) {
         return xpath.contains("@");
     }
     
