@@ -41,25 +41,6 @@ public class ComponentBuilder {
     static final ObjectMapper mapper = new ObjectMapper();     
     
     /**
-     * mergeComponents merges multiple components directly under the parentWork.
-     * @param collectionWork
-     * @param parentWork
-     * @param components
-     * @return
-     * @throws IOException 
-     * @throws JsonMappingException 
-     * @throws JsonParseException 
-     */
-    public static Set<EADWork> mergeComponents(EADWork collectionWork, EADWork parentWork, JsonNode... components) throws IOException {
-        Set<EADWork> componentWorks = Collections.synchronizedSet(new HashSet<EADWork>(components.length));
-        for (JsonNode component : components) {
-            componentWorks.add(mergeComponent(collectionWork, parentWork, component));
-        }
-
-        return componentWorks;
-    }
-    
-    /**
      * mergeComponent checks the component for the type of merge required in order to carry out the merge:
      *  - NEW_COMP, a new component to be added to the collection.
      *  - UPDATED_COMP_DATA, an existing component in the collection with its metadata required to be updated.

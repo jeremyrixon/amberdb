@@ -29,19 +29,15 @@ public abstract class XmlDocumentParser {
     public static final String CFG_ENTITY_ELEMENTS = "index";          // tag for e.g. correspondence index
     public static final String CFG_BASE = "base";                      // base cfg tag, use for base path of an repeatable element type
     public static final String CFG_REPEATABLE_ELEMENTS = "repeatable-element"; // cfg tag to specify how to identify repeatable elements.
-    public static final String CFG_ATTRIBUTE_PREFIX = "@";
-    public static final String CFG_ATTRIBUTE_UUID = "uuid";
     public static final String CFG_EXCLUDE_ELEMENTS = "excludes";
     public static final String CFG_VALIDATE_XML = "validateXML";
-    public static final String CFG_STORE_COPY = "storeCopy";
-    
+
     static final Logger log = LoggerFactory.getLogger(XmlDocumentParser.class);
     protected static final ObjectMapper mapper = new ObjectMapper();
     protected String collectionObjId;
     protected JsonNode parsingCfg;
     protected Set<String> filters;
     protected boolean validateXML;
-    protected boolean storeCopy;
     protected Builder builder;
     protected Document doc;
     protected XPathContext xc;
@@ -52,7 +48,6 @@ public abstract class XmlDocumentParser {
         this.collectionObjId = collectionObjId;
         this.parsingCfg = parsingCfg;
         this.validateXML = validateXML();
-        this.storeCopy = storeCopy();
         filters = parseFiltersCfg();
         setInputStream(in);
     }
@@ -95,17 +90,6 @@ public abstract class XmlDocumentParser {
             || validateXMLCfg.equalsIgnoreCase("y") || validateXMLCfg.equalsIgnoreCase("true"))) {
             return true;
         }
-        return false;
-    }
-    
-    public boolean storeCopy() {
-        if (parsingCfg == null) 
-            throw new RuntimeException("Missing document parsing configuration, including the validateXML(Yes/No) setting.");
-        
-        String storeCopyCfg = parsingCfg.get(CFG_COLLECTION_ELEMENT).get(CFG_STORE_COPY).getTextValue();
-        if (storeCopyCfg != null && (storeCopyCfg.equalsIgnoreCase("yes") 
-                || storeCopyCfg.equalsIgnoreCase("y") || storeCopyCfg.equalsIgnoreCase("true")))
-                        return true;
         return false;
     }
     

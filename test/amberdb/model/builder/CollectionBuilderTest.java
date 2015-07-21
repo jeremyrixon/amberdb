@@ -153,55 +153,23 @@ public class CollectionBuilderTest {
     }
     
     @Test
-    public void testExtractFirstEADComponent() throws IOException, ValidityException, ParsingException {
-        try (AmberSession as = db.begin()) {
-            Work collectionWork = as.findWork(collectionWorkId);
-            Work componentWork = collectionWork.asEADWork().addEADWork();
-            XmlDocumentParser parser = CollectionBuilder.getDefaultXmlDocumentParser();
-            Path testEADPath = Paths.get("test/resources/6442.xml");
-            InputStream eadData = new FileInputStream(testEADPath.toFile());
-            JsonNode parserCfg = CollectionBuilder.getDefaultCollectionCfg();
-            ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("validateXML", "no");
-            ((ObjectNode) parserCfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT)).put("storeCopy", "yes");
-            parser.init(collectionWorkId, eadData, parserCfg);
-            Elements components = ((Element) parser.getElementsByXPath(parser.doc, "//ead:ead/ead:archdesc/ead:dsc").get(0)).getChildElements();
-            Element component = null;
-            for (int i = 0; i < components.size(); i++) {
-                log("component name is " + components.get(i).getLocalName());
-                if (components.get(i).getLocalName().toUpperCase().startsWith("C")) {
-                    component = components.get(i);
-                    break;
-                }
-            }
-            if (component != null) {
-                String asId = component.getAttributeValue("id");
-                String componentEAD = CollectionBuilder.extractEADComponent(collectionWork, asId, componentWork, component, parser);
-                assertTrue(componentEAD != null && !componentEAD.isEmpty());
-            }
-        }
-    }
-    
-    @Test
     public void testGetDefaultCollectionCfg() throws JsonGenerationException, JsonMappingException, IOException {
         // Verify the default collection configuration contains the expected configuration entries.
         JsonNode cfg = CollectionBuilder.getDefaultCollectionCfg();
         assertNotNull(cfg);
         assertNotNull(cfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT));
         assertNotNull(cfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT).get(XmlDocumentParser.CFG_VALIDATE_XML));
-        assertNotNull(cfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT).get(XmlDocumentParser.CFG_STORE_COPY));
         assertNotNull(cfg.get(XmlDocumentParser.CFG_COLLECTION_ELEMENT).get(XmlDocumentParser.CFG_SUB_ELEMENTS));
         
         XmlDocumentParser parser = CollectionBuilder.getDefaultXmlDocumentParser();
         // Verify that the standard parsing configuration have validateXML and storeCopy set as true.
         parser.parsingCfg = cfg;
         assertFalse(parser.validateXML());
-        assertTrue(parser.storeCopy());
-        
+
         // Verify that the parsing configuration (collectCfg) used for other tests in this unit test class has
         // validateXML and storeCopy set as false.
         parser.parsingCfg = collectCfg;
         assertFalse(parser.validateXML());
-        assertFalse(parser.storeCopy());
     }
     
     @Test

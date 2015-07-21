@@ -23,7 +23,6 @@ public enum CopyRole {
     FINDING_AID_COPY("fa", "Finding aid"),
     FINDING_AID_PRINT_COPY("fap", "Finding aid print"),
     FINDING_AID_VIEW_COPY("fav", "Finding aid view"),
-    FINDING_AID_FILTERED_COPY("faf", "Finding aid filtered"),
     MICROFORM_COPY("mf", "Microform"),
     SPECIAL_DELIVERY_COPY("sd", "Special delivery"),
     RELATED_METADATA_COPY("rm", "Related metadata"),
