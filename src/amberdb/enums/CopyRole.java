@@ -9,7 +9,7 @@ import java.util.List;
  * CopyRole ENUM that provides a code and label for display.
  */
 public enum CopyRole {
-    
+
     ACCESS_COPY("ac", "Access"), 
     MASTER_COPY("m", "Master"), 
     DERIVATIVE_MASTER_COPY("dm", "Derivative master"),
@@ -47,27 +47,32 @@ public enum CopyRole {
     WORKING_COPY("w", "Working"),
     EDITED_COPY("ed", "Edited"),
     FILTERED_COPY("fc", "Filtered"),
-    PAPER_SUMMARY("sp", "Paper Summary"),
-    PAPER_TRANSCRIPT("tp", "Paper transcript"),
-    ELECTRONIC_SUMMARY("se", "Electronic Summary"),
-    ELECTRONIC_TRANSCRIPT("te", "Electronic transcript"),
-    TIME_CODED_SUMMARY("sc", "Time coded Summary"),
-    TIME_CODED_TRANSCRIPT_COPY("tc", "Time coded transcript"),
-    SUMMARY_COPY("s", "Other Summary"),
-    RTF_TRANSCRIPT("tt", "rtf transcript"),
-    TRANSCRIPT_COPY("tr", "Other Transcript");
+    PAPER_SUMMARY("sp", "Paper Summary", "No"),
+    PAPER_TRANSCRIPT("tp", "Paper transcript", "No"),
+    ELECTRONIC_SUMMARY("se", "Electronic Summary", "No"),
+    ELECTRONIC_TRANSCRIPT("te", "Electronic transcript", "No"),
+    TIME_CODED_SUMMARY("sc", "Time coded Summary", "Yes"),
+    TIME_CODED_TRANSCRIPT_COPY("tc", "Time coded transcript", "Yes"),
+    SUMMARY_COPY("s", "Other Summary", "No"),
+    RTF_TRANSCRIPT("tt", "rtf transcript", "No"),
+    TRANSCRIPT_COPY("tr", "Other Transcript", "No");
 
     private String code;
     private String display;
-    
-    
+    private String timed;
+
     private CopyRole(String code) {
-        this.code = code;
+        this(code, null);
     }
-    
+
     private CopyRole(String code, String display) {
+        this(code, display, null);
+    }
+
+    private CopyRole(String code, String display, String timed) {
         this.code = code;
         this.display = display;
+        this.timed = timed;
     }
 
     public static CopyRole fromString(String code) {
@@ -84,11 +89,15 @@ public enum CopyRole {
     public String code() {
         return this.code;
     }
-    
+
     public String display() {
         return this.display;
     }
-    
+
+    public String timed() {
+        return this.timed;
+    }
+
     /**
      * Returns a List of <STRONG>codes</STRONG>
      */
@@ -99,7 +108,7 @@ public enum CopyRole {
         }
         return list;
     }
-    
+
     /**
      * Returns a List of <STRONG>CopyRole</STRONG> objects that have been sorted
      * alphabetically by the CopyRole.value
@@ -109,13 +118,13 @@ public enum CopyRole {
         for (CopyRole c : CopyRole.values()) {
             list.add(c);
         }
-               
+
         Collections.sort(list, new Comparator<CopyRole>() {
             public int compare(CopyRole r1, CopyRole r2) {
                 return r1.display().compareTo(r2.display());
             }
         });
-        
+
         return list;
     }
 }
