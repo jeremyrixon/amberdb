@@ -3,10 +3,9 @@ package amberdb.model.builder;
 import amberdb.PIUtil;
 import amberdb.enums.AccessCondition;
 import amberdb.enums.CopyRole;
-import amberdb.enums.DigitalStatus;
+import amberdb.enums.CaptureStatus;
 import amberdb.model.*;
 import com.google.common.base.Joiner;
-import doss.core.Writables;
 import nu.xom.Node;
 import nu.xom.Nodes;
 import nu.xom.ParsingException;
@@ -348,7 +347,7 @@ public class CollectionBuilder {
         // reset the digital status of digitised items
         for (String objId : currentDOs) {
             EADWork eadWork = collectionWork.asEADWork().getEADWork(PIUtil.parse(objId));
-            eadWork.setDigitalStatus(DigitalStatus.DIGITISED.code());
+            eadWork.setDigitalStatus(CaptureStatus.CAPTURED.code());
         }
         // retain the original bib level for top level work
         collectionWork.setBibLevel(collectionLevel);
