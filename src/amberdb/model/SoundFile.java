@@ -11,6 +11,8 @@ import com.tinkerpop.frames.modules.javahandler.JavaHandler;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
+import amberdb.util.DurationUtils;
+
 @TypeValue("SoundFile")
 public interface SoundFile extends File {
 
@@ -109,10 +111,18 @@ public interface SoundFile extends File {
 
     @JavaHandler
     public void setDurationAsSeconds(Float durationAsSeconds) throws Exception;
+    
+    @JavaHandler
+    public String getDurationAsHHMMSS();
 
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, SoundFile {
         private Pattern durationPattern = Pattern.compile("(\\d\\d+):(\\d\\d):(\\d\\d)(:\\d\\d?)?");
 
+        @Override
+        public String getDurationAsHHMMSS(){
+        	return DurationUtils.convertDuration(getDuration());
+        }
+        
         @Override
         public Float getDurationAsSeconds() throws Exception {
             String duration = getDuration();
