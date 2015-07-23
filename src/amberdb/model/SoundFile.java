@@ -120,7 +120,7 @@ public interface SoundFile extends File {
 
         @Override
         public String getDurationAsHHMMSS(){
-        	return DurationUtils.convertDuration(getDuration());
+            return DurationUtils.convertDuration(getDuration());
         }
         
         @Override
