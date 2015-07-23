@@ -5,74 +5,86 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import amberdb.model.Copy;
+
 /** 
  * CopyRole ENUM that provides a code and label for display.
  */
 public enum CopyRole {
 
-    ACCESS_COPY("ac", "Access"), 
-    MASTER_COPY("m", "Master"), 
-    DERIVATIVE_MASTER_COPY("dm", "Derivative master"),
-    CO_MASTER_COPY("c", "Co-master"), 
-    ORIGINAL_COPY("o", "Original"),    
-    THUMBNAIL_COPY("t", "Thumbnail"),
-    VIEW_COPY("v", "View"),
-    EXAMINATION_COPY("e", "Examination"),    
-    ARCHIVE_COPY("a", "Archive"),    
-    STRUCTURAL_MAP_COPY("sm", "Structural map"),
-    FINDING_AID_COPY("fa", "Finding aid"),
-    FINDING_AID_PRINT_COPY("fap", "Finding aid print"),
-    FINDING_AID_VIEW_COPY("fav", "Finding aid view"),
-    MICROFORM_COPY("mf", "Microform"),
-    SPECIAL_DELIVERY_COPY("sd", "Special delivery"),
-    RELATED_METADATA_COPY("rm", "Related metadata"),
-    LIST_COPY("dl", "List"),
-    PRINT_COPY("p", "Print"),
-    OCR_JSON_COPY("oc", "OCR json"),
-    OCR_ALTO_COPY("at", "OCR alto"),
-    OCR_METS_COPY("mt", "OCR mets"),
-    ANALOGUE_DISTRIBUTION_COPY("ad", "Analogue distribution"),
-    DIGITAL_DISTRIBUTION_COPY("d", "Digital distribution"),
-    REAL_MEDIA_REF_COPY("ra1", "RealMedia reference"),
-    REAL_MEDIA_FILE_COPY("sa1", "RealMedia file"),
-    QUICKTIME_REF_1_COPY("rb1", "QuickTime reference 1"),
-    QUICKTIME_REF_2_COPY("rb2", "QuickTime reference 2"),
-    QUICKTIME_REF_3_COPY("rb3", "QuickTime reference 3"),
-    QUICKTIME_REF_4_COPY("rb4", "QuickTime reference 4"),
-    QUICKTIME_FILE_1_COPY("sb1", "QuickTime file 1"),
-    QUICKTIME_FILE_2_COPY("sb2", "QuickTime file 2"),
-    LISTENING_1_COPY("l1", "Listening 1"),
-    LISTENING_2_COPY("l2", "Listening 2"),
-    LISTENING_3_COPY("l3", "Listening 3"),
-    WORKING_COPY("w", "Working"),
-    EDITED_COPY("ed", "Edited"),
-    FILTERED_COPY("fc", "Filtered"),
-    PAPER_SUMMARY("sp", "Paper Summary", "No"),
-    PAPER_TRANSCRIPT("tp", "Paper transcript", "No"),
-    ELECTRONIC_SUMMARY("se", "Electronic Summary", "No"),
-    ELECTRONIC_TRANSCRIPT("te", "Electronic transcript", "No"),
-    TIME_CODED_SUMMARY("sc", "Time coded Summary", "Yes"),
-    TIME_CODED_TRANSCRIPT_COPY("tc", "Time coded transcript", "Yes"),
-    SUMMARY_COPY("s", "Other Summary", "No"),
-    RTF_TRANSCRIPT("tt", "rtf transcript", "No"),
-    TRANSCRIPT_COPY("tr", "Other Transcript", "No");
+    ACCESS_COPY("ac", "Access", 13), 
+    MASTER_COPY("m", "Master", 1), 
+    DERIVATIVE_MASTER_COPY("dm", "Derivative master", 2),
+    CO_MASTER_COPY("c", "Co-master", 3), 
+    ORIGINAL_COPY("o", "Original", 0),    
+    THUMBNAIL_COPY("t", "Thumbnail", 24),
+    VIEW_COPY("v", "View", 17),
+    EXAMINATION_COPY("e", "Examination", 18),    
+    ARCHIVE_COPY("a", "Archive", 19),    
+    STRUCTURAL_MAP_COPY("sm", "Structural map", 29),
+    FINDING_AID_COPY("fa", "Finding aid", 14),
+    FINDING_AID_PRINT_COPY("fap", "Finding aid print", 15),
+    FINDING_AID_VIEW_COPY("fav", "Finding aid view", 16),
+    MICROFORM_COPY("mf", "Microform", 36),
+    SPECIAL_DELIVERY_COPY("sd", "Special delivery", 25),
+    RELATED_METADATA_COPY("rm", "Related metadata", 5),
+    LIST_COPY("dl", "List", 26),
+    PRINT_COPY("p", "Print", 23),
+    OCR_JSON_COPY("oc", "OCR json", 22),
+    OCR_ALTO_COPY("at", "OCR alto", 21),
+    OCR_METS_COPY("mt", "OCR mets", 20),
+    ANALOGUE_DISTRIBUTION_COPY("ad", "Analogue distribution", 12),
+    DIGITAL_DISTRIBUTION_COPY("d", "Digital distribution", 4),
+    REAL_MEDIA_REF_COPY("ra1", "RealMedia reference", 37),
+    REAL_MEDIA_FILE_COPY("sa1", "RealMedia file", 38),
+    QUICKTIME_REF_1_COPY("rb1", "QuickTime reference 1", 39),
+    QUICKTIME_REF_2_COPY("rb2", "QuickTime reference 2", 40),
+    QUICKTIME_REF_3_COPY("rb3", "QuickTime reference 3", 41),
+    QUICKTIME_REF_4_COPY("rb4", "QuickTime reference 4", 42),
+    QUICKTIME_FILE_1_COPY("sb1", "QuickTime file 1", 43),
+    QUICKTIME_FILE_2_COPY("sb2", "QuickTime file 2", 44),
+    LISTENING_1_COPY("l1", "Listening 1", 8),
+    LISTENING_2_COPY("l2", "Listening 2", 9),
+    LISTENING_3_COPY("l3", "Listening 3", 10),
+    WORKING_COPY("w", "Working", 11),
+    EDITED_COPY("ed", "Edited", 27),
+    FILTERED_COPY("fc", "Filtered", 28),
+    PAPER_SUMMARY("sp", "Paper Summary", "No", 30),
+    PAPER_TRANSCRIPT("tp", "Paper transcript", "No", 31),
+    ELECTRONIC_SUMMARY("se", "Electronic Summary", "No", 32),
+    ELECTRONIC_TRANSCRIPT("te", "Electronic transcript", "No", 33),
+    TIME_CODED_SUMMARY("sc", "Time coded Summary", "Yes", 34),
+    TIME_CODED_TRANSCRIPT_COPY("tc", "Time coded transcript", "Yes", 35),
+    SUMMARY_COPY("s", "Other Summary", "No", 6),
+    RTF_TRANSCRIPT("tt", "rtf transcript", "No", 45),
+    TRANSCRIPT_COPY("tr", "Other Transcript", "No", 7);
 
     private String code;
     private String display;
     private String timed;
+    private Integer order;
 
     private CopyRole(String code) {
         this(code, null);
     }
 
     private CopyRole(String code, String display) {
-        this(code, display, null);
+        this(code, display, null, null);
     }
 
     private CopyRole(String code, String display, String timed) {
+        this(code, display, timed, null);
+    }
+    
+    private CopyRole(String code, String display, Integer order) {
+        this(code, display, null, order);
+    }
+    
+    private CopyRole(String code, String display, String timed, Integer order) {
         this.code = code;
         this.display = display;
         this.timed = timed;
+        this.order = order;
     }
 
     public static CopyRole fromString(String code) {
@@ -126,5 +138,10 @@ public enum CopyRole {
         });
 
         return list;
+    }
+    
+    public static List<Copy> reorderCopyList(Iterable<Copy> copies) {
+        // TODO:
+        return null;
     }
 }
