@@ -3,8 +3,6 @@ package amberdb.enums;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.junit.After;
