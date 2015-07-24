@@ -55,7 +55,8 @@ public enum CopyRole {
     TIME_CODED_TRANSCRIPT_COPY("tc", "Time coded transcript", "Yes"),
     SUMMARY_COPY("s", "Other Summary", "No"),
     RTF_TRANSCRIPT("tt", "rtf transcript", "No"),
-    TRANSCRIPT_COPY("tr", "Other Transcript", "No");
+    TRANSCRIPT_COPY("tr", "Other Transcript", "No"),
+    PRODUCTION_MATERIAL("pm", "Production Material");
 
     private String code;
     private String display;
