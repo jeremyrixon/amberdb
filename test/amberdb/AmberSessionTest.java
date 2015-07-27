@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -27,14 +28,12 @@ import com.tinkerpop.blueprints.Vertex;
 
 import doss.CorruptBlobStoreException;
 import doss.local.LocalBlobStore;
-
 import amberdb.graph.AmberGraph;
 import amberdb.model.Copy;
 import amberdb.model.Page;
 import amberdb.model.Work;
 import amberdb.model.AliasItem;
 import amberdb.AmberSession;
-
 import amberdb.query.ObjectsWithPropertyInCollectionQuery;
 
 public class AmberSessionTest {
@@ -365,7 +364,7 @@ public class AmberSessionTest {
         AmberGraph graph = sess.getAmberGraph();
         
         Vertex v1 = graph.addVertex(null);
-        v1.setProperty("alias-list", "[\"abba\",\"beta\",\"delta\",\"gama\"]");
+        v1.setProperty("alias-list", "[\"abba\",\"beta\",\"delta\",\"snez\",\"gama\"]");
         v1.setProperty("collection", "nla.aus");
         v1.setProperty("type", "Work");
         v1.setProperty("title", "title1");
@@ -377,16 +376,16 @@ public class AmberSessionTest {
         v2.setProperty("title", "title2");
         
         Vertex v3 = graph.addVertex(null);
-        v3.setProperty("alias-list", "[\"beta\",\"delta\",\"gama\",\"abba\"]");
-        v3.setProperty("collection", "nla.aus");
+        v3.setProperty("alias-list", "[\"beta\",\"delta\",\"gama\",\"snez\",\"abba\"]");
         v3.setProperty("type", "Copy");
         v3.setProperty("title", "title3");
+        Edge ed = graph.addEdge(null, v3, v2, "isCopyOf");
         
         graph.commit("tester", "testing duplicates in the json value");
         
         Map<String, Set<AliasItem>> aliasMap = sess.getDuplicateAliases("alias-list", "nla.aus");
         
-        assertEquals(4, aliasMap.size());
+        assertEquals(5, aliasMap.size());
         assertEquals(3, aliasMap.get("beta").size());
         assertEquals(3, aliasMap.get("delta").size());
         assertEquals(3, aliasMap.get("gama").size());
@@ -394,4 +393,42 @@ public class AmberSessionTest {
         assertEquals(null,aliasMap.get("babba"));
         assertEquals(null,aliasMap.get("baraba"));
     }
+    
+//    @Test
+//    public void testExpiryReport() throws Exception {
+//
+//        AmberGraph graph = sess.getAmberGraph();
+//
+//
+//
+//        Calendar calendar = Calendar.getInstance();
+//        calendar.set(Calendar.YEAR, 2016);
+//        Date date = calendar.getTime();
+//        Vertex v1 = graph.addVertex(null);
+//        v1.setProperty("expiryDate ", date);
+//        v1.setProperty("collection", "nla.aus");
+//        v1.setProperty("type", "Work");
+//        v1.setProperty("title", "title1");
+//        
+//        Vertex v2 = graph.addVertex(null);
+//        calendar.set(Calendar.YEAR, 2016);
+//        v2.setProperty("expiryDate ", date);
+//        v2.setProperty("collection", "nla.aus");
+//        v2.setProperty("type", "Work");
+//        v2.setProperty("title", "title2");
+//        
+//        Vertex v3 = graph.addVertex(null);
+//        calendar.set(Calendar.YEAR, 2017);
+//        v3.setProperty("expiryDate ", date);
+//        v3.setProperty("type", "Copy");
+//        v3.setProperty("title", "title3");
+//       
+//        
+//        graph.commit("tester", "testing duplicates in the json value");
+//        calendar.set(Calendar.YEAR, 2016);
+//        date = calendar.getTime();
+//        List<Vertex> result = (List<Vertex>) sess.getExpiryReport(date, "nla.aus" );
+//   
+//
+//    }
 }
