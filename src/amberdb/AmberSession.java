@@ -867,11 +867,12 @@ public class AmberSession implements AutoCloseable {
         return aliasMap;
     }
     
-    public List<Vertex> getExpiryReport(Date expiryDate, String collection) {
+    public List<Vertex> getExpiryReport(Date expiryDate, String collection, String tableDrop, String interval) {
 
         ObjectsWithPropertyInCollectionQuery avq = new ObjectsWithPropertyInCollectionQuery(getAmberGraph());
-        String statement = " UNIX_TIMESTAMP(now()) AND   UNIX_TIMESTAMP(now() + interval 1 year) ";
-        List<Vertex> results = avq.getExpiryReport(expiryDate, collection,  statement);
+        String statementz = " UNIX_TIMESTAMP(now())*1000 AND   UNIX_TIMESTAMP(now() + interval " + interval + ")*1000";
+        String statement = "  UNIX_TIMESTAMP(curdate())";
+        List<Vertex> results = avq.getExpiryReport(expiryDate, collection,  statement, tableDrop);
         System.out.println("SIZE=" + results.size());
      
         return results;
