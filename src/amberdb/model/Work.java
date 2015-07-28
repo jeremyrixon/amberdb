@@ -914,6 +914,12 @@ public interface Work extends Node {
 
     @Property("acquisitionStatus")
     public void setAcquisitionStatus(String acquisitionStatus);
+    
+    @Property("acquisitionCategory")
+    public String getAcquisitionCategory();
+
+    @Property("acquisitionCategory")
+    public void setAcquisitionCategory(String acquisitionCategory);
 
     @Adjacency(label = ExistsOn.label, direction = Direction.OUT)
     public Iterable<Work> getDeliveryWorks();
