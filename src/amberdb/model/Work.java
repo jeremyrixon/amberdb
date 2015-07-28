@@ -908,6 +908,12 @@ public interface Work extends Node {
 
     @Property("materialFromMultipleSources")
     public Boolean getMaterialFromMultipleSources();
+    
+    @Property("acquisitionStatus")
+    public String getAcquisitionStatus();
+
+    @Property("acquisitionStatus")
+    public void setAcquisitionStatus(String acquisitionStatus);
 
     @Adjacency(label = ExistsOn.label, direction = Direction.OUT)
     public Iterable<Work> getDeliveryWorks();
