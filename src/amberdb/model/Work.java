@@ -12,6 +12,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import amberdb.relation.*;
 import amberdb.util.WorkUtils;
 
 import com.google.common.base.Splitter;
@@ -24,11 +25,8 @@ import org.codehaus.jackson.type.TypeReference;
 
 import amberdb.InvalidSubtypeException;
 import amberdb.enums.CopyRole;
+import amberdb.enums.CopyType;
 import amberdb.enums.SubType;
-import amberdb.relation.DescriptionOf;
-import amberdb.relation.IsCopyOf;
-import amberdb.relation.IsPartOf;
-import amberdb.relation.Represents;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberQuery;
 import amberdb.graph.AmberVertex;
@@ -905,7 +903,56 @@ public interface Work extends Node {
     @Property("australianContent")
     public void setAustralianContent(Boolean australianContent);
 
+    @Property("materialFromMultipleSources")
+    public void setMaterialFromMultipleSources(Boolean materialFromMultipleSources);
 
+    @Property("materialFromMultipleSources")
+    public Boolean getMaterialFromMultipleSources();
+    
+    @Property("acquisitionStatus")
+    public String getAcquisitionStatus();
+
+    @Property("acquisitionStatus")
+    public void setAcquisitionStatus(String acquisitionStatus);
+    
+    @Property("acquisitionCategory")
+    public String getAcquisitionCategory();
+
+    @Property("acquisitionCategory")
+    public void setAcquisitionCategory(String acquisitionCategory);
+
+    @Adjacency(label = ExistsOn.label, direction = Direction.OUT)
+    public Iterable<Work> getDeliveryWorks();
+
+    @Adjacency(label = ExistsOn.label, direction = Direction.OUT)
+    public void addDeliveryWork(Work deliveryWork);
+
+    @Adjacency(label = ExistsOn.label, direction = Direction.OUT)
+    public void removeDeliveryWork(Work deliveryWork);
+
+    @JavaHandler
+    public List<String> getDeliveryWorkIds();
+
+    @JavaHandler
+    public void removeDeliveryWorks();
+
+    @Adjacency(label = ExistsOn.label, direction = Direction.IN)
+    public void setDeliveryWorkParent(final Work interview);
+
+    @Adjacency(label = ExistsOn.label, direction = Direction.IN)
+    public Work getDeliveryWorkParent();
+
+    @Adjacency(label = ExistsOn.label, direction = Direction.IN)
+    public void removeDeliveryWorkParent(final Work interview);
+
+    @Incidence(label = ExistsOn.label, direction = Direction.IN)
+    public Iterable<ExistsOn> getDeliveryWorkParentEdges();
+
+    @JavaHandler
+    public ExistsOn getDeliveryWorkParentEdge();
+
+    @JavaHandler
+    public void setDeliveryWorkOrder(int position);
 
     @Adjacency(label = IsPartOf.label)
     public void setParent(final Work parent);
@@ -1105,7 +1152,6 @@ public interface Work extends Node {
     @JavaHandler
     public void orderParts(List<Work> parts);
 
-
     /**
      *
      * Returns the work that contains the access copy to be used for this work's representative image.
@@ -1116,11 +1162,16 @@ public interface Work extends Node {
      */
     @JavaHandler
     public Work getRepresentativeImageWork();
-
     
     @JavaHandler
     public List<String> getJsonList(String propertyName) throws JsonParseException, JsonMappingException, IOException;
     
+    @JavaHandler
+    public boolean hasBornDigitalCopy();
+
+    @JavaHandler
+    public boolean hasMasterCopy();
+
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {
         static ObjectMapper mapper = new ObjectMapper();
 
@@ -1236,13 +1287,18 @@ public interface Work extends Node {
 
         @Override
         public void setHoldingNumberAndId(String holdNumAndId) {
-            List<String> splitted = Lists.newArrayList(Splitter.on("|:|").split(holdNumAndId));
-            if (splitted.size() == 2) {
-                setHoldingNumber(splitted.get(0));
-                setHoldingId(splitted.get(1));
-            }
-            else if (splitted.size() == 1) {
-                setHoldingNumber(splitted.get(0));
+            if (holdNumAndId == null || holdNumAndId.isEmpty()) {
+                setHoldingNumber(null);
+                setHoldingId(null);
+            } else {
+                List<String> splitted = Lists.newArrayList(Splitter.on("|:|").split(holdNumAndId));
+                if (splitted.size() == 2) {
+                    setHoldingNumber(splitted.get(0));
+                    setHoldingId(splitted.get(1));
+                }
+                else if (splitted.size() == 1) {
+                    setHoldingNumber(splitted.get(0));
+                }
             }
         }
         
@@ -1307,11 +1363,11 @@ public interface Work extends Node {
         }
 
         public List<Work> getPartsOf(String subType) {
-            return getPartsOf(Arrays.asList(new String[] { subType }));
+            return getPartsOf(Arrays.asList(new String[]{subType}));
         }
 
         public List<Work> getExistsOn(String subType) {
-            return getExistsOn(Arrays.asList(new String[] { subType }));
+            return getExistsOn(Arrays.asList(new String[]{subType}));
         }
 
         @Override
@@ -1467,6 +1523,7 @@ public interface Work extends Node {
         }
 
         protected String serialiseToJSON(Collection<String> list) throws JsonParseException, JsonMappingException, IOException {
+            if (list == null) return null;    
             return mapper.writeValueAsString(list);
         }
 
@@ -1562,6 +1619,48 @@ public interface Work extends Node {
                 return work;
             }
             return null;
+        }
+
+        @Override
+        public List<String> getDeliveryWorkIds() {
+            Iterable<Work> deliveryWorks = getDeliveryWorks();
+
+            List<String> ids = new ArrayList<>();
+            for (Work work : deliveryWorks) {
+                ids.add(work.getObjId());
+            }
+
+            return ids;
+        }
+
+        @Override
+        public void removeDeliveryWorks() {
+            Iterable<Work> deliveryWorks = getDeliveryWorks();
+            for (Work dw : deliveryWorks) {
+                dw.removeDeliveryWorkParent(this);
+            }
+        }
+
+        @Override
+        public void setDeliveryWorkOrder(int position) {
+            getDeliveryWorkParentEdge().setRelOrder(position);
+        }
+
+        @Override
+        public ExistsOn getDeliveryWorkParentEdge() {
+            Iterator<ExistsOn> iterator = getDeliveryWorkParentEdges().iterator();
+            return (iterator != null && iterator.hasNext()) ? iterator.next() : null;
+        }
+
+        @Override
+        public boolean hasBornDigitalCopy() {
+            Copy origCopy = getCopy(CopyRole.ORIGINAL_COPY);
+            return (origCopy != null) && CopyType.BORN_DIGITAL.code().equals(origCopy.getCopyType());
+        }
+
+        @Override
+        public boolean hasMasterCopy() {
+            return getCopy(CopyRole.MASTER_COPY) != null;
         }
     }
 }

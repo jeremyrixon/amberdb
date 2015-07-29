@@ -20,7 +20,6 @@ public class EADConfiguration {
         JsonNode collectionNode = mapper.createObjectNode();
         ((ObjectNode) collectionNode).put("cfgDoc", getCollectionCfgDoco());
         ((ObjectNode) collectionNode).put("validateXML", "no");
-        ((ObjectNode) collectionNode).put("storeCopy", "yes");
         ((ObjectNode) collectionNode).put("applicable-attributes-to-all-fields", getApplicableAttrsToAllFldsCfg());
         ((ObjectNode) collectionNode).put("fields", getMappedCollectionFieldsCfg());
         ((ObjectNode) collectionNode).put("odd", getMappedOddElementCfg());

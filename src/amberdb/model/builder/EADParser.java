@@ -102,46 +102,49 @@ public class EADParser extends XmlDocumentParser {
             
             // set the value for the field
             String fldCfg = fldsCfg.get(fldName).toString();
-            if (fldCfg != null && !fldCfg.isEmpty()) {
-                if (queryAttribute(fldCfg)) {
-                    Object attr = getAttribute(node, fldCfg);
-                    if (attr != null)
-                        fldsMap.put(fldName, (String) attr);
-                } else {
-                    Nodes nodes = node.query(fldCfg, xc);
-                    if (nodes != null && nodes.size() > 0) {
-                        if (nodes.size() == 1)
-                            fldsMap.put(fldName, nodes.get(0).getValue());
-                        else {
-                            // cater for multi-valued field
-                            List<String> values = new ArrayList<>();
-                            for (int i = 0; i < nodes.size(); i++) {
-                                if (((Element) nodes.get(i)).getValue() != null)
-                                    values.add(nodes.get(i).getValue());
-                                else
-                                    values.add("");
+
+            log.debug("fldName : " + fldName + ", xpath: " + fldCfg + ", value: " + fldsMap.get(fldName).toString());
+            if (fldCfg == null || fldCfg.isEmpty()) {
+                continue;
+            }
+
+            if (isAttributeQuery(fldCfg)) {
+                Object attr = getAttribute(node, fldCfg);
+                if (attr != null) {
+                    fldsMap.put(fldName, ((String) attr).trim());
+                }
+            } else {
+                Nodes nodes = node.query(fldCfg, xc);
+                if (nodes != null && nodes.size() > 0) {
+                    if (nodes.size() == 1) {
+                        fldsMap.put(fldName, nodes.get(0).getValue().trim());
+                    }
+                    else {
+                        // cater for multi-valued field
+                        List<String> values = new ArrayList<>();
+                        for (int i = 0; i < nodes.size(); i++) {
+                            if (((Element) nodes.get(i)).getValue() != null) {
+                                values.add(nodes.get(i).getValue().trim());
                             }
-                            
-                            if (!values.isEmpty()) {
-                                String valueList;
-                                try {
-                                    valueList = mapper.writer().writeValueAsString(values);
-                                    fldsMap.put(fldName, valueList);
-                                } catch (IOException e) {
-                                    log.error("unable to serialize values extracted for field: " + fldName);
-                                }
+                            else {
+                                values.add("");
+                            }
+                        }
+
+                        if (!values.isEmpty()) {
+                            String valueList;
+                            try {
+                                valueList = mapper.writer().writeValueAsString(values);
+                                fldsMap.put(fldName, valueList);
+                            } catch (IOException e) {
+                                log.error("unable to serialize values extracted for field: " + fldName);
                             }
                         }
                     }
                 }
-                log.debug("fldName : " + fldName + ", xpath: " + fldCfg + ", value: " + fldsMap.get(fldName).toString());
-            } 
+            }
         }
-        try {
-            log.debug("map from base path: " + basePath + ": " + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(fldsMap));
-        } catch ( IOException e) {
-            e.printStackTrace();
-        }
+
         return fldsMap;
     }
     

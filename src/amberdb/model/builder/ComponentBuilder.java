@@ -3,10 +3,8 @@ package amberdb.model.builder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,13 +22,11 @@ import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Sets;
-
 import amberdb.PIUtil;
 import amberdb.enums.AccessCondition;
 import amberdb.enums.BibLevel;
 import amberdb.enums.CopyrightPolicy;
-import amberdb.enums.DigitalStatus;
+import amberdb.enums.CaptureStatus;
 import amberdb.enums.SubUnitType;
 import amberdb.model.EADWork;
 import amberdb.model.Work;
@@ -39,25 +35,6 @@ import amberdb.util.DateParser;
 public class ComponentBuilder {
     static final Logger log = LoggerFactory.getLogger(CollectionBuilder.class);
     static final ObjectMapper mapper = new ObjectMapper();     
-    
-    /**
-     * mergeComponents merges multiple components directly under the parentWork.
-     * @param collectionWork
-     * @param parentWork
-     * @param components
-     * @return
-     * @throws IOException 
-     * @throws JsonMappingException 
-     * @throws JsonParseException 
-     */
-    public static Set<EADWork> mergeComponents(EADWork collectionWork, EADWork parentWork, JsonNode... components) throws IOException {
-        Set<EADWork> componentWorks = Collections.synchronizedSet(new HashSet<EADWork>(components.length));
-        for (JsonNode component : components) {
-            componentWorks.add(mergeComponent(collectionWork, parentWork, component));
-        }
-
-        return componentWorks;
-    }
     
     /**
      * mergeComponent checks the component for the type of merge required in order to carry out the merge:
@@ -146,7 +123,7 @@ public class ComponentBuilder {
                     componentWork.setAccessConditions(AccessCondition.RESTRICTED.code());
             }
             if (componentWork.getDigitalStatus() == null)
-                componentWork.setDigitalStatus(DigitalStatus.NOT_CAPTURED.code());
+                componentWork.setDigitalStatus(CaptureStatus.NOT_CAPTURED.code());
 
             Set<String> constraints = componentWork.getParent().getConstraint();
             componentWork.setConstraint(constraints);

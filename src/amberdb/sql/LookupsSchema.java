@@ -24,7 +24,7 @@ public abstract class LookupsSchema {
     public abstract void createLookupTable();
     
     /*
-     * Link Lookups table - stores relationships between 2 lookups
+     * Link lookups table - stores relationships between 2 lookups
      */
     @SqlUpdate(
             "CREATE TABLE IF NOT EXISTS carrier_algorithm ("

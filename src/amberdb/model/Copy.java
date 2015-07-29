@@ -347,8 +347,13 @@ public interface Copy extends Node {
         @Override
         public Copy deriveJp2ImageCopy(Path jp2Converter, Path imgConverter) throws IllegalStateException, IOException, InterruptedException, Exception {
             ImageFile imgFile = this.getImageFile();
+            if (imgFile == null) {
+                // Is not an image
+                return null;
+            }
+
             String mimeType = imgFile.getMimeType();
-                       
+
             // Do we need to check?
             if (!(mimeType.equals("image/tiff") || mimeType.equals("image/jpeg"))) {
                 throw new IllegalStateException(this.getWork().getObjId() + " master is not a tiff or jpeg. You may not generate a jpeg2000 from anything but a tiff or a jpeg");

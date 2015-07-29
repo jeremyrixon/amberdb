@@ -152,6 +152,8 @@ public abstract class Lookups extends Tools {
         }
     }
     
+   
+    
     public Long addLookup(String name, String code, String value) {
         System.out.println("lookups: start time : " + fmtDate(new Date()));
         Long newId = addLookupData(name, code, value);
@@ -233,12 +235,17 @@ public abstract class Lookups extends Tools {
     
     
     @RegisterMapper(Lookups.CarrierAlgorithmMapper.class)
-    @SqlQuery("select distinct linkId, name, carrierId, algorithmId  from carrier_algorithm where name = :name")
+    @SqlQuery("select distinct ca.linkId, ca.name, ca.carrierId, ca.algorithmId from carrier_algorithm ca, lookups l  where ca.name = :name and ca.algorithmId = l.id  order by l.code asc")
     public abstract List<CarrierAlgorithm> findCarrierAlgorithmsByName(@Bind("name") String name);
     
     @RegisterMapper(Lookups.CarrierAlgorithmMapper.class)
     @SqlQuery("select distinct linkId, name, carrierId, algorithmId  from carrier_algorithm where name = :name and carrierId = :carrierId")
     public abstract List<CarrierAlgorithm> findCarrierAlgorithmByNameAndId(@Bind("name") String name, @Bind("carrierId")Long carrierId );
+    
+    
+    @RegisterMapper(Lookups.ListLuMapper.class)
+    @SqlQuery("select al.id, al.code, al.value, al.name, al.deleted from carrier_algorithm ca, lookups al, lookups cl  where cl.code = :name and ca.carrierId = cl.id and (al.deleted = 'N' or al.deleted is null) and al.id=ca.algorithmId")
+    public abstract ListLu findDefaultAlgorithmByCarrierName(@Bind("name") String name);
     
     @SqlUpdate("INSERT INTO carrier_algorithm (name, carrierId, algorithmId) VALUES"
             + "(:name, :carrierId, :algorithmId)")
