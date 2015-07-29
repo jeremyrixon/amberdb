@@ -3,24 +3,22 @@ package amberdb.enums;
 import java.util.ArrayList;
 import java.util.List;
 
-public enum DigitalStatus {
+public enum CaptureStatus {
     
-    DIGITISED("Captured"), 
-    NON_DIGITISED("Not Captured"), 
     CAPTURED("Captured"),
     NOT_CAPTURED("Not Captured"),
-    PARTIALLY_DIGITISED("Partially digitised"), 
+    PARTIALLY_CAPTURED("Partially Captured"),
     PRESERVED_ANALOGUE("Preserved analogue");
 
     private String code;
 
-    private DigitalStatus(String code) {
+    private CaptureStatus(String code) {
         this.code = code;
     }
 
-    public static DigitalStatus fromString(String code) {
+    public static CaptureStatus fromString(String code) {
         if (code != null) {
-            for (DigitalStatus e : DigitalStatus.values()) {
+            for (CaptureStatus e : CaptureStatus.values()) {
                 if (code.equalsIgnoreCase(e.code)) {
                     return e;
                 }
@@ -35,7 +33,7 @@ public enum DigitalStatus {
     
     public static List<String> list() {
         List<String> list = new ArrayList<String>();
-        for (DigitalStatus lu : DigitalStatus.values()) {
+        for (CaptureStatus lu : CaptureStatus.values()) {
             list.add(lu.code());
         }
         return list;
