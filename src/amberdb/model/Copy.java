@@ -165,18 +165,6 @@ public interface Copy extends Node {
     @Property("exhibition")
     public void setExhibition(String exhibition);
 
-    @Property("acquisitionStatus")
-    public String getAcquisitionStatus();
-
-    @Property("acquisitionStatus")
-    public void setAcquisitionStatus(String acquisitionStatus);
-
-    @Property("acquisitionCategory")
-    public String getAcquisitionCategory();
-
-    @Property("acquisitionCategory")
-    public void setAcquisitionCategory(String acquisitionCategory);
-
     @Property("copyStatus")
     public String getCopyStatus();
 
