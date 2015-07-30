@@ -18,6 +18,7 @@ import java.util.Map;
 import amberdb.relation.*;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang.StringUtils;
+import org.apache.tika.Tika;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -162,18 +163,6 @@ public interface Copy extends Node {
 
     @Property("exhibition")
     public void setExhibition(String exhibition);
-
-    @Property("acquisitionStatus")
-    public String getAcquisitionStatus();
-
-    @Property("acquisitionStatus")
-    public void setAcquisitionStatus(String acquisitionStatus);
-
-    @Property("acquisitionCategory")
-    public String getAcquisitionCategory();
-
-    @Property("acquisitionCategory")
-    public void setAcquisitionCategory(String acquisitionCategory);
 
     @Property("copyStatus")
     public String getCopyStatus();
@@ -642,9 +631,27 @@ public interface Copy extends Node {
             }
 
             // prepare the files for conversion
-            String imgFilename = this.getImageFile().getFileName();
-            Path srcImgPath = stage.resolve(imgBlobId + imgFilename.substring(imgFilename.lastIndexOf('.')));  // where to put the source retrieved from the amber blob
-            copyBlobToFile(doss.get(imgBlobId), srcImgPath);       // get the blob from amber
+            Path tmpPath = stage.resolve("" + imgBlobId);  // where to put the source retrieved from the amber blob
+            copyBlobToFile(doss.get(imgBlobId), tmpPath);  // get the blob from amber
+
+            // Add the right file extension to filename based on mime type
+            // This is to prevent kdu_compress from failing when a tif file is named as .jpg, etc.
+            Tika tika = new Tika();
+            String mimeType = tika.detect(tmpPath.toFile());
+            String fileExtension = null;
+            if ("image/tiff".equals(mimeType)) {
+                fileExtension = ".tif";
+            } else if ("image/jpeg".equals(mimeType)) {
+                fileExtension = ".jpg";
+            } else {
+                // Will add support for other mime types (eg. raw) later
+                throw new RuntimeException("Not a tiff or a jpeg file");
+            }
+
+            // Rename the file
+            String newFilename = "" + imgBlobId + fileExtension;
+            Path srcImgPath = tmpPath.resolveSibling(newFilename);
+            Files.move(tmpPath, srcImgPath);
 
             // Convert to jp2
             Jp2Converter jp2c = new Jp2Converter(jp2Converter, imgConverter);
