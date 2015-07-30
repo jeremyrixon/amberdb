@@ -43,7 +43,6 @@ public class AmberGraph extends BaseGraph
 
     protected DBI dbi;
     private AmberDao dao;
-    private String schema;
     
     String dbProduct;
     protected String tempTableEngine = "";
@@ -98,15 +97,15 @@ public class AmberGraph extends BaseGraph
 
         dbi = new DBI(dataSource);
         dao = selectDao(dataSource);
-        if (!dao.schemaTablesExist(schema)) {
+        if (!dao.schemaTablesExist()) {
             log.trace("Graph schema doesn't exist - creating ...");
             createAmberSchema();
         }
     }
 
     private AmberDao selectDao(DataSource dataSource) {
+
         try (Connection conn = dataSource.getConnection()) {
-            schema = conn.getSchema();
             dbProduct = conn.getMetaData().getDatabaseProductName();
             log.debug("Amber database type is {}", dbProduct);
         } catch (SQLException e) {

@@ -229,7 +229,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "  'VERTEX', 'EDGE', 'PROPERTY', "
             + "  'SESS_VERTEX', 'SESS_EDGE', 'SESS_PROPERTY', "
             + "  'ID_GENERATOR', 'TRANSACTION')")
-    boolean schemaTablesExist(@Bind("schema") String schema);
+    boolean schemaTablesExist();
     
 
     /*
