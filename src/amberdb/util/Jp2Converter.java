@@ -1,7 +1,7 @@
 package amberdb.util;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+
+import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -200,29 +200,12 @@ public class Jp2Converter {
 
         // Execute command
         ProcessBuilder builder = new ProcessBuilder(cmd);
+        builder.redirectError(Redirect.INHERIT).redirectOutput(Redirect.INHERIT);
         Process p = builder.start();
         p.waitFor();
         int exitVal = p.exitValue();
-        String msg = "";
         if (exitVal > 0) {
-            // Error - Read from error stream
-            StringBuffer sb = new StringBuffer();
-            String line;
-            try {
-                BufferedReader br = new BufferedReader(new InputStreamReader(p.getErrorStream(), "UTF-8"));
-                while ((line = br.readLine()) != null) {
-                    if (sb.length() > 0) {
-                        sb.append('\n');
-                    }
-                    sb.append(line);
-                }
-                br.close();
-            } catch (Exception e) {
-                // don't care
-                e.printStackTrace();
-            }
-            msg = sb.toString().trim();
-            throw new Exception(msg);
+            throw new Exception("Error in executeCmd");
         }
     }
 
