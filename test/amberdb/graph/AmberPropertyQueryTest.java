@@ -93,11 +93,12 @@ public class AmberPropertyQueryTest {
 
         List<Vertex> results = avq.execute();
         
-        assertEquals(5, results.size());
+        assertEquals(6, results.size());
         assertTrue(results.remove(v1));
         assertTrue(results.remove(v5));
         assertTrue(results.remove(v6));
         assertTrue(results.remove(v8));
+        assertTrue(results.remove(v10));
         assertTrue(results.remove(v10));
         assertEquals(0, results.size());
     }
@@ -210,10 +211,11 @@ public class AmberPropertyQueryTest {
 
         List<Vertex> results = avq.execute();
         
-        assertEquals(4, results.size());
+        assertEquals(5, results.size());
         assertTrue(results.remove(v1));
         assertTrue(results.remove(v5));
         assertTrue(results.remove(v6));
+        assertTrue(results.remove(v10));
         assertTrue(results.remove(v10));
         assertEquals(0, results.size());
     }

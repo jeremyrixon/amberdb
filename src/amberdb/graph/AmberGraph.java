@@ -1,5 +1,6 @@
 package amberdb.graph;
 
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -31,32 +32,33 @@ import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.TransactionalGraph;
 import com.tinkerpop.blueprints.Vertex;
 
+
 public class AmberGraph extends BaseGraph 
         implements Graph, TransactionalGraph, IdGenerator, 
         ElementModifiedListener, EdgeFactory, VertexFactory {
 
-    private static final int COMMIT_BATCH_SIZE = 10000;
-    private static final Logger log = LoggerFactory.getLogger(AmberGraph.class);
 
+    private static final Logger log = LoggerFactory.getLogger(AmberGraph.class);
+    
     public static final DataSource DEFAULT_DATASOURCE = 
             JdbcConnectionPool.create("jdbc:h2:mem:persist","pers","pers");
 
     protected DBI dbi;
     private AmberDao dao;
-    
+
     String dbProduct;
     protected String tempTableEngine = "";
     protected String tempTableDrop = "";
-
+    
     protected Map<Object, Edge> removedEdges = new HashMap<>();
     protected Map<Object, Vertex> removedVertices = new HashMap<>();
-
+    
     private Set<Edge> newEdges = new HashSet<Edge>();
     private Set<Vertex> newVertices = new HashSet<Vertex>();
 
     protected Set<Edge> modifiedEdges = new HashSet<Edge>();
     protected Set<Vertex> modifiedVertices = new HashSet<Vertex>();
-
+    
     private boolean localMode = false;
     /**
      * Local mode puts the Amber Graph in a state where it will only query for
@@ -71,30 +73,34 @@ public class AmberGraph extends BaseGraph
     public void setLocalMode(boolean localModeOn) {
         localMode = localModeOn;
     }
-
+    
+    
     public boolean inLocalMode() {
         return localMode;
     }
-
+    
+    
     /* 
      * Constructors
      */
-
+    
     public AmberGraph() {
         initGraph(DEFAULT_DATASOURCE);
     }
 
+    
     public AmberGraph(DataSource dataSource) {
         initGraph(dataSource);
     }
 
+    
     private void initGraph(DataSource dataSource) {
 
         idGen = this;
         edgeFactory = this;
         vertexFactory = this;
         elementModListener = this;
-
+        
         dbi = new DBI(dataSource);
         dao = selectDao(dataSource);
         if (!dao.schemaTablesExist()) {
@@ -102,9 +108,9 @@ public class AmberGraph extends BaseGraph
             createAmberSchema();
         }
     }
-
+    
+    
     private AmberDao selectDao(DataSource dataSource) {
-
         try (Connection conn = dataSource.getConnection()) {
             dbProduct = conn.getMetaData().getDatabaseProductName();
             log.debug("Amber database type is {}", dbProduct);
@@ -123,22 +129,23 @@ public class AmberGraph extends BaseGraph
             return dbi.onDemand(AmberDaoH2.class);
         }
     }
-
+    
+    
     public void createAmberSchema() {
-
+        
         dao.createVertexTable();
         dao.createEdgeTable();
         dao.createPropertyTable();
 
         dao.createVertexIndex();
-
+        
         dao.createEdgeIndex();
         dao.createEdgeInVertexIndex();
         dao.createEdgeOutVertexIndex();
         dao.createEdgeLabelIndex();
         dao.createEdgeInTraversalIndex();
         dao.createEdgeOutTraversalIndex();
-
+        
         dao.createPropertyIndex();
         dao.createPropertyNameIndex();
         if (dbProduct.equals("MySQL")) {
@@ -156,13 +163,14 @@ public class AmberGraph extends BaseGraph
         dao.createSessionVertexIndex();
         dao.createSessionEdgeIndex();
         dao.createSessionPropertyIndex();
-
+        
         dao.createIdGeneratorTable();
         dao.createTransactionTable();
-
+       
         newId(); // seed generator with id > 0
     }
 
+    
     /**
      * Generate a new id unique within the persistent data store.
      *  
@@ -178,6 +186,7 @@ public class AmberGraph extends BaseGraph
         dao.commit();
         return newId;
     }    
+    
 
     public void elementModified(Object element) {
         if (element instanceof Edge) {
@@ -186,47 +195,53 @@ public class AmberGraph extends BaseGraph
             modifiedVertices.add((Vertex) element);
         }
     }
-
+    
+    
     public AmberDao dao() {
         return dao;
     }
 
+    
     public DBI dbi() {
         return dbi;
     }
-
+    
     public String toString() {
         return ("ambergraph");
     }    
-
+    
+    
     @Override
     public void removeEdge(Edge e) {
         removedEdges.put(e.getId(), e);
         super.removeEdge(e);
     }
 
+    
     @Override
     public void removeVertex(Vertex v) {
-
+        
         // guard
         if (!graphVertices.containsKey(v.getId())) {
             throw new IllegalStateException("Cannot remove non-existent vertex : " + v.getId());
         }
-
+        
         for (Edge e : v.getEdges(Direction.BOTH)) {
             removedEdges.put(e.getId(), e);
         }
         removedVertices.put(v.getId(), v);
         super.removeVertexWithoutGuard(v); // existence check already performed above
     }
-
+    
+    
     @Override
     public Edge addEdge(Object id, Vertex out, Vertex in, String label) {
         Edge edge = super.addEdge(id, out, in, label);
         newEdges.add(edge);
         return edge;
     }
-
+    
+    
     @Override
     public Vertex addVertex(Object id) {
         Vertex vertex = super.addVertex(id);
@@ -234,41 +249,29 @@ public class AmberGraph extends BaseGraph
         return vertex;
     }
 
+    
     public Long suspend() {
-
+    
         // set up batch sql data structures
         Long sessId = newId();
-
+        
         AmberEdgeBatch e = new AmberEdgeBatch();
         AmberVertexBatch v = new AmberVertexBatch();
         AmberPropertyBatch p = new AmberPropertyBatch();
 
         batchSuspendEdges(e, p);
         batchSuspendVertices(v, p);
-
+        
         log.debug("batches -- vertices:{} edges:{} properties:{}", v.id.size(), e.id.size(), p.id.size() );
-
+        
         dao.begin();
+        
         dao.suspendEdges(sessId, e.id, e.txnStart, e.txnEnd, e.vertexOut, e.vertexIn, e.label, e.order, e.state);
         dao.suspendVertices(sessId, v.id, v.txnStart, v.txnEnd, v.state);
         dao.suspendProperties(sessId, p.id, p.name, p.type, p.value);
-        dao.commit();
-
-        return sessId;
-    }
-
-
-
-    public Long suspendForCommit() {
         
-        // set up batch sql data structures
-        Long sessId = newId();
-
-        dao.begin();
-        commitSuspendEdges(sessId);
-        commitSuspendVertices(sessId);
         dao.commit();
-
+        
         return sessId;
     }
 
@@ -322,107 +325,6 @@ public class AmberGraph extends BaseGraph
             }
             properties.add((Long) av.getId(), av.getProperties());
         }
-    }
-
-
-    private void commitSuspendEdges(Long sessId) {
-
-        AmberEdgeBatch edges = new AmberEdgeBatch();
-        AmberPropertyBatch properties = new AmberPropertyBatch();
-
-        log.debug("suspending edges -- deleted:{} new:{} modified:{}", 
-                removedEdges.size(), newEdges.size(), modifiedEdges.size());
-
-        int batchLimit = 0;
-        for (Edge e : removedEdges.values()) {
-            modifiedEdges.remove(e);
-            if (newEdges.remove(e)) continue;
-            edges.add(new AmberEdgeWithState((AmberEdge) e, "DEL"));
-
-            batchLimit++;
-            if (batchLimit >= COMMIT_BATCH_SIZE) {
-                dao.suspendEdges(sessId, edges.id, edges.txnStart, edges.txnEnd, 
-                        edges.vertexOut, edges.vertexIn, edges.label, edges.order, edges.state);
-                edges.clear();
-                batchLimit = 0;
-            }
-        }
-
-        for (Edge e : graphEdges.values()) {
-            AmberEdge ae = (AmberEdge) e;
-            if (newEdges.contains(e)) {
-                modifiedEdges.remove(e); // a modified new edge is just a new edge
-                edges.add(new AmberEdgeWithState(ae, "NEW"));
-            } else if (modifiedEdges.contains(e)) {
-                edges.add(new AmberEdgeWithState(ae, "MOD"));
-            } else {
-                edges.add(new AmberEdgeWithState(ae, "AMB"));
-            }
-            properties.add((Long) ae.getId(), ae.getProperties());
-
-            batchLimit++;
-            batchLimit += (ae.getProperties() == null) ? 0 : ae.getProperties().size();
-            if (batchLimit >= COMMIT_BATCH_SIZE) {
-                dao.suspendEdges(sessId, edges.id, edges.txnStart, edges.txnEnd, 
-                        edges.vertexOut, edges.vertexIn, edges.label, edges.order, edges.state);
-                dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
-                edges.clear();
-                properties.clear();
-                batchLimit = 0;
-            }
-        }
-        dao.suspendEdges(sessId, edges.id, edges.txnStart, edges.txnEnd, 
-                edges.vertexOut, edges.vertexIn, edges.label, edges.order, edges.state);
-        dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
-    }
-
-
-    private void commitSuspendVertices(Long sessId) {
-
-        AmberVertexBatch vertices = new AmberVertexBatch();
-        AmberPropertyBatch properties = new AmberPropertyBatch();
-
-        log.debug("suspending verts -- deleted:{} new:{} modified:{} ", 
-                removedVertices.size(), newVertices.size(), modifiedVertices.size());
-
-        int batchLimit = 0;
-        for (Vertex v : removedVertices.values()) {
-            modifiedVertices.remove(v);
-            if (newVertices.remove(v)) continue;
-            vertices.add(new AmberVertexWithState((AmberVertex) v, "DEL"));
-
-            batchLimit++;
-            if (batchLimit >= COMMIT_BATCH_SIZE) {
-                dao.suspendVertices(sessId, vertices.id, vertices.txnStart, vertices.txnEnd, vertices.state);
-                vertices.clear();
-                batchLimit = 0;
-            }
-        }
-
-        for (Vertex v : graphVertices.values()) {
-            AmberVertex av = (AmberVertex) v;
-            if (newVertices.contains(v)) {
-                modifiedVertices.remove(v); // a modified new vertex is just a new vertex
-                vertices.add(new AmberVertexWithState(av, "NEW"));
-            } else if (modifiedVertices.contains(v)) {
-                vertices.add(new AmberVertexWithState(av, "MOD"));
-            } else {
-                vertices.add(new AmberVertexWithState(av, "AMB"));
-            }
-            properties.add((Long) av.getId(), av.getProperties());
-
-            batchLimit++;
-            batchLimit += (av.getProperties() == null) ? 0 : av.getProperties().size();
-            if (batchLimit >= COMMIT_BATCH_SIZE) {
-                dao.suspendVertices(sessId, vertices.id, vertices.txnStart, vertices.txnEnd, vertices.state);
-                dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
-                vertices.clear();
-                properties.clear();
-                batchLimit = 0;
-            }
-        }
-        dao.suspendVertices(sessId, vertices.id, vertices.txnStart, vertices.txnEnd, vertices.state);
-        dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
     }
 
     
@@ -552,36 +454,39 @@ public class AmberGraph extends BaseGraph
         }
         return edges;
     }
-
+    
+    
     public Long commit(String user, String operation) {
-
-        Long txnId = suspendForCommit();
+        
+        Long txnId = suspend();
         dao.begin();
 
         // End current elements where this transaction modifies or deletes them.
         // Additionally, end edges orphaned by this procedure.
         endElementsWithRetry(txnId, 3, 300);
-
+        
         // start new elements for new and modified transaction elements
         startElementsWithRetry(txnId, 3, 300);
-
+        
         // Refactor note: need to check when adding (modding?) edges that both ends exist
         dao.insertTransaction(txnId, new Date().getTime(), user, operation);
-        dao.clearSession(txnId);
         dao.commit();
         clearChangeSets();
         return txnId;
     }
 
+    
     @Override
     public void commit() {
         commit("amberdb", "commit");
     }
 
+    
     @Override
     public Vertex getVertex(Object id) {
         return getVertex(id, localMode);
     } 
+    
 
     @Override
     public Iterable<Edge> getEdges() {
@@ -597,6 +502,7 @@ public class AmberGraph extends BaseGraph
             return super.getEdges();
         }
     }
+    
 
     /**
      * Currently, 'label' cannot be used as the key to return matching labeled
@@ -618,15 +524,16 @@ public class AmberGraph extends BaseGraph
         }    
     }
 
+    
     protected Vertex getVertex(Object id, boolean localOnly) {
-
+        
         Vertex vertex = super.getVertex(id);
         if (vertex != null) return vertex;
         if (localOnly) return null;
-
+        
         // super may have returned null because the id didn't parse
         if (parseId(id) == null) return null;
-
+       
         AmberVertexWithState vs;
         try (Handle h = dbi.open()) {
             vs = h.createQuery(
@@ -645,24 +552,26 @@ public class AmberGraph extends BaseGraph
             v.replaceProperties(getElementPropertyMap((Long) v.getId(), v.txnStart, h));
             addVertexToGraph(v);
         }
-
+        
         return vertex;
     } 
 
+    
     @Override
     public Edge getEdge(Object id) {
         return getEdge(id, localMode);
     } 
-
+    
+    
     protected Edge getEdge(Object id, boolean localOnly) {
-
+        
         Edge edge = super.getEdge(id);
         if (edge != null) return edge;
         if (localOnly) return null;
-
+        
         // super may have returned null because the id didn't parse
         if (parseId(id) == null) return null;
-
+        
         AmberEdge e;
         try (Handle h = dbi.open()) {
             AmberEdgeWithState es = h.createQuery(
@@ -676,7 +585,7 @@ public class AmberGraph extends BaseGraph
             if (es == null) return null;
             edge = es.edge;
             if (removedEdges.containsKey(edge.getId())) return null;
-
+        
             e = (AmberEdge) edge;
             e.replaceProperties(getElementPropertyMap((Long) e.getId(), e.txnStart, h));
             addEdgeToGraph(e);
@@ -684,7 +593,8 @@ public class AmberGraph extends BaseGraph
 
         return e;
     } 
-
+    
+    
     protected Map<String, Object> getElementPropertyMap(Long elementId, Long txnStart, Handle h) {
 
         Map<String, Object> propMap = new HashMap<String, Object>();
@@ -699,12 +609,13 @@ public class AmberGraph extends BaseGraph
                 .bind("txnStart", txnStart)
                 .map(new PropertyMapper()).list();
         if (propList == null || propList.size() == 0) return propMap;
-
+        
         for (AmberProperty p : propList) {
             propMap.put(p.getName(), p.getValue());
         }
         return propMap;
     }
+    
 
     /**
      * Notes on Tinkerpop Graph interface method implementations for
@@ -717,7 +628,7 @@ public class AmberGraph extends BaseGraph
      * To avoid crashing a large amber system these methods limit the number
      * of elements returned from persistent storage (currently 10000).
      */
-
+    
     @Override
     public Iterable<Vertex> getVertices() {
         if (!localMode) {  
@@ -725,7 +636,8 @@ public class AmberGraph extends BaseGraph
         }
         return super.getVertices();
     }
-
+    
+    
     @Override
     public Iterable<Vertex> getVertices(String key, Object value) {
         if (!localMode) {
@@ -736,6 +648,7 @@ public class AmberGraph extends BaseGraph
         return super.getVertices(key, value); 
     }
 
+    
     /**
      * Required for searching on values in json encoded string lists. Needed in Banjo
      * @param key The name of the property containing a json encoded string list 
@@ -748,7 +661,7 @@ public class AmberGraph extends BaseGraph
             AmberVertexQuery avq = new AmberVertexQuery(this); 
             avq.executeJsonValSearch(key, value);
         }
-
+        
         List<Vertex> vertices = new ArrayList<Vertex>();
         for (Vertex vertex : graphVertices.values()) {
             String s = vertex.getProperty(key);
@@ -759,6 +672,7 @@ public class AmberGraph extends BaseGraph
         return vertices;        
     }    
 
+    
     /**
      * Used by AmberVertex.
      */
@@ -767,41 +681,50 @@ public class AmberGraph extends BaseGraph
         q.branch(Lists.newArrayList(labels), direction);
         q.execute();
     }
-
+    
+    
     public AmberQuery newQuery(Long id) {
         return new AmberQuery(id, this);
     }
 
+
     public AmberQuery newQuery(List<Long> ids) {
         return new AmberQuery(ids, this);
     }
+    
 
     public AmberMultipartQuery newMultipartQuery(List<Long> ids) {
         return new AmberMultipartQuery(this, ids);
     }
-
+    
+    
     public AmberMultipartQuery newMultipartQuery(Long... ids) {
         return new AmberMultipartQuery(this, ids);
     }
-
+    
+    
     public AmberVertexQuery newVertexQuery() {
         return new AmberVertexQuery(this);
     }
-
+    
+    
     @Override
     public void shutdown() {
         dao.close();
         super.shutdown();
     }
-
+    
+    
     public List<AmberTransaction> getTransactionsByVertexId(Long id) {
         return dao.getTransactionsByVertexId(id); 
     }
 
+
     public List<AmberTransaction> getTransactionsByEdgeId(Long id) {
         return dao.getTransactionsByEdgeId(id); 
     }
-
+    
+    
     public List<AmberVertex> getVerticesByTransactionsId(Long id) {
         List<AmberVertex> vertices = new ArrayList<>();
         for (AmberVertexWithState vs : dao.getVerticesByTransactionId(id)) {
@@ -810,6 +733,7 @@ public class AmberGraph extends BaseGraph
         return vertices;
     }
 
+
     public List<AmberEdge> getEdgesByTransactionsId(Long id) {
         List<AmberEdge> edges = new ArrayList<>();
         for (AmberEdgeWithState es : dao.getEdgesByTransactionId(id)) {
@@ -817,18 +741,22 @@ public class AmberGraph extends BaseGraph
         }
         return edges;
     }
-
+    
+    
     public AmberTransaction getTransaction(Long id) {
         return dao.getTransaction(id);
     }
-
+    
+    
     public AmberTransaction getFirstTransactionForVertexId(Long id) {
         return dao.getFirstTransactionForVertexId(id);
     }
 
+
     public AmberTransaction getFirstTransactionForEdgeId(Long id) {
         return dao.getFirstTransactionForEdgeId(id);
     }
+
 
     private void endElementsWithRetry(Long txnId, int retries, int backoffDelay) {
         int tryCount = 0;
@@ -855,6 +783,7 @@ public class AmberGraph extends BaseGraph
             }
         }
     }
+
 
     private void startElementsWithRetry(Long txnId, int retries, int backoffDelay) {
         int tryCount = 0;
@@ -890,3 +819,4 @@ public class AmberGraph extends BaseGraph
         return tempTableEngine;
     }
 }
+
