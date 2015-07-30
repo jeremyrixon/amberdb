@@ -1,9 +1,8 @@
 package amberdb.model;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Reader;
+import java.lang.ProcessBuilder.Redirect;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
@@ -19,7 +18,6 @@ import java.util.Map;
 import amberdb.relation.*;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang.StringUtils;
-import org.apache.tika.Tika;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -164,6 +162,18 @@ public interface Copy extends Node {
 
     @Property("exhibition")
     public void setExhibition(String exhibition);
+
+    @Property("acquisitionStatus")
+    public String getAcquisitionStatus();
+
+    @Property("acquisitionStatus")
+    public void setAcquisitionStatus(String acquisitionStatus);
+
+    @Property("acquisitionCategory")
+    public String getAcquisitionCategory();
+
+    @Property("acquisitionCategory")
+    public void setAcquisitionCategory(String acquisitionCategory);
 
     @Property("copyStatus")
     public String getCopyStatus();
@@ -524,26 +534,13 @@ public interface Copy extends Node {
 
             // Execute command
             ProcessBuilder builder = new ProcessBuilder(cmd);
+            builder.redirectError(Redirect.INHERIT).redirectOutput(Redirect.INHERIT);
             Process p = builder.start();
             p.waitFor();
             int exitVal = p.exitValue();
             String msg = "";
             if (exitVal > 0) {
-                // Error - Read from error stream
-                StringBuffer sb = new StringBuffer();
-                String line;
-
-                BufferedReader br = new BufferedReader(new InputStreamReader(p.getErrorStream(), "UTF-8"));
-                while ((line = br.readLine()) != null) {
-                    if (sb.length() > 0) {
-                        sb.append('\n');
-                    }
-                    sb.append(line);
-                }
-                br.close();
-
-                msg = sb.toString().trim();
-                throw new IOException(msg);
+                throw new IOException("Error in executeCmd");
             }
         }
 
@@ -601,6 +598,7 @@ public interface Copy extends Node {
                     uncompressedTiffPath.toString()};
 
             ProcessBuilder uncompressPb = new ProcessBuilder(uncompressCmd);
+            uncompressPb.redirectError(Redirect.INHERIT).redirectOutput(Redirect.INHERIT);
             Process uncompressProcess = uncompressPb.start();
             uncompressProcess.waitFor();
             int uncompressResult = uncompressProcess.exitValue();
@@ -628,6 +626,7 @@ public interface Copy extends Node {
                     "Cuse_sop=yes"};
 
             ProcessBuilder jp2Pb = new ProcessBuilder(convertCmd);
+            jp2Pb.redirectError(Redirect.INHERIT).redirectOutput(Redirect.INHERIT);
             Process jp2Process = jp2Pb.start();
             jp2Process.waitFor();
             int convertResult = jp2Process.exitValue(); // really should check it's worked
@@ -643,27 +642,9 @@ public interface Copy extends Node {
             }
 
             // prepare the files for conversion
-            Path tmpPath = stage.resolve("" + imgBlobId);  // where to put the source retrieved from the amber blob
-            copyBlobToFile(doss.get(imgBlobId), tmpPath);  // get the blob from amber
-
-            // Add the right file extension to filename based on mime type
-            // This is to prevent kdu_compress from failing when a tif file is named as .jpg, etc.
-            Tika tika = new Tika();
-            String mimeType = tika.detect(tmpPath.toFile());
-            String fileExtension = null;
-            if ("image/tiff".equals(mimeType)) {
-                fileExtension = ".tif";
-            } else if ("image/jpeg".equals(mimeType)) {
-                fileExtension = ".jpg";
-            } else {
-                // Will add support for other mime types (eg. raw) later
-                throw new RuntimeException("Not a tiff or a jpeg file");
-            }
-
-            // Rename the file
-            String newFilename = "" + imgBlobId + fileExtension;
-            Path srcImgPath = tmpPath.resolveSibling(newFilename);
-            Files.move(tmpPath, srcImgPath);
+            String imgFilename = this.getImageFile().getFileName();
+            Path srcImgPath = stage.resolve(imgBlobId + imgFilename.substring(imgFilename.lastIndexOf('.')));  // where to put the source retrieved from the amber blob
+            copyBlobToFile(doss.get(imgBlobId), srcImgPath);       // get the blob from amber
 
             // Convert to jp2
             Jp2Converter jp2c = new Jp2Converter(jp2Converter, imgConverter);
