@@ -106,7 +106,7 @@ public class AmberQueryTest {
         graph.setLocalMode(true);
         
         
-        assertEquals(results.size(), 705);    
+        assertEquals(results.size(), 706);    
         Vertex book = graph.getVertex(book2.getId());
         List<Vertex> pages = (List<Vertex>) book.getVertices(Direction.IN, "isPartOf");
         assertEquals(pages.size(), 51);
