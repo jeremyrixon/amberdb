@@ -51,7 +51,7 @@ public class AmberQueryBase {
 
         List<Vertex> vertices = new ArrayList<>();
         List<AmberVertexWithState> wrappedVertices = h.createQuery(String.format(
-                "SELECT DISTINCT v.id, v.txn_start, v.txn_end, 'AMB' state, %1$s.%3$s ord "
+                "SELECT v.id, v.txn_start, v.txn_end, 'AMB' state "
                 + "FROM vertex v, %1$s "
                 + "WHERE v.id = %1$s.%2$s "
                 + "AND v.txn_end = 0 "
@@ -83,7 +83,7 @@ public class AmberQueryBase {
 
         List<Edge> edges = new ArrayList<>();
         List<AmberEdgeWithState> wrappedEdges = h.createQuery(String.format(
-                "SELECT DISTINCT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order, 'AMB' state "
+                "SELECT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order, 'AMB' state "
                 + "FROM edge e, %1$s "
                 + "WHERE e.id = %1$s.%2$s "
                 + "AND e.txn_end = 0",
@@ -114,7 +114,7 @@ public class AmberQueryBase {
             String inVertexIdTable, String inVertexIdColumn, String outVertexIdTable, String outVertexIdColumn) {
 
         List<AmberEdgeWithState> wrappedEdges = h.createQuery(String.format(
-                "SELECT DISTINCT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order, 'AMB' state "
+                "SELECT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order, 'AMB' state "
                 + "FROM edge e, %1$s, %3$s "
                 + "WHERE e.v_in = %1$s.%2$s "
                 + "AND e.v_out = %3$s.%4$s "
