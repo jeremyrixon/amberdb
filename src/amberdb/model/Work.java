@@ -1327,6 +1327,7 @@ public interface Work extends Node {
                  .branch(BRANCH_FROM_ALL, new String[] {"isCopyOf"}, Direction.IN)
                  .branch(BRANCH_FROM_PREVIOUS, new String[] {"isFileOf"}, Direction.IN)
                  .branch(BRANCH_FROM_PREVIOUS, new String[] {"descriptionOf"}, Direction.IN)
+                 .branch(BRANCH_FROM_ALL, new String[] {"tags"}, Direction.IN)
                  .execute(true);
         }
 
