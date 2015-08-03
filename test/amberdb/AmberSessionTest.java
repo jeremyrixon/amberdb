@@ -395,42 +395,5 @@ public class AmberSessionTest {
         assertEquals(null,aliasMap.get("baraba"));
     }
     
-//    @Test
-//    public void testExpiryReport() throws Exception {
-//
-//        AmberGraph graph = sess.getAmberGraph();
-//        String tableDrop = graph.getTempTableDrop();
-//
-//        System.out.println(" table drop = #" + tableDrop + "#");
-//        Calendar calendar = Calendar.getInstance();
-//        calendar.set(Calendar.YEAR, 2016);
-//        Date date = calendar.getTime();
-//        Vertex v1 = graph.addVertex(null);
-//        v1.setProperty("expiryDate", "date");
-//        v1.setProperty("collection", "nla.aus");
-//        v1.setProperty("type", "Work");
-//        v1.setProperty("title", "title1");
-//        
-//        Vertex v2 = graph.addVertex(null);
-//        calendar.set(Calendar.YEAR, 2016);
-//        v2.setProperty("expiryDate", date.getTime());
-//        v2.setProperty("collection", "nla.aus");
-//        v2.setProperty("type", "Work");
-//        v2.setProperty("title", "title2");
-//        
-//        Vertex v3 = graph.addVertex(null);
-//        calendar.set(Calendar.YEAR, 2017);
-//        v3.setProperty("expiryDate", date.getTime());
-//        v3.setProperty("type", "Copy");
-//        v3.setProperty("title", "title3");
-//        v2.setProperty("collection", "nla.aus");
-//       
-//        
-//        graph.commit("tester", "testing duplicates in the json value");
-//        calendar.set(Calendar.YEAR, 2016);
-//        date = calendar.getTime();
-//        List<Vertex> result = (List<Vertex>) sess.getExpiryReport(date, "nla.aus" , tableDrop, " 1 YEAR");
-//   
-//
-//    }
+
 }

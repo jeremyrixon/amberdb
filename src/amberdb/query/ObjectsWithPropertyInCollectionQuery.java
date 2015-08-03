@@ -81,11 +81,13 @@ public class ObjectsWithPropertyInCollectionQuery extends AmberQueryBase {
                     .createStatement("INSERT INTO er (id) \n"
                             + "SELECT DISTINCT p.id \n"
                             + "FROM property p"
-                            + ", property cp, property tp \n"
-                            + "WHERE p.txn_end = 0 AND cp.txn_end = 0 AND tp.txn_end=0 "
-                            + " AND cp.id = p.id AND tp.id = p.id"
+                            + ", property cp, property tp, property iacp \n"
+                            + "WHERE p.txn_end = 0 AND cp.txn_end = 0 AND tp.txn_end=0 AND iacp.txn_end=0"
+                            + " AND cp.id = p.id AND tp.id = p.id AND iacp.id = p.id "
                             + " AND tp.name= :typeName "
+                            + " AND iacp.name= :internalAccessConditions"
                             + " AND tp.value = :type1 "
+                            + " AND iacp.value != :closed "
                             + " AND cp.name = :collection "
                             + " AND p.name = :name "                     
                             + " AND YEAR(DATE_ADD(FROM_UNIXTIME(0), INTERVAL conv(hex(p.value), 16, 10)/1000 SECOND))  = :expiry " 
@@ -93,6 +95,8 @@ public class ObjectsWithPropertyInCollectionQuery extends AmberQueryBase {
 
             q.bind("expiry", expiryYear);
             q.bind("name", "expiryDate");
+            q.bind("internalAccessConditions", "internalAccessConditions");
+            q.bind("closed", "Closed");
             q.bind("typeName", "type");
             q.bind("type1", AmberProperty.encode("Work"));
             q.bind("collection", "collection");
