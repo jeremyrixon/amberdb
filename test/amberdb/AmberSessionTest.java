@@ -8,24 +8,19 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Vertex;
-
 import doss.CorruptBlobStoreException;
 import doss.local.LocalBlobStore;
 import amberdb.graph.AmberGraph;
@@ -34,7 +29,6 @@ import amberdb.model.Page;
 import amberdb.model.Work;
 import amberdb.model.AliasItem;
 import amberdb.AmberSession;
-import amberdb.query.ObjectsWithPropertyInCollectionQuery;
 
 public class AmberSessionTest {
 
