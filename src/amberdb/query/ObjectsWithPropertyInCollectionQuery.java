@@ -4,10 +4,7 @@ import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberProperty;
 import amberdb.graph.AmberQueryBase;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
+
 import java.util.List;
 import java.util.Map;
 
@@ -70,37 +67,33 @@ public class ObjectsWithPropertyInCollectionQuery extends AmberQueryBase {
     }
     
     
-    public List<Vertex> getExpiryReport(Date expiryDate, String collectionName, String statement, String tableDrop) {
-        String castOption = "conv(hex(p.value), 16, 10)";
-        if(("").equals(tableDrop)){
-           castOption = " CAST(p.value AS  decimal(10,0)) ";
-      //      castOption = "DATEADD('SECOND', p.value/1000, DATE '1970-01-01')";
-     //      castOption = "cast(p.value as decimal(10,0))";
-        }
+    public List<Vertex> getExpiryReport(String expiryYear, String collectionName) {
+   
+    
         List<Vertex> vertices;
         try (Handle h = graph.dbi().open()) {
             h.begin();
-            h.execute("DROP " + graph.getTempTableDrop() + " TABLE IF EXISTS er; CREATE ALIAS TIME_MILLIS FOR 'ObjectsWithPropertyInCollectionQuery.getTimeMillis';CREATE TEMPORARY TABLE er (id BIGINT, millis BIGINT) " + graph.getTempTableEngine() + ";");
-            Update q = h.createStatement(
-                    "INSERT INTO er (id, millis) \n"
-                    + "SELECT DISTINCT p.id, TIME_MILLIS(now) \n"
-                    + "FROM property p"
-                    + ", property cp, property tp \n"
-                    + "WHERE p.txn_end = 0 AND cp.txn_end = 0 AND tp.txn_end=0 "                  
-                    + " AND cp.id = p.id AND tp.id = p.id"
-                    + " AND tp.name= :typeName "
-                   + " AND tp.value = :type1 "
-                    + " AND cp.name = :collection "
-                    + " AND p.name = :name "
-                    
-//                    + " AND " + castOption + " >= UNIX_TIMESTAMP(curdate())*1000"
-//                    + " AND " + castOption + "<= UNIX_TIMESTAMP(DATE_ADD(curdate(), INTERVAL 1 YEAR))*1000 "
-                    + " AND cp.value = :value ");
+            h.execute("DROP "
+                    + graph.getTempTableDrop()
+                    + " TABLE IF EXISTS er;CREATE TEMPORARY TABLE er (id BIGINT, millis BIGINT) "
+                    + graph.getTempTableEngine() + ";");
+            Update q = h
+                    .createStatement("INSERT INTO er (id) \n"
+                            + "SELECT DISTINCT p.id \n"
+                            + "FROM property p"
+                            + ", property cp, property tp \n"
+                            + "WHERE p.txn_end = 0 AND cp.txn_end = 0 AND tp.txn_end=0 "
+                            + " AND cp.id = p.id AND tp.id = p.id"
+                            + " AND tp.name= :typeName "
+                            + " AND tp.value = :type1 "
+                            + " AND cp.name = :collection "
+                            + " AND p.name = :name "                     
+                            + " AND YEAR(DATE_ADD(FROM_UNIXTIME(0), INTERVAL conv(hex(p.value), 16, 10)/1000 SECOND))  = :expiry " 
+                            + " AND cp.value = :value ");
 
-            q.bind("expiry", expiryDate.getTime());
+            q.bind("expiry", expiryYear);
             q.bind("name", "expiryDate");
             q.bind("typeName", "type");
-            q.bind("statement", AmberProperty.encode(statement));
             q.bind("type1", AmberProperty.encode("Work"));
             q.bind("collection", "collection");
             q.bind("value", AmberProperty.encode(collectionName));
@@ -108,12 +101,13 @@ public class ObjectsWithPropertyInCollectionQuery extends AmberQueryBase {
             h.commit();
 
             // and reap the rewards
-            Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h, "er", "id");
+            Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h,
+                    "er", "id");
             vertices = getVertices(h, graph, propMaps, "er", "id", "id");
         }
         return vertices;
     }
-    
+
     public static long getTimeMillis(java.sql.Timestamp ts) {
         return ts.getTime();
     }
