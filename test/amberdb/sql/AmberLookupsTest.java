@@ -3,10 +3,8 @@ package amberdb.sql;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,6 +28,16 @@ public class AmberLookupsTest {
             session.close();
     }
 
+    @Test
+    public void testAddLookupEntry() {
+        Long entry = lookups.addLookup("testAddition", "entry", "entry");
+        Long entry1 = lookups.addLookup("testAddition", "entry", "entry");
+        ListLu lu = lookups.findLookup(entry);
+        ListLu lu1 = lookups.findLookup(entry1);
+        assertEquals("entry", lu.getCode());
+        assertEquals("entry_1", lu1.getCode());
+    }
+    
     @Test
     public void testFindActiveDevices() {
         List<ToolsLu> devices = lookups.findActiveToolsFor("toolCategory", "Device");
@@ -245,9 +253,6 @@ public class AmberLookupsTest {
         lookups.updateLookup(found.getId(), "234", "tape 2");
         ListLu updatedLookup = lookups.findLookup(found.getId());
         assertEquals(updatedLookup.getCode(), "tape 2");
-        assertEquals(updatedLookup.getValue(), "234");
-        
-        
-        
+        assertEquals(updatedLookup.getValue(), "234");  
     }
 }
