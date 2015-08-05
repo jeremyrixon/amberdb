@@ -15,7 +15,12 @@ import com.tinkerpop.blueprints.Direction;
 import amberdb.AmberSession;
 import amberdb.InvalidSubtypeException;
 import amberdb.NoSuchObjectException;
+import amberdb.enums.BibLevel;
+import amberdb.enums.CaptureStatus;
+import amberdb.enums.ChecksumType;
+import amberdb.enums.Compression;
 import amberdb.enums.CopyRole;
+import amberdb.enums.CopyrightPolicy;
 import amberdb.enums.SubType;
 
 public class WorkTest {
@@ -387,6 +392,9 @@ public class WorkTest {
         bookBlinkyBill.setSubType(SubType.BOOK.code());
         bookBlinkyBill.setTitle("Blinky Bill");
         bookBlinkyBill.setBibId("73");
+        bookBlinkyBill.setBibLevel(BibLevel.ITEM.code());
+        bookBlinkyBill.setCopyrightPolicy(CopyrightPolicy.OUTOFCOPYRIGHT.code());
+        bookBlinkyBill.setDigitalStatus(CaptureStatus.CAPTURED.code());
         workCollection.addChild(bookBlinkyBill);
         
         chapterBlinkyBill = sess.addWork();
@@ -427,6 +435,12 @@ public class WorkTest {
         File workFrontCoverMasterCopyFile = workFrontCoverMasterCopy.addFile();
         File workFrontCoverOCRJsonCopyFile = workFrontCoverOCRJsonCopy.addFile();
         File workFrontCoverAccessCopyFile = workFrontCoverAccessCopy.addFile();
+        workFrontCoverMasterCopyFile.setChecksumType(ChecksumType.SHA_1.code());
+        workFrontCoverOCRJsonCopyFile.setChecksumType(ChecksumType.SHA_1.code());
+        workFrontCoverAccessCopyFile.setChecksumType(ChecksumType.SHA_1.code());
+        workFrontCoverMasterCopyFile.setCompression(Compression.NONE.code());
+        workFrontCoverOCRJsonCopyFile.setCompression(Compression.NONE.code());
+        workFrontCoverAccessCopyFile.setCompression(Compression.NONE.code());
         
         expectedResults.put("workFrontCover_getSubType", workFrontCover.getSubType());
         expectedResults.put("workFrontCover_getSubUnitType", workFrontCover.getSubUnitType());

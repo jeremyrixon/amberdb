@@ -155,6 +155,10 @@ public abstract class Lookups extends Tools {
    
     
     public Long addLookup(String name, String code, String value) {
+        List<ListLu> list = findActiveLookup(name, code);
+        if (!list.isEmpty()) {
+            code = code + "_" + list.size();
+        }
         System.out.println("lookups: start time : " + fmtDate(new Date()));
         Long newId = addLookupData(name, code, value);
         System.out.println("lookups: end time : " + fmtDate(new Date()));
