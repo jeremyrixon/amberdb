@@ -436,11 +436,7 @@ public class WorkTest {
         File workFrontCoverOCRJsonCopyFile = workFrontCoverOCRJsonCopy.addFile();
         File workFrontCoverAccessCopyFile = workFrontCoverAccessCopy.addFile();
         workFrontCoverMasterCopyFile.setChecksumType(ChecksumType.SHA_1.code());
-        workFrontCoverOCRJsonCopyFile.setChecksumType(ChecksumType.SHA_1.code());
-        workFrontCoverAccessCopyFile.setChecksumType(ChecksumType.SHA_1.code());
         workFrontCoverMasterCopyFile.setCompression(Compression.NONE.code());
-        workFrontCoverOCRJsonCopyFile.setCompression(Compression.NONE.code());
-        workFrontCoverAccessCopyFile.setCompression(Compression.NONE.code());
         
         expectedResults.put("workFrontCover_getSubType", workFrontCover.getSubType());
         expectedResults.put("workFrontCover_getSubUnitType", workFrontCover.getSubUnitType());

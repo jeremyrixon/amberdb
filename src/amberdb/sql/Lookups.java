@@ -153,7 +153,18 @@ public abstract class Lookups extends Tools {
     }
     
    
-    
+    /**
+     * Adding an new lookup entry, if the lookup code already exist previously, but
+     * with lookup value modified, then an new lookup code should be generated in
+     * the format of code + "_" + list.size().  This caters for cases where an 
+     * currently active lookup entry has its code and value matching the input code 
+     * and value, and later on, having its value modified.
+     * 
+     * In general, if the lookup entry is not yet reference anywhere in the app, it's
+     * preferred to have the lookup entry suppressed instead of modify its value.
+     * 
+     * @return the id of the entry.
+     */
     public Long addLookup(String name, String code, String value) {
         List<ListLu> list = findActiveLookup(name, code);
         if (!list.isEmpty()) {
