@@ -397,8 +397,7 @@ public class AmberSessionTest {
   public void testExpiryReport() throws Exception {
 
       AmberGraph graph = sess.getAmberGraph();
-      String tableDrop = graph.getTempTableDrop();
-
+    
       Calendar calendar = Calendar.getInstance();
       calendar.set(Calendar.YEAR, 2016);
       Date date = calendar.getTime();

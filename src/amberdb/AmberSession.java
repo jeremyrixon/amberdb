@@ -870,9 +870,8 @@ public class AmberSession implements AutoCloseable {
     
     public List<Work> getExpiryReport(String expiryYear, String collection) {
 
-        ObjectsWithPropertyReportQuery avq = new ObjectsWithPropertyReportQuery(getAmberGraph());
-        String tableDrop = getAmberGraph().getTempTableDrop();
-        List<Vertex> results = avq.generateExpiryReport(expiryYear, collection, tableDrop);
+        ObjectsWithPropertyReportQuery avq = new ObjectsWithPropertyReportQuery(getAmberGraph());     
+        List<Vertex> results = avq.generateExpiryReport(expiryYear, collection);
         List<Work> works = new ArrayList<Work>();
         for (Vertex v :results) {
  

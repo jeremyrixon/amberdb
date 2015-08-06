@@ -3,6 +3,7 @@ package amberdb.query;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberProperty;
 import amberdb.graph.AmberQueryBase;
+
 import java.util.List;
 import java.util.Map;
 
@@ -64,8 +65,8 @@ public class ObjectsWithPropertyReportQuery extends AmberQueryBase {
     }
     
     
-    public List<Vertex> generateExpiryReport(String expiryYear, String collectionName, String tabledrop) {
-        
+    public List<Vertex> generateExpiryReport(String expiryYear, String collectionName) {
+        String tabledrop = graph.getTempTableDrop();
         String compareStatement =  " AND YEAR(DATE_ADD(FROM_UNIXTIME(0), INTERVAL conv(hex(p.value), 16, 10)/1000 SECOND))  = :expiry " ;
     
         // compare statement for H2  
