@@ -58,7 +58,9 @@ public enum CopyRole {
     THUMBNAIL_COPY("t", "Thumbnail",43),
     TIME_CODED_SUMMARY("sc", "Time coded Summary", "Yes",44),
     TIME_CODED_TRANSCRIPT_COPY("tc", "Time coded transcript", "Yes",45),
-    VIEW_COPY("v", "View",46);
+    VIEW_COPY("v", "View",46),
+    Image_Package("ip", "Image Package",46);
+	
 
     private String code;
     private String display;
