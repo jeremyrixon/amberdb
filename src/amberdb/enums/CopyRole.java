@@ -59,7 +59,7 @@ public enum CopyRole {
     TIME_CODED_SUMMARY("sc", "Time coded Summary", "Yes",44),
     TIME_CODED_TRANSCRIPT_COPY("tc", "Time coded transcript", "Yes",45),
     VIEW_COPY("v", "View",46),
-    Image_Package("ip", "Image Package",46);
+    Image_Package("ip", "Image Package",47);
 	
 
     private String code;
