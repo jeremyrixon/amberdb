@@ -167,10 +167,10 @@ public interface Work extends Node {
     public void setForm(String form);
     
     @Property("displayTitlePage")
-    public String getDisplayTitlePage();
+    public Boolean isDisplayTitlePage();
 
     @Property("displayTitlePage")
-    public void setDisplayTitlePage(String displayTitlePage);
+    public void setDisplayTitlePage(Boolean displayTitlePage);
 
     @Property("bibLevel")
     public String getBibLevel();
