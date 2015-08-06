@@ -3,8 +3,6 @@ package amberdb.query;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberProperty;
 import amberdb.graph.AmberQueryBase;
-
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -112,6 +110,7 @@ public class ObjectsWithPropertyReportQuery extends AmberQueryBase {
             Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h,
                     "er", "id");
             vertices = getVertices(h, graph, propMaps, "er", "id", "id");
+           
         }
         return vertices;
     }
