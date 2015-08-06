@@ -4,6 +4,7 @@ package amberdb;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,7 +44,7 @@ import amberdb.graph.AmberHistory;
 import amberdb.graph.AmberMultipartQuery;
 import amberdb.graph.AmberMultipartQuery.QueryClause;
 import amberdb.graph.AmberTransaction;
-import amberdb.query.ObjectsWithPropertyInCollectionQuery;
+import amberdb.query.ObjectsWithPropertyReportQuery;
 import static amberdb.graph.BranchType.*;
 
 import com.google.common.collect.Lists;
@@ -845,8 +846,8 @@ public class AmberSession implements AutoCloseable {
     
     public Map<String, Set<AliasItem>> getDuplicateAliases(String name, String collection) {
 
-        ObjectsWithPropertyInCollectionQuery avq = new ObjectsWithPropertyInCollectionQuery(getAmberGraph());
-        List<Vertex> results = avq.execute(name, collection);
+        ObjectsWithPropertyReportQuery avq = new ObjectsWithPropertyReportQuery(getAmberGraph());
+        List<Vertex> results = avq.generateDuplicateAliasReport(name, collection);
         Map<String, Set<AliasItem>> aliasMap = new HashMap<String, Set<AliasItem>>();
         for (Vertex v :results) {
             String values = v.getProperty(name);
@@ -869,10 +870,10 @@ public class AmberSession implements AutoCloseable {
     
     public List<Work> getExpiryReport(String expiryYear, String collection) {
 
-        ObjectsWithPropertyInCollectionQuery avq = new ObjectsWithPropertyInCollectionQuery(getAmberGraph());
-        List<Vertex> results = avq.getExpiryReport(expiryYear, collection);
+        ObjectsWithPropertyReportQuery avq = new ObjectsWithPropertyReportQuery(getAmberGraph());
+        String tableDrop = getAmberGraph().getTempTableDrop();
+        List<Vertex> results = avq.generateExpiryReport(expiryYear, collection, tableDrop);
         List<Work> works = new ArrayList<Work>();
-        System.out.println("SIZE=" + results.size());
         for (Vertex v :results) {
  
             Work work = getGraph().frame(v, Work.class);

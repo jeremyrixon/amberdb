@@ -8,19 +8,23 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Vertex;
+
 import doss.CorruptBlobStoreException;
 import doss.local.LocalBlobStore;
 import amberdb.graph.AmberGraph;
@@ -388,6 +392,78 @@ public class AmberSessionTest {
         assertEquals(null,aliasMap.get("babba"));
         assertEquals(null,aliasMap.get("baraba"));
     }
+    
+  @Test
+  public void testExpiryReport() throws Exception {
+
+      AmberGraph graph = sess.getAmberGraph();
+      String tableDrop = graph.getTempTableDrop();
+
+      Calendar calendar = Calendar.getInstance();
+      calendar.set(Calendar.YEAR, 2016);
+      Date date = calendar.getTime();
+      Vertex v1 = graph.addVertex(null);
+      v1.setProperty("expiryDate", date);
+      v1.setProperty("collection", "nla.aus");
+      v1.setProperty("type", "Work");
+      v1.setProperty("internalAccessConditions", "Open");
+      v1.setProperty("title", "title1");
+     
+      Vertex v2 = graph.addVertex(null);
+      v2.setProperty("expiryDate", date.getTime());
+      v2.setProperty("collection", "nla.aus");
+      v2.setProperty("internalAccessConditions", "Open");
+      v2.setProperty("type", "Work");
+      v2.setProperty("title", "title2");
+     
+      Vertex v3 = graph.addVertex(null);
+      calendar.set(Calendar.YEAR, 2017);
+      date = calendar.getTime();
+      v3.setProperty("expiryDate", date.getTime());
+      v3.setProperty("type", "Copy");
+      v3.setProperty("title", "title3");
+      v3.setProperty("collection", "nla.aus");
+      v3.setProperty("internalAccessConditions", "Open");
+      
+      Vertex v4 = graph.addVertex(null);
+      v4.setProperty("expiryDate", date.getTime());
+      v4.setProperty("type", "Work");
+      v4.setProperty("title", "title3");
+      v4.setProperty("collection", "nla.aus");
+      v4.setProperty("internalAccessConditions", "Open");
+      
+      Vertex v5 = graph.addVertex(null);
+      v5.setProperty("expiryDate", date.getTime());
+      v5.setProperty("type", "Work");
+      v5.setProperty("title", "title3");
+      v5.setProperty("collection", "nla.oh");
+      v5.setProperty("internalAccessConditions", "Closed");
+      
+      Vertex v6 = graph.addVertex(null);
+      v6.setProperty("expiryDate", date.getTime());
+      v6.setProperty("type", "Work");
+      v6.setProperty("title", "title3");
+      v6.setProperty("collection", "nla.oh");
+      v6.setProperty("internalAccessConditions", "Open");
+    
+    
+     
+      graph.commit("tester", "testing expiry report");
+  
+      List<Work> result =  sess.getExpiryReport("2016", "nla.aus");
+      assertEquals(2, result.size());
+      result =  sess.getExpiryReport("2016", "nla.oh");
+      assertEquals(0, result.size());
+      result =  sess.getExpiryReport("2017", "nla.aus");
+      assertEquals(1, result.size());
+      result =  sess.getExpiryReport("2017", "nla.oh");
+      assertEquals(1, result.size());
+      
+      
+
+
+  }
+  
     
 
 }
