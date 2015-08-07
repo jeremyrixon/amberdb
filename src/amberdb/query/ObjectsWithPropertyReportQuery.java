@@ -66,11 +66,11 @@ public class ObjectsWithPropertyReportQuery extends AmberQueryBase {
     
     
     public List<Vertex> generateExpiryReport(String expiryYear, String collectionName) {
-        String tabledrop = graph.getTempTableDrop();
+       
         String compareStatement =  " AND YEAR(DATE_ADD(FROM_UNIXTIME(0), INTERVAL conv(hex(p.value), 16, 10)/1000 SECOND))  = :expiry " ;
     
         // compare statement for H2  
-        if("".equals(tabledrop)){
+        if("".equals(graph.getTempTableDrop())){
             compareStatement = " AND YEAR(DATEADD('SECOND',CAST(CAST(p.value AS BINARY) AS BIGINT)/1000, DATE '1970-01-01')) = :expiry ";
          }
     
