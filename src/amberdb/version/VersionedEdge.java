@@ -4,7 +4,9 @@ package amberdb.version;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.tinkerpop.blueprints.Direction;
@@ -109,5 +111,23 @@ public class VersionedEdge {
     
     public List<TEdge> getTEdges() {
         return edges;
+    }
+    
+    public static TEdge findEdgeByTransactionId(Iterable<VersionedEdge> versionedEdges, Long transactionId) {
+        for (VersionedEdge versionedEdge : versionedEdges){
+            TEdge edge = versionedEdge.getAtTxn(transactionId);
+            if (edge != null){
+                edge.replaceProperties(getEdgeProperties(edge));
+                return versionedEdge.getAtTxn(transactionId);
+            }
+        }
+        return null;
+    }
+    
+    protected static Map<String, Object> getEdgeProperties(TEdge te) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("v_in", te.getInId());
+        map.put("v_out", te.getOutId());
+        return map;
     }
 }
