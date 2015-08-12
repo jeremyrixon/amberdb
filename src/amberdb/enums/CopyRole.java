@@ -10,6 +10,11 @@ import amberdb.model.Copy;
 
 /** 
  * CopyRole ENUM that provides a code and label for display.
+ * 
+ * the details for 0-12th copy roles must not be changed.
+ * the 13 - 47 copy roles are in alphabetical order, this 
+ * must be maintained at all time when a new copy role is 
+ * added.
  */
 public enum CopyRole {
     ORIGINAL_COPY("o", "Original",0),
