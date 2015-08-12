@@ -72,7 +72,7 @@ public class TEdgeDiff extends TElementDiff {
     }
     
     public Map<String, Object[]> getDiffMap() {
-        Map<String, Object[]> diffMap = new HashMap<>();
+        Map<String, Object[]> diffMap = super.getDiffMap();
         for (String key : edgeAttributes.keySet()){
         	Object[] values = edgeAttributes.get(key);
             switch (transition) {
