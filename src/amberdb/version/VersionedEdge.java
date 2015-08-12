@@ -113,7 +113,7 @@ public class VersionedEdge {
         return edges;
     }
     
-    public static TEdge findEdgeByTransactionId(Iterable<VersionedEdge> versionedEdges, Long transactionId) {
+    public static TEdge findFirstEdgeByTransactionId(Iterable<VersionedEdge> versionedEdges, Long transactionId) {
         for (VersionedEdge versionedEdge : versionedEdges){
             TEdge edge = versionedEdge.getAtTxn(transactionId);
             if (edge != null){
