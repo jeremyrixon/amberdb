@@ -10,6 +10,11 @@ import amberdb.model.Copy;
 
 /** 
  * CopyRole ENUM that provides a code and label for display.
+ * 
+ * the details for 0-12th copy roles must not be changed.
+ * the 13 - 47 copy roles are in alphabetical order, this 
+ * must be maintained at all time when a new copy role is 
+ * added.
  */
 public enum CopyRole {
     ORIGINAL_COPY("o", "Original",0),
@@ -35,31 +40,31 @@ public enum CopyRole {
     FINDING_AID_COPY("fa", "Finding aid",20),
     FINDING_AID_PRINT_COPY("fap", "Finding aid print",21),
     FINDING_AID_VIEW_COPY("fav", "Finding aid view",22),
-    LIST_COPY("dl", "List",23),
-    MICROFORM_COPY("mf", "Microform",24),
-    OCR_METS_COPY("mt", "OCR mets",25),
-    OCR_ALTO_COPY("at", "OCR alto",26),
-    OCR_JSON_COPY("oc", "OCR json",27),
-    PAPER_SUMMARY("sp", "Paper Summary", "No",28),
-    PAPER_TRANSCRIPT("tp", "Paper transcript", "No",29),
-    PRINT_COPY("p", "Print",30),
-    PRODUCTION_MATERIAL("pm", "Production Material",31),
-    QUICKTIME_FILE_1_COPY("sb1", "QuickTime file 1",32),
-    QUICKTIME_FILE_2_COPY("sb2", "QuickTime file 2",33),
-    QUICKTIME_REF_1_COPY("rb1", "QuickTime reference 1",34),
-    QUICKTIME_REF_2_COPY("rb2", "QuickTime reference 2",35),
-    QUICKTIME_REF_3_COPY("rb3", "QuickTime reference 3",36),
-    QUICKTIME_REF_4_COPY("rb4", "QuickTime reference 4",37),
-    REAL_MEDIA_FILE_COPY("sa1", "RealMedia file",38),
-    REAL_MEDIA_REF_COPY("ra1", "RealMedia reference",39),
-    RTF_TRANSCRIPT("tt", "rtf transcript", "No",40),
-    SPECIAL_DELIVERY_COPY("sd", "Special delivery",41),
-    STRUCTURAL_MAP_COPY("sm", "Structural map",42),
-    THUMBNAIL_COPY("t", "Thumbnail",43),
-    TIME_CODED_SUMMARY("sc", "Time coded Summary", "Yes",44),
-    TIME_CODED_TRANSCRIPT_COPY("tc", "Time coded transcript", "Yes",45),
-    VIEW_COPY("v", "View",46),
-    IMAGE_PACKAGE("ip", "Image Package",47);
+    IMAGE_PACKAGE("ip", "Image Package",23),
+    LIST_COPY("dl", "List",24),
+    MICROFORM_COPY("mf", "Microform",25),
+    OCR_METS_COPY("mt", "OCR mets",26),
+    OCR_ALTO_COPY("at", "OCR alto",27),
+    OCR_JSON_COPY("oc", "OCR json",28),
+    PAPER_SUMMARY("sp", "Paper Summary", "No",29),
+    PAPER_TRANSCRIPT("tp", "Paper transcript", "No",30),
+    PRINT_COPY("p", "Print",31),
+    PRODUCTION_MATERIAL("pm", "Production Material",32),
+    QUICKTIME_FILE_1_COPY("sb1", "QuickTime file 1",33),
+    QUICKTIME_FILE_2_COPY("sb2", "QuickTime file 2",34),
+    QUICKTIME_REF_1_COPY("rb1", "QuickTime reference 1",35),
+    QUICKTIME_REF_2_COPY("rb2", "QuickTime reference 2",36),
+    QUICKTIME_REF_3_COPY("rb3", "QuickTime reference 3",37),
+    QUICKTIME_REF_4_COPY("rb4", "QuickTime reference 4",38),
+    REAL_MEDIA_FILE_COPY("sa1", "RealMedia file",39),
+    REAL_MEDIA_REF_COPY("ra1", "RealMedia reference",40),
+    RTF_TRANSCRIPT("tt", "rtf transcript", "No",41),
+    SPECIAL_DELIVERY_COPY("sd", "Special delivery",42),
+    STRUCTURAL_MAP_COPY("sm", "Structural map",43),
+    THUMBNAIL_COPY("t", "Thumbnail",44),
+    TIME_CODED_SUMMARY("sc", "Time coded Summary", "Yes",45),
+    TIME_CODED_TRANSCRIPT_COPY("tc", "Time coded transcript", "Yes",46),
+    VIEW_COPY("v", "View",47);
 	
 
     private String code;
