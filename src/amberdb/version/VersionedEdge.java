@@ -123,10 +123,4 @@ public class VersionedEdge {
         return null;
     }
     
-    protected static Map<String, Object> getEdgeProperties(TEdge te) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("v_in", te.getInId());
-        map.put("v_out", te.getOutId());
-        return map;
-    }
 }
