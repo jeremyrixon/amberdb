@@ -1670,7 +1670,7 @@ public interface Work extends Node {
 
         @Override
         public boolean hasMasterCopy() {
-            return getCopy(CopyRole.MASTER_COPY) != null;
+            return hasCopyType(CopyRole.MASTER_COPY);
         }
 
         @Override
