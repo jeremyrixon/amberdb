@@ -127,6 +127,7 @@ public class CopyRoleTest {
         assertEquals(45,CopyRole.TIME_CODED_SUMMARY.ord());
         assertEquals(46,CopyRole.TIME_CODED_TRANSCRIPT_COPY.ord());
         assertEquals(47,CopyRole.VIEW_COPY.ord());
+        assertEquals(48,CopyRole.values().length);
     }
     
     private void compareItemsBefore(int index, List<CopyRole> roles) {        
