@@ -117,7 +117,6 @@ public class VersionedEdge {
         for (VersionedEdge versionedEdge : versionedEdges){
             TEdge edge = versionedEdge.getAtTxn(transactionId);
             if (edge != null){
-                edge.replaceProperties(getEdgeProperties(edge));
                 return versionedEdge.getAtTxn(transactionId);
             }
         }

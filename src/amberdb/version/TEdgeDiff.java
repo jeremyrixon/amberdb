@@ -2,7 +2,9 @@ package amberdb.version;
 
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import amberdb.graph.AmberEdge;
 
@@ -17,7 +19,7 @@ public class TEdgeDiff extends TElementDiff {
         // edge specific attributes
         switch (transition) {
         case NEW:
-            edgeAttributes.put("label", new Object[] { e2.getLabel() });
+            edgeAttributes.put("label", new Object[] {e2.getLabel() });
             edgeAttributes.put("inVertexId", new Object[] { e2.inId });
             edgeAttributes.put("outVertexId", new Object[] { e2.outId });
             edgeAttributes.put(AmberEdge.SORT_ORDER_PROPERTY_NAME, new Object[] { e2.order });
@@ -69,6 +71,31 @@ public class TEdgeDiff extends TElementDiff {
         return super.getProperty(propertyName);
     }
     
+    public Map<String, Object[]> getDiffMap() {
+        Map<String, Object[]> diffMap = new HashMap<>();
+        for (String key : edgeAttributes.keySet()){
+        	Object[] values = edgeAttributes.get(key);
+            switch (transition) {
+            case NEW:
+                diffMap.put(key, new Object[] {null, values[0]});
+                break;
+            case DELETED:
+                diffMap.put(key, new Object[] {values[0], null});
+                break;
+            case MODIFIED:
+                if (values.length == 2){
+                    diffMap.put(key, values);    
+                }else if(values.length == 1){
+                    diffMap.put(key, new Object[] {values[0], values[0]});
+                }
+                break;
+            case UNCHANGED:
+                diffMap.put(key, new Object[] {values[0], values[0]});
+                break;
+            }
+        }
+        return diffMap;
+    }
     
     @Override
     public String toString() {
