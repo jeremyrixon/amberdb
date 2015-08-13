@@ -7,6 +7,8 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -380,15 +382,33 @@ public class AmberSessionTest {
         v3.setProperty("title", "title3");
         Edge ed = graph.addEdge(null, v3, v2, "isCopyOf");
         
+        Vertex v4 = graph.addVertex(null);
+        v4.setProperty("alias-list", "[\"abba\",\"beta\",\"delta\",\"snez\",\"gama\"]");
+        v4.setProperty("collection", "nla.aus");
+        v4.setProperty("type", "Page");
+        v4.setProperty("title", "title4");
+        
+        Vertex v5 = graph.addVertex(null);
+        v5.setProperty("alias-list", "[\"abba\",\"beta\",\"delta\",\"snez\",\"gama\"]");
+        v5.setProperty("collection", "nla.aus");
+        v5.setProperty("type", "Section");
+        v5.setProperty("title", "title5");
+        
+        Vertex v6 = graph.addVertex(null);
+        v6.setProperty("alias-list", "[\"abba\",\"beta\",\"delta\",\"snez\",\"gama\"]");
+        v6.setProperty("collection", "nla.aus");
+        v6.setProperty("type", "EADWork");
+        v6.setProperty("title", "title6");
+        
         graph.commit("tester", "testing duplicates in the json value");
         
         Map<String, Set<AliasItem>> aliasMap = sess.getDuplicateAliases("alias-list", "nla.aus");
         
         assertEquals(5, aliasMap.size());
-        assertEquals(3, aliasMap.get("beta").size());
-        assertEquals(3, aliasMap.get("delta").size());
-        assertEquals(3, aliasMap.get("gama").size());
-        assertEquals(2, aliasMap.get("abba").size());
+        assertEquals(6, aliasMap.get("beta").size());
+        assertEquals(6, aliasMap.get("delta").size());
+        assertEquals(6, aliasMap.get("gama").size());
+        assertEquals(5, aliasMap.get("abba").size());
         assertEquals(null,aliasMap.get("babba"));
         assertEquals(null,aliasMap.get("baraba"));
     }
@@ -397,19 +417,25 @@ public class AmberSessionTest {
   public void testExpiryReport() throws Exception {
 
       AmberGraph graph = sess.getAmberGraph();
+      
+      DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+      String dateString = "2016-01-01";
+      Date date1 = sdf.parse(dateString); 
+      dateString = "2017-01-01";
+      Date date2 = sdf.parse(dateString); 
     
       Calendar calendar = Calendar.getInstance();
       calendar.set(Calendar.YEAR, 2016);
       Date date = calendar.getTime();
       Vertex v1 = graph.addVertex(null);
-      v1.setProperty("expiryDate", date);
+      v1.setProperty("expiryDate", date1.getTime());
       v1.setProperty("collection", "nla.aus");
       v1.setProperty("type", "Work");
       v1.setProperty("internalAccessConditions", "Open");
       v1.setProperty("title", "title1");
      
       Vertex v2 = graph.addVertex(null);
-      v2.setProperty("expiryDate", date.getTime());
+      v2.setProperty("expiryDate", date1.getTime());
       v2.setProperty("collection", "nla.aus");
       v2.setProperty("internalAccessConditions", "Open");
       v2.setProperty("type", "Work");
@@ -418,44 +444,67 @@ public class AmberSessionTest {
       Vertex v3 = graph.addVertex(null);
       calendar.set(Calendar.YEAR, 2017);
       date = calendar.getTime();
-      v3.setProperty("expiryDate", date.getTime());
+      v3.setProperty("expiryDate", date2.getTime());
       v3.setProperty("type", "Copy");
       v3.setProperty("title", "title3");
       v3.setProperty("collection", "nla.aus");
       v3.setProperty("internalAccessConditions", "Open");
       
       Vertex v4 = graph.addVertex(null);
-      v4.setProperty("expiryDate", date.getTime());
+      v4.setProperty("expiryDate", date2.getTime());
       v4.setProperty("type", "Work");
       v4.setProperty("title", "title3");
       v4.setProperty("collection", "nla.aus");
       v4.setProperty("internalAccessConditions", "Open");
       
       Vertex v5 = graph.addVertex(null);
-      v5.setProperty("expiryDate", date.getTime());
+      v5.setProperty("expiryDate", date2.getTime());
       v5.setProperty("type", "Work");
       v5.setProperty("title", "title3");
       v5.setProperty("collection", "nla.oh");
       v5.setProperty("internalAccessConditions", "Closed");
       
       Vertex v6 = graph.addVertex(null);
-      v6.setProperty("expiryDate", date.getTime());
+      v6.setProperty("expiryDate", date2.getTime());
       v6.setProperty("type", "Work");
       v6.setProperty("title", "title3");
       v6.setProperty("collection", "nla.oh");
       v6.setProperty("internalAccessConditions", "Open");
+      
+      
+      Vertex v7 = graph.addVertex(null);
+      v7.setProperty("expiryDate", date1.getTime());
+      v7.setProperty("type", "Page");
+      v7.setProperty("title", "title7");
+      v7.setProperty("collection", "nla.oh");
+      v7.setProperty("internalAccessConditions", "Open");
+      
+      
+      Vertex v8 = graph.addVertex(null);
+      v8.setProperty("expiryDate", date1.getTime());
+      v8.setProperty("type", "Section");
+      v8.setProperty("title", "title8");
+      v8.setProperty("collection", "nla.oh");
+      v8.setProperty("internalAccessConditions", "Open");
+      
+      Vertex v9 = graph.addVertex(null);
+      v9.setProperty("expiryDate", date1.getTime());
+      v9.setProperty("type", "EADWork");
+      v9.setProperty("title", "title8");
+      v9.setProperty("collection", "nla.oh");
+      v9.setProperty("internalAccessConditions", "Open");
     
-    
+
      
       graph.commit("tester", "testing expiry report");
   
-      List<Work> result =  sess.getExpiryReport("2016", "nla.aus");
+      List<Work> result =  sess.getExpiryReport(date1, "nla.aus");
       assertEquals(2, result.size());
-      result =  sess.getExpiryReport("2016", "nla.oh");
-      assertEquals(0, result.size());
-      result =  sess.getExpiryReport("2017", "nla.aus");
+      result =  sess.getExpiryReport(date1, "nla.oh");
+      assertEquals(3, result.size());
+      result =  sess.getExpiryReport(date2, "nla.aus");
       assertEquals(1, result.size());
-      result =  sess.getExpiryReport("2017", "nla.oh");
+      result =  sess.getExpiryReport(date2, "nla.oh");
       assertEquals(1, result.size());
       
       
