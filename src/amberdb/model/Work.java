@@ -165,6 +165,12 @@ public interface Work extends Node {
 
     @Property("form")
     public void setForm(String form);
+    
+    @Property("displayTitlePage")
+    public Boolean isDisplayTitlePage();
+
+    @Property("displayTitlePage")
+    public void setDisplayTitlePage(Boolean displayTitlePage);
 
     @Property("bibLevel")
     public String getBibLevel();
@@ -1327,6 +1333,7 @@ public interface Work extends Node {
                  .branch(BRANCH_FROM_ALL, new String[] {"isCopyOf"}, Direction.IN)
                  .branch(BRANCH_FROM_PREVIOUS, new String[] {"isFileOf"}, Direction.IN)
                  .branch(BRANCH_FROM_PREVIOUS, new String[] {"descriptionOf"}, Direction.IN)
+                 .branch(BRANCH_FROM_ALL, new String[] {"tags"}, Direction.IN)
                  .execute(true);
         }
 
