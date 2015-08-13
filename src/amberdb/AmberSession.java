@@ -667,8 +667,7 @@ public class AmberSession implements AutoCloseable {
         return graph.getVertices("type", "Tag", Tag.class);
     }
 
-    public void deleteTag(String tagName) {
-        Tag tag = findTag(tagName);
+    public void deleteTag(Tag tag) {
         graph.removeVertex(tag.asVertex());
     }
     
