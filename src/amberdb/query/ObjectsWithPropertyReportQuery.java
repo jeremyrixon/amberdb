@@ -201,12 +201,5 @@ public class ObjectsWithPropertyReportQuery extends AmberQueryBase {
         return ts.getTime();
     }
     
-    private static String toStringBi( long l ) {
-        BigInteger bi = new BigInteger(Long.toString(l & ~(1L << 63)));
-        if (l < 0) {
-            bi = bi.setBit(64);
-        }
-        final String b36 = bi.toString(36);
-        return b36;
-    }
+  
 }
