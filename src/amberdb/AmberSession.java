@@ -868,7 +868,7 @@ public class AmberSession implements AutoCloseable {
         return aliasMap;
     }
     
-    public List<Work> getExpiryReport(String expiryYear, String collection) {
+    public List<Work> getExpiryReport(Date expiryYear, String collection) {
 
         ObjectsWithPropertyReportQuery avq = new ObjectsWithPropertyReportQuery(getAmberGraph());     
         List<Vertex> results = avq.generateExpiryReport(expiryYear, collection);
