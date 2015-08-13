@@ -666,6 +666,11 @@ public class AmberSession implements AutoCloseable {
     public Iterable<Tag> getAllTags() {
         return graph.getVertices("type", "Tag", Tag.class);
     }
+
+    public void deleteTag(String tagName) {
+        Tag tag = findTag(tagName);
+        graph.removeVertex(tag.asVertex());
+    }
     
 
     /**
