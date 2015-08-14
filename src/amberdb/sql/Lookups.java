@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
@@ -83,6 +85,33 @@ public abstract class Lookups extends Tools {
         } else {
             Collections.sort(activeLookups);
         }
+        return activeLookups;
+    }
+    
+    /*
+     * Find a list of active values in the named lookups ordered by specified field name
+     */
+    public List<ListLu> findActiveLookupsFor(String name, String field, final boolean descOrder) {
+        if(StringUtils.equalsIgnoreCase("code", field)){
+            return findActiveLookupsFor(name, new Comparator<ListLu>() {
+                @Override
+                public int compare(ListLu item1, ListLu item2) {
+                    String code1 = (item1.code == null ? "" : item1.code);
+                    String code2 = (item2.code == null ? "" : item2.code);
+                    return descOrder ?  code2.compareToIgnoreCase(code1) : code1.compareToIgnoreCase(code2);
+                }
+            });
+        }
+        throw new IllegalArgumentException("Unknown field name: "+field);
+    }
+    
+    /*
+     * Find a list of active values in the named lookups ordered by specified comparator
+     */
+    public List<ListLu> findActiveLookupsFor(String name, Comparator<ListLu> comparator) {
+        List<ListLu> activeLookups = findLookupsFor(name, "N");
+        if (activeLookups == null) return new ArrayList<>();       
+        Collections.sort(activeLookups, comparator);
         return activeLookups;
     }
     
