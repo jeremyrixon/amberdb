@@ -44,6 +44,10 @@ public abstract class Lookups extends Tools {
     public abstract List<ListLu> findLookupsFor(@Bind("name") String name, @Bind("deleted") String deleted);
     
     @RegisterMapper(Lookups.ListLuMapper.class)
+    @SqlQuery("select id, name, value, code, deleted from lookups where name = :name and deleted = :deleted order by code")
+    public abstract List<ListLu> findLookupsOrderByCodeFor(@Bind("name") String name, @Bind("deleted") String deleted);
+    
+    @RegisterMapper(Lookups.ListLuMapper.class)
     @SqlQuery("select id, name, value, code, deleted from lookups where name = :name and (code = :code or value = :code) and (deleted is null or deleted = 'N' or deleted = 'R') order by value")
     public abstract List<ListLu> findActiveLookup(@Bind("name") String name, @Bind("code") String code);
     
@@ -83,6 +87,15 @@ public abstract class Lookups extends Tools {
         } else {
             Collections.sort(activeLookups);
         }
+        return activeLookups;
+    }
+    
+    /*
+     * Find a list of active values in the named lookups ordered by 'code'
+     */
+    public List<ListLu> findActiveLookupsOrderedByCodeFor(String name) {
+        List<ListLu> activeLookups = findLookupsOrderByCodeFor(name, "N");
+        if (activeLookups == null) return new ArrayList<>();       
         return activeLookups;
     }
     
