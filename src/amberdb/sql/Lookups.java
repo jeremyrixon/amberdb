@@ -46,6 +46,10 @@ public abstract class Lookups extends Tools {
     public abstract List<ListLu> findLookupsFor(@Bind("name") String name, @Bind("deleted") String deleted);
     
     @RegisterMapper(Lookups.ListLuMapper.class)
+    @SqlQuery("select id, name, value, code, deleted from lookups where name = :name and deleted = :deleted order by code")
+    public abstract List<ListLu> findLookupsOrderByCodeFor(@Bind("name") String name, @Bind("deleted") String deleted);
+    
+    @RegisterMapper(Lookups.ListLuMapper.class)
     @SqlQuery("select id, name, value, code, deleted from lookups where name = :name and (code = :code or value = :code) and (deleted is null or deleted = 'N' or deleted = 'R') order by value")
     public abstract List<ListLu> findActiveLookup(@Bind("name") String name, @Bind("code") String code);
     
@@ -89,29 +93,11 @@ public abstract class Lookups extends Tools {
     }
     
     /*
-     * Find a list of active values in the named lookups ordered by specified field name
+     * Find a list of active values in the named lookups ordered by 'code'
      */
-    public List<ListLu> findActiveLookupsFor(String name, String field, final boolean descOrder) {
-        if(StringUtils.equalsIgnoreCase("code", field)){
-            return findActiveLookupsFor(name, new Comparator<ListLu>() {
-                @Override
-                public int compare(ListLu item1, ListLu item2) {
-                    String code1 = (item1.code == null ? "" : item1.code);
-                    String code2 = (item2.code == null ? "" : item2.code);
-                    return descOrder ?  code2.compareToIgnoreCase(code1) : code1.compareToIgnoreCase(code2);
-                }
-            });
-        }
-        throw new IllegalArgumentException("Unknown field name: "+field);
-    }
-    
-    /*
-     * Find a list of active values in the named lookups ordered by specified comparator
-     */
-    public List<ListLu> findActiveLookupsFor(String name, Comparator<ListLu> comparator) {
-        List<ListLu> activeLookups = findLookupsFor(name, "N");
+    public List<ListLu> findActiveLookupsOrderedByCodeFor(String name) {
+        List<ListLu> activeLookups = findLookupsOrderByCodeFor(name, "N");
         if (activeLookups == null) return new ArrayList<>();       
-        Collections.sort(activeLookups, comparator);
         return activeLookups;
     }
     
