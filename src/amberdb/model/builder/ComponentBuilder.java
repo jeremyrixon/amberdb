@@ -143,7 +143,7 @@ public class ComponentBuilder {
             componentWork.setSensitiveMaterial("No");
 
             String componentLevel = fieldsMap.get("component-level");
-            new ComponentSubUnitBuilder().setSubUnitAndBibLevelFields(componentWork, uuid, componentLevel);
+            componentWork = new ComponentSubUnitBuilder().setSubUnitAndBibLevelFields(componentWork, uuid, componentLevel);
 
             String componentNumber = fieldsMap.get("component-number");
             if (componentNumber != null && !componentNumber.isEmpty()) {

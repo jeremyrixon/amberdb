@@ -23,37 +23,37 @@ public class ComponentSubUnitBuilderTest {
 
     @Test
     public void subUnitTypeNotSetWhenComponentLevelIsEmpty() {
-        componentSubUnitBuilder.setSubUnitAndBibLevelFields(componentWork, "N/A", "");
+        componentWork = componentSubUnitBuilder.setSubUnitAndBibLevelFields(componentWork, "N/A", "");
         verify(componentWork, never()).setSubUnitType("Collection");
     }
 
     @Test
     public void subUnitTypeNotSetWhenComponentLevelIsNull() {
-        componentSubUnitBuilder.setSubUnitAndBibLevelFields(componentWork, "N/A", null);
+        componentWork = componentSubUnitBuilder.setSubUnitAndBibLevelFields(componentWork, "N/A", null);
         verify(componentWork, never()).setSubUnitType("Collection");
     }
 
     @Test
     public void subUnitTypeIsSetOnComponentWork() {
-        componentSubUnitBuilder.setSubUnitAndBibLevelFields(componentWork, "N/A", "Collection");
+        componentWork = componentSubUnitBuilder.setSubUnitAndBibLevelFields(componentWork, "N/A", "Collection");
         verify(componentWork).setSubUnitType("Collection");
     }
 
     @Test
     public void bibLevelIsSetOnComponentWork() {
-        componentSubUnitBuilder.setSubUnitAndBibLevelFields(componentWork, "N/A", "Collection");
+        componentWork = componentSubUnitBuilder.setSubUnitAndBibLevelFields(componentWork, "N/A", "Collection");
         verify(componentWork).setBibLevel("Set");
     }
 
     @Test
     public void bibLevelIsSetToItemWhenComponentWorkIsItem() {
-        componentSubUnitBuilder.setSubUnitAndBibLevelFields(componentWork, "N/A", "Item");
+        componentWork = componentSubUnitBuilder.setSubUnitAndBibLevelFields(componentWork, "N/A", "Item");
         verify(componentWork).setBibLevel("Item");
     }
 
     @Test
     public void bibLevelIsSetToPartWhenComponentWorkIsOtherlevel() {
-        componentSubUnitBuilder.setSubUnitAndBibLevelFields(componentWork, "N/A", "Otherlevel");
+        componentWork = componentSubUnitBuilder.setSubUnitAndBibLevelFields(componentWork, "N/A", "Otherlevel");
         verify(componentWork).setBibLevel("Part");
     }
 

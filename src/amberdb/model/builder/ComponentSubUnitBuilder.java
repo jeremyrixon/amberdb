@@ -9,10 +9,9 @@ import org.slf4j.LoggerFactory;
 public class ComponentSubUnitBuilder {
     static final Logger log = LoggerFactory.getLogger(ComponentSubUnitBuilder.class);
 
-    public void setSubUnitAndBibLevelFields(EADWork componentWork, String uuid, String componentLevel) {
+    public EADWork setSubUnitAndBibLevelFields(EADWork componentWork, String uuid, String componentLevel) {
         if (componentLevel != null && !componentLevel.isEmpty()) {
-            log.debug("component work " + componentWork.getObjId() + ": componentLevel: "
-                    + componentLevel.toString());
+            log.debug(String.format("component work %s: componentLevel: %s", componentWork.getObjId(), componentLevel));
 
             SubUnitType subUnitType = SubUnitType.fromString(componentLevel);
             if (subUnitType == null) {
@@ -23,14 +22,16 @@ public class ComponentSubUnitBuilder {
             String bibLevel = mapBibLevel(componentLevel);
             componentWork.setBibLevel(bibLevel);
         }
+
+        return componentWork;
     }
 
-    private String mapBibLevel(Object componentLevel) {
+    private String mapBibLevel(String componentLevel) {
         String bibLevel = BibLevel.SET.code();
         if (componentLevel != null) {
-            if (componentLevel.toString().equalsIgnoreCase("item"))
+            if (componentLevel.equalsIgnoreCase("item"))
                 bibLevel = BibLevel.ITEM.code();
-            else if (componentLevel.toString().equalsIgnoreCase("otherlevel"))
+            else if (componentLevel.equalsIgnoreCase("otherlevel"))
                 bibLevel = BibLevel.PART.code();
         }
         return bibLevel;

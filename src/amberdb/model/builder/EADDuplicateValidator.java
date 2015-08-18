@@ -15,14 +15,18 @@ public class EADDuplicateValidator {
 
     private XmlDocumentParser parser;
 
-    public void validate() {
+    public void validate() throws EADValidationException {
         Set<String> dupUuids = getDuplicateUUIDs();
-        if (dupUuids.size() != 0) {
+        if (duplicatesExist(dupUuids)) {
             if (dupUuids.contains("")) {
                 throw new EADValidationException("MISSING_UUID_DETECTED", "");
             }
             throw new EADValidationException("DUPLICATE_UUID", Joiner.on(", ").join(dupUuids));
         }
+    }
+
+    private boolean duplicatesExist(Set<String> dupUuids) {
+        return dupUuids.size() != 0;
     }
 
     private Set<String> getDuplicateUUIDs() {
