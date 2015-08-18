@@ -86,7 +86,7 @@ public class ComponentBuilder {
         updateComponentData(componentWork, component);
         return componentWork;
     }
-    
+
     protected static EADWork updateComponentData(EADWork componentWork, JsonNode component) throws IOException {
         String compJson = mapper.writeValueAsString(component);
         Map<String, String> fieldsMap = mapper.readValue(compJson, new TypeReference<HashMap<String, String>>(){});
@@ -143,19 +143,7 @@ public class ComponentBuilder {
             componentWork.setSensitiveMaterial("No");
 
             String componentLevel = fieldsMap.get("component-level");
-            if (componentLevel != null && !componentLevel.isEmpty()) {
-                log.debug("component work " + componentWork.getObjId() + ": componentLevel: "
-                        + componentLevel.toString());
-
-                SubUnitType subUnitType = SubUnitType.fromString(componentLevel.toString());
-                if (subUnitType == null) {
-                	throw new EADValidationException("INVALID_SUB_UNIT_TYPE", componentLevel.toString(), (uuid == null) ? "" : uuid);
-                }
-                componentWork.setSubUnitType(subUnitType.code());
-                // determine bib level with business rule borrowed from DCM
-                String bibLevel = mapBibLevel(componentLevel);
-                componentWork.setBibLevel(bibLevel);
-            }
+            new ComponentSubUnitBuilder().setSubUnitAndBibLevelFields(componentWork, uuid, componentLevel);
 
             String componentNumber = fieldsMap.get("component-number");
             if (componentNumber != null && !componentNumber.isEmpty()) {
@@ -235,17 +223,6 @@ public class ComponentBuilder {
                 throw new EADValidationException("FAILED_EXTRACT_DATE_RANGE", e, workObjId, (uuid == null)?"":uuid);
             }
         }
-    }
-
-    private static String mapBibLevel(Object componentLevel) {
-        String bibLevel = BibLevel.SET.code();
-        if (componentLevel != null) {
-            if (componentLevel.toString().equalsIgnoreCase("item")) 
-                bibLevel = BibLevel.ITEM.code();
-            else if (componentLevel.toString().equalsIgnoreCase("otherlevel"))
-                bibLevel = BibLevel.PART.code();
-        }
-        return bibLevel;
     }
 
     protected static void mapContainer(EADWork componentWork, Map<String, String> fieldsMap, String uuid) {

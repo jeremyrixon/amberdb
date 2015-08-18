@@ -369,13 +369,7 @@ public class CollectionBuilder {
         boolean newCollection = true;
         Map<String, String> componentWorks;
 
-        Set<String> dupUuids = parser.listDuplicateUUIDs();
-        if (dupUuids.size() != 0) {
-            if (dupUuids.contains("")) {
-                throw new EADValidationException("MISSING_UUID_DETECTED", "");
-            }
-            throw new EADValidationException("DUPLICATE_UUID", Joiner.on(", ").join(dupUuids));
-        }
+        new EADDuplicateValidator(parser).validate();
 
         if (collectionWork.getChildren() != null && collectionWork.getChildren().iterator().hasNext()) {
             newCollection = false;

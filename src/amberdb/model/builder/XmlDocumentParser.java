@@ -122,20 +122,6 @@ public abstract class XmlDocumentParser {
         }
         return nodes;
     }
-
-    public Set<String> listDuplicateUUIDs() {
-        List<String> eadUUIDList = getUUIDsAsList(100);
-        Set<String> dupDetector = new HashSet<>();
-        Iterator<String> iter = eadUUIDList.iterator();
-        while(iter.hasNext()) {
-            String curr = iter.next();
-            if (!dupDetector.contains(curr)) {
-                iter.remove();;
-            }
-            dupDetector.add(curr);
-        }
-        return new HashSet<>(eadUUIDList);
-    }
     
     public Set<String> listUUIDs(int estCapacity) {
         List<String> eadUUIDList = getUUIDsAsList(estCapacity);
@@ -143,7 +129,7 @@ public abstract class XmlDocumentParser {
         return new HashSet<>(eadUUIDList);
     }
 
-    private List<String> getUUIDsAsList(int estCapacity) {
+    public List<String> getUUIDsAsList(int estCapacity) {
         List<String> eadUUIDList = new ArrayList<>(estCapacity);
         JsonNode collectionCfg = parsingCfg;
         JsonNode subElementsCfg = collectionCfg.get(CFG_COLLECTION_ELEMENT).get(CFG_SUB_ELEMENTS);
