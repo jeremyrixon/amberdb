@@ -10,6 +10,7 @@ import nu.xom.Node;
 import nu.xom.Nodes;
 import nu.xom.ParsingException;
 import nu.xom.ValidityException;
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
@@ -90,7 +91,7 @@ public class CollectionBuilder {
         }
         
         // initializing the parser
-        try (InputStream fileStream = eadFile.openStream()) {
+        try (InputStream fileStream = new BOMInputStream(eadFile.openStream(), false)) {
             parser.init(collectionWork.getObjId(), fileStream, collectionCfg);
         }
         processCollection(collectionWork, collectionCfg, parser);
@@ -330,7 +331,7 @@ public class CollectionBuilder {
         Set<String> currentDOs = digitisedItemList(collectionWork);
         
         // initializing the parser
-        parser.init(collectionWork.getObjId(), eadFile.openStream(), collectionCfg);
+        parser.init(collectionWork.getObjId(), new BOMInputStream(eadFile.openStream(), false), collectionCfg);
         
         // Step 1: process collection from EAD: 
         //          - compare and update the metadata in collectionWork from the updated EAD finding aid header.
@@ -370,6 +371,9 @@ public class CollectionBuilder {
 
         Set<String> dupUuids = parser.listDuplicateUUIDs();
         if (dupUuids.size() != 0) {
+            if (dupUuids.contains("")) {
+                throw new EADValidationException("MISSING_UUID_DETECTED", "");
+            }
             throw new EADValidationException("DUPLICATE_UUID", Joiner.on(", ").join(dupUuids));
         }
 

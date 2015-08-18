@@ -148,9 +148,9 @@ public class ComponentBuilder {
                         + componentLevel.toString());
 
                 SubUnitType subUnitType = SubUnitType.fromString(componentLevel.toString());
-                if (subUnitType == null)
-                    throw new IllegalArgumentException("Invalid subunit type " + componentLevel.toString()
-                            + " for work " + componentWork.getObjId() + ".");
+                if (subUnitType == null) {
+                	throw new EADValidationException("INVALID_SUB_UNIT_TYPE", componentLevel.toString(), (uuid == null) ? "" : uuid);
+                }
                 componentWork.setSubUnitType(subUnitType.code());
                 // determine bib level with business rule borrowed from DCM
                 String bibLevel = mapBibLevel(componentLevel);
@@ -207,11 +207,11 @@ public class ComponentBuilder {
             if (dcmWorkPID != null)
                 componentWork.setDcmWorkPid(dcmWorkPID.toString());
 
-            mapContainer(componentWork, fieldsMap);
+            mapContainer(componentWork, fieldsMap, uuid);
         } catch (EADValidationException e) {
             throw e;
         } catch (Exception e) {
-            throw new EADValidationException("Failed to extract metadata for component work %s (Archives Space ID: %s)", e, componentWork.getObjId(), (uuid == null)?"":uuid);
+            throw new EADValidationException("FAILED_EXTRACT_GENERIC", e, componentWork.getObjId(), (uuid == null) ? "" : uuid);
         }
     }
     
@@ -248,17 +248,16 @@ public class ComponentBuilder {
         return bibLevel;
     }
 
-    protected static void mapContainer(EADWork componentWork, Map<String, String> fieldsMap) {
+    protected static void mapContainer(EADWork componentWork, Map<String, String> fieldsMap, String uuid) {
         String containerId = fieldsMap.get("container-uuid");
         String containerParent = fieldsMap.get("container-parent");
         String containerNumber = fieldsMap.get("container-number");
         String containerLabel = fieldsMap.get("container-label");        
         String containerType = fieldsMap.get("container-type");
-        String componentWorkUUID = (componentWork.getLocalSystemNumber() == null)? "" : componentWork.getLocalSystemNumber();
 
         if (containerNumber == null || containerNumber.trim().isEmpty()) return;
         if (containerType == null || containerType.trim().isEmpty()) {
-            throw new EADValidationException("MISSING_CONTAINER_TYPE", componentWork.getObjId(), componentWorkUUID);
+            throw new EADValidationException("MISSING_CONTAINER_TYPE", componentWork.getObjId(), uuid);
         }
         
         List<String> folders = new ArrayList<>();
@@ -268,7 +267,7 @@ public class ComponentBuilder {
             String[] containerTypes = mapper.readValue(containerType, new TypeReference<String[]>() {});
             folderTypes = Arrays.asList(containerTypes);
             if (folderTypes.contains(null)) {
-                throw new EADValidationException("MISSING_CONTAINER_TYPE", componentWork.getObjId(), componentWorkUUID);
+                throw new EADValidationException("MISSING_CONTAINER_TYPE", componentWork.getObjId(), uuid);
             }
         } catch (IOException e) {
             folderTypes.add(containerType);
@@ -327,7 +326,7 @@ public class ComponentBuilder {
             log.error("unable to map containers for work "
                     + componentWork.getObjId());
             throw new EADValidationException("FAILED_EXTRACT_CONTAINERS", e,
-                    componentWork.getObjId());
+                    componentWork.getObjId(), uuid);
         }
     }
     
