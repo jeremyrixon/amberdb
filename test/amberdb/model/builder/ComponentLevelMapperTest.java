@@ -7,10 +7,10 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import static org.mockito.Mockito.*;
-public class ComponentSubUnitBuilderTest {
+public class ComponentLevelMapperTest {
 
     EADWork componentWork;
-    ComponentSubUnitBuilder componentSubUnitBuilder;
+    ComponentLevelMapper componentLevelMapper;
 
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
@@ -18,42 +18,42 @@ public class ComponentSubUnitBuilderTest {
     @Before
     public void setUp() {
         componentWork = mock(EADWork.class);
-        componentSubUnitBuilder = new ComponentSubUnitBuilder();
+        componentLevelMapper = new ComponentLevelMapper();
     }
 
     @Test
     public void subUnitTypeNotSetWhenComponentLevelIsEmpty() {
-        componentWork = componentSubUnitBuilder.setSubUnitAndBibLevelFields(componentWork, "N/A", "");
+        componentWork = componentLevelMapper.setSubUnitAndBibLevelFields(componentWork, "N/A", "");
         verify(componentWork, never()).setSubUnitType("Collection");
     }
 
     @Test
     public void subUnitTypeNotSetWhenComponentLevelIsNull() {
-        componentWork = componentSubUnitBuilder.setSubUnitAndBibLevelFields(componentWork, "N/A", null);
+        componentWork = componentLevelMapper.setSubUnitAndBibLevelFields(componentWork, "N/A", null);
         verify(componentWork, never()).setSubUnitType("Collection");
     }
 
     @Test
     public void subUnitTypeIsSetOnComponentWork() {
-        componentWork = componentSubUnitBuilder.setSubUnitAndBibLevelFields(componentWork, "N/A", "Collection");
+        componentWork = componentLevelMapper.setSubUnitAndBibLevelFields(componentWork, "N/A", "Collection");
         verify(componentWork).setSubUnitType("Collection");
     }
 
     @Test
     public void bibLevelIsSetOnComponentWork() {
-        componentWork = componentSubUnitBuilder.setSubUnitAndBibLevelFields(componentWork, "N/A", "Collection");
+        componentWork = componentLevelMapper.setSubUnitAndBibLevelFields(componentWork, "N/A", "Collection");
         verify(componentWork).setBibLevel("Set");
     }
 
     @Test
     public void bibLevelIsSetToItemWhenComponentWorkIsItem() {
-        componentWork = componentSubUnitBuilder.setSubUnitAndBibLevelFields(componentWork, "N/A", "Item");
+        componentWork = componentLevelMapper.setSubUnitAndBibLevelFields(componentWork, "N/A", "Item");
         verify(componentWork).setBibLevel("Item");
     }
 
     @Test
     public void bibLevelIsSetToPartWhenComponentWorkIsOtherlevel() {
-        componentWork = componentSubUnitBuilder.setSubUnitAndBibLevelFields(componentWork, "N/A", "Otherlevel");
+        componentWork = componentLevelMapper.setSubUnitAndBibLevelFields(componentWork, "N/A", "Otherlevel");
         verify(componentWork).setBibLevel("Part");
     }
 
@@ -62,7 +62,7 @@ public class ComponentSubUnitBuilderTest {
         expectedEx.expect(EADValidationException.class);
         expectedEx.expectMessage("INVALID_SUB_UNIT_TYPE");
 
-        componentSubUnitBuilder.setSubUnitAndBibLevelFields(componentWork, "N/A", "InvalidComponentLevel");
+        componentLevelMapper.setSubUnitAndBibLevelFields(componentWork, "N/A", "InvalidComponentLevel");
     }
 
 }

@@ -6,8 +6,8 @@ import amberdb.model.EADWork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ComponentSubUnitBuilder {
-    static final Logger log = LoggerFactory.getLogger(ComponentSubUnitBuilder.class);
+public class ComponentLevelMapper {
+    static final Logger log = LoggerFactory.getLogger(ComponentLevelMapper.class);
 
     public EADWork setSubUnitAndBibLevelFields(EADWork componentWork, String uuid, String componentLevel) {
         if (componentLevel != null && !componentLevel.isEmpty()) {

@@ -27,7 +27,6 @@ import amberdb.enums.AccessCondition;
 import amberdb.enums.BibLevel;
 import amberdb.enums.CopyrightPolicy;
 import amberdb.enums.CaptureStatus;
-import amberdb.enums.SubUnitType;
 import amberdb.model.EADWork;
 import amberdb.model.Work;
 import amberdb.util.DateParser;
@@ -143,7 +142,7 @@ public class ComponentBuilder {
             componentWork.setSensitiveMaterial("No");
 
             String componentLevel = fieldsMap.get("component-level");
-            componentWork = new ComponentSubUnitBuilder().setSubUnitAndBibLevelFields(componentWork, uuid, componentLevel);
+            componentWork = new ComponentLevelMapper().setSubUnitAndBibLevelFields(componentWork, uuid, componentLevel);
 
             String componentNumber = fieldsMap.get("component-number");
             if (componentNumber != null && !componentNumber.isEmpty()) {
