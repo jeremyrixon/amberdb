@@ -927,13 +927,13 @@ public interface Work extends Node {
     @Property("acquisitionCategory")
     public void setAcquisitionCategory(String acquisitionCategory);
 
-    @Adjacency(label = ExistsOn.label, direction = Direction.OUT)
+    @Adjacency(label = DeliveredOn.label, direction = Direction.OUT)
     public Iterable<Work> getDeliveryWorks();
 
-    @Adjacency(label = ExistsOn.label, direction = Direction.OUT)
+    @Adjacency(label = DeliveredOn.label, direction = Direction.OUT)
     public void addDeliveryWork(Work deliveryWork);
 
-    @Adjacency(label = ExistsOn.label, direction = Direction.OUT)
+    @Adjacency(label = DeliveredOn.label, direction = Direction.OUT)
     public void removeDeliveryWork(Work deliveryWork);
 
     @JavaHandler
@@ -942,16 +942,16 @@ public interface Work extends Node {
     @JavaHandler
     public void removeDeliveryWorks();
 
-    @Adjacency(label = ExistsOn.label, direction = Direction.IN)
+    @Adjacency(label = DeliveredOn.label, direction = Direction.IN)
     public void setDeliveryWorkParent(final Work interview);
 
-    @Adjacency(label = ExistsOn.label, direction = Direction.IN)
+    @Adjacency(label = DeliveredOn.label, direction = Direction.IN)
     public Work getDeliveryWorkParent();
 
-    @Adjacency(label = ExistsOn.label, direction = Direction.IN)
+    @Adjacency(label = DeliveredOn.label, direction = Direction.IN)
     public void removeDeliveryWorkParent(final Work interview);
 
-    @Incidence(label = ExistsOn.label, direction = Direction.IN)
+    @Incidence(label = DeliveredOn.label, direction = Direction.IN)
     public Iterable<ExistsOn> getDeliveryWorkParentEdges();
 
     @JavaHandler
