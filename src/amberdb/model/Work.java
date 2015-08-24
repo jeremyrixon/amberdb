@@ -395,6 +395,12 @@ public interface Work extends Node {
     @Property("ilmsSentDateTime")
     public void setIlmsSentDateTime(Date dateTime);
 
+    @Property("isMissingPage")
+    public Boolean getIsMissingPage();
+
+    @Property("isMissingPage")
+    public void setIsMissingPage(Boolean isMissingPage);
+
     @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
     public GeoCoding addGeoCoding();
 
