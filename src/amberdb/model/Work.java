@@ -1184,6 +1184,9 @@ public interface Work extends Node {
     @JavaHandler
     public boolean hasMasterCopy();
 
+    @JavaHandler
+    public boolean hasCopyRole(CopyRole role);
+
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {
         static ObjectMapper mapper = new ObjectMapper();
 
@@ -1673,7 +1676,12 @@ public interface Work extends Node {
 
         @Override
         public boolean hasMasterCopy() {
-            return getCopy(CopyRole.MASTER_COPY) != null;
+            return hasCopyRole(CopyRole.MASTER_COPY);
+        }
+
+        @Override
+        public boolean hasCopyRole(CopyRole role) {
+            return getCopy(role) != null;
         }
     }
 }
