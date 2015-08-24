@@ -401,6 +401,12 @@ public interface Work extends Node {
     @Property("interactiveIndexAvailable")
     public void setInteractiveIndexAvailable(Boolean interactiveIndexAvailable);
 
+    @Property("isMissingPage")
+    public Boolean getIsMissingPage();
+
+    @Property("isMissingPage")
+    public void setIsMissingPage(Boolean isMissingPage);
+
     @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
     public GeoCoding addGeoCoding();
 
