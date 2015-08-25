@@ -800,7 +800,7 @@ public class AmberSession implements AutoCloseable {
      *            The list of works to load
      * @return Only the vertices related to these works already saved to amber.
      *         Vertices related to these works that have not yet been saved will
-     *         NOT appear here.
+     *         NOT appear here. Parents of the work are not included
      */
     public List<Vertex> loadMultiLevelWorks(final Long... ids) {
         
@@ -834,11 +834,13 @@ public class AmberSession implements AutoCloseable {
 
             // get all the copies, files etc
             q.continueWithCheck(null, new QueryClause[] { 
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "represents" }, Direction.IN),
                     q.new QueryClause(BRANCH_FROM_ALL, new String[] { "isCopyOf" }, Direction.IN), 
                     q.new QueryClause(BRANCH_FROM_ALL, new String[] { "isFileOf" }, Direction.IN),
                     q.new QueryClause(BRANCH_FROM_ALL, new String[] { "descriptionOf" }, Direction.IN), 
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "tags" }, Direction.IN),
             });
-            components = q.getResults();
+            components = q.getResults(true);
         }
         return components;
     }

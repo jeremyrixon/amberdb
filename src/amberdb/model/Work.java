@@ -1337,15 +1337,27 @@ public interface Work extends Node {
 
         /**
          * Loads all of a work into the session including Pages with their
-         * Copies and Files
+         * Copies and Files but not the work's representative Copy
          */
         public void loadPagedWork() {
+            loadPagedWork(false);
+        }
+
+        /**
+         * Loads all of a work into the session including Pages with their
+         * Copies and Files including its representative Copy (if it exists)
+         */
+        public void loadPagedWork(boolean includeRepresentativeCopies) {
             AmberVertex work = this.asAmberVertex();
             AmberGraph g = work.getAmberGraph();
             AmberQuery query = g.newQuery((Long) work.getId());
-            query.branch(new String[] {"isPartOf"}, Direction.BOTH)
-                 .branch(new String[] {"isPartOf"}, Direction.IN)
-                 .branch(BRANCH_FROM_ALL, new String[] {"isCopyOf"}, Direction.IN)
+            query.branch(new String[] {"isPartOf"}, Direction.BOTH);
+
+            if (includeRepresentativeCopies) {
+                query.branch(BRANCH_FROM_ALL, new String[] {"represents"}, Direction.IN);
+            }
+
+            query.branch(BRANCH_FROM_ALL, new String[] {"isCopyOf"}, Direction.IN)
                  .branch(BRANCH_FROM_PREVIOUS, new String[] {"isFileOf"}, Direction.IN)
                  .branch(BRANCH_FROM_PREVIOUS, new String[] {"descriptionOf"}, Direction.IN)
                  .branch(BRANCH_FROM_ALL, new String[] {"tags"}, Direction.IN)
