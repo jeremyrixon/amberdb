@@ -394,6 +394,12 @@ public interface Work extends Node {
 
     @Property("ilmsSentDateTime")
     public void setIlmsSentDateTime(Date dateTime);
+    
+    @Property("interactiveIndexAvailable")
+    public Boolean getInteractiveIndexAvailable();
+    
+    @Property("interactiveIndexAvailable")
+    public void setInteractiveIndexAvailable(Boolean interactiveIndexAvailable);
 
     @Property("isMissingPage")
     public Boolean getIsMissingPage();
