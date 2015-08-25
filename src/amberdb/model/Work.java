@@ -400,6 +400,12 @@ public interface Work extends Node {
     
     @Property("interactiveIndexAvailable")
     public void setInteractiveIndexAvailable(Boolean interactiveIndexAvailable);
+    
+    @Property("html")
+    public String getHtml();
+    
+    @Property("html")
+    public void setHtml(String html);
 
     @Property("isMissingPage")
     public Boolean getIsMissingPage();
