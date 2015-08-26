@@ -182,12 +182,6 @@ public interface Copy extends Node {
     @Property("segmentIndicator")
     public void setSegmentIndicator(String segmentIndicator);
     
-    @Property("html")
-    public String getHtml();
-    
-    @Property("html")
-    public void setHtml(String html);
-
     /**
      * This property is encoded as a JSON Hash - You probably want to use getAllOtherNumbers to get this property
      */
