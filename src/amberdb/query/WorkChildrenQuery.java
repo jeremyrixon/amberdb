@@ -1,8 +1,10 @@
 package amberdb.query;
 
 import amberdb.AmberSession;
+import amberdb.enums.CopyRole;
 import amberdb.graph.AmberProperty;
 import amberdb.graph.AmberQueryBase;
+import amberdb.graph.DataType;
 import amberdb.model.Work;
 
 import java.util.ArrayList;
@@ -11,7 +13,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.util.ByteArrayMapper;
 import org.skife.jdbi.v2.util.IntegerMapper;
+import org.skife.jdbi.v2.util.StringMapper;
 
 import com.tinkerpop.blueprints.Vertex;
 
@@ -182,5 +186,37 @@ public class WorkChildrenQuery extends AmberQueryBase {
                     .map(IntegerMapper.FIRST).first();
         }
         return numChildren;
+    }
+    
+    public List<CopyRole> getAllChildCopyRoles(Long workId) {
+        List<byte[]> copyRoleCodes = new ArrayList<>();
+        try (Handle h = graph.dbi().open()) {
+            copyRoleCodes = h.createQuery(
+                    "SELECT DISTINCT p2.value \n" + 
+                    "FROM vertex v, edge e, edge e2, property p, property p2 \n" +
+                    "WHERE v.txn_end = 0 AND e.txn_end = 0 AND e2.txn_end = 0 AND p.txn_end = 0 AND p2.txn_end = 0 \n" +
+                    " AND e.v_in = :workId \n" +
+                    " AND e.v_out = v.id \n" +
+                    " AND e.label = 'isPartOf' \n" +
+                    " AND p.id = v.id \n" +
+                    " AND p.name = 'type' \n" + 
+                    " AND p.value IN (:workVal, :pageVal, :eadWorkVal)" +
+                    " AND e2.v_in = p.id \n" +
+                    " AND e2.v_out = p2.id \n" +
+                    " AND e2.label = 'isCopyOf' \n" +
+                    " AND p2.name = 'copyRole'; \n")
+                    .bind("workId", workId)
+                    .bind("workVal", AmberProperty.encode("Work"))
+                    .bind("pageVal", AmberProperty.encode("Page"))
+                    .bind("eadWorkVal", AmberProperty.encode("EADWork"))
+                    .map(ByteArrayMapper.FIRST).list();
+        }
+
+        List<CopyRole> copyRoles = new ArrayList<CopyRole>();
+        for (byte[] bytes : copyRoleCodes) {
+            String code = (String) AmberProperty.decode(bytes, DataType.STR);
+            copyRoles.add(CopyRole.fromString(code));
+        }
+        return copyRoles;
     }
 }
