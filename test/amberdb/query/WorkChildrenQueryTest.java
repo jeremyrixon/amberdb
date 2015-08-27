@@ -1,6 +1,8 @@
 package amberdb.query;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
@@ -69,6 +71,23 @@ public class WorkChildrenQueryTest {
 
         int numChilds = wcq.getTotalChildCount(parent.getId());
         assertEquals(30, numChilds);
+
+        List<CopyRole> roles = wcq.getAllChildCopyRoles(parent.getId());
+        assertEquals(roles.size(), 2);
+        assertTrue(roles.contains(CopyRole.MASTER_COPY));
+        assertTrue(roles.contains(CopyRole.ACCESS_COPY));
+
+        sess.getAmberGraph().clear();
+        children = wcq.getChildRange(parent.getId(), 5, 5);
+        sess.setLocalMode(true);
+        assertEquals(children.size(), 5);
+        Work c1 = children.get(0);
+        for (Copy c : c1.getCopies()) {
+            assertNotNull(c);
+            File f = c.getFile();
+            assertNotNull(f);
+        }
+        sess.setLocalMode(false);
     }        
     
 
@@ -101,7 +120,7 @@ public class WorkChildrenQueryTest {
             w.setOrder(i);
             
             Copy c = w.addCopy();
-            c.setCopyRole(CopyRole.MASTER_COPY.code());
+            c.setCopyRole(CopyRole.ACCESS_COPY.code());
             CameraData cd = c.addCameraData();
             cd.setLens("work lens");
             
