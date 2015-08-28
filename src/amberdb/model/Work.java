@@ -165,6 +165,12 @@ public interface Work extends Node {
 
     @Property("form")
     public void setForm(String form);
+    
+    @Property("displayTitlePage")
+    public Boolean isDisplayTitlePage();
+
+    @Property("displayTitlePage")
+    public void setDisplayTitlePage(Boolean displayTitlePage);
 
     @Property("bibLevel")
     public String getBibLevel();
@@ -908,6 +914,18 @@ public interface Work extends Node {
 
     @Property("materialFromMultipleSources")
     public Boolean getMaterialFromMultipleSources();
+    
+    @Property("acquisitionStatus")
+    public String getAcquisitionStatus();
+
+    @Property("acquisitionStatus")
+    public void setAcquisitionStatus(String acquisitionStatus);
+    
+    @Property("acquisitionCategory")
+    public String getAcquisitionCategory();
+
+    @Property("acquisitionCategory")
+    public void setAcquisitionCategory(String acquisitionCategory);
 
     @Adjacency(label = ExistsOn.label, direction = Direction.OUT)
     public Iterable<Work> getDeliveryWorks();
@@ -1315,6 +1333,7 @@ public interface Work extends Node {
                  .branch(BRANCH_FROM_ALL, new String[] {"isCopyOf"}, Direction.IN)
                  .branch(BRANCH_FROM_PREVIOUS, new String[] {"isFileOf"}, Direction.IN)
                  .branch(BRANCH_FROM_PREVIOUS, new String[] {"descriptionOf"}, Direction.IN)
+                 .branch(BRANCH_FROM_ALL, new String[] {"tags"}, Direction.IN)
                  .execute(true);
         }
 

@@ -46,7 +46,9 @@ public class TElement {
     
     
     protected void replaceProperties(Map<String, Object> newProperties) {
-        properties = newProperties;
+        if (newProperties != null){
+            properties = newProperties;    
+        }
     }
     
     
