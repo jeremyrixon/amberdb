@@ -181,7 +181,12 @@ public interface Copy extends Node {
     
     @Property("segmentIndicator")
     public void setSegmentIndicator(String segmentIndicator);
-    
+
+    @Property("manipulation")
+    public String getManipulation();
+
+    @Property("manipulation")
+    public void setManipulation(String manipulation);
     /**
      * This property is encoded as a JSON Hash - You probably want to use getAllOtherNumbers to get this property
      */
