@@ -183,10 +183,16 @@ public interface Copy extends Node {
     public void setSegmentIndicator(String segmentIndicator);
 
     @Property("manipulation")
-    public String getManipulation();
+    public String getJSONManipulation();
 
     @Property("manipulation")
-    public void setManipulation(String manipulation);
+    public void setJSONManipulation(String manipulation);
+
+    @JavaHandler
+    public void setManipulation(List<String> manipulation) throws JsonParseException, JsonMappingException, IOException;
+
+    @JavaHandler
+    public List<String> getManipulation() throws JsonParseException, JsonMappingException, IOException;
     /**
      * This property is encoded as a JSON Hash - You probably want to use getAllOtherNumbers to get this property
      */
@@ -759,6 +765,19 @@ public interface Copy extends Node {
                 }
             }
             return null;
-        }       
+        }    
+        
+        @Override
+        public List<String> getManipulation() throws JsonParseException, JsonMappingException, IOException {
+            String manipulation = getJSONManipulation();
+            if (manipulation == null || manipulation.isEmpty())
+                return new ArrayList<String>();
+            return mapper.readValue(manipulation, new TypeReference<List<String>>() {});
+        }
+
+        @Override
+        public void setManipulation(List<String> manipulation) throws JsonParseException, JsonMappingException, IOException {
+            setJSONManipulation(mapper.writeValueAsString(manipulation));
+        }
     }
 }
