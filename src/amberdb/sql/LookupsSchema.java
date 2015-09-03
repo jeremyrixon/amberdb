@@ -1091,6 +1091,15 @@ public abstract class LookupsSchema {
             )
     public abstract void seedMaterialTypesLookups();
     
+    @SqlUpdate(
+            "INSERT INTO lookups(name, code, value) VALUES"
+            + "('manipulation', 'Cropped', 'Cropped'),"
+            + "('manipulation', 'Downsized', 'Downsized'),"
+            + "('manipulation', 'Enhanced', 'Enhanced'),"
+            + "('manipulation', 'Rotated', 'Rotated')"
+            )
+    public abstract void seedManipulationLookups();
+    
     @SqlUpdate("UPDATE tools SET toolTypeId = :toolTypeId where id > 0 and id < 11")
     public abstract void updateToolTypeForToolsGroup1(@Bind("toolTypeId")Long toolTypeId);
 
@@ -1133,6 +1142,7 @@ public abstract class LookupsSchema {
         seedToolTypesLookups();
         seedToolCategoriesLookups();
         seedMaterialTypesLookups();
+        seedManipulationLookups();
     }
     
     public void setupToolsAssociations(List<ListLu> lookups) {
