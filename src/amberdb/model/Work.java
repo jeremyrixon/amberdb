@@ -409,6 +409,13 @@ public interface Work extends Node {
     
     @JavaHandler
     public boolean isCopy();
+    
+    @Incidence(label = Acknowledge.label, direction = Direction.OUT)
+    public Acknowledge addAcknowledgement(final Party party);
+
+    @JavaHandler
+    public Acknowledge addAcknowledgement(final Party party, final String ackType, final String kindOfSupport, 
+            final Double weighting, final Date dateOfAck, final String urlToOriginial);
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
@@ -1183,6 +1190,18 @@ public interface Work extends Node {
 
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {
         static ObjectMapper mapper = new ObjectMapper();
+
+        @Override
+        public Acknowledge addAcknowledgement(final Party party, final String ackType, final String kindOfSupport, 
+                final Double weighting, final Date dateOfAck, final String urlToOriginial) {           
+            Acknowledge ack = addAcknowledgement(party);
+            ack.setAckType(ackType);
+            ack.setKindOfSupport(kindOfSupport);
+            ack.setWeighting(weighting);
+            ack.setUrlToOriginial(urlToOriginial);
+            ack.setDate(dateOfAck);
+            return ack;
+        }
 
         @Override
         public Page addPage(Path sourceFile, String mimeType) throws IOException {
