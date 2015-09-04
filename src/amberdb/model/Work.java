@@ -394,6 +394,24 @@ public interface Work extends Node {
 
     @Property("ilmsSentDateTime")
     public void setIlmsSentDateTime(Date dateTime);
+    
+    @Property("interactiveIndexAvailable")
+    public Boolean getInteractiveIndexAvailable();
+    
+    @Property("interactiveIndexAvailable")
+    public void setInteractiveIndexAvailable(Boolean interactiveIndexAvailable);
+    
+    @Property("html")
+    public String getHtml();
+    
+    @Property("html")
+    public void setHtml(String html);
+
+    @Property("isMissingPage")
+    public Boolean getIsMissingPage();
+
+    @Property("isMissingPage")
+    public void setIsMissingPage(Boolean isMissingPage);
 
     @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
     public GeoCoding addGeoCoding();
@@ -1350,15 +1368,27 @@ public interface Work extends Node {
 
         /**
          * Loads all of a work into the session including Pages with their
-         * Copies and Files
+         * Copies and Files but not the work's representative Copy
          */
         public void loadPagedWork() {
+            loadPagedWork(false);
+        }
+
+        /**
+         * Loads all of a work into the session including Pages with their
+         * Copies and Files including its representative Copy (if it exists)
+         */
+        public void loadPagedWork(boolean includeRepresentativeCopies) {
             AmberVertex work = this.asAmberVertex();
             AmberGraph g = work.getAmberGraph();
             AmberQuery query = g.newQuery((Long) work.getId());
-            query.branch(new String[] {"isPartOf"}, Direction.BOTH)
-                 .branch(new String[] {"isPartOf"}, Direction.IN)
-                 .branch(BRANCH_FROM_ALL, new String[] {"isCopyOf"}, Direction.IN)
+            query.branch(new String[] {"isPartOf"}, Direction.BOTH);
+
+            if (includeRepresentativeCopies) {
+                query.branch(BRANCH_FROM_ALL, new String[] {"represents"}, Direction.IN);
+            }
+
+            query.branch(BRANCH_FROM_ALL, new String[] {"isCopyOf"}, Direction.IN)
                  .branch(BRANCH_FROM_PREVIOUS, new String[] {"isFileOf"}, Direction.IN)
                  .branch(BRANCH_FROM_PREVIOUS, new String[] {"descriptionOf"}, Direction.IN)
                  .branch(BRANCH_FROM_ALL, new String[] {"tags"}, Direction.IN)
