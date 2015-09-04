@@ -15,7 +15,6 @@ import java.util.Map;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.util.ByteArrayMapper;
 import org.skife.jdbi.v2.util.IntegerMapper;
-import org.skife.jdbi.v2.util.StringMapper;
 
 import com.tinkerpop.blueprints.Vertex;
 
