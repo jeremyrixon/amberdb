@@ -2,10 +2,13 @@ package amberdb.relation;
 
 import java.util.Date;
 
+import amberdb.model.Party;
+
+import com.tinkerpop.frames.InVertex;
 import com.tinkerpop.frames.Property;
 
 /**
- * 
+ * work acknowledgement
  * @author bsingh
  *
  */
@@ -44,4 +47,7 @@ public interface Acknowledge extends Relation {
     // date of acknowledgement
     @Property("date")
     public void setDate(Date date);
+    
+    @InVertex
+    public Party getParty();
 }
