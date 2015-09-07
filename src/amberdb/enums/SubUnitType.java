@@ -12,6 +12,7 @@ public enum SubUnitType {
     OTHERLEVEL("Otherlevel"),
     RECORDGRP("Recordgrp"),
     SERIES("Series"),
+    SHEET("Sheet"),
     SUBFONDS("Subfonds"),
     SUBGRP("Subgrp"),
     SUBSERIES("Subseries");

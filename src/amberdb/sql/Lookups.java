@@ -309,6 +309,11 @@ public abstract class Lookups extends Tools {
     }
     
     public synchronized void migrate() {
+        ListLu mapSubUnitTypeSheet = findLookup("subUnitType", "Sheet");
+        if (mapSubUnitTypeSheet == null) {
+            addLookupData("subUnitType", "Sheet", "Sheet");
+        }
+        
         List<ListLu> entries = findActiveLookupsFor("copyStatus");
         if (entries.isEmpty()) {
             addLookupData("copyStatus", "None", "None");
