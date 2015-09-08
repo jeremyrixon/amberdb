@@ -263,16 +263,11 @@ public class AmberQuery extends AmberQueryBase {
             h.createStatement(generateFullSubGraphQuery()).execute();
             h.commit();
 
-            /*
-             * ... and reap the rewards
-             * 
-             * IMPORTANT NOTE: Currently only Vertex properties are retrieved -
-             * not edges. This is ok at the moment because we don't currently
-             * populate edge properties. I guess this could change.
-             */
             Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h, "v0", "vid");
             vertices = getVertices(h, graph, propMaps, "v0", "vid", "edge_order");
-            
+
+            // Warning: Filled edge properties won't all be populated 
+            propMaps = getElementPropertyMaps(h, "v0", "eid");
             if (fillEdges) {
                 getFillEdges(h, graph, propMaps, "v0", "vid", "v1", "vid");
             } else {
