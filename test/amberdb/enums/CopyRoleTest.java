@@ -113,9 +113,9 @@ public class CopyRoleTest {
         assertEquals(310,CopyRole.PAPER_SUMMARY.ord());
         assertEquals(320,CopyRole.PAPER_TRANSCRIPT.ord());
         assertEquals(330,CopyRole.PRINT_COPY.ord());
-        assertEquals(340,CopyRole.PRODUCTION_MASTER_AUDIO_LEFT.ord());
-        assertEquals(341,CopyRole.PRODUCTION_MASTER_AUDIO_RIGHT.ord());
-        assertEquals(342,CopyRole.PRODUCTION_MASTER_VIDEO.ord());
+        assertEquals(340,CopyRole.PRODUCTION_MASTER_AUDIO_LEFT_COPY.ord());
+        assertEquals(341,CopyRole.PRODUCTION_MASTER_AUDIO_RIGHT_COPY.ord());
+        assertEquals(342,CopyRole.PRODUCTION_MASTER_VIDEO_COPY.ord());
         assertEquals(350,CopyRole.QUICKTIME_FILE_1_COPY.ord());
         assertEquals(360,CopyRole.QUICKTIME_FILE_2_COPY.ord());
         assertEquals(370,CopyRole.QUICKTIME_REF_1_COPY.ord());
