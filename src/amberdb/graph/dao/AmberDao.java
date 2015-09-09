@@ -222,6 +222,24 @@ public interface AmberDao extends Transactional<AmberDao> {
     void createSessionPropertyIndex();
 
 
+    @SqlUpdate(
+            "CREATE INDEX sess_edge_sis_idx "
+            + "ON sess_edge(s_id, id, state)")
+    void createSessionEdgeIdStateIndex();
+
+
+    @SqlUpdate(
+            "CREATE INDEX sess_vertex_sis_idx "
+            + "ON sess_vertex(s_id, id, state)")
+    void createSessionVertexIdStateIndex();
+
+
+    @SqlUpdate(
+            "CREATE INDEX sess_property_sis_idx "
+            + "ON sess_property(s_id, id)")
+    void createSessionPropertyIdStateIndex();
+
+
     @SqlQuery(
             "SELECT (COUNT(table_name) = 8) "
             + "FROM information_schema.tables " 
@@ -433,12 +451,35 @@ public interface AmberDao extends Transactional<AmberDao> {
             // properties
             + "INSERT INTO property (id, txn_start, txn_end, name, type, value) "
             + "SELECT p.id, p.s_id, 0, p.name, p.type, p.value "
-            + "FROM sess_property p, "
-            + "  (SELECT id FROM sess_vertex v WHERE v.state NOT IN ('AMB', 'DEL') AND v.s_id = @txn " 
-            + "   UNION " 
-            + "   SELECT id FROM sess_edge e WHERE e.state NOT IN ('AMB', 'DEL') AND e.s_id = @txn) changed "
+            + "FROM sess_property p, sess_vertex v "
             + "WHERE p.s_id = @txn "
-            + "AND p.id = changed.id") 
+            + "AND v.s_id = @txn "
+            + "AND v.id = p.id "
+            + "AND v.state = 'NEW'; "
+
+            + "INSERT INTO property (id, txn_start, txn_end, name, type, value) "
+            + "SELECT p.id, p.s_id, 0, p.name, p.type, p.value "
+            + "FROM sess_property p, sess_vertex v "
+            + "WHERE p.s_id = @txn "
+            + "AND v.s_id = @txn "
+            + "AND v.id = p.id "
+            + "AND v.state = 'MOD'; "
+
+            + "INSERT INTO property (id, txn_start, txn_end, name, type, value) "
+            + "SELECT p.id, p.s_id, 0, p.name, p.type, p.value "
+            + "FROM sess_property p, sess_edge e "
+            + "WHERE p.s_id = @txn "
+            + "AND e.s_id = @txn "
+            + "AND e.id = p.id "
+            + "AND e.state = 'NEW'; "
+
+            + "INSERT INTO property (id, txn_start, txn_end, name, type, value) "
+            + "SELECT p.id, p.s_id, 0, p.name, p.type, p.value "
+            + "FROM sess_property p, sess_edge e "
+            + "WHERE p.s_id = @txn "
+            + "AND e.s_id = @txn "
+            + "AND e.id = p.id "
+            + "AND e.state = 'MOD'; ")
     void startElements(
             @Bind("txnId") Long txnId);
 

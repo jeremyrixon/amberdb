@@ -30,4 +30,12 @@ public class AmberPropertyBatch {
             this.value.add(AmberProperty.encode(value));
         }
     }
+
+
+    public void clear() {
+        id.clear();
+        name.clear();
+        type.clear();
+        value.clear();
+    }
 }
