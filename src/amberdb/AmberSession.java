@@ -14,6 +14,7 @@ import java.util.Set;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.h2.jdbcx.JdbcConnectionPool;
@@ -30,6 +31,7 @@ import amberdb.model.GeoCoding;
 import amberdb.model.IPTC;
 import amberdb.model.ImageFile;
 import amberdb.model.Page;
+import amberdb.model.Party;
 import amberdb.model.Section;
 import amberdb.model.SoundFile;
 import amberdb.model.Tag;
@@ -93,6 +95,7 @@ public class AmberSession implements AutoCloseable {
                 .withClass(EADFeature.class)
                 .withClass(EADWork.class)
                 .withClass(Tag.class)
+                .withClass(Party.class)
                 .build());
 
 
@@ -666,7 +669,43 @@ public class AmberSession implements AutoCloseable {
     public Iterable<Tag> getAllTags() {
         return graph.getVertices("type", "Tag", Tag.class);
     }
+
+    public void deleteTag(Tag tag) {
+        graph.removeVertex(tag.asVertex());
+    }
     
+    private Party addParty() {
+        return graph.addVertex(null, Party.class);
+    }
+
+    public Party addParty(String name) {
+        return addParty(name, null, null);
+    }
+    
+    public Party addParty(String name, String orgUrl, String logoUrl) {
+        if (StringUtils.isEmpty(name)) { //name is mandatory
+            return null;
+        }
+        Party party = addParty();
+        
+        party.setName(name);
+        party.setOrgUrl(orgUrl);
+        party.setLogoUrl(logoUrl);
+        return party;
+    }
+
+    public Iterable<Party> getAllParties() {
+        return graph.getVertices("type", "Party", Party.class);
+    }
+
+    public Party findParty(String name) {
+        for (Party party : getAllParties()) {
+            if (party.getName().equals(name)) {
+                return party;
+            }
+        }
+        return null;
+    }    
 
     /**
      * Recursively delete a Work and all its children (including Copies, Files
@@ -796,7 +835,7 @@ public class AmberSession implements AutoCloseable {
      *            The list of works to load
      * @return Only the vertices related to these works already saved to amber.
      *         Vertices related to these works that have not yet been saved will
-     *         NOT appear here.
+     *         NOT appear here. Parents of the work are not included
      */
     public List<Vertex> loadMultiLevelWorks(final Long... ids) {
         
@@ -830,11 +869,13 @@ public class AmberSession implements AutoCloseable {
 
             // get all the copies, files etc
             q.continueWithCheck(null, new QueryClause[] { 
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "represents" }, Direction.IN),
                     q.new QueryClause(BRANCH_FROM_ALL, new String[] { "isCopyOf" }, Direction.IN), 
                     q.new QueryClause(BRANCH_FROM_ALL, new String[] { "isFileOf" }, Direction.IN),
                     q.new QueryClause(BRANCH_FROM_ALL, new String[] { "descriptionOf" }, Direction.IN), 
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "tags" }, Direction.IN),
             });
-            components = q.getResults();
+            components = q.getResults(true);
         }
         return components;
     }
