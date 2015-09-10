@@ -61,20 +61,21 @@ public class WorkAcknowledgementTest {
         final String url = "http://www.007.com/";
 
         Work w = sess.addWork();
-        Acknowledge ack1 = w.addAcknowledgement(party, type, kindOfSupport, weighting, date, url);
+        Acknowledge a = w.addAcknowledgement(party, type, kindOfSupport, weighting, date, url);
         sess.commit();
-        
-        AmberSession session2 = db.begin();
-        Work oldWork = session2.findWork(w.getId());
-        for(Acknowledge ack : oldWork.getAcknowledgements()) {
-            assertNotNull(ack);
-            assertEquals(ack.getAckType(), type);
-            assertEquals(ack.getKindOfSupport(), kindOfSupport);
-            assertEquals(ack.getWeighting(), weighting);
-            assertEquals(ack.getDate(), date);
-            assertEquals(ack.getUrlToOriginial(), url);
+
+        try (AmberSession sess2 = db.begin()) {
+            Work w2 = sess2.findWork(w.getId());
+
+            for (Acknowledge ack : w2.getAcknowledgements()) {
+                assertNotNull(ack);
+                assertEquals(ack.getAckType(), type);
+                assertEquals(ack.getKindOfSupport(), kindOfSupport);
+                assertEquals(ack.getWeighting(), weighting);
+                assertEquals(ack.getDate(), date);
+                assertEquals(ack.getUrlToOriginial(), url);
+            }
         }
-        
     }
 
     @Test
@@ -136,6 +137,7 @@ public class WorkAcknowledgementTest {
 
         Edge edge1 = ack1.asEdge();
         Edge edge2 = ack2.asEdge();
+
         assertThat(ack1.asEdge().getId(), not(ack2.asEdge().getId()));
         assertEquals(edge1.getVertex(Direction.IN), edge2.getVertex(Direction.IN));
         assertThat(edge1.getVertex(Direction.OUT), not(edge2.getVertex(Direction.OUT)));
