@@ -41,7 +41,7 @@ public class WorkAcknowledgementTest {
     public void startup() {
         DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:;MVCC=TRUE;", "amb", "amb");
         db = new AmberDb(dataSource, Paths.get(folder.getRoot().getPath()));
-        sess = db.begin();
+        sess = db.begin();       
         party = sess.addParty("James Bond");
     }
 
@@ -61,13 +61,20 @@ public class WorkAcknowledgementTest {
         final String url = "http://www.007.com/";
 
         Work w = sess.addWork();
-        Acknowledge ack = w.addAcknowledgement(party, type, kindOfSupport, weighting, date, url);
-        assertNotNull(ack);
-        assertEquals(ack.getAckType(), type);
-        assertEquals(ack.getKindOfSupport(), kindOfSupport);
-        assertEquals(ack.getWeighting(), weighting);
-        assertEquals(ack.getDate(), date);
-        assertEquals(ack.getUrlToOriginial(), url);
+        Acknowledge ack1 = w.addAcknowledgement(party, type, kindOfSupport, weighting, date, url);
+        sess.commit();
+        
+        AmberSession session2 = db.begin();
+        Work oldWork = session2.findWork(w.getId());
+        for(Acknowledge ack : oldWork.getAcknowledgements()) {
+            assertNotNull(ack);
+            assertEquals(ack.getAckType(), type);
+            assertEquals(ack.getKindOfSupport(), kindOfSupport);
+            assertEquals(ack.getWeighting(), weighting);
+            assertEquals(ack.getDate(), date);
+            assertEquals(ack.getUrlToOriginial(), url);
+        }
+        
     }
 
     @Test
@@ -156,6 +163,8 @@ public class WorkAcknowledgementTest {
         for (Acknowledge ack : work.getAcknowledgements()) {
             parties.remove(ack.getParty());
         }
+        
+       
 
         assertEquals(parties.size(), 0);
     }
