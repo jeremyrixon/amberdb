@@ -38,6 +38,7 @@ public class AmberGraph extends BaseGraph
         ElementModifiedListener, EdgeFactory, VertexFactory {
 
     private static final int COMMIT_BATCH_SIZE = 4000;
+    private static final int BIG_COMMIT_THRESHOLD = 50000;
     private static final Logger log = LoggerFactory.getLogger(AmberGraph.class);
     
     public static final DataSource DEFAULT_DATASOURCE = 
@@ -461,6 +462,11 @@ public class AmberGraph extends BaseGraph
     
     
     public Long commit(String user, String operation) {
+
+        if (graphVertices.size() + graphEdges.size() > BIG_COMMIT_THRESHOLD) {
+            log.warn("Graph to be committed exceeds {} elements. Using big commit to process.", BIG_COMMIT_THRESHOLD);
+            return commitBig(user, operation);
+        }
         
         Long txnId = suspend();
         dao.begin();
@@ -767,7 +773,9 @@ public class AmberGraph extends BaseGraph
         int backoff = backoffDelay;
         retryLoop: while (true) {
             try {
+                log.debug("ending elements");
                 dao.endElements(txnId);
+                log.debug("ending elements completed");
                 break retryLoop;
             } catch (RuntimeException e) {
                 if (tryCount < retries) {
@@ -826,7 +834,7 @@ public class AmberGraph extends BaseGraph
     }
 
 
-    private void commitSuspendVertices(Long sessId) {
+    private void bigCommitSuspendVertices(Long sessId) {
 
         AmberVertexBatch vertices = new AmberVertexBatch();
         AmberPropertyBatch properties = new AmberPropertyBatch();
@@ -877,7 +885,7 @@ public class AmberGraph extends BaseGraph
     }
 
 
-    private void commitSuspendEdges(Long sessId) {
+    private void bigCommitSuspendEdges(Long sessId) {
 
         AmberEdgeBatch edges = new AmberEdgeBatch();
         AmberPropertyBatch properties = new AmberPropertyBatch();
@@ -931,13 +939,13 @@ public class AmberGraph extends BaseGraph
     }
 
 
-    public Long suspendForCommit() {
+    public Long suspendForBigCommit() {
 
         // set up batch sql data structures
         Long sessId = newId();
 
-        commitSuspendEdges(sessId);
-        commitSuspendVertices(sessId);
+        bigCommitSuspendEdges(sessId);
+        bigCommitSuspendVertices(sessId);
         log.debug("finished suspend for commit");
 
         return sessId;
@@ -946,7 +954,7 @@ public class AmberGraph extends BaseGraph
 
     public Long commitBig(String user, String operation) {
 
-        Long txnId = suspendForCommit();
+        Long txnId = suspendForBigCommit();
         // End current elements where this transaction modifies or deletes them.
         // Additionally, end edges orphaned by this procedure.
         log.debug("Commence ending elements");
