@@ -1588,7 +1588,7 @@ public interface Work extends Node {
         }
 
         protected String serialiseToJSON(Collection<String> list) throws JsonParseException, JsonMappingException, IOException {
-            if (list == null) return null;    
+            if (list == null || list.isEmpty()) return null;    
             return mapper.writeValueAsString(list);
         }
 
