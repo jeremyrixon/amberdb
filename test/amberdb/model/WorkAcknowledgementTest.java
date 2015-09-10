@@ -41,7 +41,7 @@ public class WorkAcknowledgementTest {
     public void startup() {
         DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:;MVCC=TRUE;", "amb", "amb");
         db = new AmberDb(dataSource, Paths.get(folder.getRoot().getPath()));
-        sess = db.begin();       
+        sess = db.begin();
         party = sess.addParty("James Bond");
     }
 
@@ -166,8 +166,6 @@ public class WorkAcknowledgementTest {
             parties.remove(ack.getParty());
         }
         
-       
-
         assertEquals(parties.size(), 0);
     }
 
