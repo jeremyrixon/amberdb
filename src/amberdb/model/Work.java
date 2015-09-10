@@ -1567,7 +1567,7 @@ public interface Work extends Node {
         @Override
         public void setSubject(List<String> subject) throws JsonParseException, JsonMappingException, IOException {
             // ensure each subject entry is unique
-            setJSONSubject(serialiseToJSON(new HashSet<String>(subject)));
+            setJSONSubject((null == subject)? null : serialiseToJSON(new HashSet<String>(subject)));
         }
 
         @Override
