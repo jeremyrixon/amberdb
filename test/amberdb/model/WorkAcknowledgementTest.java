@@ -165,7 +165,7 @@ public class WorkAcknowledgementTest {
         for (Acknowledge ack : work.getAcknowledgements()) {
             parties.remove(ack.getParty());
         }
-
+        
         assertEquals(parties.size(), 0);
     }
 
