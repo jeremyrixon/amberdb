@@ -48,4 +48,16 @@ public class AmberEdgeBatch {
         }
         return s.toString();
     }
+
+
+    public void clear() {
+        id.clear();
+        txnStart.clear();
+        txnEnd.clear();
+        vertexOut.clear();
+        vertexIn.clear();
+        label.clear();
+        order.clear();
+        state.clear();
+    }
 }
