@@ -1,5 +1,7 @@
 package amber.interactiveindex;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +11,10 @@ public class InteractiveIndexCopy {
 
     public InteractiveIndexCopy(String html) {
         this.html = html;
+    }
+
+    public InteractiveIndexCopy(){
+
     }
 
     public String getHtml() {
@@ -29,6 +35,19 @@ public class InteractiveIndexCopy {
 
     public void addInteractiveArea(InteractiveArea interactiveArea) {
         areas.add(interactiveArea);
+    }
+
+    public void clearAreas(){
+        areas.clear();
+    }
+
+    public InteractiveArea getInteractiveArea(String objectId){
+        for (InteractiveArea interactiveArea : areas){
+            if (StringUtils.equalsIgnoreCase(interactiveArea.getObjectId(), objectId)){
+                return interactiveArea;
+            }
+        }
+        return null;
     }
 }
 

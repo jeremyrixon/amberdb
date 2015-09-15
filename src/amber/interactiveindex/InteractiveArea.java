@@ -7,6 +7,10 @@ public class InteractiveArea {
     private String objectId;
     private List<DirectionalArea> neighbours = new ArrayList<>();
 
+    public InteractiveArea(){
+
+    }
+
     public InteractiveArea(String objectId) {
         this.objectId = objectId;
     }

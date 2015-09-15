@@ -4,6 +4,10 @@ public class DirectionalArea {
     private String direction;
     private String objectId;
 
+    public DirectionalArea(){
+
+    }
+
     public DirectionalArea(String direction, String objectId) {
         this.direction = direction;
         this.objectId = objectId;
