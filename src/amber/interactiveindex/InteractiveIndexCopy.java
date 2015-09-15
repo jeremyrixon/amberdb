@@ -11,6 +11,10 @@ public class InteractiveIndexCopy {
         this.html = html;
     }
 
+    public InteractiveIndexCopy(){
+
+    }
+
     public String getHtml() {
         return html;
     }
@@ -29,6 +33,10 @@ public class InteractiveIndexCopy {
 
     public void addInteractiveArea(InteractiveArea interactiveArea) {
         areas.add(interactiveArea);
+    }
+
+    public void clearAreas(){
+        areas.clear();
     }
 }
 
