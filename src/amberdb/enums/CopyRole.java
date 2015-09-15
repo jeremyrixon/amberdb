@@ -147,7 +147,10 @@ public enum CopyRole {
     public static Collection<Copy> reorderCopyList(Iterable<Copy> copies) {
         TreeMap<Integer, Copy> rearranged = new TreeMap<>();
         for (Copy copy : copies) {
-            rearranged.put(CopyRole.fromString(copy.getCopyRole()).ord(), copy);
+            CopyRole copyRole = CopyRole.fromString(copy.getCopyRole());
+            if (copyRole != null){
+                rearranged.put(copyRole.ord(), copy);    
+            }
         }
         return rearranged.values();
     }
