@@ -51,12 +51,12 @@ public class DescriptionTest {
         iptc.setDigitalSourceType("Original digital capture of a real life scene");
         iptc.setEvent("XXXIX Olympic Summer Games (Beijing)");
         
-        cd.setexposureTime("1/100 at f/2.8");
-        cd.setexposureFNumber("1/1000 at f/2.8");
-        cd.setexposureMode("Auto");
-        cd.setexposureProgram("Auto");
-        cd.setISOSpeedRating("1600");
-        cd.setFocalLenth("24.0mm");
+        cd.setExposureTime("1/100 at f/2.8");
+        cd.setExposureFNumber("1/1000 at f/2.8");
+        cd.setExposureMode("Auto");
+        cd.setExposureProgram("Auto");
+        cd.setIsoSpeedRating("1600");
+        cd.setFocalLength("24.0mm");
         cd.setLens("EF24mm f/1.4L USM");
         cd.setMeteringMode("Evaluative");
         cd.setWhiteBalance("Auto");
@@ -121,8 +121,8 @@ public class DescriptionTest {
         Copy masterCopy = work.getCopy(CopyRole.MASTER_COPY);
         CameraData copyCameraData = masterCopy.getCameraData();
         assertNotNull(copyCameraData);
-        assertEquals(copyCameraData.getexposureTime(), "1/100 at f/2.8");
-        assertEquals(copyCameraData.getexposureMode(), "Auto");
+        assertEquals(copyCameraData.getExposureTime(), "1/100 at f/2.8");
+        assertEquals(copyCameraData.getExposureMode(), "Auto");
     }
 
     @Test
@@ -130,7 +130,7 @@ public class DescriptionTest {
         Work work = amberDb.addWork();
         Copy masterCopy = work.addCopy();
         CameraData cd = masterCopy.addCameraData();
-        cd.setexposureProgram("ex");
+        cd.setExposureProgram("ex");
         work.getDescriptions();
         assertEquals(cd.getPropertyKeySet(), Sets.newHashSet("exposureProgram", "type"));
     }
