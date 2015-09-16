@@ -6,40 +6,40 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 @TypeValue("CameraData")
 public interface CameraData extends Description {
     @Property("exposureTime")
-    public String getexposureTime();
+    public String getExposureTime();
     
     @Property("exposureTime")
-    public void setexposureTime(String exposureTime);
+    public void setExposureTime(String exposureTime);
     
     @Property("exposureFNumber")
-    public String getexposureFNumber();
+    public String getExposureFNumber();
     
     @Property("exposureFNumber")
-    public void setexposureFNumber(String exposureFNumber);
+    public void setExposureFNumber(String exposureFNumber);
     
     @Property("exposureMode")
-    public String getexposureMode();
+    public String getExposureMode();
     
     @Property("exposureMode")
-    public void setexposureMode(String exposureMode);
+    public void setExposureMode(String exposureMode);
     
     @Property("exposureProgram")
-    public String getexposureProgram();
+    public String getExposureProgram();
     
     @Property("exposureProgram")
-    public void setexposureProgram(String exposureProgram);
+    public void setExposureProgram(String exposureProgram);
     
     @Property("isoSpeedRating")
-    public String getISOSpeedRating();
+    public String getIsoSpeedRating();
     
     @Property("isoSpeedRating")
-    public void setISOSpeedRating(String isoSpeedRating);
+    public void setIsoSpeedRating(String isoSpeedRating);
     
-    @Property("focalLenth")
-    public String getFocalLenth();
+    @Property("focalLength")
+    public String getFocalLength();
     
-    @Property("focalLenth")
-    public void setFocalLenth(String focalLenth);
+    @Property("focalLength")
+    public void setFocalLength(String focalLength);
     
     @Property("lens")
     public String getLens();
