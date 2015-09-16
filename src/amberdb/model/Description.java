@@ -43,7 +43,7 @@ public interface Description extends VertexFrame{
             return toLong(asVertex().getId());
         }
 
-        public long toLong(Object x) {
+        private long toLong(Object x) {
             // tinkergraph converts ids to strings
             if (x instanceof String) {
                 return Long.parseLong((String) x);
