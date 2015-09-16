@@ -16,6 +16,9 @@ public interface Description extends VertexFrame{
     @Property("type")
     public String getType();
 
+    @JavaHandler
+    abstract public long getId();
+
     // TODO amuller This may need to be implemented to return the set of properties that cannot be set.
     // I haven't done this because I couldn't think of a reasonable way of doing this that did not involve
     // reflection and messyness.
@@ -33,6 +36,19 @@ public interface Description extends VertexFrame{
         @Override
         public Set<String> getPropertyKeySet() {
             return this.asVertex().getPropertyKeys();
+        }
+
+        @Override
+        public long getId() {
+            return toLong(asVertex().getId());
+        }
+
+        public long toLong(Object x) {
+            // tinkergraph converts ids to strings
+            if (x instanceof String) {
+                return Long.parseLong((String) x);
+            }
+            return (long) x;
         }
     }
 }
