@@ -12,6 +12,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import amberdb.AmberSession;
 import amberdb.relation.*;
 import amberdb.util.WorkUtils;
 
@@ -1213,7 +1214,7 @@ public interface Work extends Node {
     public boolean hasCopyRole(CopyRole role);
 
     @JavaHandler
-    public boolean isValidSoundWork();
+    public boolean hasUniqueAlias(AmberSession session) throws IOException;
 
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {
         static ObjectMapper mapper = new ObjectMapper();
@@ -1737,8 +1738,20 @@ public interface Work extends Node {
         }
 
         @Override
-        public boolean isValidSoundWork() {
-            return "nla.oh".equalsIgnoreCase(getCollection());
+        public boolean hasUniqueAlias(AmberSession session) throws IOException {
+            List<String> aliases = getAlias();
+            if (aliases == null || aliases.size() == 0 || aliases.size() > 1) {
+                return false;
+            } else {
+                String alias = aliases.get(0);
+                List<Work> works = session.findModelByValueInJsonList("alias", alias, Work.class);
+                if (works.size() > 1) {
+                    // Has more than 1 work with the same alias
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
