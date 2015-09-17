@@ -1212,6 +1212,9 @@ public interface Work extends Node {
     @JavaHandler
     public boolean hasCopyRole(CopyRole role);
 
+    @JavaHandler
+    public boolean isValidSoundWork();
+
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {
         static ObjectMapper mapper = new ObjectMapper();
 
@@ -1731,6 +1734,11 @@ public interface Work extends Node {
         @Override
         public boolean hasCopyRole(CopyRole role) {
             return getCopy(role) != null;
+        }
+
+        @Override
+        public boolean isValidSoundWork() {
+            return "nla.oh".equalsIgnoreCase(getCollection());
         }
     }
 }
