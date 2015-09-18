@@ -439,8 +439,6 @@ public interface Work extends Node {
     
     @Incidence(label = Acknowledge.label, direction = Direction.OUT)
     public Iterable<Acknowledge> getAcknowledgements();
-    
-    
 
     @JavaHandler
     public Acknowledge addAcknowledgement(final Party party, final String ackType, final String kindOfSupport, 
