@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.sql.DataSource;
@@ -213,6 +214,20 @@ public class WorkAcknowledgementTest {
         assertTrue(Iterables.contains(work1.getAcknowledgements(), ack1));
         assertEquals(Iterables.size(work2.getAcknowledgements()), 0);
         assertFalse(Iterables.contains(work2.getAcknowledgements(), ack2));
+    }
+    
+    @Test 
+    public void shouldSortAcknowledgementsByWeighting() {
+        Work work1 = sess.addWork();
+        Acknowledge ack2 = work1.addAcknowledgement(party, "of arrangement & description", "lender", 2.0, new Date(), "http://www.web.com/");
+        Acknowledge ack1 = work1.addAcknowledgement(party, "of creation of finding aids", "sponsor", 1.5, new Date(), "http://www.nla.gov.au/");
+        Acknowledge ack0 = work1.addAcknowledgement(party, "of donation of digitised copy", "donor", 1.0, new Date(), "http://www.nla.gov.au/");
+        List<Acknowledge> ackList = work1.getAcknowledgementsByWeighting();
+        assertEquals(3, Iterables.size(ackList));
+        assertEquals(ackList.get(0), ack0);
+        assertEquals(ackList.get(1), ack1);
+        assertEquals(ackList.get(2), ack2);
+        
     }
 
 }
