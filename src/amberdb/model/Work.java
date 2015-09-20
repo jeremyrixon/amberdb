@@ -445,7 +445,7 @@ public interface Work extends Node {
             final Double weighting, final Date dateOfAck, final String urlToOriginial);
 
     @JavaHandler
-    public List<Acknowledge> getAcknowledgementsByWeighting();
+    public List<Acknowledge> getOrderedAcknowledgements();
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * getSeries to get this property
@@ -1236,7 +1236,7 @@ public interface Work extends Node {
         }
         
         @Override
-        public List<Acknowledge> getAcknowledgementsByWeighting() {
+        public List<Acknowledge> getOrderedAcknowledgements() {
             List<Acknowledge> list = Lists.newArrayList(getAcknowledgements());
 
             Collections.sort(list, new Comparator<Acknowledge>() {
