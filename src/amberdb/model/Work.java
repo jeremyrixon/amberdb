@@ -5,6 +5,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -442,6 +444,8 @@ public interface Work extends Node {
     public Acknowledge addAcknowledgement(final Party party, final String ackType, final String kindOfSupport, 
             final Double weighting, final Date dateOfAck, final String urlToOriginial);
 
+    @JavaHandler
+    public List<Acknowledge> getOrderedAcknowledgements();
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * getSeries to get this property
@@ -1229,6 +1233,19 @@ public interface Work extends Node {
             ack.setUrlToOriginial(urlToOriginial);
             ack.setDate(dateOfAck);
             return ack;
+        }
+        
+        @Override
+        public List<Acknowledge> getOrderedAcknowledgements() {
+            List<Acknowledge> list = Lists.newArrayList(getAcknowledgements());
+
+            Collections.sort(list, new Comparator<Acknowledge>() {
+                public int compare(final Acknowledge object1, final Acknowledge object2) {
+                    return object1.getWeighting().compareTo(object2.getWeighting());
+                }
+            });
+
+            return list;
         }
 
         @Override
