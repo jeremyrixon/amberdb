@@ -2,17 +2,7 @@ package amberdb.model;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import amberdb.AmberSession;
 import amberdb.relation.*;
@@ -21,6 +11,7 @@ import amberdb.util.WorkUtils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 
+import com.google.common.collect.LinkedListMultimap;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -1052,6 +1043,9 @@ public interface Work extends Node {
     @JavaHandler
     public void removeRepresentation(final Copy copy);
 
+    @JavaHandler
+    public Map<CopyRole, Collection<Copy>> getOrderedCopyMap();
+
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public void removeCopy(final Copy copy);
 
@@ -1060,6 +1054,9 @@ public interface Work extends Node {
 
     @GremlinGroovy("it.in('isCopyOf').order{it.a.id <=> it.b.id}")
     public Iterable<Copy> getOrderedCopies();
+
+    @GremlinGroovy("it.in('isCopyOf').has('copyRole',role.code).order{it.a.id <=> it.b.id}")
+    public Iterable<Copy> getOrderedCopies(@GremlinParam("role") CopyRole role);
     
     @GremlinGroovy("it.in('isCopyOf').has('copyRole',role.code)")
     public Iterable<Copy> getCopies(@GremlinParam("role") CopyRole role);
@@ -1219,6 +1216,9 @@ public interface Work extends Node {
 
     @JavaHandler
     public boolean hasUniqueAlias(AmberSession session) throws IOException;
+    
+    @JavaHandler
+    public boolean hasImageAccessCopy();
 
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {
         static ObjectMapper mapper = new ObjectMapper();
@@ -1769,6 +1769,21 @@ public interface Work extends Node {
             }
 
             return true;
+        }
+
+        @Override
+        public Map<CopyRole, Collection<Copy>> getOrderedCopyMap() {
+            LinkedListMultimap<CopyRole, Copy> orderedCopyMap = LinkedListMultimap.create();
+            for (Copy copy : getOrderedCopies()) {
+                orderedCopyMap.put(CopyRole.valueOf(copy.getCopyRole()), copy);
+            }
+            return orderedCopyMap.asMap();
+        }
+        
+        @Override
+        public boolean hasImageAccessCopy(){
+            Copy accessCopy = getCopy(CopyRole.ACCESS_COPY);
+            return accessCopy != null && accessCopy.getImageFile() != null;
         }
     }
 }
