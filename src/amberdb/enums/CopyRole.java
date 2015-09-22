@@ -38,6 +38,7 @@ public enum CopyRole {
     EXAMINATION_COPY("e", "Examination",180),
     FILTERED_COPY("fc", "Filtered",190),
     FINDING_AID_COPY("fa", "Finding aid",200),
+    FINDING_AID_SUPPLEMENTARY_COPY("fas", "Finding aid supplementary",201),
     FINDING_AID_PRINT_COPY("fap", "Finding aid print",210),
     FINDING_AID_VIEW_COPY("fav", "Finding aid view",220),
     FLIGHT_DIAGRAM_COPY ("fd", "Flight Diagram", 230),
