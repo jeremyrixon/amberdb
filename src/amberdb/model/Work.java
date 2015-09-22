@@ -1054,6 +1054,9 @@ public interface Work extends Node {
 
     @GremlinGroovy("it.in('isCopyOf').order{it.a.id <=> it.b.id}")
     public Iterable<Copy> getOrderedCopies();
+
+    @GremlinGroovy("it.in('isCopyOf').has('copyRole',role.code).order{it.a.id <=> it.b.id}")
+    public Iterable<Copy> getOrderedCopies(@GremlinParam("role") CopyRole role);
     
     @GremlinGroovy("it.in('isCopyOf').has('copyRole',role.code)")
     public Iterable<Copy> getCopies(@GremlinParam("role") CopyRole role);
