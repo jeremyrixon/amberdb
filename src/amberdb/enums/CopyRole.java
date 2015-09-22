@@ -150,7 +150,15 @@ public enum CopyRole {
 
         return list;
     }
-    
+
+    public static Collection<CopyRole> sortCopyRoleList(Iterable<CopyRole> copyRoles) {
+        TreeMap<Integer, CopyRole> rearranged = new TreeMap<>();
+        for (CopyRole copyRole : copyRoles) {
+            rearranged.put(copyRole.ord(), copyRole);
+        }
+        return rearranged.values();
+    }
+
     public static Collection<Copy> reorderCopyList(Iterable<Copy> copies) {
         TreeMap<Integer, Copy> rearranged = new TreeMap<>();
         for (Copy copy : copies) {
