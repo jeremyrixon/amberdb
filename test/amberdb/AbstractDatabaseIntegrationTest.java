@@ -21,7 +21,6 @@ public abstract class AbstractDatabaseIntegrationTest {
     public AmberDb amberDb;
     public AmberSession amberSession;
     public DataSource amberSrc;
-    public DataSource banjoSrc;
     public Path tempPath;
 
     @Before
