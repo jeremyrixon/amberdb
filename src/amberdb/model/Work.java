@@ -1216,6 +1216,9 @@ public interface Work extends Node {
 
     @JavaHandler
     public boolean hasUniqueAlias(AmberSession session) throws IOException;
+    
+    @JavaHandler
+    public boolean hasImageAccessCopy();
 
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {
         static ObjectMapper mapper = new ObjectMapper();
@@ -1775,6 +1778,12 @@ public interface Work extends Node {
                 orderedCopyMap.put(CopyRole.valueOf(copy.getCopyRole()), copy);
             }
             return orderedCopyMap.asMap();
+        }
+        
+        @Override
+        public boolean hasImageAccessCopy(){
+            Copy accessCopy = getCopy(CopyRole.ACCESS_COPY);
+            return accessCopy != null && accessCopy.getImageFile() != null;
         }
     }
 }
