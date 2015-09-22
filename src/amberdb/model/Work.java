@@ -1064,6 +1064,9 @@ public interface Work extends Node {
     @GremlinGroovy("it.in('isCopyOf').has('copyRole',role.code)")
     public Copy getCopy(@GremlinParam("role") CopyRole role);
 
+    @JavaHandler
+    public Copy getCopy(CopyRole role, int index);
+
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     public Section addSection();
 
@@ -1784,6 +1787,20 @@ public interface Work extends Node {
         public boolean hasImageAccessCopy(){
             Copy accessCopy = getCopy(CopyRole.ACCESS_COPY);
             return accessCopy != null && accessCopy.getImageFile() != null;
+        }
+
+        @Override
+        public Copy getCopy(CopyRole role, int index) {
+            Iterable<Copy> orderedCopies = getOrderedCopies(role);
+            if (orderedCopies == null) {
+                return null;
+            }
+
+            if (Iterables.size(orderedCopies) -1 < index) {
+                return null;
+            }
+
+            return Iterables.get(orderedCopies, index);
         }
     }
 }
