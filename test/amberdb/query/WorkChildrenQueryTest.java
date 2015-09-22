@@ -88,6 +88,11 @@ public class WorkChildrenQueryTest {
             assertNotNull(f);
         }
         sess.setLocalMode(false);
+
+        List<Section> sections = wcq.getSections(parent.getId());
+        sess.setLocalMode(true);
+        assertEquals(sections.size(), 7);
+        sess.setLocalMode(false);
     }        
     
 
