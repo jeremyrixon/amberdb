@@ -2,58 +2,28 @@ package amberdb.model;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.nio.file.Paths;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
-import javax.sql.DataSource;
-
-import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import amberdb.AbstractDatabaseIntegrationTest;
 import amberdb.AmberDb;
 import amberdb.AmberSession;
 
-public class TagTest {
+public class TagTest extends AbstractDatabaseIntegrationTest{
     
-    @ClassRule
-    public static TemporaryFolder folder = new TemporaryFolder();    
-    
-    private AmberDb db;
-    private AmberSession sess;
-    
-    @Before
-    public void startup() {
-        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:;MVCC=TRUE;", "amb", "amb");
-        db = new AmberDb(dataSource, Paths.get(folder.getRoot().getPath()));
-        sess = db.begin();
-    }
-    
-    @After
-    public void teardown() throws IOException {
-        if (sess != null) {
-            sess.close();
-        }       
-    }
-
     @Test
     public void basicTagTests() throws Exception { 
         
         // creation
-        Tag tag = sess.addTag();
-        Tag tag2 = sess.addTag("tag2");
+        Tag tag = amberSession.addTag();
+        Tag tag2 = amberSession.addTag("tag2");
 
         assertNotNull(tag);
         assertNotNull(tag2);
@@ -63,22 +33,22 @@ public class TagTest {
         assertEquals(tag2.getName(), "tag2");
         
         // tag persists for session suspend
-        Long sessId = sess.suspend();
-        AmberSession sess2 = db.resume(sessId);
+        Long sessId = amberSession.suspend();
+        AmberSession sess2 = amberDb.resume(sessId);
         Tag tag3 = sess2.findModelObjectById(tag.getId(), Tag.class);
         assertEquals(tag3, tag);
         
         // tag persists for session commit
-        sess.commit("tester", "save tag");
-        AmberSession sess3 = db.begin();
+        amberSession.commit("tester", "save tag");
+        AmberSession sess3 = amberDb.begin();
         Tag tag4 = sess3.findModelObjectById(tag2.getId(), Tag.class);
         assertEquals(tag4, tag2);
         
         // tags can be searched for and found
-        sess.addTag("t5");
-        sess.addTag("t6");
-        sess.addTag("t7");
-        sess.commit("tester", "save tags for search");
+        amberSession.addTag("t5");
+        amberSession.addTag("t6");
+        amberSession.addTag("t7");
+        amberSession.commit("tester", "save tags for search");
         
         Iterable<Tag> tagColl1 = sess2.getAllTags();
         int i = 0;
@@ -95,13 +65,13 @@ public class TagTest {
     public void nodeTaggingTests() throws Exception { 
         
         // creation
-        Tag tag = sess.addTag("tag1");
-        Tag tag2 = sess.addTag("tag2");
+        Tag tag = amberSession.addTag("tag1");
+        Tag tag2 = amberSession.addTag("tag2");
 
         assertNotNull(tag);
         assertNotNull(tag2);
         
-        Work w = sess.addWork();
+        Work w = amberSession.addWork();
         w.addTag(tag);
         
         assertEquals(w.getTags().iterator().next(), tag);
@@ -116,8 +86,8 @@ public class TagTest {
         assertEquals(i, 2);
         
         // tag persists for session suspend
-        Long sessId = sess.suspend();
-        AmberSession sess2 = db.resume(sessId);
+        Long sessId = amberSession.suspend();
+        AmberSession sess2 = amberDb.resume(sessId);
         
         Work w1 = sess2.findWork(w.getId());
         i = 0;
@@ -127,8 +97,8 @@ public class TagTest {
         assertEquals(i, 2);
         
         // tag persists for session commit
-        sess.commit("tester", "save tag");
-        AmberSession sess3 = db.begin();
+        amberSession.commit("tester", "save tag");
+        AmberSession sess3 = amberDb.begin();
 
         Work w2 = sess3.findWork(w.getId());
         
