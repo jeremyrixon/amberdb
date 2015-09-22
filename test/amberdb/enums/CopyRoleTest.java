@@ -100,6 +100,7 @@ public class CopyRoleTest {
         assertEquals(180,CopyRole.EXAMINATION_COPY.ord());
         assertEquals(190,CopyRole.FILTERED_COPY.ord());
         assertEquals(200,CopyRole.FINDING_AID_COPY.ord());
+        assertEquals(201,CopyRole.FINDING_AID_SUPPLEMENTARY_COPY.ord());
         assertEquals(210,CopyRole.FINDING_AID_PRINT_COPY.ord());
         assertEquals(220,CopyRole.FINDING_AID_VIEW_COPY.ord());
         assertEquals(230,CopyRole.FLIGHT_DIAGRAM_COPY.ord());
