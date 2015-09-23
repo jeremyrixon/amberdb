@@ -1778,7 +1778,7 @@ public interface Work extends Node {
         public Map<CopyRole, Collection<Copy>> getOrderedCopyMap() {
             LinkedListMultimap<CopyRole, Copy> orderedCopyMap = LinkedListMultimap.create();
             for (Copy copy : getOrderedCopies()) {
-                orderedCopyMap.put(CopyRole.valueOf(copy.getCopyRole()), copy);
+                orderedCopyMap.put(CopyRole.fromString(copy.getCopyRole()), copy);
             }
             return orderedCopyMap.asMap();
         }
