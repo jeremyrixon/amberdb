@@ -1791,16 +1791,16 @@ public interface Work extends Node {
 
         @Override
         public Copy getCopy(CopyRole role, int index) {
-            Iterable<Copy> orderedCopies = getOrderedCopies(role);
+            List<Copy> orderedCopies = Lists.newArrayList(getOrderedCopies(role));
             if (orderedCopies == null) {
                 return null;
             }
 
-            if (Iterables.size(orderedCopies) -1 < index) {
+            if (orderedCopies.size() -1 < index) {
                 return null;
             }
 
-            return Iterables.get(orderedCopies, index);
+            return orderedCopies.get(index);
         }
     }
 }
