@@ -151,10 +151,11 @@ public enum CopyRole {
         return list;
     }
 
-    public static Collection<CopyRole> sortCopyRoleList(Iterable<CopyRole> copyRoles) {
-        TreeMap<Integer, CopyRole> rearranged = new TreeMap<>();
-        for (CopyRole copyRole : copyRoles) {
-            rearranged.put(copyRole.ord(), copyRole);
+    public static Collection<String> sortCopyRoleList(Iterable<String> copyRoles) {
+        TreeMap<Integer, String> rearranged = new TreeMap<>();
+        for (String copyRoleStr : copyRoles) {
+            CopyRole copyRole = CopyRole.fromString(copyRoleStr);
+            rearranged.put(copyRole.ord(), copyRoleStr);
         }
         return rearranged.values();
     }
