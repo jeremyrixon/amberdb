@@ -1044,7 +1044,7 @@ public interface Work extends Node {
     public void removeRepresentation(final Copy copy);
 
     @JavaHandler
-    public Map<CopyRole, Collection<Copy>> getOrderedCopyMap();
+    public Map<String, Collection<Copy>> getOrderedCopyMap();
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     public void removeCopy(final Copy copy);
@@ -1775,10 +1775,10 @@ public interface Work extends Node {
         }
 
         @Override
-        public Map<CopyRole, Collection<Copy>> getOrderedCopyMap() {
-            LinkedListMultimap<CopyRole, Copy> orderedCopyMap = LinkedListMultimap.create();
+        public Map<String, Collection<Copy>> getOrderedCopyMap() {
+            LinkedListMultimap<String, Copy> orderedCopyMap = LinkedListMultimap.create();
             for (Copy copy : getOrderedCopies()) {
-                orderedCopyMap.put(CopyRole.valueOf(copy.getCopyRole()), copy);
+                orderedCopyMap.put(copy.getCopyRole(), copy);
             }
             return orderedCopyMap.asMap();
         }
@@ -1791,16 +1791,16 @@ public interface Work extends Node {
 
         @Override
         public Copy getCopy(CopyRole role, int index) {
-            Iterable<Copy> orderedCopies = getOrderedCopies(role);
+            List<Copy> orderedCopies = Lists.newArrayList(getOrderedCopies(role));
             if (orderedCopies == null) {
                 return null;
             }
 
-            if (Iterables.size(orderedCopies) -1 < index) {
+            if (orderedCopies.size() -1 < index) {
                 return null;
             }
 
-            return Iterables.get(orderedCopies, index);
+            return orderedCopies.get(index);
         }
     }
 }
