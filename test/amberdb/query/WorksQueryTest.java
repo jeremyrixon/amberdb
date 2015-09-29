@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.After;
@@ -23,132 +24,24 @@ import amberdb.model.GeoCoding;
 import amberdb.model.Page;
 import amberdb.model.Section;
 import amberdb.model.Work;
+import amberdb.AbstractDatabaseIntegrationTest;
 import amberdb.AmberSession;
 
-public class WorksQueryTest {
-
-    public AmberSession sess;
-    
-    @Before
-    public void setup() throws CorruptBlobStoreException, IOException {
-        sess = new AmberSession();
-    }
-
-    @After
-    public void tearDown() throws IOException {
-        if (sess != null) sess.close();
-    }
+public class WorksQueryTest extends AbstractDatabaseIntegrationTest {
 
     @Test
-    public void testGetWorkChildren() throws IOException {
+    public void worksQueryTest() throws IOException {
 
-        // create a test work with children
-        Work parent = buildWork();
-        sess.commit();
-
-        AmberQuery q = sess.getAmberGraph().newQuery(parent.getId());
-        
-        
-        WorkChildrenQuery wcq = new WorkChildrenQuery(sess);
-        List<Work> children = wcq.getChildRange(parent.getId(), 0, 5);
-        assertEquals(children.size(), 5);
-        for (int i = 0; i < 5; i++) {
-            assertEquals(children.get(i).getTitle(),"page " + i);
+        List<Long> ids = new ArrayList<>(); 
+        for (int i = 0; i < 100; i++) {
+            Work w = amberSession.addWork();
+            if (i % 2 == 0) {
+                ids.add(w.getId());
+            }
         }
-        
-        sess.setLocalMode(true); 
-        for (int i = 0; i < 5; i++) {
-            assertEquals(children.get(i).getCopy(CopyRole.MASTER_COPY)
-                    .getFile().getDevice(),"device " + i);
-        }
-        sess.setLocalMode(false);
-        
-        children = wcq.getChildRange(parent.getId(), 5, 5);
-        assertEquals(children.size(), 5);
-        for (int i = 0; i < 5; i++) {
-            assertEquals(children.get(i).getTitle(),"page " + (i+5));
-        }
-
-        children = wcq.getChildRange(parent.getId(), 25, 35);
-        assertEquals(children.size(), 5);
-        for (int i = 0; i < 5; i++) {
-            assertEquals(children.get(i).getTitle(),"work " + (i+25));
-        }
-
-        int numChilds = wcq.getTotalChildCount(parent.getId());
-        assertEquals(30, numChilds);
-
-        List<CopyRole> roles = wcq.getAllChildCopyRoles(parent.getId());
-        assertEquals(roles.size(), 2);
-        assertTrue(roles.contains(CopyRole.MASTER_COPY));
-        assertTrue(roles.contains(CopyRole.ACCESS_COPY));
-
-        sess.getAmberGraph().clear();
-        children = wcq.getChildRange(parent.getId(), 5, 5);
-        sess.setLocalMode(true);
-        assertEquals(children.size(), 5);
-        Work c1 = children.get(0);
-        for (Copy c : c1.getCopies()) {
-            assertNotNull(c);
-            File f = c.getFile();
-            assertNotNull(f);
-        }
-        sess.setLocalMode(false);
-
-        List<Section> sections = wcq.getSections(parent.getId());
-        sess.setLocalMode(true);
-        assertEquals(sections.size(), 7);
-        sess.setLocalMode(false);
+        amberSession.commit();
+        amberSession.getAmberGraph().clear();
+        List<Work> works = WorksQuery.getWorks(amberSession, ids);
+        assertEquals(works.size(), 50);
     }        
-    
-
-    private Work buildWork() {
-        Work parent = sess.addWork();
-        
-        for (int i = 0; i < 20; i++) {
-            
-            Page p = parent.addPage();
-            p.setOrder(i);
-            p.setTitle("page " + i);
-            
-            GeoCoding gc = p.addGeoCoding();
-            gc.setGPSVersion("version " + i);
-            
-            Copy c = p.addCopy();
-            c.setCopyRole(CopyRole.MASTER_COPY.code());
-            CameraData cd = c.addCameraData();
-            cd.setLens("lens");
-            
-            File f = c.addFile();
-            f.setDevice("device " + i);
-        }
-
-        for (int i = 20; i < 30; i++) {
-            
-            Work w = sess.addWork();
-            parent.addChild(w);
-            w.setTitle("work " + i);
-            w.setOrder(i);
-            
-            Copy c = w.addCopy();
-            c.setCopyRole(CopyRole.ACCESS_COPY.code());
-            CameraData cd = c.addCameraData();
-            cd.setLens("work lens");
-            
-            File f = c.addFile();
-            f.setDevice("work device " + i);
-        }
-
-        for (int i = 0; i < 7; i++) {
-            
-            Section s = parent.addSection();
-            s.setTitle("section " + i);
-            s.setOrder(i);
-
-            s.addPage(parent.getPage(i+1));
-        }
-        
-        return parent;
-    }
-
 }
