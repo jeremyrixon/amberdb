@@ -53,16 +53,16 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 @TypeValue("Work")
 public interface Work extends Node {
     @Property("abstract")
-    public String getAbstract();
+    String getAbstract();
 
     @Property("abstract")
-    public void setAbstract(String aBstract);
+    void setAbstract(String aBstract);
 
     @Property("category")
-    public String getCategory();
+    String getCategory();
 
     @Property("category")
-    public void setCategory(String category);
+    void setCategory(String category);
 
     /* DCM Legacy Data */
 
@@ -71,372 +71,372 @@ public interface Work extends Node {
      * getDcmAltPi to get this property
      */
     @Property("dcmAltPi")
-    public String getJSONDcmAltPi();
+    String getJSONDcmAltPi();
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * setDcmAltPi to set this property
      */
     @Property("dcmAltPi")
-    public void setJSONDcmAltPi(String dcmAltPi);
+    void setJSONDcmAltPi(String dcmAltPi);
 
     /**
      * This method handles the JSON serialisation of the dcmAltPi Property
      */
     @JavaHandler
-    public void setDcmAltPi(List<String> list) throws JsonParseException, JsonMappingException, IOException;
+    void setDcmAltPi(List<String> list) throws IOException;
 
     /**
      * This method handles the JSON deserialisation of the dcmAltPi Property
      */
     @JavaHandler
-    public List<String> getDcmAltPi() throws JsonParseException, JsonMappingException, IOException;
+    List<String> getDcmAltPi() throws IOException;
 
     @Property("dcmWorkPid")
-    public String getDcmWorkPid();
+    String getDcmWorkPid();
 
     @Property("dcmWorkPid")
-    public void setDcmWorkPid(String dcmWorkPid);
+    void setDcmWorkPid(String dcmWorkPid);
 
     @Property("dcmDateTimeCreated")
-    public Date getDcmDateTimeCreated();
+    Date getDcmDateTimeCreated();
 
     @Property("dcmDateTimeCreated")
-    public void setDcmDateTimeCreated(Date dcmDateTimeCreated);
+    void setDcmDateTimeCreated(Date dcmDateTimeCreated);
 
     @Property("dcmDateTimeUpdated")
-    public Date getDcmDateTimeUpdated();
+    Date getDcmDateTimeUpdated();
 
     @Property("dcmDateTimeUpdated")
-    public void setDcmDateTimeUpdated(Date dcmDateTimeUpd);
+    void setDcmDateTimeUpdated(Date dcmDateTimeUpd);
 
     @Property("dcmRecordCreator")
-    public String getDcmRecordCreator();
+    String getDcmRecordCreator();
 
     @Property("dcmRecordCreator")
-    public void setDcmRecordCreator(String dcmRecordCreator);
+    void setDcmRecordCreator(String dcmRecordCreator);
 
     @Property("dcmRecordUpdater")
-    public String getDcmRecordUpdater();
+    String getDcmRecordUpdater();
 
     @Property("dcmRecordUpdater")
-    public void setDcmRecordUpdater(String dcmRecordUpdater);
+    void setDcmRecordUpdater(String dcmRecordUpdater);
 
     /* END DCM Legacy Data */
 
     @Property("subUnitType")
-    public String getSubUnitType();
+    String getSubUnitType();
 
     @Property("subUnitType")
-    public void setSubUnitType(String subUnitType);
+    void setSubUnitType(String subUnitType);
 
     @Property("subUnitNo")
-    public String getSubUnitNo();
+    String getSubUnitNo();
 
     @Property("subUnitNo")
-    public void setSubUnitNo(String subUnitNo);
+    void setSubUnitNo(String subUnitNo);
 
     @Property("subType")
-    public String getSubType();
+    String getSubType();
 
     @Property("subType")
-    public void setSubType(String subType);
+    void setSubType(String subType);
 
     @Property("issueDate")
-    public Date getIssueDate();
+    Date getIssueDate();
 
     @Property("issueDate")
-    public void setIssueDate(Date issueDate);
+    void setIssueDate(Date issueDate);
 
     @Property("collection")
-    public String getCollection();
+    String getCollection();
 
     @Property("collection")
-    public void setCollection(String collection);
+    void setCollection(String collection);
 
     @Property("form")
-    public String getForm();
+    String getForm();
 
     @Property("form")
-    public void setForm(String form);
+    void setForm(String form);
     
     @Property("displayTitlePage")
-    public Boolean isDisplayTitlePage();
+    Boolean isDisplayTitlePage();
 
     @Property("displayTitlePage")
-    public void setDisplayTitlePage(Boolean displayTitlePage);
+    void setDisplayTitlePage(Boolean displayTitlePage);
 
     @Property("bibLevel")
-    public String getBibLevel();
+    String getBibLevel();
 
     @Property("bibLevel")
-    public void setBibLevel(String bibLevel);
+    void setBibLevel(String bibLevel);
 
     @Property("digitalStatus")
-    public String getDigitalStatus();
+    String getDigitalStatus();
 
     @Property("digitalStatus")
-    public void setDigitalStatus(String digitalStatus);
+    void setDigitalStatus(String digitalStatus);
 
     @Property("digitalStatusDate")
-    public Date getDigitalStatusDate();
+    Date getDigitalStatusDate();
 
     @Property("digitalStatusDate")
-    public void setDigitalStatusDate(Date digitalStatusDate);
+    void setDigitalStatusDate(Date digitalStatusDate);
 
     @Property("heading")
-    public String getHeading();
+    String getHeading();
 
     @Property("heading")
-    public void setHeading(String heading);
+    void setHeading(String heading);
 
     @Property("subHeadings")
-    public String getSubHeadings();
+    String getSubHeadings();
 
     @Property("subHeadings")
-    public void setSubHeadings(String subHeadings);
+    void setSubHeadings(String subHeadings);
 
     /**
      * Also known as CALLNO
      */
     @Property("holdingNumber")
-    public String getHoldingNumber();
+    String getHoldingNumber();
 
     /**
      * Also known as CALLNO
      */
     @Property("holdingNumber")
-    public void setHoldingNumber(String holdingNumber);
+    void setHoldingNumber(String holdingNumber);
 
     @Property("holdingId")
-    public String getHoldingId();
+    String getHoldingId();
 
     /**
      * Also known as CALLNO
      */
     @Property("holdingId")
-    public void setHoldingId(String holdingId);
+    void setHoldingId(String holdingId);
 
     @JavaHandler
-    public String getHoldingNumberAndId();
+    String getHoldingNumberAndId();
 
     @JavaHandler
-    public void setHoldingNumberAndId(String holdNumAndId);
+    void setHoldingNumberAndId(String holdNumAndId);
 
     @Property("issn")
-    public String getISSN();
+    String getISSN();
 
     @Property("issn")
-    public void setISSN(String issn);
+    void setISSN(String issn);
 
     @Property("title")
-    public String getTitle();
+    String getTitle();
 
     @Property("title")
-    public void setTitle(String title);
+    void setTitle(String title);
 
     @Property("creator")
-    public String getCreator();
+    String getCreator();
 
     @Property("creator")
-    public void setCreator(String creator);
+    void setCreator(String creator);
 
     @Property("creatorStatement")
-    public String getCreatorStatement();
+    String getCreatorStatement();
 
     @Property("creatorStatement")
-    public void setCreatorStatement(String creatorStatement);
+    void setCreatorStatement(String creatorStatement);
 
     @Property("publisher")
-    public String getPublisher();
+    String getPublisher();
 
     @Property("publisher")
-    public void setPublisher(String publisher);
+    void setPublisher(String publisher);
 
     @Property("copyrightPolicy")
-    public String getCopyrightPolicy();
+    String getCopyrightPolicy();
 
     @Property("copyrightPolicy")
-    public void setCopyrightPolicy(String copyrightPolicy);
+    void setCopyrightPolicy(String copyrightPolicy);
 
     @Property("firstPart")
     @Deprecated
-    public String getFirstPart();
+    String getFirstPart();
 
     @Property("firstPart")
     @Deprecated
-    public void setFirstPart(String firstPart);
+    void setFirstPart(String firstPart);
 
     @Property("sortIndex")
     @Deprecated
-    public String getSortIndex();
+    String getSortIndex();
 
     @Property("sortIndex")
     @Deprecated
-    public void setSortIndex(String sortIndex);
+    void setSortIndex(String sortIndex);
 
     @Property("edition")
-    public String getEdition();
+    String getEdition();
 
     @Property("edition")
-    public void setEdition(String edition);
+    void setEdition(String edition);
 
     @Property("immutable")
-    public String getImmutable();
+    String getImmutable();
 
     @Property("immutable")
-    public void setImmutable(String immutable);
+    void setImmutable(String immutable);
 
     @Property("startDate")
-    public Date getStartDate();
+    Date getStartDate();
 
     @Property("startDate")
-    public void setStartDate(Date startDate);
+    void setStartDate(Date startDate);
 
     @Property("endDate")
-    public Date getEndDate();
+    Date getEndDate();
 
     @Property("endDate")
-    public void setEndDate(Date endDate);
+    void setEndDate(Date endDate);
 
     @Property("extent")
-    public String getExtent();
+    String getExtent();
 
     @Property("extent")
-    public void setExtent(String extent);
+    void setExtent(String extent);
 
     @Property("language")
-    public String getLanguage();
+    String getLanguage();
 
     @Property("language")
-    public void setLanguage(String language);
+    void setLanguage(String language);
 
     @Property("addressee")
-    public String getAddressee();
+    String getAddressee();
 
     @Property("addressee")
-    public void setAddressee(String addressee);
+    void setAddressee(String addressee);
 
     @Property("childRange")
-    public String getChildRange();
+    String getChildRange();
 
     @Property("childRange")
-    public void setChildRange(String childRange);
+    void setChildRange(String childRange);
 
     @Property("startChild")
-    public String getStartChild();
+    String getStartChild();
 
     @Property("startChild")
-    public void setStartChild(String startChild);
+    void setStartChild(String startChild);
 
     @Property("endChild")
-    public String getEndChild();
+    String getEndChild();
 
     @Property("endChild")
-    public void setEndChild(String endChild);
+    void setEndChild(String endChild);
 
     @Property("encodingLevel")
-    public String getEncodingLevel();
+    String getEncodingLevel();
 
     @Property("encodingLevel")
-    public void setEncodingLevel(String encodingLevel);
+    void setEncodingLevel(String encodingLevel);
 
     @Property("publicationLevel")
-    public String getPublicationLevel();
+    String getPublicationLevel();
 
     @Property("publicationLevel")
-    public void setPublicationLevel(String publicationLevel);
+    void setPublicationLevel(String publicationLevel);
 
     @Property("genre")
-    public String getGenre();
+    String getGenre();
 
     @Property("genre")
-    public void setGenre(String genre);
+    void setGenre(String genre);
 
     @Property("publicationCategory")
-    public String getPublicationCategory();
+    String getPublicationCategory();
 
     @Property("publicationCategory")
-    public void setPublicationCategory(String publicationCategory);
+    void setPublicationCategory(String publicationCategory);
 
     @Property("sendToIlms")
-    public Boolean getSendToIlms();
+    Boolean getSendToIlms();
 
     @Property("sendToIlms")
-    public void setSendToIlms(Boolean sendToIlms);
+    void setSendToIlms(Boolean sendToIlms);
 
     @Property("ingestJobId")
-    public Long getIngestJobId();
+    Long getIngestJobId();
 
     @Property("ingestJobId")
-    public void setIngestJobId(Long ingestJobId);
+    void setIngestJobId(Long ingestJobId);
 
     @Property("moreIlmsDetailsRequired")
-    public Boolean getMoreIlmsDetailsRequired();
+    Boolean getMoreIlmsDetailsRequired();
 
     @Property("moreIlmsDetailsRequired")
-    public void setMoreIlmsDetailsRequired(Boolean moreIlmsDetailsRequired);
+    void setMoreIlmsDetailsRequired(Boolean moreIlmsDetailsRequired);
 
     @Property("allowHighResdownload")
-    public Boolean getAllowHighResdownload();
+    Boolean getAllowHighResdownload();
 
     @Property("allowHighResdownload")
-    public void setAllowHighResdownload(Boolean allowHRdownload);
+    void setAllowHighResdownload(Boolean allowHRdownload);
 
     @Property("ilmsSentDateTime")
-    public Date getIlmsSentDateTime();
+    Date getIlmsSentDateTime();
 
     @Property("ilmsSentDateTime")
-    public void setIlmsSentDateTime(Date dateTime);
+    void setIlmsSentDateTime(Date dateTime);
     
     @Property("interactiveIndexAvailable")
-    public Boolean getInteractiveIndexAvailable();
+    Boolean getInteractiveIndexAvailable();
     
     @Property("interactiveIndexAvailable")
-    public void setInteractiveIndexAvailable(Boolean interactiveIndexAvailable);
+    void setInteractiveIndexAvailable(Boolean interactiveIndexAvailable);
     
     @Property("html")
-    public String getHtml();
+    String getHtml();
     
     @Property("html")
-    public void setHtml(String html);
+    void setHtml(String html);
 
     @Property("isMissingPage")
-    public Boolean getIsMissingPage();
+    Boolean getIsMissingPage();
 
     @Property("isMissingPage")
-    public void setIsMissingPage(Boolean isMissingPage);
+    void setIsMissingPage(Boolean isMissingPage);
 
     @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
-    public GeoCoding addGeoCoding();
+    GeoCoding addGeoCoding();
 
     @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
-    public IPTC addIPTC();
+    IPTC addIPTC();
 
     @JavaHandler
-    public GeoCoding getGeoCoding();
+    GeoCoding getGeoCoding();
 
     @JavaHandler
-    public IPTC getIPTC();
+    IPTC getIPTC();
     
     @JavaHandler
-    public boolean isCopy();
+    boolean isCopy();
     
     @Incidence(label = Acknowledge.label, direction = Direction.OUT)
-    public Acknowledge addAcknowledgement(final Party party);
+    Acknowledge addAcknowledgement(final Party party);
     
     @Incidence(label = Acknowledge.label, direction = Direction.OUT)
-    public void removeAcknowledgement(final Acknowledge ack);
+    void removeAcknowledgement(final Acknowledge ack);
     
     @Incidence(label = Acknowledge.label, direction = Direction.OUT)
-    public Iterable<Acknowledge> getAcknowledgements();
+    Iterable<Acknowledge> getAcknowledgements();
 
     @JavaHandler
-    public Acknowledge addAcknowledgement(final Party party, final String ackType, final String kindOfSupport, 
+    Acknowledge addAcknowledgement(final Party party, final String ackType, final String kindOfSupport,
             final Double weighting, final Date dateOfAck, final String urlToOriginial);
 
     @JavaHandler
-    public List<Acknowledge> getOrderedAcknowledgements();
+    List<Acknowledge> getOrderedAcknowledgements();
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * getSeries to get this property
@@ -446,7 +446,7 @@ public interface Work extends Node {
      *       amberdb.model.EADWork class.
      */
     @Property("series")
-    public String getJSONSeries();
+    String getJSONSeries();
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
@@ -457,7 +457,7 @@ public interface Work extends Node {
      *       amberdb.model.EADWork class.
      */
     @Property("series")
-    public void setJSONSeries(String series);
+    void setJSONSeries(String series);
 
     /**
      * This method handles the JSON serialisation of the series Property
@@ -471,7 +471,7 @@ public interface Work extends Node {
      *       amberdb.model.EADWork class.
      */
     @JavaHandler
-    public void setSeries(List<String> series) throws JsonParseException, JsonMappingException, IOException;
+    void setSeries(List<String> series) throws IOException;
 
     /**
      * This method handles the JSON deserialisation of the series Property
@@ -485,21 +485,21 @@ public interface Work extends Node {
      *       amberdb.model.EADWork class.
      */
     @JavaHandler
-    public List<String> getSeries() throws JsonParseException, JsonMappingException, IOException;
+    List<String> getSeries() throws IOException;
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * getClassification to get this property
      */
     @Property("classification")
-    public String getJSONClassification();
+    String getJSONClassification();
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * setClassification to set this property
      */
     @Property("classification")
-    public void setJSONClassification(String classification);
+    void setJSONClassification(String classification);
 
     /**
      * This method handles the JSON serialisation of the classification Property
@@ -509,7 +509,7 @@ public interface Work extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public void setClassification(List<String> classification) throws JsonParseException, JsonMappingException, IOException;
+    void setClassification(List<String> classification) throws IOException;
 
     /**
      * This method handles the JSON deserialisation of the classification
@@ -520,21 +520,21 @@ public interface Work extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public List<String> getClassification() throws JsonParseException, JsonMappingException, IOException;
+    List<String> getClassification() throws IOException;
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * getContributor to get this property
      */
     @Property("contributor")
-    public String getJSONContributor();
+    String getJSONContributor();
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * setContributor to set this property
      */
     @Property("contributor")
-    public void setJSONContributor(String contributor);
+    void setJSONContributor(String contributor);
 
     /**
      * This method handles the JSON serialisation of the contributor Property
@@ -544,7 +544,7 @@ public interface Work extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public void setContributor(List<String> contributor) throws JsonParseException, JsonMappingException, IOException;
+    void setContributor(List<String> contributor) throws IOException;
 
     /**
      * This method handles the JSON deserialisation of the contributor Property
@@ -554,21 +554,21 @@ public interface Work extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public List<String> getContributor() throws JsonParseException, JsonMappingException, IOException;
+    List<String> getContributor() throws IOException;
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * getCoverage to get this property
      */
     @Property("coverage")
-    public String getJSONCoverage();
+    String getJSONCoverage();
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * setCoverage to set this property
      */
     @Property("coverage")
-    public void setJSONCoverage(String coverage);
+    void setJSONCoverage(String coverage);
 
     /**
      * This method handles the JSON serialisation of the coverage Property
@@ -578,7 +578,7 @@ public interface Work extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public void setCoverage(List<String> coverage) throws JsonParseException, JsonMappingException, IOException;
+    void setCoverage(List<String> coverage) throws IOException;
 
     /**
      * This method handles the JSON deserialisation of the coverage Property
@@ -588,21 +588,21 @@ public interface Work extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public List<String> getCoverage() throws JsonParseException, JsonMappingException, IOException;
+    List<String> getCoverage() throws IOException;
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * getOccupation to get this property
      */
     @Property("occupation")
-    public String getJSONOccupation();
+    String getJSONOccupation();
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * setOccupation to set this property
      */
     @Property("occupation")
-    public void setJSONOccupation(String occupation);
+    void setJSONOccupation(String occupation);
 
     /**
      * This method handles the JSON serialisation of the occupation Property
@@ -612,7 +612,7 @@ public interface Work extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public void setOccupation(List<String> occupation) throws JsonParseException, JsonMappingException, IOException;
+    void setOccupation(List<String> occupation) throws IOException;
 
     /**
      * This method handles the JSON deserialisation of the occupation Property
@@ -622,21 +622,21 @@ public interface Work extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public List<String> getOccupation() throws JsonParseException, JsonMappingException, IOException;
+    List<String> getOccupation() throws IOException;
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * getOtherTitle to get this property
      */
     @Property("otherTitle")
-    public String getJSONOtherTitle();
+    String getJSONOtherTitle();
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * setOtherTitle to set this property
      */
     @Property("otherTitle")
-    public void setJSONOtherTitle(String otherTitle);
+    void setJSONOtherTitle(String otherTitle);
 
     /**
      * This method handles the JSON serialisation of the otherTitle Property
@@ -646,7 +646,7 @@ public interface Work extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public void setOtherTitle(List<String> otherTitle) throws JsonParseException, JsonMappingException, IOException;
+    void setOtherTitle(List<String> otherTitle) throws IOException;
 
     /**
      * This method handles the JSON deserialisation of the otherTitle Property
@@ -656,21 +656,21 @@ public interface Work extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public List<String> getOtherTitle() throws JsonParseException, JsonMappingException, IOException;
+    List<String> getOtherTitle() throws IOException;
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * getStandardId to get this property
      */
     @Property("standardId")
-    public String getJSONStandardId();
+    String getJSONStandardId();
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * setStandardId to set this property
      */
     @Property("standardId")
-    public void setJSONStandardId(String standardId);
+    void setJSONStandardId(String standardId);
 
     /**
      * This method handles the JSON serialisation of the standardId Property
@@ -680,7 +680,7 @@ public interface Work extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public void setStandardId(List<String> standardId) throws JsonParseException, JsonMappingException, IOException;
+    void setStandardId(List<String> standardId) throws IOException;
 
     /**
      * This method handles the JSON deserialisation of the standardId Property
@@ -690,21 +690,21 @@ public interface Work extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public List<String> getStandardId() throws JsonParseException, JsonMappingException, IOException;
+    List<String> getStandardId() throws IOException;
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * getSubject to get this property
      */
     @Property("subject")
-    public String getJSONSubject();
+    String getJSONSubject();
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * setSubject to set this property
      */
     @Property("subject")
-    public void setJSONSubject(String subject);
+    void setJSONSubject(String subject);
 
     /**
      * This method handles the JSON serialisation of the subject Property
@@ -714,7 +714,7 @@ public interface Work extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public void setSubject(List<String> subject) throws JsonParseException, JsonMappingException, IOException;
+    void setSubject(List<String> subject) throws IOException;
 
     /**
      * This method handles the JSON deserialisation of the subject Property
@@ -724,21 +724,21 @@ public interface Work extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public List<String> getSubject() throws JsonParseException, JsonMappingException, IOException;
+    List<String> getSubject() throws IOException;
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * getScaleEtc to get this property
      */
     @Property("scaleEtc")
-    public String getJSONScaleEtc();
+    String getJSONScaleEtc();
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * setScaleEtc to set this property
      */
     @Property("scaleEtc")
-    public void setJSONScaleEtc(String scaleEtc);
+    void setJSONScaleEtc(String scaleEtc);
 
     /**
      * This method handles the JSON serialisation of the scaleEtc Property
@@ -748,7 +748,7 @@ public interface Work extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public void setScaleEtc(List<String> scaleEtc) throws JsonParseException, JsonMappingException, IOException;
+    void setScaleEtc(List<String> scaleEtc) throws IOException;
 
     /**
      * This method handles the JSON deserialisation of the scaleEtc Property
@@ -758,57 +758,57 @@ public interface Work extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public List<String> getScaleEtc() throws JsonParseException, JsonMappingException, IOException;
+    List<String> getScaleEtc() throws IOException;
 
     @Property("west")
-    public String getWest();
+    String getWest();
 
     @Property("west")
-    public void setWest(String west);
+    void setWest(String west);
 
     @Property("east")
-    public String getEast();
+    String getEast();
 
     @Property("east")
-    public void setEast(String east);
+    void setEast(String east);
 
     @Property("north")
-    public String getNorth();
+    String getNorth();
 
     @Property("north")
-    public void setNorth(String north);
+    void setNorth(String north);
 
     @Property("south")
-    public String getSouth();
+    String getSouth();
 
     @Property("south")
-    public void setSouth(String south);
+    void setSouth(String south);
 
     @Property("tilePosition")
-    public String getTilePosition();
+    String getTilePosition();
 
     @Property("tilePosition")
-    public void setTilePosition(String tilePosition);
+    void setTilePosition(String tilePosition);
 
     @Property("workPid")
-    public String getWorkPid();
+    String getWorkPid();
 
     @Property("workPid")
-    public void setWorkPid(String workPid);
+    void setWorkPid(String workPid);
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * getConstraint to get this property
      */
     @Property("constraint")
-    public String getJSONConstraint();
+    String getJSONConstraint();
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * setConstraint to set this property
      */
     @Property("constraint")
-    public void setJSONConstraint(String constraint);
+    void setJSONConstraint(String constraint);
 
     /**
      * This method handles the JSON serialisation of the constraint Property
@@ -818,7 +818,7 @@ public interface Work extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public void setConstraint(Set<String> constraint) throws JsonParseException, JsonMappingException, IOException;
+    void setConstraint(Set<String> constraint) throws IOException;
 
     /**
      * This method handles the JSON deserialisation of the constraint Property
@@ -828,250 +828,250 @@ public interface Work extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public Set<String> getConstraint() throws JsonParseException, JsonMappingException, IOException;
+    Set<String> getConstraint() throws IOException;
 
     @Property("rights")
-    public String getRights();
+    String getRights();
 
     @Property("rights")
-    public void setRights(String rights);
+    void setRights(String rights);
 
     @Property("tempHolding")
-    public String getTempHolding();
+    String getTempHolding();
 
     @Property("tempHolding")
-    public void setTempHolding(String tempHolding);
+    void setTempHolding(String tempHolding);
 
     @Property("sensitiveMaterial")
-    public String getSensitiveMaterial();
+    String getSensitiveMaterial();
 
     @Property("sensitiveMaterial")
-    public void setSensitiveMaterial(String sensitiveMaterial);
+    void setSensitiveMaterial(String sensitiveMaterial);
 
     @Property("sensitiveReason")
-    public String getJSONSensitiveReason();
+    String getJSONSensitiveReason();
 
     @Property("sensitiveReason")
-    public void setJSONSensitiveReason(String sensitiveReason);
+    void setJSONSensitiveReason(String sensitiveReason);
     
     @JavaHandler
-    public void setSensitiveReason(List<String> sensitiveReason) throws JsonParseException, JsonMappingException, IOException;
+    void setSensitiveReason(List<String> sensitiveReason) throws IOException;
     
     @JavaHandler
-    public List<String> getSensitiveReason() throws JsonParseException, JsonMappingException, IOException;
+    List<String> getSensitiveReason() throws IOException;
     
     @Property("restrictionsOnAccess")
-    public String getJSONRestrictionsOnAccess();
+    String getJSONRestrictionsOnAccess();
 
     @Property("restrictionsOnAccess")
-    public void setJSONRestrictionsOnAccess(String restrictionsOnAccess);
+    void setJSONRestrictionsOnAccess(String restrictionsOnAccess);
     
     @JavaHandler
-    public void setRestrictionsOnAccess(List<String> restrictionsOnAccess) throws JsonParseException, JsonMappingException, IOException;
+    void setRestrictionsOnAccess(List<String> restrictionsOnAccess) throws IOException;
     
     @JavaHandler
-    public List<String> getRestrictionsOnAccess() throws JsonParseException, JsonMappingException, IOException;
+    List<String> getRestrictionsOnAccess() throws IOException;
 
     @Property("findingAidNote")
-    public String getJSONFindingAidNote();
+    String getJSONFindingAidNote();
 
     @Property("findingAidNote")
-    public void setJSONFindingAidNote(String findingAidNote);
+    void setJSONFindingAidNote(String findingAidNote);
     
     @JavaHandler
-    public void setFindingAidNote(List<String> findingAidNote) throws JsonParseException, JsonMappingException, IOException;
+    void setFindingAidNote(List<String> findingAidNote) throws IOException;
     
     @JavaHandler
-    public List<String> getFindingAidNote() throws JsonParseException, JsonMappingException, IOException;
+    List<String> getFindingAidNote() throws IOException;
 
     @Property("uniformTitle")
-    public String getUniformTitle();
+    String getUniformTitle();
 
     @Property("uniformTitle")
-    public void setUniformTitle(String uniformTitle);
+    void setUniformTitle(String uniformTitle);
 
     @Property("alternativeTitle")
-    public String getAlternativeTitle();
+    String getAlternativeTitle();
 
     @Property("alternativeTitle")
-    public void setAlternativeTitle(String alternativeTitle);
+    void setAlternativeTitle(String alternativeTitle);
     
     /**
      * summary of scope of work, description of image
      */
     @Property("summary")
-    public String getSummary();
+    String getSummary();
 
     @Property("summary")
-    public void setSummary(String summary);
+    void setSummary(String summary);
 
 
     /**
      * Also known as localsystmno
      */
     @Property("bibId")
-    public String getBibId();
+    String getBibId();
 
     /**
      * Also known as localsystmno
      */
     @Property("bibId")
-    public void setBibId(String bibId);
+    void setBibId(String bibId);
 
     /**
      * To be published in the catalogue
      */
     @Property("publicNotes")
-    public String getPublicNotes();
+    String getPublicNotes();
 
     /**
      * To be published in the catalogue
      */
     @Property("publicNotes")
-    public void setPublicNotes(String publicNotes);
+    void setPublicNotes(String publicNotes);
 
     @Property("australianContent")
-    public Boolean isAustralianContent();
+    Boolean isAustralianContent();
 
     @Property("australianContent")
-    public void setAustralianContent(Boolean australianContent);
+    void setAustralianContent(Boolean australianContent);
 
     @Property("materialFromMultipleSources")
-    public void setMaterialFromMultipleSources(Boolean materialFromMultipleSources);
+    void setMaterialFromMultipleSources(Boolean materialFromMultipleSources);
 
     @Property("materialFromMultipleSources")
-    public Boolean getMaterialFromMultipleSources();
+    Boolean getMaterialFromMultipleSources();
     
     @Property("acquisitionStatus")
-    public String getAcquisitionStatus();
+    String getAcquisitionStatus();
 
     @Property("acquisitionStatus")
-    public void setAcquisitionStatus(String acquisitionStatus);
+    void setAcquisitionStatus(String acquisitionStatus);
     
     @Property("acquisitionCategory")
-    public String getAcquisitionCategory();
+    String getAcquisitionCategory();
 
     @Property("acquisitionCategory")
-    public void setAcquisitionCategory(String acquisitionCategory);
+    void setAcquisitionCategory(String acquisitionCategory);
 
     @Adjacency(label = DeliveredOn.label, direction = Direction.OUT)
-    public Iterable<Work> getDeliveryWorks();
+    Iterable<Work> getDeliveryWorks();
 
     @Adjacency(label = DeliveredOn.label, direction = Direction.OUT)
-    public void addDeliveryWork(Work deliveryWork);
+    void addDeliveryWork(Work deliveryWork);
 
     @Adjacency(label = DeliveredOn.label, direction = Direction.OUT)
-    public void removeDeliveryWork(Work deliveryWork);
+    void removeDeliveryWork(Work deliveryWork);
 
     @JavaHandler
-    public List<String> getDeliveryWorkIds();
+    List<String> getDeliveryWorkIds();
 
     @JavaHandler
-    public void removeDeliveryWorks();
+    void removeDeliveryWorks();
 
     @Adjacency(label = DeliveredOn.label, direction = Direction.IN)
-    public void setDeliveryWorkParent(final Work interview);
+    void setDeliveryWorkParent(final Work interview);
 
     @Adjacency(label = DeliveredOn.label, direction = Direction.IN)
-    public Work getDeliveryWorkParent();
+    Work getDeliveryWorkParent();
 
     @Adjacency(label = DeliveredOn.label, direction = Direction.IN)
-    public void removeDeliveryWorkParent(final Work interview);
+    void removeDeliveryWorkParent(final Work interview);
 
     @Incidence(label = DeliveredOn.label, direction = Direction.IN)
-    public Iterable<ExistsOn> getDeliveryWorkParentEdges();
+    Iterable<ExistsOn> getDeliveryWorkParentEdges();
 
     @JavaHandler
-    public ExistsOn getDeliveryWorkParentEdge();
+    ExistsOn getDeliveryWorkParentEdge();
 
     @JavaHandler
-    public void setDeliveryWorkOrder(int position);
+    void setDeliveryWorkOrder(int position);
 
     @Adjacency(label = IsPartOf.label)
-    public void setParent(final Work parent);
+    void setParent(final Work parent);
 
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
-    public void addChild(final Work part);
+    void addChild(final Work part);
 
     @Adjacency(label = IsPartOf.label)
-    public Work getParent();
+    Work getParent();
 
     @Incidence(label = IsPartOf.label, direction = Direction.OUT)
-    public Iterable<IsPartOf> getParentEdges();
+    Iterable<IsPartOf> getParentEdges();
 
     @JavaHandler
-    public IsPartOf getParentEdge();
+    IsPartOf getParentEdge();
 
     @JavaHandler
-    public void setOrder(int position);
+    void setOrder(int position);
 
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
-    public Iterable<Work> getChildren();
+    Iterable<Work> getChildren();
 
     @GremlinGroovy("it.inE.has('label', 'isPartOf').outV.loop(3){true}{true}.has('subType', subType.code)")
-    public Iterable<Work> getLeafs(@GremlinParam("subType") SubType subType);
+    Iterable<Work> getLeafs(@GremlinParam("subType") SubType subType);
 
     @GremlinGroovy("it.inE.has('label', 'isPartOf').outV.loop(3){true}{true}.has('subType', Subtype.fromString(T).in, subTypes)")
-    public Iterable<Work> getLeafs(@GremlinParam("subTypes") List<String> subTypes);
+    Iterable<Work> getLeafs(@GremlinParam("subTypes") List<String> subTypes);
 
     @GremlinGroovy("it.inE.has('label', 'isPartOf').outV.has('subType', subType.code)")
-    public Iterable<Section> getSections(@GremlinParam("subType") SubType subType);
+    Iterable<Section> getSections(@GremlinParam("subType") SubType subType);
 
     @JavaHandler
-    public Section asSection();
+    Section asSection();
     
     @JavaHandler
-    public EADWork asEADWork();
+    EADWork asEADWork();
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
-    public void addCopy(final Copy copy);
+    void addCopy(final Copy copy);
     
     /**
      * This method is intended for internal amberdb use, to be called by the
      * removeRepresentation() method.  You probably want to use removeRepresentation()
      * method to remove a representative image.
-     * @param copy
+     * @param copy The representative copy
      */
     @Adjacency(label = Represents.label, direction = Direction.IN)
-    public void removeRepresentative(final Copy copy);
+    void removeRepresentative(final Copy copy);
     
     /**
      * This method calls removeRepresentative() to remove a representative image,
      * and update the hasRepresentation flag which is a shortcut for delivery.
-     * @param copy
+     * @param copy The representative copy
      */
     @JavaHandler
-    public void removeRepresentation(final Copy copy);
+    void removeRepresentation(final Copy copy);
 
     @JavaHandler
-    public Map<String, Collection<Copy>> getOrderedCopyMap();
+    Map<String, Collection<Copy>> getOrderedCopyMap();
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
-    public void removeCopy(final Copy copy);
+    void removeCopy(final Copy copy);
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
-    public Iterable<Copy> getCopies();
+    Iterable<Copy> getCopies();
 
     @GremlinGroovy("it.in('isCopyOf').order{it.a.id <=> it.b.id}")
-    public Iterable<Copy> getOrderedCopies();
+    Iterable<Copy> getOrderedCopies();
 
     @GremlinGroovy("it.in('isCopyOf').has('copyRole',role.code).order{it.a.id <=> it.b.id}")
-    public Iterable<Copy> getOrderedCopies(@GremlinParam("role") CopyRole role);
+    Iterable<Copy> getOrderedCopies(@GremlinParam("role") CopyRole role);
     
     @GremlinGroovy("it.in('isCopyOf').has('copyRole',role.code)")
-    public Iterable<Copy> getCopies(@GremlinParam("role") CopyRole role);
+    Iterable<Copy> getCopies(@GremlinParam("role") CopyRole role);
 
     @GremlinGroovy("it.in('isCopyOf').has('copyRole',role.code)")
-    public Copy getCopy(@GremlinParam("role") CopyRole role);
+    Copy getCopy(@GremlinParam("role") CopyRole role);
 
     @JavaHandler
-    public Copy getCopy(CopyRole role, int index);
+    Copy getCopy(CopyRole role, int index);
 
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
-    public Section addSection();
+    Section addSection();
 
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
-    public Page addPage();
+    Page addPage();
 
     /**
      * This method detatches the page from this work, but the page continues to
@@ -1084,88 +1084,88 @@ public interface Work extends Node {
      *            annotation.
      */
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
-    public void removePage(final Page page);
+    void removePage(final Page page);
     
     /**
      * This method is intended for internal amberdb use, to be called by the 
      * addRepresentation() method.  You probably want to use addRepresentation()
      * method to add a representative image.
-     * @param copy
+     * @param copy The representative copy
      */
     @Adjacency(label = Represents.label, direction = Direction.IN)
-    public void addRepresentative(final Copy copy);
+    void addRepresentative(final Copy copy);
     
     /**
      * This method calls addRepresentative() to add a representative image,
      * and update the hasRepresentation flag which is a shortcut for delivery.
-     * @param copy
+     * @param copy The representative copy
      */
     @JavaHandler
-    public void addRepresentation(final Copy copy);
+    void addRepresentation(final Copy copy);
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
-    public Copy addCopy();
+    Copy addCopy();
 
     @Adjacency(label = Represents.label, direction = Direction.IN)
-    public Iterable<Copy> getRepresentations();
+    Iterable<Copy> getRepresentations();
     
     @JavaHandler
-    public boolean isRepresented();
+    boolean isRepresented();
     
     /**
      * Adds a page Work and create a MASTER_COPY Copy Node with a File for it
      */
     @JavaHandler
-    public Page addPage(Path sourceFile, String mimeType) throws IOException;
+    Page addPage(Path sourceFile, String mimeType) throws IOException;
 
     @JavaHandler
-    public Page addLegacyDossPage(Path sourceFile, String mimeType) throws IOException;
+    Page addLegacyDossPage(Path sourceFile, String mimeType) throws IOException;
 
     @JavaHandler
-    public Copy addCopy(Path sourceFile, CopyRole copyRole, String mimeType) throws IOException;
+    Copy addCopy(Path sourceFile, CopyRole copyRole, String mimeType) throws IOException;
 
     @JavaHandler
-    public Copy addLegacyDossCopy(Path dossPath, CopyRole copyRole, String mimeType) throws IOException;
+    Copy addLegacyDossCopy(Path dossPath, CopyRole copyRole, String mimeType) throws IOException;
 
     @JavaHandler
-    public Iterable<Page> getPages();
+    Iterable<Page> getPages();
 
     @JavaHandler
-    public int countParts();
+    int countParts();
 
     @JavaHandler
-    public int countCopies();
+    int countCopies();
 
     /**
      * This method detaches the part from this work, but the part continues to
      * exist as an orphan. Use the deletePart method to actually delete the part
      * and its children from the graph.
      * 
-     * @param part
+     * @param part The part ot be removed
      */
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
-    public void removePart(final Work part);
+    void removePart(final Work part);
 
     @JavaHandler
-    public Page getPage(int position);
+    Page getPage(int position);
 
     @JavaHandler
-    public Work getLeaf(SubType subType, int position);
+    Work getLeaf(SubType subType, int position);
 
     @JavaHandler
-    public void loadPagedWork() throws InvalidSubtypeException;
+    void loadPagedWork() throws InvalidSubtypeException;
 
     @JavaHandler
-    public List<Work> getPartsOf(List<String> subTypes);
+    List<Work> getPartsOf(List<String> subTypes);
 
     @JavaHandler
-    public List<Work> getExistsOn(List<String> subTypes);
+    List<Work> getExistsOn(List<String> subTypes);
 
     @JavaHandler
-    public List<Work> getPartsOf(String subType);
+    List<Work> getPartsOf(String subType);
 
     @JavaHandler
-    public List<Work> getExistsOn(String subType);
+    List<Work> getExistsOn(String subType);
 
     /**
      * This method sets the edge order of the related Nodes in the list to be
@@ -1182,7 +1182,7 @@ public interface Work extends Node {
      *            The direction of the edge from this object
      */
     @JavaHandler
-    public void orderRelated(List<Work> relatedNodes, String label, Direction direction);
+    void orderRelated(List<Work> relatedNodes, String label, Direction direction);
 
     /**
      * Orders the parts in the given list by their list order. This is a
@@ -1192,7 +1192,7 @@ public interface Work extends Node {
      *            The list of parts.
      */
     @JavaHandler
-    public void orderParts(List<Work> parts);
+    void orderParts(List<Work> parts);
 
     /**
      *
@@ -1203,25 +1203,25 @@ public interface Work extends Node {
      *
      */
     @JavaHandler
-    public Work getRepresentativeImageWork();
+    Work getRepresentativeImageWork();
     
     @JavaHandler
-    public List<String> getJsonList(String propertyName) throws JsonParseException, JsonMappingException, IOException;
+    List<String> getJsonList(String propertyName) throws IOException;
     
     @JavaHandler
-    public boolean hasBornDigitalCopy();
+    boolean hasBornDigitalCopy();
 
     @JavaHandler
-    public boolean hasMasterCopy();
+    boolean hasMasterCopy();
 
     @JavaHandler
-    public boolean hasCopyRole(CopyRole role);
+    boolean hasCopyRole(CopyRole role);
 
     @JavaHandler
-    public boolean hasUniqueAlias(AmberSession session) throws IOException;
+    boolean hasUniqueAlias(AmberSession session) throws IOException;
     
     @JavaHandler
-    public boolean hasImageAccessCopy();
+    boolean hasImageAccessCopy();
 
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {
         static ObjectMapper mapper = new ObjectMapper();
@@ -1283,12 +1283,10 @@ public interface Work extends Node {
 
         @Override
         public List<Page> getPages() {
-            List<Page> pages = new ArrayList<Page>();
+            List<Page> pages = new ArrayList<>();
             Iterable<Work> parts = this.getChildren();
             if (parts != null) {
-                Iterator<Work> it = parts.iterator();
-                while (it.hasNext()) {
-                    Work part = it.next();
+                for (Work part : parts) {
                     pages.add(frame(part.asVertex(), Page.class));
                 }
             }
@@ -1412,10 +1410,11 @@ public interface Work extends Node {
                 query.branch(BRANCH_FROM_ALL, new String[] {"represents"}, Direction.IN);
             }
 
-            query.branch(BRANCH_FROM_ALL, new String[] {"isCopyOf"}, Direction.IN)
-                 .branch(BRANCH_FROM_PREVIOUS, new String[] {"isFileOf"}, Direction.IN)
-                 .branch(BRANCH_FROM_PREVIOUS, new String[] {"descriptionOf"}, Direction.IN)
-                 .branch(BRANCH_FROM_ALL, new String[] {"tags"}, Direction.IN)
+            query.branch(BRANCH_FROM_ALL, new String[]{"isCopyOf"}, Direction.IN)
+                 .branch(BRANCH_FROM_PREVIOUS, new String[]{"isFileOf"}, Direction.IN)
+                 .branch(BRANCH_FROM_ALL, new String[]{"descriptionOf"}, Direction.IN)
+                 .branch(BRANCH_FROM_ALL, new String[]{"tags"}, Direction.IN)
+                 .branch(BRANCH_FROM_ALL, new String[]{"acknowledge"}, Direction.OUT)
                  .execute(true);
         }
 
@@ -1425,7 +1424,7 @@ public interface Work extends Node {
 
             // just return the pages
             List<Edge> partEdges = Lists.newArrayList(work.getEdges(Direction.IN, "isPartOf"));
-            List<Work> works = new ArrayList<Work>();
+            List<Work> works = new ArrayList<>();
             for (Edge e : partEdges) {
                 Vertex v = e.getVertex(Direction.OUT);
                 if (subTypes == null || subTypes.size() == 0 || subTypes.contains(v.getProperty("subType"))) {
@@ -1441,7 +1440,7 @@ public interface Work extends Node {
 
             // just return the pages
             List<Edge> partEdges = Lists.newArrayList(work.getEdges(Direction.OUT, "existsOn"));
-            List<Work> works = new ArrayList<Work>();
+            List<Work> works = new ArrayList<>();
             for (Edge e : partEdges) {
                 Vertex v = e.getVertex(Direction.IN);
                 if (subTypes == null || subTypes.size() == 0 || subTypes.contains(v.getProperty("subType"))) {
@@ -1471,7 +1470,7 @@ public interface Work extends Node {
         }
 
         @Override
-        public Set<String> getConstraint() throws JsonParseException, JsonMappingException, IOException { 
+        public Set<String> getConstraint() throws IOException {
             List<String> list = deserialiseJSONString(getJSONConstraint());
             LinkedHashSet<String> constraint = new LinkedHashSet<>();
             constraint.addAll(list);
@@ -1479,145 +1478,145 @@ public interface Work extends Node {
         }
 
         @Override
-        public void setConstraint(Set<String> constraint) throws JsonParseException, JsonMappingException, IOException {           
+        public void setConstraint(Set<String> constraint) throws IOException {
             setJSONConstraint(serialiseToJSON(constraint));
         }
         
         @Override
-        public List<String> getSensitiveReason() throws JsonParseException, JsonMappingException, IOException {           
+        public List<String> getSensitiveReason() throws IOException {
             return deserialiseJSONString(getJSONSensitiveReason());
         }
 
         @Override
-        public void setSensitiveReason(List<String> sensitiveReason) throws JsonParseException, JsonMappingException, IOException {          
+        public void setSensitiveReason(List<String> sensitiveReason) throws IOException {
             setJSONSensitiveReason(serialiseToJSON(sensitiveReason));
         }
         
         @Override
-        public List<String> getRestrictionsOnAccess() throws JsonParseException, JsonMappingException, IOException {           
+        public List<String> getRestrictionsOnAccess() throws IOException {
             return deserialiseJSONString(getJSONRestrictionsOnAccess());
         }
 
         @Override
-        public void setRestrictionsOnAccess(List<String> restrictionsOnAccess) throws JsonParseException, JsonMappingException, IOException {          
+        public void setRestrictionsOnAccess(List<String> restrictionsOnAccess) throws IOException {
             setJSONRestrictionsOnAccess(serialiseToJSON(restrictionsOnAccess));
         }
         
         @Override
-        public List<String> getFindingAidNote() throws JsonParseException, JsonMappingException, IOException {           
+        public List<String> getFindingAidNote() throws IOException {
             return deserialiseJSONString(getJSONFindingAidNote());
         }
 
         @Override
-        public void setFindingAidNote(List<String> findingAidNote) throws JsonParseException, JsonMappingException, IOException {          
+        public void setFindingAidNote(List<String> findingAidNote) throws IOException {
             setJSONFindingAidNote(serialiseToJSON(findingAidNote));
         }
 
         @Override
-        public List<String> getSeries() throws JsonParseException, JsonMappingException, IOException {
+        public List<String> getSeries() throws IOException {
             return deserialiseJSONString(getJSONSeries());
         }
 
         @Override
-        public void setSeries(List<String> series) throws JsonParseException, JsonMappingException, IOException {
+        public void setSeries(List<String> series) throws IOException {
             setJSONSeries(serialiseToJSON(series));
         }
 
         @Override
-        public List<String> getClassification() throws JsonParseException, JsonMappingException, IOException {
+        public List<String> getClassification() throws IOException {
             return deserialiseJSONString(getJSONClassification());
         }
 
         @Override
-        public void setClassification(List<String> classification) throws JsonParseException, JsonMappingException, IOException {
+        public void setClassification(List<String> classification) throws IOException {
             setJSONClassification(serialiseToJSON(classification));
         }
 
         @Override
-        public List<String> getContributor() throws JsonParseException, JsonMappingException, IOException {
+        public List<String> getContributor() throws IOException {
             return deserialiseJSONString(getJSONContributor());
         }
 
         @Override
-        public void setContributor(List<String> contributor) throws JsonParseException, JsonMappingException, IOException {
+        public void setContributor(List<String> contributor) throws IOException {
             setJSONContributor(serialiseToJSON(contributor));
         }
 
         @Override
-        public List<String> getCoverage() throws JsonParseException, JsonMappingException, IOException {
+        public List<String> getCoverage() throws IOException {
             return deserialiseJSONString(getJSONCoverage());
         }
 
         @Override
-        public void setCoverage(List<String> coverage) throws JsonParseException, JsonMappingException, IOException {
+        public void setCoverage(List<String> coverage) throws IOException {
             setJSONCoverage(serialiseToJSON(coverage));
         }
 
         @Override
-        public List<String> getOccupation() throws JsonParseException, JsonMappingException, IOException {
+        public List<String> getOccupation() throws IOException {
             return deserialiseJSONString(getJSONOccupation());
         }
 
         @Override
-        public void setOccupation(List<String> occupation) throws JsonParseException, JsonMappingException, IOException {
+        public void setOccupation(List<String> occupation) throws IOException {
             setJSONOccupation(serialiseToJSON(occupation));
         }
 
         @Override
-        public List<String> getOtherTitle() throws JsonParseException, JsonMappingException, IOException {
+        public List<String> getOtherTitle() throws IOException {
             return deserialiseJSONString(getJSONOtherTitle());
         }
 
         @Override
-        public void setOtherTitle(List<String> otherTitle) throws JsonParseException, JsonMappingException, IOException {
+        public void setOtherTitle(List<String> otherTitle) throws IOException {
             setJSONOtherTitle(serialiseToJSON(otherTitle));
         }
 
         @Override
-        public List<String> getStandardId() throws JsonParseException, JsonMappingException, IOException {
+        public List<String> getStandardId() throws IOException {
             return deserialiseJSONString(getJSONStandardId());
         }
 
         @Override
-        public void setStandardId(List<String> standardId) throws JsonParseException, JsonMappingException, IOException {
+        public void setStandardId(List<String> standardId) throws IOException {
             setJSONStandardId(serialiseToJSON(standardId));
         }
 
         @Override
-        public List<String> getSubject() throws JsonParseException, JsonMappingException, IOException {
+        public List<String> getSubject() throws IOException {
             return deserialiseJSONString(getJSONSubject());
         }
 
         @Override
-        public void setSubject(List<String> subject) throws JsonParseException, JsonMappingException, IOException {
+        public void setSubject(List<String> subject) throws IOException {
             // ensure each subject entry is unique
-            setJSONSubject((null == subject)? null : serialiseToJSON(new HashSet<String>(subject)));
+            setJSONSubject((null == subject)? null : serialiseToJSON(new HashSet<>(subject)));
         }
 
         @Override
-        public List<String> getScaleEtc() throws JsonParseException, JsonMappingException, IOException {
+        public List<String> getScaleEtc() throws IOException {
             return deserialiseJSONString(getJSONScaleEtc());
         }
 
         @Override
-        public void setScaleEtc(List<String> scaleEtc) throws JsonParseException, JsonMappingException, IOException {
+        public void setScaleEtc(List<String> scaleEtc) throws IOException {
             setJSONScaleEtc(serialiseToJSON(scaleEtc));
         }
 
-        protected List<String> deserialiseJSONString(String json) throws JsonParseException, JsonMappingException, IOException {
+        protected List<String> deserialiseJSONString(String json) throws IOException {
             if (json == null || json.isEmpty())
-                return new ArrayList<String>();
+                return new ArrayList<>();
             return mapper.readValue(json, new TypeReference<List<String>>() {
             });
         }
 
-        protected String serialiseToJSON(Collection<String> list) throws JsonParseException, JsonMappingException, IOException {
+        protected String serialiseToJSON(Collection<String> list) throws IOException {
             if (list == null || list.isEmpty()) return null;    
             return mapper.writeValueAsString(list);
         }
 
         @Override
-        public List<String> getJsonList(String propertyName) throws JsonParseException, JsonMappingException, IOException {
+        public List<String> getJsonList(String propertyName) throws IOException {
             return deserialiseJSONString((String) this.asVertex().getProperty(propertyName));
         }
         
@@ -1650,19 +1649,19 @@ public interface Work extends Node {
         }
 
         @Override
-        public List<String> getDcmAltPi() throws JsonParseException, JsonMappingException, IOException {
+        public List<String> getDcmAltPi() throws IOException {
             return deserialiseJSONString(getJSONDcmAltPi());
         }
 
         @Override
-        public void setDcmAltPi(List<String> list) throws JsonParseException, JsonMappingException, IOException {
+        public void setDcmAltPi(List<String> list) throws IOException {
             setJSONDcmAltPi(serialiseToJSON(list));
         }
         
         @Override
         public boolean isRepresented() {
             Iterable<Copy> representations = getRepresentations();
-            return representations == null ? false : Iterables.size(representations) != 0;
+            return representations != null && Iterables.size(representations) != 0;
         }
         
         @Override

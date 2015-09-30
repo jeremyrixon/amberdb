@@ -4,7 +4,6 @@ package amberdb;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,7 +36,6 @@ import amberdb.model.SoundFile;
 import amberdb.model.Tag;
 import amberdb.model.Work;
 import amberdb.model.AliasItem;
-import amberdb.sql.CarrierAlgorithm;
 import amberdb.sql.ListLu;
 import amberdb.sql.Lookups;
 import amberdb.sql.LookupsSchema;
@@ -324,7 +322,7 @@ public class AmberSession implements AutoCloseable {
         List<T> nodes = new ArrayList<>();
         for (Vertex match : getAmberGraph().getVerticesByJsonListValue(propertyName, value)) {
             // add matched vertex from framed graph
-            nodes.add((T) graph.getVertex(match.getId(), T));
+            nodes.add(graph.getVertex(match.getId(), T));
         }
         return nodes;
     }
@@ -340,7 +338,7 @@ public class AmberSession implements AutoCloseable {
         List<T> nodes = new ArrayList<>();
         for (Vertex match : getAmberGraph().getVertices(propertyName, value)) {
             // add matched vertex from framed graph
-            nodes.add((T) graph.getVertex(match.getId(), T));
+            nodes.add(graph.getVertex(match.getId(), T));
         }
         return nodes;
     }
@@ -352,15 +350,13 @@ public class AmberSession implements AutoCloseable {
      * @return the work
      */
     public Work addWork() {
-        Work work = graph.addVertex(null, Work.class);
-        return work;
+        return graph.addVertex(null, Work.class);
     }
     
     
     /**
      * Noting deletion of all the vertices representing the work, its copies, and its copy files
      * within the session. This method will orphan any child works.
-     * @param work
      */
     public void deleteWork(final Work work) {
 
@@ -417,10 +413,10 @@ public class AmberSession implements AutoCloseable {
     
     
     /**
-     * Recursively delete a Work and all its children (including Copies, Files
+     * Recursively delete a collection of Works and all their children (including Copies, Files
      * and Descriptions). 
      * 
-     * @param work
+     * @param works The works to be deleted
      */
     public void deleteWorks(final Work... works) {
         
@@ -452,7 +448,7 @@ public class AmberSession implements AutoCloseable {
     
     /**
      * Delete all the vertices representing the copy, all its files and their descriptions.
-     * @param copy
+     * @param copy The copy to be deleted
      */
     public void deleteCopy(final Copy copy) {
         for (File file : copy.getFiles()) {
@@ -464,7 +460,7 @@ public class AmberSession implements AutoCloseable {
 
     /**
      * Delete the vertices representing a file including its descriptions.
-     * @param file
+     * @param file The file to be deleted
      */
     public void deleteFile(final File file) {
         for (Description desc : file.getDescriptions()) {
@@ -477,7 +473,7 @@ public class AmberSession implements AutoCloseable {
     /**
      * Noting deletion of all the vertices representing the work, its copies, and its copy files
      * within the session.
-     * @param work
+     * @param page The page to be deleted
      */
     public void deletePage(final Page page) {
         deleteWork(page);
@@ -714,7 +710,7 @@ public class AmberSession implements AutoCloseable {
      * 
      * @param counts
      *            A map containing counts of the different object types deleted
-     * @param work
+     * @param works
      *            The works to be deleted
      */
     public Map<String, Integer> deleteWorks(Map<String, Integer> counts, final Work... works) {
@@ -868,13 +864,14 @@ public class AmberSession implements AutoCloseable {
             }    
 
             // get all the copies, files etc
-            q.continueWithCheck(null, new QueryClause[] { 
-                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "represents" }, Direction.IN),
-                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "isCopyOf" }, Direction.IN), 
-                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "isFileOf" }, Direction.IN),
-                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "descriptionOf" }, Direction.IN), 
-                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "tags" }, Direction.IN),
-            });
+            q.continueWithCheck(null,
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[]{"represents"}, Direction.IN),
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[]{"isCopyOf"}, Direction.IN),
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[]{"isFileOf"}, Direction.IN),
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[]{"descriptionOf"}, Direction.IN),
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[]{"tags"}, Direction.IN),
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[]{"acknowledge"}, Direction.OUT)
+                    );
             components = q.getResults(true);
         }
         return components;
@@ -889,7 +886,7 @@ public class AmberSession implements AutoCloseable {
 
         ObjectsWithPropertyReportQuery avq = new ObjectsWithPropertyReportQuery(getAmberGraph());
         List<Vertex> results = avq.generateDuplicateAliasReport(name, collection);
-        Map<String, Set<AliasItem>> aliasMap = new HashMap<String, Set<AliasItem>>();
+        Map<String, Set<AliasItem>> aliasMap = new HashMap<>();
         for (Vertex v :results) {
             String values = v.getProperty(name);
             if (values != null && values.length() > 3) {
@@ -913,7 +910,7 @@ public class AmberSession implements AutoCloseable {
 
         ObjectsWithPropertyReportQuery avq = new ObjectsWithPropertyReportQuery(getAmberGraph());     
         List<Vertex> results = avq.generateExpiryReport(expiryYear, collection);
-        List<Work> works = new ArrayList<Work>();
+        List<Work> works = new ArrayList<>();
         for (Vertex v :results) {
  
             Work work = getGraph().frame(v, Work.class);
@@ -934,7 +931,7 @@ public class AmberSession implements AutoCloseable {
                 Set<AliasItem> existingSet = aliasMap.get(vals[i]);
                 existingSet.add(aliasItem);
             } else {
-                Set<AliasItem> newSet = new HashSet<AliasItem>();
+                Set<AliasItem> newSet = new HashSet<>();
                 newSet.add(aliasItem);
                 aliasMap.put(vals[i], newSet);
             }
@@ -943,7 +940,7 @@ public class AmberSession implements AutoCloseable {
     
     
     private void removeSingleAliases(Map<String, Set<AliasItem>> aliasMap) {
-        Object[] keys = (Object[])aliasMap.keySet().toArray();
+        Object[] keys = aliasMap.keySet().toArray();
         for (Object key :keys) {
             if (aliasMap.get(key).size() < 2){
                 aliasMap.remove(key);
