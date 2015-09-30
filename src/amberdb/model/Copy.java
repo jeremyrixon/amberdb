@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import amberdb.relation.*;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang.StringUtils;
 import org.apache.tika.Tika;
@@ -300,6 +301,9 @@ public interface Copy extends Node {
     
     @JavaHandler
     Copy derivePdfCopy(CopyRole copyRole, Reader... stylesheets) throws IOException;
+
+    @JavaHandler
+    int getCurrentIndex();
     
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Copy {
         static final Logger log = LoggerFactory.getLogger(Copy.class);
@@ -778,6 +782,19 @@ public interface Copy extends Node {
         @Override
         public void setManipulation(List<String> manipulation) throws JsonParseException, JsonMappingException, IOException {
             setJSONManipulation(mapper.writeValueAsString(manipulation));
+        }
+
+        @Override
+        public int getCurrentIndex() {
+            final Copy copy = this;
+            int ind = Iterables.indexOf(getWork().getOrderedCopies(CopyRole.fromString(getCopyRole())),
+                                        new Predicate<Copy>() {
+                                            @Override
+                                            public boolean apply(Copy iCopy) {
+                                                return copy.getId() == iCopy.getId();
+                                            }
+                                        });
+            return ind +1;
         }
     }
 }
