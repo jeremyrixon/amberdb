@@ -1410,11 +1410,10 @@ public interface Work extends Node {
                 query.branch(BRANCH_FROM_ALL, new String[] {"represents"}, Direction.IN);
             }
 
-            query.branch(BRANCH_FROM_ALL, new String[]{"isCopyOf"}, Direction.IN)
-                 .branch(BRANCH_FROM_PREVIOUS, new String[]{"isFileOf"}, Direction.IN)
-                 .branch(BRANCH_FROM_ALL, new String[]{"descriptionOf"}, Direction.IN)
-                 .branch(BRANCH_FROM_ALL, new String[]{"tags"}, Direction.IN)
-                 .branch(BRANCH_FROM_ALL, new String[]{"acknowledge"}, Direction.OUT)
+            query.branch(BRANCH_FROM_ALL, new String[] {"isCopyOf"}, Direction.IN)
+                 .branch(BRANCH_FROM_PREVIOUS, new String[] {"isFileOf"}, Direction.IN)
+                 .branch(BRANCH_FROM_PREVIOUS, new String[] {"descriptionOf"}, Direction.IN)
+                 .branch(BRANCH_FROM_ALL, new String[] {"tags"}, Direction.IN)
                  .execute(true);
         }
 
