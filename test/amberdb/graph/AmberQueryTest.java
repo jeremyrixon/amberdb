@@ -240,11 +240,10 @@ public class AmberQueryTest {
             }    
 
             // get all the copies, files etc
-            q.continueWithCheck(null, new QueryClause[] { 
+            q.continueWithCheck(null,
                     q.new QueryClause(BRANCH_FROM_ALL, new String[] { "isCopyOf" }, Direction.IN), 
                     q.new QueryClause(BRANCH_FROM_ALL, new String[] { "isFileOf" }, Direction.IN),
-                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "descriptionOf" }, Direction.IN), 
-            });
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[] { "descriptionOf" }, Direction.IN));
             //mark("find copies files and descriptions");
 
             deletees = q.getResults();
