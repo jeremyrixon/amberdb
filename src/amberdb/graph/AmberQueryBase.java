@@ -134,7 +134,7 @@ public class AmberQueryBase {
             if (graph.graphEdges.containsKey(edgeId) || graph.removedEdges.containsKey(edgeId)) {
                 continue;
             } 
-            //edge.replaceProperties(propMaps.get(edgeId));
+            edge.replaceProperties(propMaps.get(edgeId));
             graph.addEdgeToGraph(edge);
         }        
     }
