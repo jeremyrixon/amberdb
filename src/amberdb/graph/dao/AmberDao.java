@@ -241,7 +241,7 @@ public interface AmberDao extends Transactional<AmberDao> {
 
 
     @SqlQuery(
-            "SELECT (COUNT(table_name) = 8) "
+            "SELECT (COUNT(table_name) >= 8) "
             + "FROM information_schema.tables " 
             + "WHERE table_name IN ("
             + "  'VERTEX', 'EDGE', 'PROPERTY', "
