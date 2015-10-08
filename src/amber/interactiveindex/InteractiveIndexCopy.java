@@ -1,5 +1,6 @@
 package amber.interactiveindex;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -7,6 +8,7 @@ import java.util.List;
 
 public class InteractiveIndexCopy {
     private String html;
+    private List<SiblingEditions> siblingEditionsList = new ArrayList<>();
     private List<InteractiveArea> areas = new ArrayList<>();
 
     public InteractiveIndexCopy(String html) {
@@ -41,10 +43,33 @@ public class InteractiveIndexCopy {
         areas.clear();
     }
 
+    public List<SiblingEditions> getSiblingEditionsList() {
+        return siblingEditionsList;
+    }
+
+    public void setSiblingEditionsList(List<SiblingEditions> siblingEditionsList) {
+        this.siblingEditionsList = siblingEditionsList;
+    }
+
     public InteractiveArea getInteractiveArea(String objectId){
         for (InteractiveArea interactiveArea : areas){
             if (StringUtils.equalsIgnoreCase(interactiveArea.getObjectId(), objectId)){
                 return interactiveArea;
+            }
+        }
+        return null;
+    }
+
+    public void addSiblingEdition(List<String> objIdList) {
+        if (CollectionUtils.isNotEmpty(objIdList) && objIdList.size() > 1){
+            siblingEditionsList.add(new SiblingEditions(objIdList));    
+        }
+    }
+    
+    public List<String> getSiblingEditionObjectIds(String objId){
+        for (SiblingEditions siblingEditions : siblingEditionsList){
+            if (siblingEditions.contains(objId)){
+                return siblingEditions.getAllSiblingEditionObjectIdsBut(objId);
             }
         }
         return null;
