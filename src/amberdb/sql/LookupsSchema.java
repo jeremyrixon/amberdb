@@ -1177,14 +1177,14 @@ public abstract class LookupsSchema {
     }
     
     @SqlQuery(
-            "SELECT (COUNT(table_name) = 2) "
+            "SELECT (COUNT(table_name) >= 2) "
             + "FROM information_schema.tables " 
             + "WHERE table_name IN ('LOOKUPS', 'TOOLS', 'lookups', 'tools')")
     public abstract boolean schemaTablesExist();
     
     
     @SqlQuery(
-            "SELECT (COUNT(table_name) = 1 ) "
+            "SELECT (COUNT(table_name) >= 1 ) "
             + "FROM information_schema.tables " 
             + "WHERE table_name IN ('carrier_algorithm', 'CARRIER_ALGORITHM')")
     public abstract boolean carrierAlgorithmTableExist();
