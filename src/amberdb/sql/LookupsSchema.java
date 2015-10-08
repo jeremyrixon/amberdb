@@ -1026,7 +1026,9 @@ public abstract class LookupsSchema {
     + "('collection','nla.gen', 'General'),"
     + "('collection','nla.oh', 'Oral history and folklore'),"
     + "('collection','nla.int', 'Internal photograph'),"
-    + "('collection','nla.con', 'Conservation')")
+    + "('collection','nla.con', 'Conservation'),"
+    + "('collection','nla.ld', 'Legal deposit'),"
+    + "('collection','nla.gd', 'Government deposit')")
     public abstract void seedCollectionList();
 
     
