@@ -69,7 +69,7 @@ public class InteractiveIndexCopy {
     public List<String> getSiblingEditionObjectIds(String objId){
         for (SiblingEditions siblingEditions : siblingEditionsList){
             if (siblingEditions.contains(objId)){
-                return siblingEditions.getAllSiblingEditionObjectIdsBut(objId);
+                return siblingEditions.getObjectIds();
             }
         }
         return null;
