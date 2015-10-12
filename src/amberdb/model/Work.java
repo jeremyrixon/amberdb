@@ -406,6 +406,12 @@ public interface Work extends Node {
 
     @Property("isMissingPage")
     void setIsMissingPage(Boolean isMissingPage);
+    
+    @Property("workCreatedDuringMigration")
+    Boolean getWorkCreatedDuringMigration();
+    
+    @Property("workCreatedDuringMigration")
+    void setWorkCreatedDuringMigration(Boolean workCreatedDuringMigration);
 
     @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
     GeoCoding addGeoCoding();
