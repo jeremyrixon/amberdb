@@ -412,6 +412,24 @@ public interface Work extends Node {
     
     @Property("workCreatedDuringMigration")
     void setWorkCreatedDuringMigration(Boolean workCreatedDuringMigration);
+    
+    @Property("additionalSeriesStatement")
+    String getAdditionalSeriesStatement();
+    
+    @Property("additionalSeriesStatement")
+    void setAdditionalSeriesStatement(String additionalSeriesStatement);
+    
+    @Property("sheetName")
+    String getSheetName();
+    
+    @Property("sheetName")
+    void setSheetName(String sheetName);
+    
+    @Property("sheetCreationDate")
+    Date getSheetCreationDate();
+    
+    @Property("sheetCreationDate")
+    void setSheetCreationDate(Date sheetCreationDate);
 
     @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
     GeoCoding addGeoCoding();
