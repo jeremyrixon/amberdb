@@ -8,6 +8,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberProperty;
@@ -24,7 +26,7 @@ import com.tinkerpop.blueprints.Vertex;
  *
  */
 public class JellyAmberPropertyMigrater {
-
+    static final Logger log = LoggerFactory.getLogger(JellyAmberPropertyMigrater.class);
     public static void main(String[] args) {
 
         MysqlDataSource ds = new MysqlDataSource();
@@ -104,6 +106,6 @@ public class JellyAmberPropertyMigrater {
     }
     
     public static void s(String s) {
-        System.out.println(s);
+        log.info(s);
     }
 }
