@@ -7,10 +7,14 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * A temporary directory that can be automatically deleted on exit.
  */
 class TempDirectory {
+    static final Logger log = LoggerFactory.getLogger(TempDirectory.class);  
     final Path path;
 
     public TempDirectory() {
@@ -56,7 +60,7 @@ class TempDirectory {
             });
         } catch (IOException e) {
             // throw new RuntimeException(e);
-        	System.out.println("Warning : Could not delete existing tmp file : " + e.getMessage());
+        	log.warn("Warning : Could not delete existing tmp file : " + e.getMessage());
         }
     }
 
