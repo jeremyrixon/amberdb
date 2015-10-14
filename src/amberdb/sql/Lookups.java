@@ -8,16 +8,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+import java.util.Properties;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
@@ -27,10 +25,7 @@ import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
-import java.util.Properties;
-
 public abstract class Lookups extends Tools { 
-    
     @RegisterMapper(Lookups.ListLuMapper.class)
     @SqlQuery("select distinct id, name, value, code, deleted from lookups where deleted = 'N' or deleted is null order by name, code")
     public abstract List<ListLu> findActiveLookups();
@@ -183,16 +178,8 @@ public abstract class Lookups extends Tools {
         if (!list.isEmpty()) {
             code = code + "_" + list.size();
         }
-        System.out.println("lookups: start time : " + fmtDate(new Date()));
         Long newId = addLookupData(name, code, value);
-        System.out.println("lookups: end time : " + fmtDate(new Date()));
         return newId;
-    }
-    
-    private String fmtDate(Date date) {
-        if (date == null) return null;
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy:MM:dd hh:mm:ss:SSS");
-        return dateFormat.format(date);
     }
     
     public long addLookup(ListLu lu) {
@@ -204,7 +191,6 @@ public abstract class Lookups extends Tools {
     public synchronized void updateLookup(Long id, String value) {
         // check the list lu is in the database with its id, otherwise, throw an exception.
         if (id != null) {
-            System.out.println("updating " + id + ", " + value);
             updLookupData(id, value);
         }
     }

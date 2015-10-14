@@ -30,17 +30,4 @@ public class SiblingEditions {
     public boolean contains(String objId) {
         return objectIds.contains(objId);
     }
-
-    /**
-     * Return all object Ids in the objectIds list which is not equal to the specified objId
-     */
-    @SuppressWarnings("unchecked")
-    public List<String> getAllSiblingEditionObjectIdsBut(final String objId) {
-        return (List<String>)CollectionUtils.selectRejected(objectIds, new Predicate() {
-            @Override
-            public boolean evaluate(Object object) {
-                return object.equals(objId);
-            }
-        });
-    }
 }
