@@ -443,9 +443,6 @@ public interface Work extends Node {
     @JavaHandler
     IPTC getIPTC();
     
-    @JavaHandler
-    boolean isCopy();
-    
     @Incidence(label = Acknowledge.label, direction = Direction.OUT)
     Acknowledge addAcknowledgement(final Party party);
     
@@ -1662,11 +1659,6 @@ public interface Work extends Node {
             return (GeoCoding) getDescription("GeoCoding");
         }
         
-        @Override
-        public boolean isCopy() {
-            return this.asVertex().getProperty("type").equals("Copy");
-        }
-
         @Override
         public IPTC getIPTC() {
             return (IPTC) getDescription("IPTC");
