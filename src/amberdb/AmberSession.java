@@ -865,12 +865,13 @@ public class AmberSession implements AutoCloseable {
 
             // get all the copies, files etc
             q.continueWithCheck(null,
-                    q.new QueryClause(BRANCH_FROM_ALL, new String[]{"represents"}, Direction.IN),
-                    q.new QueryClause(BRANCH_FROM_ALL, new String[]{"isCopyOf"}, Direction.IN),
-                    q.new QueryClause(BRANCH_FROM_ALL, new String[]{"isFileOf"}, Direction.IN),
-                    q.new QueryClause(BRANCH_FROM_ALL, new String[]{"descriptionOf"}, Direction.IN),
-                    q.new QueryClause(BRANCH_FROM_ALL, new String[]{"tags"}, Direction.IN),
-                    q.new QueryClause(BRANCH_FROM_ALL, new String[]{"acknowledge"}, Direction.OUT)
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[] {"deliveredOn"}, Direction.OUT),
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[] {"represents"}, Direction.IN),
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[] {"isCopyOf"}, Direction.IN),
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[] {"isFileOf"}, Direction.IN),
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[] {"descriptionOf"}, Direction.IN),
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[] {"tags"}, Direction.IN),
+                    q.new QueryClause(BRANCH_FROM_ALL, new String[] {"acknowledge"}, Direction.OUT)
                     );
             components = q.getResults(true);
         }

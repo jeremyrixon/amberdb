@@ -469,18 +469,7 @@ public class AmberGraph extends BaseGraph
         }
         
         Long txnId = suspend();
-        dao.begin();
-
-        // End current elements where this transaction modifies or deletes them.
-        // Additionally, end edges orphaned by this procedure.
-        endElementsWithRetry(txnId, 3, 300);
-        
-        // start new elements for new and modified transaction elements
-        startElementsWithRetry(txnId, 3, 300);
-        
-        // Refactor note: need to check when adding (modding?) edges that both ends exist
-        dao.insertTransaction(txnId, new Date().getTime(), user, operation);
-        dao.commit();
+        commitSqlWrappedWithRetry(txnId, user, operation, 4, 300);
         clearChangeSets();
         return txnId;
     }
@@ -768,47 +757,27 @@ public class AmberGraph extends BaseGraph
     }
 
 
-    private void endElementsWithRetry(Long txnId, int retries, int backoffDelay) {
+    private void commitSqlWrappedWithRetry(Long txnId, String user, String operation, int retries, int backoffDelay) {
         int tryCount = 0;
         int backoff = backoffDelay;
         retryLoop: while (true) {
             try {
+                dao.begin();
+                // End current elements where this transaction modifies or deletes them.
+                // Additionally, end edges orphaned by this procedure.
                 log.debug("ending elements");
                 dao.endElements(txnId);
-                log.debug("ending elements completed");
-                break retryLoop;
-            } catch (RuntimeException e) {
-                if (tryCount < retries) {
-                    log.warn("AmberDb dao.endElements failed: Reason: {}\n" +
-                            "Retry after {} milliseconds", e.getMessage(), backoff);
-                    tryCount++;
-                    try {
-                        Thread.sleep(backoff);
-                    } catch (InterruptedException ie) {
-                        log.error("Backoff delay failed :", ie); // noted
-                    }
-                    backoff = backoff *2;
-                } else {
-                    log.error("AmberDb dao.endElements failed after {} retries: Reason:", retries, e);
-                    throw e;
-                }
-            }
-        }
-    }
-
-
-    private void startElementsWithRetry(Long txnId, int retries, int backoffDelay) {
-        int tryCount = 0;
-        int backoff = backoffDelay;
-        retryLoop: while (true) {
-            try {
+                // start new elements for new and modified transaction elements
                 log.debug("starting elements");
                 dao.startElements(txnId);
-                log.debug("starting elements completed");
+                // Refactor note: need to check when adding (modding?) edges that both ends exist
+                dao.insertTransaction(txnId, new Date().getTime(), user, operation);
+                dao.commit();
+                log.debug("commit complete");
                 break retryLoop;
             } catch (RuntimeException e) {
                 if (tryCount < retries) {
-                    log.warn("AmberDb dao.startElements failed: Reason: {}\n" +
+                    log.warn("AmberDb commit failed: Reason: {}\n" +
                             "Retry after {} milliseconds", e.getMessage(), backoff);
                     tryCount++;
                     try {
@@ -818,16 +787,18 @@ public class AmberGraph extends BaseGraph
                     }
                     backoff = backoff *2;
                 } else {
-                    log.error("AmberDb dao.startElements failed after {} retries: Reason:", retries, e);
+                    log.error("AmberDb commit failed after {} retries: Reason:", retries, e);
                     throw e;
                 }
             }
         }
     }
+
 
     public String getTempTableDrop() {
         return tempTableDrop;
     }
+
 
     public String getTempTableEngine() {
         return tempTableEngine;
@@ -955,17 +926,7 @@ public class AmberGraph extends BaseGraph
     public Long commitBig(String user, String operation) {
 
         Long txnId = suspendForBigCommit();
-        // End current elements where this transaction modifies or deletes them.
-        // Additionally, end edges orphaned by this procedure.
-        log.debug("Commence ending elements");
-        endElementsWithRetry(txnId, 3, 300);
-
-        // start new elements for new and modified transaction elements
-        log.debug("Commence starting elements");
-        startElementsWithRetry(txnId, 3, 300);
-
-        dao.insertTransaction(txnId, new Date().getTime(), user, operation);
-
+        commitSqlWrappedWithRetry(txnId, user, operation, 4, 300);
         log.debug("Commence clearing session");
         dao.clearSession(txnId);
         log.debug("Finished clearing session");
