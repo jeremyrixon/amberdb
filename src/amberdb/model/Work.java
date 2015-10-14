@@ -1000,10 +1000,10 @@ public interface Work extends Node {
     void removeDeliveryWorkParent(final Work interview);
 
     @Incidence(label = DeliveredOn.label, direction = Direction.IN)
-    Iterable<ExistsOn> getDeliveryWorkParentEdges();
+    Iterable<DeliveredOn> getDeliveryWorkParentEdges();
 
     @JavaHandler
-    ExistsOn getDeliveryWorkParentEdge();
+    DeliveredOn getDeliveryWorkParentEdge();
 
     @JavaHandler
     void setDeliveryWorkOrder(int position);
@@ -1752,8 +1752,8 @@ public interface Work extends Node {
         }
 
         @Override
-        public ExistsOn getDeliveryWorkParentEdge() {
-            Iterator<ExistsOn> iterator = getDeliveryWorkParentEdges().iterator();
+        public DeliveredOn getDeliveryWorkParentEdge() {
+            Iterator<DeliveredOn> iterator = getDeliveryWorkParentEdges().iterator();
             return (iterator != null && iterator.hasNext()) ? iterator.next() : null;
         }
 
