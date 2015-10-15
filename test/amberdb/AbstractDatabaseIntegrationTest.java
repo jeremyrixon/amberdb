@@ -29,12 +29,13 @@ public abstract class AbstractDatabaseIntegrationTest {
             tempPath = Paths.get(tempFolder.getRoot().getAbsolutePath());
             amberSrc = JdbcConnectionPool.create("jdbc:h2:mem:amber;DB_CLOSE_DELAY=-1;MVCC=true", "", "");
             amberDb = new AmberDb(amberSrc, tempPath);
-            amberSession = amberDb.begin();
         }
+        amberSession = amberDb.begin();
     }
 
     @After
-    public void tearDownIntegrationTest() throws SQLException {
+    public void tearDownIntegrationTest() throws Exception {
+        if (amberSession != null) amberSession.close();
         amberSrc.getConnection().prepareStatement("DROP ALL OBJECTS").execute();
     }
 
