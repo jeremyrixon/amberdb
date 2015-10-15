@@ -295,6 +295,23 @@ public class CopyTest {
     }
 
     @Test
+    public void copyCanRemoveSourceCopyRelationship() {
+        Work work = amberDb.addWork();
+        Copy mCopy = work.addCopy();
+        mCopy.setCopyRole(CopyRole.MASTER_COPY.code());
+        Long mCopyId = mCopy.getId();
+        Copy d1Copy = work.addCopy();
+
+        d1Copy.setSourceCopy(mCopy);
+        assertThat(mCopy.equals(d1Copy.getSourceCopy()), is(true));
+
+        d1Copy.removeSourceCopy(mCopy);
+        assertThat(!mCopy.equals(d1Copy.getSourceCopy()), is(true));
+        assertThat(d1Copy.getSourceCopy() == null, is(true));
+        assertThat(mCopy.equals(amberDb.findModelObjectById(mCopyId, Copy.class)), is(true));
+    }
+
+    @Test
     public void copyHasSingleComaster() {
         Work work = amberDb.addWork();
         Copy mCopy = work.addCopy();
