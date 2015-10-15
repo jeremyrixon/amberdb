@@ -18,6 +18,7 @@ import java.util.Map;
 import amberdb.relation.*;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import com.tinkerpop.frames.Incidence;
 import org.apache.commons.lang.StringUtils;
 import org.apache.tika.Tika;
 import org.codehaus.jackson.JsonParseException;
