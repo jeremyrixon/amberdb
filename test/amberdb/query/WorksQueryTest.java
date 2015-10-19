@@ -60,7 +60,7 @@ public class WorksQueryTest extends AbstractDatabaseIntegrationTest {
     
     @Test
     public void getDistinctChildrenBibLevels(){
-        Work work = amberSession.addWork();
+        Work work1 = amberSession.addWork();
         Work child1 = amberSession.addWork();
         child1.setBibLevel("item");
         Work child2 = amberSession.addWork();
@@ -68,15 +68,20 @@ public class WorksQueryTest extends AbstractDatabaseIntegrationTest {
         Work child3 = amberSession.addWork();
         Work child4 = amberSession.addWork();
         child4.setBibLevel("item,item");
-        work.addChild(child1);
-        work.addChild(child2);
-        work.addChild(child3);
-        work.addChild(child4);
+        work1.addChild(child1);
+        work1.addChild(child2);
+        work1.addChild(child3);
+        work1.addChild(child4);
+        Work work2 = amberSession.addWork();
+        Work child5 = amberSession.addWork();
+        child5.setBibLevel("part");
+        work2.addChild(child5);
+        Work work3 = amberSession.addWork();
         amberSession.commit();
         amberSession.getAmberGraph().clear();
         amberSession.getAmberGraph().setLocalMode(true);
-        Set<BibLevel> bibLevels = WorksQuery.getDistinctChildrenBibLevels(amberSession, Arrays.asList(work.getId()));
-        Set<BibLevel> expected = new HashSet<>(Arrays.asList(BibLevel.SET, BibLevel.ITEM));
+        Set<BibLevel> bibLevels = WorksQuery.getDistinctChildrenBibLevels(amberSession, Arrays.asList(work1.getId(), work2.getId(), work3.getId()));
+        Set<BibLevel> expected = new HashSet<>(Arrays.asList(BibLevel.SET, BibLevel.ITEM, BibLevel.PART));
         assertThat(bibLevels, is(expected));
     }
   

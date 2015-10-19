@@ -52,10 +52,9 @@ public class WorksQuery {
         List<byte[]> bibLevelCodes = new ArrayList<>();
         try (Handle h = sess.getAmberGraph().dbi().open()) {
             bibLevelCodes = h.createQuery(
-                    "SELECT DISTINCT p.value from property p, edge e where e.v_out=p.id \n"
-                            + "and e.txn_end = 0 and e.label = 'isPartOf' \n"
-                            + "and p.name = 'bibLevel' and p.txn_end = 0 and e.v_in in (:workIds); \n")
-                    .bind("workIds", Joiner.on(",").join(workIds))
+                    "SELECT DISTINCT p.value from property p, edge e where e.v_out=p.id "
+                            + "and e.txn_end = 0 and e.label = 'isPartOf' "
+                            + "and p.name = 'bibLevel' and p.txn_end = 0 and e.v_in in ("+Joiner.on(",").join(workIds)+"); ")
                     .map(ByteArrayMapper.FIRST).list();
         }
         Set<BibLevel> bibLevels = new HashSet<>();
