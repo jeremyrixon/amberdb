@@ -12,11 +12,11 @@ public enum BibLevel{
     NO_BIB_LEVEL("", 0);
 
     private String code;
-    private Integer order;
+    private Integer level;
 
-    private BibLevel(String code, Integer order) {
+    private BibLevel(String code, Integer level) {
         this.code = code;
-        this.order = order;
+        this.level = level;
     }
 
     public static BibLevel fromString(String code) {
@@ -34,8 +34,8 @@ public enum BibLevel{
         return code;
     }
     
-    public Integer order() {
-        return order;
+    public Integer level() {
+        return level;
     }
     
     public static List<String> list() {
