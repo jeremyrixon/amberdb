@@ -5,11 +5,10 @@ import java.util.List;
 
 public enum BibLevel{
     
-    COMPONENT("Component", 5), 
-    SET("Set", 3), 
-    ITEM("Item", 2), 
-    PART("Part", 1),
-    SECTION("Section", 4),
+    SET("Set", 4), 
+    ITEM("Item", 3), 
+    PART("Part", 2),
+    SECTION("Section", 1),
     NO_BIB_LEVEL("", 0);
 
     private String code;
