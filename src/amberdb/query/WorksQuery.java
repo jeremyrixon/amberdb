@@ -46,16 +46,29 @@ public class WorksQuery {
     }
     
     /**
+     * Find the distinct bib levels of all the parents of the specified list of work ids
+     */
+    public static Set<BibLevel> getDistinctParentBibLevels(AmberSession sess, List<Long> workIds){
+        String sql = "SELECT DISTINCT p.value from property p, edge e where e.v_in=p.id "
+                + "and e.txn_end = 0 and e.label = 'isPartOf' "
+                + "and p.name = 'bibLevel' and p.txn_end = 0 and e.v_out in ("+Joiner.on(",").join(workIds)+"); ";
+        return getDistinctBibLevels(sess, sql);
+    }
+    
+    /**
      * Find the distinct bib levels of all the children of the specified list of work ids
      */
     public static Set<BibLevel> getDistinctChildrenBibLevels(AmberSession sess, List<Long> workIds){
+        String sql = "SELECT DISTINCT p.value from property p, edge e where e.v_out=p.id "
+                + "and e.txn_end = 0 and e.label = 'isPartOf' "
+                + "and p.name = 'bibLevel' and p.txn_end = 0 and e.v_in in ("+Joiner.on(",").join(workIds)+"); ";
+        return getDistinctBibLevels(sess, sql);
+    }
+    
+    private static Set<BibLevel> getDistinctBibLevels(AmberSession sess, final String sql){
         List<byte[]> bibLevelCodes = new ArrayList<>();
         try (Handle h = sess.getAmberGraph().dbi().open()) {
-            bibLevelCodes = h.createQuery(
-                    "SELECT DISTINCT p.value from property p, edge e where e.v_out=p.id "
-                            + "and e.txn_end = 0 and e.label = 'isPartOf' "
-                            + "and p.name = 'bibLevel' and p.txn_end = 0 and e.v_in in ("+Joiner.on(",").join(workIds)+"); ")
-                    .map(ByteArrayMapper.FIRST).list();
+            bibLevelCodes = h.createQuery(sql).map(ByteArrayMapper.FIRST).list();
         }
         Set<BibLevel> bibLevels = new HashSet<>();
         for (byte[] bytes : bibLevelCodes) {
