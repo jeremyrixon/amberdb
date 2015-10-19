@@ -1,17 +1,23 @@
 package amberdb.query;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import amberdb.model.Copy;
 import org.junit.Test;
 
-import amberdb.model.Work;
 import amberdb.AbstractDatabaseIntegrationTest;
+import amberdb.enums.BibLevel;
+import amberdb.model.Copy;
+import amberdb.model.Work;
 
 public class WorksQueryTest extends AbstractDatabaseIntegrationTest {
 
@@ -51,4 +57,27 @@ public class WorksQueryTest extends AbstractDatabaseIntegrationTest {
             assertNotNull(c.getWork());
         }
     }
+    
+    @Test
+    public void getDistinctChildrenBibLevels(){
+        Work work = amberSession.addWork();
+        Work child1 = amberSession.addWork();
+        child1.setBibLevel("item");
+        Work child2 = amberSession.addWork();
+        child2.setBibLevel("set");
+        Work child3 = amberSession.addWork();
+        Work child4 = amberSession.addWork();
+        child4.setBibLevel("item,item");
+        work.addChild(child1);
+        work.addChild(child2);
+        work.addChild(child3);
+        work.addChild(child4);
+        amberSession.commit();
+        amberSession.getAmberGraph().clear();
+        amberSession.getAmberGraph().setLocalMode(true);
+        Set<BibLevel> bibLevels = WorksQuery.getDistinctChildrenBibLevels(amberSession, work.getId());
+        Set<BibLevel> expected = new HashSet<>(Arrays.asList(BibLevel.SET, BibLevel.ITEM));
+        assertThat(bibLevels, is(expected));
+    }
+  
 }
