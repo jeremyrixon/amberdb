@@ -3,18 +3,20 @@ package amberdb.enums;
 import java.util.ArrayList;
 import java.util.List;
 
-public enum BibLevel {
+public enum BibLevel{
     
-    COMPONENT("Component"), 
-    SET("Set"), 
-    ITEM("Item"), 
-    PART("Part"),
-    SECTION("Section");
+    SET("Set", 4), 
+    ITEM("Item", 3), 
+    PART("Part", 2),
+    SECTION("Section", 1),
+    NO_BIB_LEVEL("", 0);
 
     private String code;
+    private Integer level;
 
-    private BibLevel(String code) {
+    private BibLevel(String code, Integer level) {
         this.code = code;
+        this.level = level;
     }
 
     public static BibLevel fromString(String code) {
@@ -32,6 +34,10 @@ public enum BibLevel {
         return code;
     }
     
+    public Integer level() {
+        return level;
+    }
+    
     public static List<String> list() {
         List<String> list = new ArrayList<String>();
         for (BibLevel lu : BibLevel.values()) {
@@ -39,4 +45,5 @@ public enum BibLevel {
         }
         return list;
     }
+   
 }
