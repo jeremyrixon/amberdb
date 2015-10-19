@@ -8,6 +8,7 @@ import java.util.Set;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.util.ByteArrayMapper;
 
+import com.google.common.base.Joiner;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 
@@ -44,14 +45,17 @@ public class WorksQuery {
         return copies;
     }
     
-    public static Set<BibLevel> getDistinctChildrenBibLevels(AmberSession sess, Long id){
+    /**
+     * Find the distinct bib levels of all the children of the specified list of work ids
+     */
+    public static Set<BibLevel> getDistinctChildrenBibLevels(AmberSession sess, List<Long> workIds){
         List<byte[]> bibLevelCodes = new ArrayList<>();
         try (Handle h = sess.getAmberGraph().dbi().open()) {
             bibLevelCodes = h.createQuery(
                     "SELECT DISTINCT p.value from property p, edge e where e.v_out=p.id \n"
                             + "and e.txn_end = 0 and e.label = 'isPartOf' \n"
-                            + "and p.name = 'bibLevel' and p.txn_end = 0 and e.v_in = :workId; \n")
-                    .bind("workId", id)
+                            + "and p.name = 'bibLevel' and p.txn_end = 0 and e.v_in in (:workIds); \n")
+                    .bind("workIds", Joiner.on(",").join(workIds))
                     .map(ByteArrayMapper.FIRST).list();
         }
         Set<BibLevel> bibLevels = new HashSet<>();

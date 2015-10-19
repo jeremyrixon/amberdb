@@ -75,7 +75,7 @@ public class WorksQueryTest extends AbstractDatabaseIntegrationTest {
         amberSession.commit();
         amberSession.getAmberGraph().clear();
         amberSession.getAmberGraph().setLocalMode(true);
-        Set<BibLevel> bibLevels = WorksQuery.getDistinctChildrenBibLevels(amberSession, work.getId());
+        Set<BibLevel> bibLevels = WorksQuery.getDistinctChildrenBibLevels(amberSession, Arrays.asList(work.getId()));
         Set<BibLevel> expected = new HashSet<>(Arrays.asList(BibLevel.SET, BibLevel.ITEM));
         assertThat(bibLevels, is(expected));
     }
