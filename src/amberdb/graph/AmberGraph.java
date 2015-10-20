@@ -724,24 +724,6 @@ public class AmberGraph extends BaseGraph
     }
     
     
-    public List<AmberVertex> getVerticesByTransactionsId(Long id) {
-        List<AmberVertex> vertices = new ArrayList<>();
-        for (AmberVertexWithState vs : dao.getVerticesByTransactionId(id)) {
-            vertices.add(vs.vertex); 
-        }
-        return vertices;
-    }
-
-
-    public List<AmberEdge> getEdgesByTransactionsId(Long id) {
-        List<AmberEdge> edges = new ArrayList<>();
-        for (AmberEdgeWithState es : dao.getEdgesByTransactionId(id)) {
-            edges.add(es.edge); 
-        }
-        return edges;
-    }
-    
-    
     public AmberTransaction getTransaction(Long id) {
         return dao.getTransaction(id);
     }
@@ -940,5 +922,55 @@ public class AmberGraph extends BaseGraph
         commitBig("amberdb", "commit");
     }
 
+
+    public List<AmberVertex> getVerticesByTransactionId(Long id) {
+        try (Handle h = dbi.open()) {
+            List<AmberVertexWithState> vs = h.createQuery(
+                "(SELECT DISTINCT v.id, v.txn_start, v.txn_end, 'AMB' state "
+                + "FROM transaction t, vertex v "
+                + "WHERE t.id = :id "
+                + "AND v.txn_start = t.id) "
+                + "UNION "
+                + "(SELECT DISTINCT v.id, v.txn_start, v.txn_end, 'AMB' state "
+                + "FROM transaction t, vertex v "
+                + "WHERE t.id = :id "
+                + "AND v.txn_end = t.id) "
+                + "ORDER BY id")
+                .bind("id", id)
+                .map(new VertexMapper(this)).list();
+
+            List<AmberVertex> vertices = new ArrayList<>();
+            for (AmberVertexWithState v : vs) {
+                vertices.add(v.vertex);
+            }
+            return vertices;
+        }
+    }
+
+
+    public List<AmberEdge> getEdgesByTransactionId(Long id) {
+
+        try (Handle h = dbi.open()) {
+            List<AmberEdgeWithState> es = h.createQuery(
+                "(SELECT DISTINCT e.id, e.txn_start, e.txn_end, e.v_out, e.v_in, e.label, e.edge_order, 'AMB' state "
+                + "FROM transaction t, edge e "
+                + "WHERE t.id = :id "
+                + "AND e.txn_start = t.id) "
+                + "UNION "
+                + "(SELECT DISTINCT e.id, e.txn_start, e.txn_end, e.v_out, e.v_in, e.label, e.edge_order, 'AMB' state "
+                + "FROM transaction t, edge e "
+                + "WHERE t.id = :id "
+                + "AND e.txn_end = t.id) "
+                + "ORDER BY id")
+                .bind("id", id)
+                .map(new EdgeMapper(this, false)).list();
+
+            List<AmberEdge> edges = new ArrayList<>();
+            for (AmberEdgeWithState e : es) {
+                edges.add(e.edge);
+            }
+            return edges;
+        }
+    }
 }
 

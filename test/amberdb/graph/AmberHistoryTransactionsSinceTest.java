@@ -270,5 +270,45 @@ public class AmberHistoryTransactionsSinceTest {
 
         VersionedVertex grandParent = deletedGrandParent.get(0);
         assertEquals(grandParent.getId(), b.getId());
-    }        
+    }
+
+    @Test
+    public void getTransactionsAndElements() throws Exception {
+
+        Vertex v1 = graph.addVertex(null);
+        Vertex v2 = graph.addVertex(null);
+        v1.setProperty("title", "t1");
+        v2.setProperty("title", "t2");
+
+        Edge e1 = graph.addEdge(null, v1, v2, "connect");
+
+        graph.commit();
+
+        v1.setProperty("title", "t1.1");
+        v2.setProperty("title", "t2.1");
+
+        graph.commit();
+
+        v1.setProperty("title", "t1.2");
+
+        graph.commit();
+
+        v2.setProperty("title", "t2.2"); // not committed, so should not appear
+
+        List<AmberTransaction> txns = graph.getTransactionsByVertexId((Long) v1.getId());
+        assertEquals(3, txns.size());
+
+        txns = graph.getTransactionsByVertexId((Long) v2.getId());
+        assertEquals(2, txns.size());
+
+        txns = graph.getTransactionsByEdgeId((Long) e1.getId());
+        assertEquals(1, txns.size());
+
+        List<AmberVertex> vertices = graph.getVerticesByTransactionId(txns.get(0).getId());
+        assertEquals(2, vertices.size());
+
+        List<AmberEdge> edges = graph.getEdgesByTransactionId(txns.get(0).getId());
+        assertEquals(1, edges.size());
+    }
+
 }
