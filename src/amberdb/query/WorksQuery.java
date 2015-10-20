@@ -1,15 +1,25 @@
 package amberdb.query;
 
-import amberdb.AmberSession;
-import amberdb.graph.AmberQuery;
-import amberdb.graph.BranchType;
-import amberdb.model.Copy;
-import amberdb.model.Work;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.util.ByteArrayMapper;
+
+import com.google.common.base.Joiner;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
+
+import amberdb.AmberSession;
+import amberdb.enums.BibLevel;
+import amberdb.graph.AmberProperty;
+import amberdb.graph.AmberQuery;
+import amberdb.graph.BranchType;
+import amberdb.graph.DataType;
+import amberdb.model.Copy;
+import amberdb.model.Work;
 
 public class WorksQuery {
 
@@ -33,5 +43,41 @@ public class WorksQuery {
             }
         }
         return copies;
+    }
+    
+    /**
+     * Find the distinct bib levels of all the parents of the specified list of work ids
+     */
+    public static Set<BibLevel> getDistinctParentBibLevels(AmberSession sess, List<Long> workIds){
+        String sql = "SELECT DISTINCT p.value from property p, edge e where e.v_in=p.id "
+                + "and e.txn_end = 0 and e.label = 'isPartOf' "
+                + "and p.name = 'bibLevel' and p.txn_end = 0 and e.v_out in ("+Joiner.on(",").join(workIds)+"); ";
+        return getDistinctBibLevels(sess, sql);
+    }
+    
+    /**
+     * Find the distinct bib levels of all the children of the specified list of work ids
+     */
+    public static Set<BibLevel> getDistinctChildrenBibLevels(AmberSession sess, List<Long> workIds){
+        String sql = "SELECT DISTINCT p.value from property p, edge e where e.v_out=p.id "
+                + "and e.txn_end = 0 and e.label = 'isPartOf' "
+                + "and p.name = 'bibLevel' and p.txn_end = 0 and e.v_in in ("+Joiner.on(",").join(workIds)+"); ";
+        return getDistinctBibLevels(sess, sql);
+    }
+    
+    private static Set<BibLevel> getDistinctBibLevels(AmberSession sess, final String sql){
+        List<byte[]> bibLevelCodes = new ArrayList<>();
+        try (Handle h = sess.getAmberGraph().dbi().open()) {
+            bibLevelCodes = h.createQuery(sql).map(ByteArrayMapper.FIRST).list();
+        }
+        Set<BibLevel> bibLevels = new HashSet<>();
+        for (byte[] bytes : bibLevelCodes) {
+            String code = (String) AmberProperty.decode(bytes, DataType.STR);
+            BibLevel bibLevel = BibLevel.fromString(code);
+            if (bibLevel != null){
+                bibLevels.add(bibLevel);    
+            }
+        }
+        return bibLevels;
     }
 }
