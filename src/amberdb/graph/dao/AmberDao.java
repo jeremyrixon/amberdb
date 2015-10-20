@@ -329,7 +329,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "FROM transaction t, vertex v "
             + "WHERE v.id = :id "
             + "AND t.id = v.txn_end) "
-            + "ORDER BY t.id")
+            + "ORDER BY id")
     @Mapper(TransactionMapper.class)
     List<AmberTransaction> getTransactionsByVertexId(@Bind("id") Long id);
     
@@ -343,38 +343,10 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "FROM transaction t, edge e "
             + "WHERE e.id = :id "
             + "AND t.id = e.txn_end) "
-            + "ORDER BY t.id")
+            + "ORDER BY id")
     @Mapper(TransactionMapper.class)
     List<AmberTransaction> getTransactionsByEdgeId(@Bind("id") Long id);
     
-    
-    @SqlQuery("(SELECT DISTINCT v.id, v.txn_start, v.txn_end, 'AMB' "
-            + "FROM transaction t, vertex v "
-            + "WHERE t.id = :id "
-            + "AND v.txn_start = t.id) "
-            + "UNION "
-            + "(SELECT DISTINCT v.id, v.txn_start, v.txn_end, 'AMB' "
-            + "FROM transaction t, vertex v "
-            + "WHERE t.id = :id "
-            + "AND v.txn_end = t.id) "
-            + "ORDER BY t.id")
-    @Mapper(VertexMapper.class)
-    List<AmberVertexWithState> getVerticesByTransactionId(@Bind("id") Long id);
-    
-
-    @SqlQuery("(SELECT DISTINCT e.id, e.txn_start, e.txn_end, e.v_out, e.v_in, e.label, e.edge_order, 'AMB' "
-            + "FROM transaction t, edge e "
-            + "WHERE t.id = :id "
-            + "AND e.txn_start = t.id) "
-            + "UNION "
-            + "(SELECT DISTINCT e.id, e.txn_start, e.txn_end, e.v_out, e.v_in, e.label, e.edge_order, 'AMB' "
-            + "FROM transaction t, edge e "
-            + "WHERE t.id = :id "
-            + "AND e.txn_end = t.id) "
-            + "ORDER BY t.id")
-    @Mapper(EdgeMapper.class)
-    List<AmberEdgeWithState> getEdgesByTransactionId(@Bind("id") Long id);
-
     
     @SqlQuery("SELECT id, time, user, operation "
             + "FROM transaction "
