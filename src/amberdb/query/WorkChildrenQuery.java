@@ -1,5 +1,20 @@
 package amberdb.query;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang.StringUtils;
+import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.util.ByteArrayMapper;
+import org.skife.jdbi.v2.util.IntegerMapper;
+
+import com.tinkerpop.blueprints.Vertex;
+
 import amberdb.AmberSession;
 import amberdb.enums.CopyRole;
 import amberdb.graph.AmberProperty;
@@ -7,20 +22,7 @@ import amberdb.graph.AmberQueryBase;
 import amberdb.graph.DataType;
 import amberdb.model.Section;
 import amberdb.model.Work;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.skife.jdbi.v2.Handle;
-import org.skife.jdbi.v2.util.ByteArrayMapper;
-import org.skife.jdbi.v2.util.IntegerMapper;
-
-import com.tinkerpop.blueprints.Vertex;
-
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang.StringUtils;
+import amberdb.sort.SortItem;
 
 public class WorkChildrenQuery extends AmberQueryBase {
 
@@ -59,8 +61,20 @@ public class WorkChildrenQuery extends AmberQueryBase {
                 hex.get("EADFeature"), hex.get("GeoCoding"), hex.get("IPTC")}, "', X'") + "')";
     }
 
+    public List<Work> getChildRange(Long workId, int start, int num){
+        return getChildren(getAddChildrenWokSql(workId, start, num));
+    }
     
-    public List<Work> getChildRange(Long workId, int start, int num) {
+    public List<Work> getChildRangeSortBy(Long workId, int start, int num, final SortItem sortItem){
+        if (sortItem == null){
+            return getChildRange(workId, start, num);
+        }
+        List<Work> works = getChildren(getAddChildrenWorkSortBySql(workId, start, num, sortItem.fieldName(), sortItem.desc()));
+        Collections.sort(works, sortItem.compartor());
+        return works;
+    }
+    
+    private List<Work> getChildren(final String addChildrenWorkSql) {
 
         StringBuilder s = new StringBuilder();
         List<Work> children =  new ArrayList<>();
@@ -76,19 +90,7 @@ public class WorkChildrenQuery extends AmberQueryBase {
             "CREATE TEMPORARY TABLE v2 (id BIGINT, obj_type CHAR(1), ord BIGINT)" + tEngine + "; \n");
         
         // add children Works excluding Sections with the limits specified on the range returned
-        s.append(
-            "INSERT INTO v1 (id, obj_type, ord) \n" +
-            "SELECT DISTINCT v.id, 'W', e.edge_order \n" +
-            "FROM vertex v, edge e, property p \n" +
-            "WHERE v.txn_end = 0 AND e.txn_end = 0 AND p.txn_end = 0 \n" +
-            " AND e.v_in = "+workId+" \n" +
-            " AND e.v_out = v.id \n" +
-            " AND e.label = 'isPartOf' \n" +
-            " AND p.id = v.id \n" +
-            " AND p.name = 'type' \n" + 
-            " AND p.value IN " + workNotSectionInList + " \n" +
-            " ORDER BY e.edge_order \n" +
-            " LIMIT "+start+","+num+"; \n");
+        s.append(addChildrenWorkSql);
         
         // get their copies
         s.append(
@@ -163,6 +165,39 @@ public class WorkChildrenQuery extends AmberQueryBase {
             }
         }
         return children;
+    }
+
+    private String getAddChildrenWokSql(Long workId, int start, int num) {
+        return "INSERT INTO v1 (id, obj_type, ord) \n" +
+        "SELECT DISTINCT v.id, 'W', e.edge_order \n" +
+        "FROM vertex v, edge e, property p \n" +
+        "WHERE v.txn_end = 0 AND e.txn_end = 0 AND p.txn_end = 0 \n" +
+        " AND e.v_in = "+workId+" \n" +
+        " AND e.v_out = v.id \n" +
+        " AND e.label = 'isPartOf' \n" +
+        " AND p.id = v.id \n" +
+        " AND p.name = 'type' \n" + 
+        " AND p.value IN " + workNotSectionInList + " \n" +
+        " ORDER BY e.edge_order \n" +
+        " LIMIT "+start+","+num+"; \n";
+    }
+    
+    private String getAddChildrenWorkSortBySql(Long workId, int start, int num, String sortBy, boolean desc) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("INSERT INTO v1 (id, obj_type, ord) "
+                + " SELECT DISTINCT v.id, 'W' obj_type, e.edge_order FROM vertex v "
+                + " INNER JOIN property p1 "
+                + " on v.txn_end = 0 AND p1.txn_end = 0 AND p1.id = v.id AND p1.name = 'type' AND p1.value IN " + workNotSectionInList
+                + " INNER JOIN edge e on e.txn_end = 0 AND e.v_out = v.id AND e.label = 'isPartOf' "
+                + " LEFT JOIN property p2 "
+                + " on p2.txn_end = 0 and p2.id = v.id AND p2.name = '"+sortBy+"' "
+                + " and p2.value != '[]' " //empty list treated as null (e.g. when sorting by alias)
+                + " WHERE e.v_in = "+workId+" ORDER BY ISNULL(p2.value), p2.value "); //null always last whether asc or desc
+        if (desc){
+            sb.append(" desc ");
+        }
+        sb.append(" LIMIT "+start+","+num+"; ");
+        return sb.toString();
     }
     
     public List<Section> getSections(Long workId) {
