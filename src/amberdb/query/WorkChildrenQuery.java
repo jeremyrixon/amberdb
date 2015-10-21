@@ -61,7 +61,7 @@ public class WorkChildrenQuery extends AmberQueryBase {
     }
 
     public List<Work> getChildRange(Long workId, int start, int num){
-        return getChildren(getAddChildrenWokSql(workId, start, num));
+        return getChildren(getAddChildrenWorkSql(workId, start, num));
     }
     
     public List<Work> getChildRangeSortBy(Long workId, int start, int num, final SortItem sortItem){
@@ -69,7 +69,7 @@ public class WorkChildrenQuery extends AmberQueryBase {
             return getChildRange(workId, start, num);
         }
         List<Work> works = getChildren(getAddChildrenWorkSortBySql(workId, start, num, sortItem.fieldName(), sortItem.desc()));
-        Collections.sort(works, sortItem.compartor());
+        Collections.sort(works, sortItem.comparator());
         return works;
     }
     
@@ -166,7 +166,7 @@ public class WorkChildrenQuery extends AmberQueryBase {
         return children;
     }
 
-    private String getAddChildrenWokSql(Long workId, int start, int num) {
+    private String getAddChildrenWorkSql(Long workId, int start, int num) {
         return "INSERT INTO v1 (id, obj_type, ord) \n" +
         "SELECT DISTINCT v.id, 'W', e.edge_order \n" +
         "FROM vertex v, edge e, property p \n" +

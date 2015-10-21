@@ -27,7 +27,7 @@ public class SortItem {
     public String fieldName() {
         return sortField.fieldName;
     }
-    public Comparator<Work> compartor() {
+    public Comparator<Work> comparator() {
         return desc() ? sortField.descComparator : sortField.ascComparator;
     }
     
