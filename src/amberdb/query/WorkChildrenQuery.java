@@ -8,11 +8,9 @@ import amberdb.graph.DataType;
 import amberdb.model.Section;
 import amberdb.model.Work;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import amberdb.model.sort.WorkComparator;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.util.ByteArrayMapper;
 import org.skife.jdbi.v2.util.IntegerMapper;
@@ -164,7 +162,13 @@ public class WorkChildrenQuery extends AmberQueryBase {
         }
         return children;
     }
-    
+
+    public List<Work> getChildRangeSorted(Long workId, int start, int num, String sortPropertyName, boolean sortForward) {
+        List<Work> children = getChildRange(workId, start, num);
+        Collections.sort(children, new WorkComparator(sortPropertyName, sortForward));
+        return children;
+    }
+
     public List<Section> getSections(Long workId) {
 
         StringBuilder s = new StringBuilder();
