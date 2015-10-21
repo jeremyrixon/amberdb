@@ -34,15 +34,15 @@ public class WorkComparator implements Comparator<Work> {
         Object o2 = w2.asVertex().getProperty(sortPropertyName);
 
         // null guards
-        if (o1 == null) return -1;
         if (o1 == null) return 1;
+        if (o2 == null) return -1;
 
         // easy comparisons
         if (o1.equals(o2)) return 0;
 
         // check for a json encoded list and treat empty lists same as null
         if (o1 instanceof String && ((String) o1).startsWith("[")) {
-            if (o1.equals("[]")) return -1;
+            if (o1.equals("[]")) return 1;
         }
 
         // easy comparisons for Strings, Booleans, Dates and a variety of number formats
