@@ -1,26 +1,16 @@
 package amberdb.model.sort;
 
-import java.util.List;
-import com.google.common.collect.Lists;
+public enum SortField {
 
-enum SortField {
+    ALIAS ("alias", "Alias"),
+    SHEET_NAME ("sheetName", "Sheet Name"),
+    ISSUE_DATE ("issueDate", "Issue Date");
 
-    ALIAS ("alias"),
-    SHEET_NAME ("sheetName"),
-    ISSUE_DATE ("issueDate");
-
-    private SortField(String fieldName) {
+    private SortField(String fieldName, String displayName) {
         this.fieldName = fieldName;
+        this.displayName = displayName;
     }
-
-    public static List<String> allSortFields() {
-        List<String> list = Lists.newArrayList();
-        for (SortField sortField : values()){
-            list.add(sortField.fieldName);
-        }
-        return list;
-    }
-
+ 
     public static SortField fromString(String fieldName) {
         for (SortField field : SortField.values()) {
             if (field.fieldName.equalsIgnoreCase(fieldName)) {
@@ -29,6 +19,15 @@ enum SortField {
         }
         return null;
     }
+    
+    public String getFieldName() {
+        return fieldName;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
 
     String fieldName;
+    String displayName;
 }
