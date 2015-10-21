@@ -1,6 +1,8 @@
 package amberdb.query;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
@@ -92,8 +94,9 @@ public class WorkChildrenQueryTest {
         assertEquals(sections.size(), 7);
         sess.setLocalMode(false);
     }        
+    
 
-    private Work buildWork(){
+    private Work buildWork() {
         Work parent = sess.addWork();
         
         for (int i = 0; i < 20; i++) {
@@ -141,6 +144,5 @@ public class WorkChildrenQueryTest {
         
         return parent;
     }
-   
 
 }
