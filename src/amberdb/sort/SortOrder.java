@@ -1,5 +1,5 @@
 package amberdb.sort;
 
-public enum SortOrder {
+enum SortOrder {
     ASC, DESC;
 }

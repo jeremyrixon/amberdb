@@ -1,6 +1,7 @@
 package amberdb.sort;
 
 import java.util.Comparator;
+import java.util.List;
 
 import amberdb.model.Work;
 
@@ -28,5 +29,9 @@ public class SortItem {
     }
     public Comparator<Work> compartor() {
         return desc() ? sortField.descComparator : sortField.ascComparator;
+    }
+    
+    public static List<String> allSortFields() {
+        return SortField.allSortFields();
     }
 }
