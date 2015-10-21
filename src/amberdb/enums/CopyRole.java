@@ -8,12 +8,12 @@ import java.util.List;
 import java.util.TreeMap;
 import amberdb.model.Copy;
 
-/** 
+/**
  * CopyRole ENUM that provides a code and label for display.
- * 
+ *
  * the details for 0-12th copy roles must not be changed.
- * the 13 - 47 copy roles are in alphabetical order, this 
- * must be maintained at all time when a new copy role is 
+ * the 13 - 47 copy roles are in alphabetical order, this
+ * must be maintained at all time when a new copy role is
  * added.
  */
 public enum CopyRole {
@@ -71,17 +71,17 @@ public enum CopyRole {
     TIME_CODED_TRANSCRIPT_COPY("tc", "Time coded transcript", "Yes",480, false),
     VIEW_COPY("v", "View",490, false),
     VISUAL_NAVIGATION_DELIVERY_COPY ("vn", "Visual navigation delivery", 500, false);
-	
+
     private String code;
     private String display;
     private String timed;
     private Integer order;
     private boolean supportMultipleCopies;
-    
+
     private CopyRole(String code, String display, Integer order, boolean supportMultipleCopies) {
         this(code, display, null, order, supportMultipleCopies);
     }
-    
+
     private CopyRole(String code, String display, String timed, Integer order, boolean supportMultipleCopies) {
         this.code = code;
         this.display = display;
@@ -112,7 +112,7 @@ public enum CopyRole {
     public String timed() {
         return this.timed;
     }
-    
+
     public int ord() {
         return this.order;
     }
@@ -136,7 +136,7 @@ public enum CopyRole {
      * Returns a List of <STRONG>CopyRole</STRONG> objects that have been sorted
      * alphabetically by the CopyRole.value
      */
-    public static List<CopyRole> listAlphabetically() {                      
+    public static List<CopyRole> listAlphabetically() {
         List<CopyRole> list = new ArrayList<CopyRole>();
         for (CopyRole c : CopyRole.values()) {
             list.add(c);
@@ -155,7 +155,9 @@ public enum CopyRole {
         TreeMap<Integer, String> rearranged = new TreeMap<>();
         for (String copyRoleStr : copyRoles) {
             CopyRole copyRole = CopyRole.fromString(copyRoleStr);
-            rearranged.put(copyRole.ord(), copyRoleStr);
+            if (copyRole != null) {
+                rearranged.put(copyRole.ord(), copyRoleStr);
+            }
         }
         return rearranged.values();
     }
