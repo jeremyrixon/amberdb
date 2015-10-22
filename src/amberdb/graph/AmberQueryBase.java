@@ -55,7 +55,7 @@ public class AmberQueryBase {
                 + "FROM vertex v, %1$s "
                 + "WHERE v.id = %1$s.%2$s "
                 + "AND v.txn_end = 0 "
-                + "ORDER BY %1$s.%3$s", 
+                + "ORDER BY %1$s.%3$s, %1$s.%2$s",
                 vertexIdTable, vertexIdColumn, vertexOrderColumn))
                 .map(new VertexMapper(graph)).list();
 
