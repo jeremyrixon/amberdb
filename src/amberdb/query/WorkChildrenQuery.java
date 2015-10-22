@@ -59,7 +59,7 @@ public class WorkChildrenQuery extends AmberQueryBase {
     
     public List<Work> getChildRangeSorted(Long workId, int start, int num, String sortPropertyName, boolean sortForward) {
         if (StringUtils.isBlank(sortPropertyName)){
-            return getChildren(getAddChildrenWorksSql(workId, start, num));
+            return getChildRange(workId, start, num);
         }
         List<Work> children = getChildren(getAddChildrenWorkSortBySql(workId, start, num, sortPropertyName, sortForward));
         Collections.sort(children, new WorkComparator(sortPropertyName, sortForward));    
