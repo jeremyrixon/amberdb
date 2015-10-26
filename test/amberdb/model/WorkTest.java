@@ -381,6 +381,11 @@ public class WorkTest {
         assertTrue(deliveryWork.getDeliveryWorkParent().equals(work));
     }
     
+    @Test
+    public void testVendorIdWasSet() {
+        assertEquals("101", bookBlinkyBill.getVendorId());
+    }
+    
     private void setTestDataInH2(AmberSession sess) {
         workCollection = sess.addWork();
         
@@ -395,6 +400,7 @@ public class WorkTest {
         bookBlinkyBill.setBibLevel(BibLevel.ITEM.code());
         bookBlinkyBill.setCopyrightPolicy(CopyrightPolicy.OUTOFCOPYRIGHT.code());
         bookBlinkyBill.setDigitalStatus(CaptureStatus.CAPTURED.code());
+        bookBlinkyBill.setVendorId("101");
         workCollection.addChild(bookBlinkyBill);
         
         chapterBlinkyBill = sess.addWork();

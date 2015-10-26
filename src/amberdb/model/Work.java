@@ -430,6 +430,18 @@ public interface Work extends Node {
     
     @Property("sheetCreationDate")
     void setSheetCreationDate(Date sheetCreationDate);
+    
+    /**
+     * Get the vendor identifier that was assigned by the E-Deposit app.
+     */
+    @Property("vendorId")
+    String getVendorId();
+    
+    /**
+     * Set the vendor identifier that was assigned by the E-Deposit app.
+     */
+    @Property("vendorId")
+    void setVendorId(String id);
 
     @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
     GeoCoding addGeoCoding();
