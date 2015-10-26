@@ -45,6 +45,7 @@ public enum CopyRole {
     IMAGE_PACKAGE("ip", "Image package",240, false),
     INDEX_COPY ("i", "Index", 250, false),
     LIST_COPY("dl", "List",260, false),
+    MASTER_ANALOGUE_COPY("ma", "Master Analogue",269, false),
     MICROFORM_COPY("mf", "Microform",270, false),
     OCR_METS_COPY("mt", "OCR mets",280, false),
     OCR_ALTO_COPY("at", "OCR alto",290, false),
@@ -64,13 +65,16 @@ public enum CopyRole {
     REAL_MEDIA_FILE_COPY("sa1", "RealMedia file",410, false),
     REAL_MEDIA_REF_COPY("ra1", "RealMedia reference",420, false),
     RTF_TRANSCRIPT("tt", "RTF transcript", "No",430, false),
+    SECOND_COPY("so", "Second Copy",439, false),
     SPECIAL_DELIVERY_COPY("sd", "Special delivery",440, false),
     STRUCTURAL_MAP_COPY("sm", "Structural map",450, false),
     THUMBNAIL_COPY("t", "Thumbnail",460, false),
     TIME_CODED_SUMMARY("sc", "Time coded summary", "Yes",470, false),
     TIME_CODED_TRANSCRIPT_COPY("tc", "Time coded transcript", "Yes",480, false),
+    UNKNOWN_COPY ("u", "Unknown", 485, false),
     VIEW_COPY("v", "View",490, false),
     VISUAL_NAVIGATION_DELIVERY_COPY ("vn", "Visual navigation delivery", 500, false);
+
 
     private String code;
     private String display;

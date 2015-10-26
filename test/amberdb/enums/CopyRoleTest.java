@@ -107,6 +107,7 @@ public class CopyRoleTest {
         assertEquals(240,CopyRole.IMAGE_PACKAGE.ord());
         assertEquals(250,CopyRole.INDEX_COPY.ord());
         assertEquals(260,CopyRole.LIST_COPY.ord());
+        assertEquals(269,CopyRole.MASTER_ANALOGUE_COPY.ord());
         assertEquals(270,CopyRole.MICROFORM_COPY.ord());
         assertEquals(280,CopyRole.OCR_METS_COPY.ord());
         assertEquals(290,CopyRole.OCR_ALTO_COPY.ord());
@@ -126,14 +127,16 @@ public class CopyRoleTest {
         assertEquals(410,CopyRole.REAL_MEDIA_FILE_COPY.ord());
         assertEquals(420,CopyRole.REAL_MEDIA_REF_COPY.ord());
         assertEquals(430,CopyRole.RTF_TRANSCRIPT.ord());
+        assertEquals(439,CopyRole.SECOND_COPY.ord());
         assertEquals(440,CopyRole.SPECIAL_DELIVERY_COPY.ord());
         assertEquals(450,CopyRole.STRUCTURAL_MAP_COPY.ord());
         assertEquals(460,CopyRole.THUMBNAIL_COPY.ord());
         assertEquals(470,CopyRole.TIME_CODED_SUMMARY.ord());
         assertEquals(480,CopyRole.TIME_CODED_TRANSCRIPT_COPY.ord());
+        assertEquals(485,CopyRole.UNKNOWN_COPY.ord());
         assertEquals(490,CopyRole.VIEW_COPY.ord());
         assertEquals(500,CopyRole.VISUAL_NAVIGATION_DELIVERY_COPY.ord());
-        assertEquals(54,CopyRole.values().length);
+        assertEquals(57,CopyRole.values().length);
     }
     
     private void compareItemsBefore(int index, List<CopyRole> roles) {        
