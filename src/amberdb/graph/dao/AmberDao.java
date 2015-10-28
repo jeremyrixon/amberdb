@@ -26,93 +26,93 @@ public interface AmberDao extends Transactional<AmberDao> {
     /*
      * DB creation operations (DDL)
      */
-    
+
     /*
      * Main tables
      */
     @SqlUpdate(
-            "CREATE TABLE IF NOT EXISTS vertex (" 
+            "CREATE TABLE IF NOT EXISTS vertex ("
             + "id         BIGINT, "
-            + "txn_start  BIGINT DEFAULT 0 NOT NULL, " 
+            + "txn_start  BIGINT DEFAULT 0 NOT NULL, "
             + "txn_end    BIGINT DEFAULT 0 NOT NULL)")
     void createVertexTable();
-    
-    
+
+
     @SqlUpdate(
-            "CREATE TABLE IF NOT EXISTS edge (" 
+            "CREATE TABLE IF NOT EXISTS edge ("
             + "id         BIGINT, "
-            + "txn_start  BIGINT DEFAULT 0 NOT NULL, " 
+            + "txn_start  BIGINT DEFAULT 0 NOT NULL, "
             + "txn_end    BIGINT DEFAULT 0 NOT NULL, "
-            + "v_out      BIGINT, " 
+            + "v_out      BIGINT, "
             + "v_in       BIGINT, "
-            + "label      VARCHAR(100), " 
+            + "label      VARCHAR(100), "
             + "edge_order BIGINT)")
     void createEdgeTable();
-    
-    
+
+
     @SqlUpdate(
-            "CREATE TABLE IF NOT EXISTS property (" 
+            "CREATE TABLE IF NOT EXISTS property ("
             + "id        BIGINT, "
-            + "txn_start BIGINT DEFAULT 0 NOT NULL, " 
+            + "txn_start BIGINT DEFAULT 0 NOT NULL, "
             + "txn_end   BIGINT DEFAULT 0 NOT NULL, "
-            + "name      VARCHAR(100), " 
+            + "name      VARCHAR(100), "
             + "type      CHAR(3), "
             + "value     BLOB)")
     void createPropertyTable();
-    
-    
+
+
     /*
      * Session tables
      */
     @SqlUpdate(
             "CREATE TABLE IF NOT EXISTS sess_vertex ("
-            + "s_id       BIGINT, " 
+            + "s_id       BIGINT, "
             + "id         BIGINT, "
-            + "txn_start  BIGINT DEFAULT 0 NOT NULL, " 
+            + "txn_start  BIGINT DEFAULT 0 NOT NULL, "
             + "txn_end    BIGINT DEFAULT 0 NOT NULL, "
             + "state      CHAR(3))")
     void createSessionVertexTable();
-    
-    
+
+
     @SqlUpdate(
-            "CREATE TABLE IF NOT EXISTS sess_edge (" 
+            "CREATE TABLE IF NOT EXISTS sess_edge ("
             + "s_id       BIGINT, "
-            + "id         BIGINT, " 
+            + "id         BIGINT, "
             + "txn_start  BIGINT DEFAULT 0 NOT NULL, "
-            + "txn_end    BIGINT DEFAULT 0 NOT NULL, " 
+            + "txn_end    BIGINT DEFAULT 0 NOT NULL, "
             + "v_out      BIGINT, "
-            + "v_in       BIGINT, " 
+            + "v_in       BIGINT, "
             + "label      VARCHAR(100), "
-            + "edge_order BIGINT, " 
+            + "edge_order BIGINT, "
             + "state      CHAR(3))")
     void createSessionEdgeTable();
-    
-    
+
+
     @SqlUpdate(
             "CREATE TABLE IF NOT EXISTS sess_property ("
-            + "s_id      BIGINT, " 
+            + "s_id      BIGINT, "
             + "id        BIGINT, "
-            + "name      VARCHAR(100), " 
+            + "name      VARCHAR(100), "
             + "type      CHAR(3), "
             + "value     BLOB)")
     void createSessionPropertyTable();
-    
-    
+
+
     @SqlUpdate(
             "CREATE TABLE IF NOT EXISTS id_generator ("
             + "id BIGINT PRIMARY KEY AUTO_INCREMENT)")
     void createIdGeneratorTable();
-    
-    
+
+
     @SqlUpdate(
             "CREATE TABLE IF NOT EXISTS transaction ("
-            + "id        BIGINT UNIQUE, " 
+            + "id        BIGINT UNIQUE, "
             + "time      BIGINT, "
-            + "user      VARCHAR(100), " 
+            + "user      VARCHAR(100), "
             + "operation TEXT)")
     void createTransactionTable();
 
-    
+
     /*
      * Main table indexes - these require review as they might need indexes.
      */
@@ -121,25 +121,25 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "ON vertex(id, txn_start)")
     void createVertexIndex();
 
-    
+
     @SqlUpdate(
             "CREATE UNIQUE INDEX unique_edge "
             + "ON edge(id, txn_start)")
     void createEdgeIndex();
 
-    
+
     @SqlUpdate(
             "CREATE UNIQUE INDEX unique_prop "
             + "ON property(id, txn_start, name)")
     void createPropertyIndex();
 
-    
+
     @SqlUpdate(
             "CREATE INDEX vert_txn_end_idx "
             + "ON vertex(txn_end)")
     void createVertexTxnEndIndex();
 
-    
+
     @SqlUpdate(
             "CREATE INDEX edge_txn_end_idx "
             + "ON edge(txn_end)")
@@ -163,25 +163,25 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "ON property(name, value(512))")
     void createPropertyNameValueIndex();
 
-    
+
     @SqlUpdate(
             "CREATE INDEX prop_txn_end_idx "
             + "ON property(txn_end)")
     void createPropertyTxnEndIndex();
 
-    
+
     @SqlUpdate(
             "CREATE INDEX edge_label_idx "
             + "ON edge(label)")
     void createEdgeLabelIndex();
 
-    
+
     @SqlUpdate(
             "CREATE INDEX edge_in_idx "
             + "ON edge(v_in)")
     void createEdgeInVertexIndex();
 
-    
+
     @SqlUpdate(
             "CREATE INDEX edge_out_idx "
             + "ON edge(v_out)")
@@ -193,29 +193,29 @@ public interface AmberDao extends Transactional<AmberDao> {
 	 * a lot of outgoing edges.
 	 */
 	@SqlUpdate(
-			"CREATE INDEX edge_in_traversal_idx " 
+			"CREATE INDEX edge_in_traversal_idx "
 			+ "ON edge(txn_end, v_in, label, edge_order, v_out)")
 	void createEdgeInTraversalIndex();
 
-	
+
 	@SqlUpdate(
 			"CREATE INDEX edge_out_traversal_idx "
 			+ "ON edge(txn_end, v_out, label, edge_order, v_in)")
 	void createEdgeOutTraversalIndex();
-    
-	
+
+
     @SqlUpdate(
             "CREATE INDEX sess_edge_idx "
             + "ON sess_edge(s_id)")
     void createSessionEdgeIndex();
 
-    
+
     @SqlUpdate(
             "CREATE INDEX sess_vertex_idx "
             + "ON sess_vertex(s_id)")
     void createSessionVertexIndex();
-    
-    
+
+
     @SqlUpdate(
             "CREATE INDEX sess_property_idx "
             + "ON sess_property(s_id)")
@@ -242,13 +242,13 @@ public interface AmberDao extends Transactional<AmberDao> {
 
     @SqlQuery(
             "SELECT (COUNT(table_name) >= 8) "
-            + "FROM information_schema.tables " 
+            + "FROM information_schema.tables "
             + "WHERE table_name IN ("
             + "  'VERTEX', 'EDGE', 'PROPERTY', "
             + "  'SESS_VERTEX', 'SESS_EDGE', 'SESS_PROPERTY', "
             + "  'ID_GENERATOR', 'TRANSACTION')")
     boolean schemaTablesExist();
-    
+
 
     /*
      * id generation operations
@@ -258,14 +258,14 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "VALUES ()")
     long newId();
 
-    
+
     @SqlUpdate("DELETE "
             + "FROM id_generator "
             + "WHERE id < :id")
     void garbageCollectIds(
             @Bind("id") long id);
 
-    
+
     /*
      * suspend/resume operations
      */
@@ -282,7 +282,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             @Bind("edgeOrder") List<Integer> edgeOrder,
             @Bind("state")     List<String>  state);
 
-    
+
     @SqlBatch("INSERT INTO sess_vertex (s_id, id, txn_start, txn_end, state) "
             + "VALUES (:sessId, :id, :txnStart, :txnEnd, :state)")
     void suspendVertices(
@@ -292,7 +292,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             @Bind("txnEnd")    List<Long>   txnEnd,
             @Bind("state")     List<String> state);
 
-    
+
     @SqlBatch("INSERT INTO sess_property (s_id, id, name, type, value) "
             + "VALUES (:sessId, :id, :name, :type, :value)")
     void suspendProperties(
@@ -302,24 +302,24 @@ public interface AmberDao extends Transactional<AmberDao> {
             @Bind("type")      List<String> type,
             @Bind("value")     List<byte[]> value);
 
-    
+
     @SqlQuery("SELECT id, name, type, value "
             + "FROM sess_property "
             + "WHERE s_id = :sessId")
     @Mapper(PropertyMapper.class)
     List<AmberProperty> resumeProperties(@Bind("sessId") Long sessId);
-    
+
 
     /* Transaction operations */
-    
-    
+
+
     @SqlQuery("SELECT id, time, user, operation "
             + "FROM transaction "
             + "WHERE id = :id")
     @Mapper(TransactionMapper.class)
     AmberTransaction getTransaction(@Bind("id") Long id);
-    
-    
+
+
     @SqlQuery("(SELECT DISTINCT t.id, t.time, t.user, t.operation "
             + "FROM transaction t, vertex v "
             + "WHERE v.id = :id "
@@ -332,8 +332,8 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "ORDER BY id")
     @Mapper(TransactionMapper.class)
     List<AmberTransaction> getTransactionsByVertexId(@Bind("id") Long id);
-    
-    
+
+
     @SqlQuery("(SELECT DISTINCT t.id, t.time, t.user, t.operation "
             + "FROM transaction t, edge e "
             + "WHERE e.id = :id "
@@ -346,22 +346,22 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "ORDER BY id")
     @Mapper(TransactionMapper.class)
     List<AmberTransaction> getTransactionsByEdgeId(@Bind("id") Long id);
-    
-    
+
+
     @SqlQuery("SELECT id, time, user, operation "
             + "FROM transaction "
-            + "WHERE id = (" 
+            + "WHERE id = ("
     		+ "  SELECT MIN(t.id) "
             + "  FROM transaction t, vertex v "
             + "  WHERE v.id = :id "
             + "  AND t.id = v.txn_start)")
     @Mapper(TransactionMapper.class)
     AmberTransaction getFirstTransactionForVertexId(@Bind("id") Long id);
-    
-    
+
+
     @SqlQuery("SELECT id, time, user, operation "
             + "FROM transaction "
-            + "WHERE id = (" 
+            + "WHERE id = ("
             + "  SELECT MIN(t.id) "
             + "  FROM transaction t, edge e "
             + "  WHERE e.id = :id "
@@ -369,10 +369,10 @@ public interface AmberDao extends Transactional<AmberDao> {
     @Mapper(TransactionMapper.class)
     AmberTransaction getFirstTransactionForEdgeId(@Bind("id") Long id);
 
-    
+
     /* Note: resume edge and vertex implemented in AmberGraph */
-    
-    
+
+
     /*
      * commit operations
      */
@@ -380,21 +380,21 @@ public interface AmberDao extends Transactional<AmberDao> {
             "INSERT INTO transaction (id, time, user, operation)" +
             "VALUES (:id, :time, :user, :operation)")
     void insertTransaction(
-            @Bind("id") long id, 
-            @Bind("time") long time, 
+            @Bind("id") long id,
+            @Bind("time") long time,
             @Bind("user") String user,
             @Bind("operation") String operation);
 
-    
+
     // The following query intentionally left blank. It's implemented in the db specific AmberDao sub classes (h2 or MySql)
     @SqlUpdate("")
     void endElements(
             @Bind("txnId") Long txnId);
 
-    
+
     @SqlUpdate("SET @txn = :txnId;\n"
-            
-            // edges            
+
+            // edges
             + "INSERT INTO edge (id, txn_start, txn_end, v_out, v_in, label, edge_order) "
             + "SELECT id, s_id, 0, v_out, v_in, label, edge_order "
             + "FROM sess_edge "
@@ -407,7 +407,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "WHERE s_id = @txn "
             + "AND state = 'MOD';\n"
 
-            // vertices            
+            // vertices
             + "INSERT INTO vertex (id, txn_start, txn_end) "
             + "SELECT id, s_id, 0 "
             + "FROM sess_vertex "
@@ -460,13 +460,13 @@ public interface AmberDao extends Transactional<AmberDao> {
 
 
     @SqlUpdate("SET @sessId = :sessId;\n" +
-    
+
             "DELETE FROM sess_vertex " +
             "WHERE s_id = @sessId;\n" +
-            
+
             "DELETE FROM sess_edge " +
             "WHERE s_id = @sessId;\n" +
-            
+
             "DELETE FROM sess_property " +
             "WHERE s_id = @sessId;\n")
     void clearSession(
