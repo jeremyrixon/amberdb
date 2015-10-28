@@ -6,10 +6,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -22,8 +20,6 @@ import org.skife.jdbi.v2.DBI;
 import amberdb.model.CameraData;
 import amberdb.model.Copy;
 import amberdb.model.Description;
-import amberdb.model.EADEntity;
-import amberdb.model.EADFeature;
 import amberdb.model.EADWork;
 import amberdb.model.File;
 import amberdb.model.GeoCoding;
@@ -35,7 +31,6 @@ import amberdb.model.Section;
 import amberdb.model.SoundFile;
 import amberdb.model.Tag;
 import amberdb.model.Work;
-import amberdb.model.AliasItem;
 import amberdb.sql.ListLu;
 import amberdb.sql.Lookups;
 import amberdb.sql.LookupsSchema;
@@ -44,7 +39,7 @@ import amberdb.graph.AmberHistory;
 import amberdb.graph.AmberMultipartQuery;
 import amberdb.graph.AmberMultipartQuery.QueryClause;
 import amberdb.graph.AmberTransaction;
-import amberdb.query.ObjectsWithPropertyReportQuery;
+
 import static amberdb.graph.BranchType.*;
 
 import com.google.common.collect.Lists;
@@ -89,8 +84,6 @@ public class AmberSession implements AutoCloseable {
                 .withClass(IPTC.class)
                 .withClass(GeoCoding.class)
                 .withClass(CameraData.class)
-                .withClass(EADEntity.class)
-                .withClass(EADFeature.class)
                 .withClass(EADWork.class)
                 .withClass(Tag.class)
                 .withClass(Party.class)
