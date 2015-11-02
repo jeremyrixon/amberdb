@@ -1,8 +1,10 @@
 package amberdb.query;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.skife.jdbi.v2.Handle;
@@ -31,7 +33,17 @@ public class WorksQuery {
         }
         return works;
     }
-
+    
+    public static Map<Long, Work> getWorksMap(AmberSession sess, List<Long> ids) {
+        Map<Long, Work> works = new HashMap<Long, Work>();
+        List<Vertex> verts = sess.getAmberGraph().newQuery(ids).execute();
+        for (Vertex v : verts) {
+            Work work = sess.getGraph().frame(v, Work.class);
+            works.put(Long.valueOf(work.getId()), work);
+        }
+        return works;
+    }
+    
     public static List<Copy> getCopiesWithWorks(AmberSession sess, List<Long> copyIds) {
         List<Copy> copies = new ArrayList<>();
         AmberQuery query = sess.getAmberGraph().newQuery(copyIds);
@@ -40,6 +52,20 @@ public class WorksQuery {
         for (Vertex v : vertices) {
             if (v.getProperty("type").equals("Copy")) {
                 copies.add(sess.getGraph().frame(v, Copy.class));
+            }
+        }
+        return copies;
+    }
+
+    public static Map<Long, Copy> getCopiesWithWorksMap(AmberSession sess, List<Long> copyIds) {
+        Map<Long, Copy> copies = new HashMap<Long, Copy>();
+        AmberQuery query = sess.getAmberGraph().newQuery(copyIds);
+        query.branch(BranchType.BRANCH_FROM_ALL, new String[] { "isCopyOf" }, Direction.OUT);
+        List<Vertex> vertices = query.execute();
+        for (Vertex v : vertices) {
+            if (v.getProperty("type").equals("Copy")) {
+                Copy copy = sess.getGraph().frame(v, Copy.class);
+                copies.put(Long.valueOf(copy.getId()), copy);
             }
         }
         return copies;
