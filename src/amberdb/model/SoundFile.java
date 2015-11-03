@@ -107,16 +107,16 @@ public interface SoundFile extends File {
     public void setSamplingRate(String samplingRate);
 
     @JavaHandler
-    public Float getDurationAsSeconds() throws Exception;
+    public Float getDurationAsSeconds();
 
     @JavaHandler
-    public void setDurationAsSeconds(Float durationAsSeconds) throws Exception;
+    public void setDurationAsSeconds(Float durationAsSeconds);
     
     @JavaHandler
     public String getDurationAsHHMMSS();
 
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, SoundFile {
-        private Pattern durationPattern = Pattern.compile("(\\d\\d+):(\\d\\d):(\\d\\d)(:\\d\\d?)?");
+
 
         @Override
         public String getDurationAsHHMMSS(){
@@ -124,49 +124,13 @@ public interface SoundFile extends File {
         }
         
         @Override
-        public Float getDurationAsSeconds() throws Exception {
-            String duration = getDuration();
-            if (duration != null && !duration.isEmpty()) {
-                Matcher matcher = durationPattern.matcher(duration);
-                int hour = 0, minute = 0, second = 0;
-                float fraction = 0;
-                if (matcher.matches()) {
-                    hour = Integer.parseInt(matcher.group(1), 10);
-                    minute = Integer.parseInt(matcher.group(2), 10);
-                    second = Integer.parseInt(matcher.group(3), 10);
-                    if (matcher.group(4) != null) {
-                        fraction = Float.parseFloat("." + matcher.group(4).substring(1));
-                    }
-                    if (minute < 60 && second < 60) {
-                        return hour * 3600 + minute * 60 + second + fraction;
-                    } else {
-                        throw new Exception("Invalid duration: " + duration);
-                    }
-                } else {
-                    throw new Exception("Invalid duration: " + duration);
-                }
-            }
-            return null;
+        public Float getDurationAsSeconds() {
+            return DurationUtils.convertDurationToSeconds(getDuration());
         }
 
         @Override
-        public void setDurationAsSeconds(Float durationAsSeconds) throws Exception {
-            if (durationAsSeconds != null && durationAsSeconds >= 0) {
-                float das = durationAsSeconds.floatValue();
-                int secs = durationAsSeconds.intValue();
-                String fractionStr = ((float)secs != das) ? ("" + das).substring(("" + das).indexOf('.') + 1) : null;
-                int hour = secs / 3600;
-                secs -= hour * 3600;
-                int minute = secs / 60;
-                int second = secs - minute * 60;
-                String duration = StringUtils.join(new String[] {StringUtils.leftPad("" + hour, 2, "0"),
-                                                                 StringUtils.leftPad("" + minute, 2, "0"),
-                                                                 StringUtils.leftPad("" + second, 2, "0")}, ":") +
-                                  ((fractionStr != null && !fractionStr.isEmpty()) ? ":" + fractionStr : "");
-                setDuration(duration);
-            } else if (durationAsSeconds != null && durationAsSeconds < 0) {
-                throw new Exception("Invalid duration: " + durationAsSeconds);
-            }
+        public void setDurationAsSeconds(Float durationAsSeconds) {
+            setDuration(DurationUtils.convertDurationFromSeconds(durationAsSeconds));
         }
     }
 }
