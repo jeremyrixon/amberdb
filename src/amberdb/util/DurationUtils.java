@@ -7,6 +7,9 @@ import org.joda.time.format.PeriodFormatterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class DurationUtils {
     
     private static final Logger log = LoggerFactory.getLogger(DurationUtils.class);
@@ -36,5 +39,50 @@ public class DurationUtils {
             log.error("Invalid duration format: " + periodHHMMSSmm);
         }
         return newDuration;
+    }
+
+    public static Float convertDurationToSeconds(String duration) {
+        Pattern durationPattern = Pattern.compile("(\\d\\d+):(\\d\\d):(\\d\\d)(:\\d\\d?)?");
+        if (duration != null && !duration.isEmpty()) {
+            Matcher matcher = durationPattern.matcher(duration);
+            int hour = 0, minute = 0, second = 0;
+            float fraction = 0;
+            if (matcher.matches()) {
+                hour = Integer.parseInt(matcher.group(1), 10);
+                minute = Integer.parseInt(matcher.group(2), 10);
+                second = Integer.parseInt(matcher.group(3), 10);
+                if (matcher.group(4) != null) {
+                    fraction = Float.parseFloat("." + matcher.group(4).substring(1));
+                }
+                if (minute < 60 && second < 60) {
+                    return hour * 3600 + minute * 60 + second + fraction;
+                } else {
+                    throw new RuntimeException("Invalid duration: " + duration);
+                }
+            } else {
+                throw new RuntimeException("Invalid duration: " + duration);
+            }
+        }
+        return 0f;
+    }
+
+    public static String convertDurationFromSeconds(Float durationAsSeconds) {
+        if (durationAsSeconds != null && durationAsSeconds >= 0) {
+            float das = durationAsSeconds.floatValue();
+            int secs = durationAsSeconds.intValue();
+            String fractionStr = ((float)secs != das) ? ("" + das).substring(("" + das).indexOf('.') + 1) : null;
+            int hour = secs / 3600;
+            secs -= hour * 3600;
+            int minute = secs / 60;
+            int second = secs - minute * 60;
+            return StringUtils.join(new String[] {StringUtils.leftPad("" + hour, 2, "0"),
+                    StringUtils.leftPad("" + minute, 2, "0"),
+                    StringUtils.leftPad("" + second, 2, "0")}, ":") +
+                    ((fractionStr != null && !fractionStr.isEmpty()) ? ":" + fractionStr : "");
+        } else if (durationAsSeconds != null && durationAsSeconds < 0) {
+            throw new RuntimeException("Invalid duration: " + durationAsSeconds);
+        }
+
+        return null;
     }
 }

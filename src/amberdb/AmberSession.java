@@ -11,6 +11,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import amberdb.graph.*;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -34,11 +35,7 @@ import amberdb.model.Work;
 import amberdb.sql.ListLu;
 import amberdb.sql.Lookups;
 import amberdb.sql.LookupsSchema;
-import amberdb.graph.AmberGraph;
-import amberdb.graph.AmberHistory;
-import amberdb.graph.AmberMultipartQuery;
 import amberdb.graph.AmberMultipartQuery.QueryClause;
-import amberdb.graph.AmberTransaction;
 
 import static amberdb.graph.BranchType.*;
 
@@ -88,6 +85,7 @@ public class AmberSession implements AutoCloseable {
                 .withClass(Tag.class)
                 .withClass(Party.class)
                 .build());
+    private List<AmberPreCommitHook> preCommitHooks = new ArrayList<>();
 
 
     /**
@@ -140,6 +138,18 @@ public class AmberSession implements AutoCloseable {
 
 
     public AmberSession(DataSource dataSource, BlobStore blobStore, Long sessionId) {
+        AmberGraph amber = init(dataSource, sessionId);
+        tempDir = null;
+
+        // DOSS
+        this.blobStore = blobStore;
+
+        // Graph
+        graph = openGraph(amber);
+    }
+
+    public AmberSession(DataSource dataSource, BlobStore blobStore, Long sessionId, List<AmberPreCommitHook> preCommitHooks) {
+        this.preCommitHooks = preCommitHooks;
 
         AmberGraph amber = init(dataSource, sessionId);
         tempDir = null;
@@ -202,7 +212,14 @@ public class AmberSession implements AutoCloseable {
      * commit saves everything in the current transaction.
      */
     public void commit() {
+        runPreCommitHooks();
         ((TransactionalGraph) graph).commit();
+    }
+
+    private void runPreCommitHooks() {
+        for (AmberPreCommitHook preCommitHook: preCommitHooks) {
+            preCommitHook.hook(getAmberGraph().getNewVertices(), getAmberGraph().getModifiedVertices(), getAmberGraph().getRemovedVertices(), this);
+        }
     }
 
 
@@ -213,6 +230,7 @@ public class AmberSession implements AutoCloseable {
      * @param why the operation they were fulfilling by commiting the transaction
      */
     public Long commit(String who, String why) {
+        runPreCommitHooks();
         return getAmberGraph().commit(who, why);
     }
 

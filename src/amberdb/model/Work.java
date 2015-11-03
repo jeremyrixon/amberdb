@@ -443,6 +443,12 @@ public interface Work extends Node {
     @Property("vendorId")
     void setVendorId(String id);
 
+    @Property("totalDuration")
+    String getTotalDuration();
+
+    @Property("totalDuration")
+    void setTotalDuration(String totalDuration);
+
     @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
     GeoCoding addGeoCoding();
 
