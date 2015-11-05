@@ -1,21 +1,17 @@
 package amberdb.model;
 
-import java.io.IOException;
-
-import java.util.*;
-
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
-
+import amberdb.DataIntegrityException;
 import amberdb.PIUtil;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberTransaction;
 import amberdb.graph.AmberVertex;
 import amberdb.relation.DescriptionOf;
 import amberdb.relation.Tags;
-
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.wrappers.wrapped.WrappedVertex;
@@ -26,11 +22,14 @@ import com.tinkerpop.frames.modules.javahandler.JavaHandler;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeField;
 
+import java.io.IOException;
+import java.util.*;
+
 @TypeField("type")
 public interface Node extends VertexFrame {
-    
+
     /**
-     * Access Conditions determine whether or not something can be 
+     * Access Conditions determine whether or not something can be
      * displayed to the public. Also known as Public Availability
      * Values: Restricted, Unrestricted, Internal access only
      */
@@ -38,34 +37,34 @@ public interface Node extends VertexFrame {
     public String getAccessConditions();
 
     /**
-     * Access Conditions determine whether or not something can be 
+     * Access Conditions determine whether or not something can be
      * displayed to the public. Also known as Public Availability
      * Values: Restricted, Unrestricted, Internal access only
      */
     @Property("accessConditions")
     public void setAccessConditions(String accessConditions);
-    
+
     /**
-     * Internal Access Conditions reflect display and access 
+     * Internal Access Conditions reflect display and access
      * for internal content management applications.
      * Values: open, restricted, closed
      */
     @Property("internalAccessConditions")
     public String getInternalAccessConditions();
-    
+
     /**
-    * Internal Access Conditions reflect display and access      
+    * Internal Access Conditions reflect display and access
     * for internal content management applications.
     * Values: open, restricted, closed
     */
     @Property("internalAccessConditions")
     public void setInternalAccessConditions(String internalAccessConditions);
-    
+
     /**
      * get the expiry date of the access conditions.
-     * @return the expiry date.  
+     * @return the expiry date.
      * Note: the expiry date is currently for display only, not enforced
-     *       for the checking of the access conditions. 
+     *       for the checking of the access conditions.
      */
     @Property("expiryDate")
     public Date getExpiryDate();
@@ -78,54 +77,54 @@ public interface Node extends VertexFrame {
      */
     @Property("expiryDate")
     public void setExpiryDate(Date expiryDate);
-    
+
     @Property("restrictionType")
     public String getRestrictionType();
 
     @Property("restrictionType")
     public void setRestrictionType(String restrictionType);
-    
+
     @Property("notes")
     public String getNotes();
 
     @Property("notes")
     public void setNotes(String notes);
-    
+
     @Property("type")
     public String getType();
-    
+
   @JavaHandler
   abstract public long getId();
-  
+
   @JavaHandler
   abstract public String getObjId();
-  
+
     /**
      * This property is encoded as a JSON Array - You probably want to use getAlias to get this property
      */
     @Property("alias")
     public String getJSONAlias();
-    
+
     /**
      * This property is encoded as a JSON Array - You probably want to use setAlias to set this property
      */
     @Property("alias")
     public void setJSONAlias(String alias);
-    
+
     /**
      * This method handles the JSON serialisation of the OtherNumbers Property
-     * @throws IOException 
-     * @throws JsonMappingException 
-     * @throws JsonParseException 
+     * @throws IOException
+     * @throws JsonMappingException
+     * @throws JsonParseException
      */
     @JavaHandler
     public void setAlias(List<String> alias) throws JsonParseException, JsonMappingException, IOException;
-    
+
     /**
      * This method handles the JSON deserialisation of the OtherNumbers Property
-     * @throws IOException 
-     * @throws JsonMappingException 
-     * @throws JsonParseException 
+     * @throws IOException
+     * @throws JsonMappingException
+     * @throws JsonParseException
      */
     @JavaHandler
     public List<String> getAlias() throws JsonParseException, JsonMappingException, IOException;
@@ -141,7 +140,7 @@ public interface Node extends VertexFrame {
 
     @Property("localSystemNumber")
     public void setLocalSystemNumber(String localSystemNumber);
-    
+
     @Property("commentsInternal")
     public String getCommentsInternal();
 
@@ -159,38 +158,38 @@ public interface Node extends VertexFrame {
 
     @JavaHandler
     public void addCommentsExternal(String comment);
-    
+
     @Adjacency(label = DescriptionOf.label, direction= Direction.IN)
     public Iterable<Description> getDescriptions();
-    
+
     @Adjacency(label = Tags.label, direction = Direction.IN)
     public Iterable<Tag> getTags();
-    
+
     @Adjacency(label = Tags.label, direction = Direction.IN)
     public void addTag(final Tag tag);
 
     @Adjacency(label = Tags.label, direction = Direction.IN)
     public void removeTag(final Tag tag);
-    
+
     @JavaHandler
     public Description getDescription(String fmt);
-    
+
     @JavaHandler
     public <T extends Description> List<T> getDescriptions(Class<T> returnClass);
-        
+
     @JavaHandler
     public AmberGraph getAmberGraph();
-    
+
     @JavaHandler
     public AmberTransaction getFirstTransaction();
-    
+
     @JavaHandler
     public AmberTransaction getLastTransaction();
-    
+
     /**
      * Set the edge-order attribute on the edge with the given label that
      * connects from this node to the adjacent node.
-     * 
+     *
      * @param adjacent
      *            The adjacent node
      * @param label
@@ -206,13 +205,13 @@ public interface Node extends VertexFrame {
     /**
      * Get the edge-order attribute on the edge with the given label that
      * connects from this node to the adjacent node.
-     * 
+     *
      * @param adjacent
      *            The adjacent node
      * @param label
      *            The label of the edge whose edge order will be returned
      * @param direction
-     *            The direction of the edge (wrt this Node) whose order will be returned  
+     *            The direction of the edge (wrt this Node) whose order will be returned
      * @return An order value or null if no edges conform to requirements
      */
     @JavaHandler
@@ -289,7 +288,7 @@ public interface Node extends VertexFrame {
             }
             return null;
         }
-        
+
         @Override
         public <T extends Description> List<T> getDescriptions(Class<T> returnClass) {
             Iterable<Description> descriptions = this.getDescriptions();
@@ -298,7 +297,7 @@ public interface Node extends VertexFrame {
             List<T> entries = new ArrayList<>();
             Iterator<Description> it = descriptions.iterator();
             while (it.hasNext()) {
-                Description next = it.next();  
+                Description next = it.next();
                 if (next.getType() != null && (next.getType().equals(returnClass.getName()) || (next.getType().equals(returnClass.getSimpleName())))) {
                     entries.add(this.g().getVertex(next.asVertex().getId(), returnClass));
                 }
@@ -307,15 +306,21 @@ public interface Node extends VertexFrame {
         }
 
         @Override
-        public List<String> getAlias() throws JsonParseException, JsonMappingException, IOException {
+        public List<String> getAlias() {
             String alias = getJSONAlias();
             if (alias == null || alias.isEmpty())
-                return new ArrayList<String>();
-            return mapper.readValue(alias, new TypeReference<List<String>>() {});
+                return new ArrayList<>();
+            try {
+                return mapper.readValue(alias, new TypeReference<List<String>>() {
+                });
+            }
+            catch (IOException e) {
+                throw new DataIntegrityException("Could not read deserialize alias", e);
+            }
         }
 
         @Override
-        public void setAlias(List<String> alias) throws JsonParseException, JsonMappingException, IOException {
+        public void setAlias(List<String> alias) throws JsonProcessingException {
             setJSONAlias(mapper.writeValueAsString(alias));
         }
 
