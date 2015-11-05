@@ -7,6 +7,7 @@ import amberdb.relation.*;
 import amberdb.util.Jp2Converter;
 import amberdb.util.PdfTransformerFop;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -182,10 +183,10 @@ public interface Copy extends Node {
     public void setJSONManipulation(String manipulation);
 
     @JavaHandler
-    public void setManipulation(List<String> manipulation) throws JsonParseException, JsonMappingException, IOException;
+    public void setManipulation(List<String> manipulation) throws JsonProcessingException;
 
     @JavaHandler
-    public List<String> getManipulation() throws JsonParseException, JsonMappingException, IOException;
+    public List<String> getManipulation();
     /**
      * This property is encoded as a JSON Hash - You probably want to use getAllOtherNumbers to get this property
      */
@@ -200,7 +201,7 @@ public interface Copy extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public Map<String, String> getAllOtherNumbers() throws JsonParseException, JsonMappingException, IOException;
+    public Map<String, String> getAllOtherNumbers();
 
     /**
      * This property is encoded as a JSON Hash - You probably want to use setAllOtherNumbers to set this property
@@ -215,7 +216,7 @@ public interface Copy extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public void setAllOtherNumbers(Map<String, String> otherNumbers) throws JsonParseException, JsonMappingException, IOException;
+    public void setAllOtherNumbers(Map<String, String> otherNumbers) throws JsonProcessingException;
 
 
     /**
@@ -547,12 +548,12 @@ public interface Copy extends Node {
         }
 
         @Override
-        public Map<String,String> getAllOtherNumbers() throws JsonParseException, JsonMappingException, IOException {
+        public Map<String,String> getAllOtherNumbers() {
 
             String otherNumbers = getOtherNumbers();
             if (otherNumbers == null || otherNumbers.isEmpty())
                 return new HashMap<String,String>();
-            return mapper.readValue(otherNumbers, new TypeReference<Map<String, String>>() { } );
+            return deserialiseJSONString(otherNumbers, new TypeReference<Map<String, String>>() { } );
 
         }
 
@@ -571,7 +572,7 @@ public interface Copy extends Node {
         }
 
         @Override
-        public void setAllOtherNumbers( Map<String,String>  otherNumbers) throws JsonParseException, JsonMappingException, IOException {
+        public void setAllOtherNumbers( Map<String,String>  otherNumbers) throws JsonProcessingException {
 
             setOtherNumbers(mapper.writeValueAsString(otherNumbers));
         }
@@ -771,15 +772,15 @@ public interface Copy extends Node {
         }
 
         @Override
-        public List<String> getManipulation() throws JsonParseException, JsonMappingException, IOException {
+        public List<String> getManipulation() {
             String manipulation = getJSONManipulation();
             if (manipulation == null || manipulation.isEmpty())
                 return new ArrayList<String>();
-            return mapper.readValue(manipulation, new TypeReference<List<String>>() {});
+            return deserialiseJSONString(manipulation, new TypeReference<List<String>>() {});
         }
 
         @Override
-        public void setManipulation(List<String> manipulation) throws JsonParseException, JsonMappingException, IOException {
+        public void setManipulation(List<String> manipulation) throws JsonProcessingException {
             setJSONManipulation(mapper.writeValueAsString(manipulation));
         }
 

@@ -4,6 +4,7 @@ import amberdb.AmberSession;
 import amberdb.relation.DescriptionOf;
 import amberdb.relation.IsFileOf;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -147,7 +148,7 @@ public interface File extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public List<Long> getToolId() throws JsonParseException, JsonMappingException, IOException;
+    public List<Long> getToolId();
 
     /**
      * This method handles the JSON serialisation of the toolId Property
@@ -156,7 +157,7 @@ public interface File extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public void setToolId(List<Long> toolId) throws JsonParseException, JsonMappingException, IOException;
+    public void setToolId(List<Long> toolId) throws JsonProcessingException;
 
     /*
      * Fields migrated from DCM
@@ -259,15 +260,15 @@ public interface File extends Node {
         }
 
         @Override
-        public List<Long> getToolId() throws JsonParseException, JsonMappingException, IOException {
+        public List<Long> getToolId() {
             String toolId = getJSONToolId();
             if (toolId == null || toolId.isEmpty())
                 return new ArrayList<Long>();
-            return mapper.readValue(toolId, new TypeReference<List<Long>>() {});
+            return deserialiseJSONString(toolId, new TypeReference<List<Long>>() {});
         }
 
         @Override
-        public void setToolId(List<Long> toolId) throws JsonParseException, JsonMappingException, IOException {
+        public void setToolId(List<Long> toolId) throws JsonProcessingException {
             setJSONToolId(mapper.writeValueAsString(toolId));
         }
     }

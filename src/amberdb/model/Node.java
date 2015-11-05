@@ -217,9 +217,6 @@ public interface Node extends VertexFrame {
     @JavaHandler
     public Integer getOrder(Node adjacent, String label, Direction direction);
 
-    // TODO amuller This may need to be implemented to return the set of properties that cannot be set.
-    // I haven't done this because I couldn't think of a reasonable way of doing this that did not involve
-    // reflection and messyness.
     /**
      * Get the set of keys for properties that are set on this object.
      *
@@ -310,18 +307,13 @@ public interface Node extends VertexFrame {
             String alias = getJSONAlias();
             if (alias == null || alias.isEmpty())
                 return new ArrayList<>();
-            try {
-                return mapper.readValue(alias, new TypeReference<List<String>>() {
-                });
-            }
-            catch (IOException e) {
-                throw new DataIntegrityException("Could not read deserialize alias", e);
-            }
+
+            return deserialiseJSONString(alias);
         }
 
         @Override
         public void setAlias(List<String> alias) throws JsonProcessingException {
-            setJSONAlias(mapper.writeValueAsString(alias));
+            setJSONAlias(serialiseToJSON(alias));
         }
 
         @Override
@@ -387,6 +379,27 @@ public interface Node extends VertexFrame {
         @Override
         public Set<String> getPropertyKeySet() {
             return this.asVertex().getPropertyKeys();
+        }
+
+        protected List<String> deserialiseJSONString(String json) {
+            if (json == null || json.isEmpty())
+                return new ArrayList<>();
+            return deserialiseJSONString(json, new TypeReference<List<String>>() {
+            });
+        }
+
+        protected <T> T deserialiseJSONString(String json, TypeReference<T> typeReference) {
+            try {
+                return mapper.readValue(json, typeReference);
+            }
+            catch (IOException e) {
+                throw new DataIntegrityException("Could not deserialize property", e);
+            }
+        }
+
+        protected String serialiseToJSON(Collection<String> list) throws JsonProcessingException {
+            if (list == null || list.isEmpty()) return null;
+            return mapper.writeValueAsString(list);
         }
     }
 }
