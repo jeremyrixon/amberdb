@@ -219,27 +219,6 @@
       <version>1.1</version>
     </dependency>
     <dependency>
-      <groupId>org.neo4j</groupId>
-      <artifactId>neo4j</artifactId>
-      <version>2.1.7</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.neo4j</groupId>
-          <artifactId>neo4j-udc</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.neo4j</groupId>
-      <artifactId>neo4j-graph-algo</artifactId>
-      <version>2.1.7</version>
-    </dependency>
-    <dependency>
-      <groupId>org.neo4j</groupId>
-      <artifactId>neo4j-cypher</artifactId>
-      <version>2.1.7</version>
-    </dependency>
-    <dependency>
         <groupId>joda-time</groupId>
         <artifactId>joda-time</artifactId>
         <version>2.7</version>
