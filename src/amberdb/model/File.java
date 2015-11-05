@@ -1,5 +1,23 @@
 package amberdb.model;
 
+import amberdb.AmberSession;
+import amberdb.relation.DescriptionOf;
+import amberdb.relation.IsFileOf;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.frames.Adjacency;
+import com.tinkerpop.frames.Property;
+import com.tinkerpop.frames.modules.javahandler.JavaHandler;
+import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
+import com.tinkerpop.frames.modules.typedgraph.TypeValue;
+import doss.*;
+import doss.core.Writables;
+import doss.local.LocalBlobStore;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.SeekableByteChannel;
@@ -7,31 +25,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
-
-import amberdb.AmberSession;
-import amberdb.relation.IsFileOf;
-import amberdb.relation.DescriptionOf;
-
-import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.frames.Adjacency;
-import com.tinkerpop.frames.Property;
-import com.tinkerpop.frames.modules.javahandler.JavaHandler;
-import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
-import com.tinkerpop.frames.modules.typedgraph.TypeValue;
-
-import doss.Blob;
-import doss.BlobStore;
-import doss.BlobTx;
-import doss.NoSuchBlobException;
-import doss.Writable;
-import doss.core.Writables;
-import doss.local.LocalBlobStore;
 
 @TypeValue("File")
 public interface File extends Node {
@@ -47,7 +40,7 @@ public interface File extends Node {
 
     @Property("mimeType")
     public String getMimeType();
-    
+
     /**
      * Name of the original file upload
      */
@@ -56,43 +49,43 @@ public interface File extends Node {
 
     @Property("fileName")
     public String getFileName();
-    
+
     @Property("fileFormat")
     public void setFileFormat(String fileFormat);
 
     @Property("fileFormat")
     public String getFileFormat();
-    
+
     @Property("fileFormatVersion")
     public void setFileFormatVersion(String fileFormatVersion);
 
     @Property("fileFormatVersion")
     public String getFileFormatVersion();
-    
+
     @Property("fileSize")
     public void setFileSize(long fileSize);
 
     @JavaHandler
     public long getFileSize();
-    
+
     @Property("compression")
     public void setCompression(String compression);
 
     @Property("compression")
     public String getCompression();
-    
+
     @Property("checksum")
     public void setChecksum(String checksum);
 
     @Property("checksum")
     public String getChecksum();
-    
+
     @Property("checksumType")
     public void setChecksumType(String checksumType);
 
     @Property("checksumType")
     public String getChecksumType();
-    
+
     /**
      * Set the date/time that the checksum was generated.
      */
@@ -104,37 +97,37 @@ public interface File extends Node {
      */
     @Property("checksumGenerationDate")
     public Date getChecksumGenerationDate();
-    
+
     @Property("device")
     public String getDevice();
-    
+
     @Property("device")
     public void setDevice(String device);
-    
+
     @Property("deviceSerialNumber")
     public String getDeviceSerialNumber();
 
     @Property("deviceSerialNumber")
     public void setDeviceSerialNumber(String deviceSerialNumber);
-    
+
     @Property("software")
     public String getSoftware();
-    
+
     @Property("software")
     public void setSoftware(String software);
-    
+
     @Property("softwareSerialNumber")
     public String getSoftwareSerialNumber();
-    
+
     @Property("softwareSerialNumber")
     public void setSoftwareSerialNumber(String softwareSerialNumber);
-    
+
     @Property("encoding")
     public String getEncoding();
-    
+
     @Property("encoding")
     public void setEncoding(String encoding);
-    
+
     /**
      * This property is encoded as a JSON Array - You probably want to use getToolId to get this property
      */
@@ -164,16 +157,16 @@ public interface File extends Node {
      */
     @JavaHandler
     public void setToolId(List<Long> toolId) throws JsonParseException, JsonMappingException, IOException;
-    
+
     /*
      * Fields migrated from DCM
      */
     @Property("dcmCopyPid")
     public String getDcmCopyPid();
-    
+
     @Property("dcmCopyPid")
     public void setDcmCopyPid(String dcmCopyPid);
-   
+
     @Adjacency(label = IsFileOf.label)
     public Copy getCopy();
 
@@ -211,15 +204,15 @@ public interface File extends Node {
             }
             return getBlobStore().get(getBlobId());
         }
-        
+
         @Override
         public long getFileSize() {
             Long fileSize = this.asVertex().getProperty("fileSize");
-            return (fileSize == null)? 0L : fileSize;  
+            return (fileSize == null)? 0L : fileSize;
         }
-        
+
         /**
-         * Return the size of the blob. If an exception occurs try and 
+         * Return the size of the blob. If an exception occurs try and
          * return the fileSize property. If that fails, return 0L.
          */
         @Override
