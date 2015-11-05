@@ -8,11 +8,15 @@ import java.util.List;
 
 public class InteractiveIndexCopy {
     private String html;
+    private int width;
+    private int height;
     private List<SiblingEditions> siblingEditionsList = new ArrayList<>();
     private List<InteractiveArea> areas = new ArrayList<>();
 
-    public InteractiveIndexCopy(String html) {
+    public InteractiveIndexCopy(String html, int width, int height) {
         this.html = html;
+        this.width = width;
+        this.height = height;
     }
 
     public InteractiveIndexCopy(){
@@ -25,6 +29,23 @@ public class InteractiveIndexCopy {
 
     public void setHtml(String html) {
         this.html = html;
+    }
+
+    
+    public int getWidth() {
+        return width;
+    }
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
     }
 
     public List<InteractiveArea> getAreas() {
