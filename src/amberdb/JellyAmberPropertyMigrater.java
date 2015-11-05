@@ -1,28 +1,25 @@
 package amberdb;
 
-import java.io.UnsupportedEncodingException;
-import java.util.List;
-import java.util.Map;
-
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
+import amberdb.graph.AmberGraph;
+import amberdb.graph.AmberProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Vertex;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import amberdb.graph.AmberGraph;
-import amberdb.graph.AmberProperty;
-
-
-import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Vertex;
+import java.io.UnsupportedEncodingException;
+import java.util.List;
+import java.util.Map;
 
 /**
- * 
+ *
  * A class to migrate jelly properties to amber db properties and check some results.
- * Can likely be thrown away in the near future. 
+ * Can likely be thrown away in the near future.
  *
  */
 public class JellyAmberPropertyMigrater {
@@ -35,21 +32,21 @@ public class JellyAmberPropertyMigrater {
         ds.setServerName("snowy.nla.gov.au");
         ds.setPort(6446);
         ds.setDatabaseName("dlir");
-        
+
         //getPropertiesFromDescription(ds);
-        
+
         testGraph(ds);
-        
+
     }
-    
+
     public static void testGraph(MysqlDataSource pers) {
         AmberGraph g = new AmberGraph(pers);
-        
+
         Vertex v1 = g.getVertex(179722129L);
         s(showVertex(v1));
-        
+
         Iterable<Vertex> vs = v1.getVertices(Direction.IN);
-        
+
         for (Vertex v : vs) {
             s(showVertex(v));
         }
@@ -63,20 +60,20 @@ public class JellyAmberPropertyMigrater {
         }
         return sb.toString();
     }
-    
+
     public static void getPropertiesFromDescription(MysqlDataSource ds) throws UnsupportedEncodingException {
-        
+
         DBI conn = new DBI(ds);
-        
+
         Handle h = conn.open();
-        
+
         List<Map<String,Object>> result = h.select("SELECT id, value FROM property WHERE name = 'description'");
-        
+
         for (Map row : result) {
             Long id = (Long) row.get("id");
             String buff = new String((byte[]) row.get("value"), "UTF-8");
             s("" + id + ":" + buff);
-            
+
             try {
 
                 ObjectMapper mapper = new ObjectMapper();
@@ -88,7 +85,7 @@ public class JellyAmberPropertyMigrater {
                     String type = "STR";
                     if (val instanceof Integer) type = "INT";
                     byte[] v = AmberProperty.encode(val);
-                    
+
                     h.createStatement("INSERT INTO property (id, txn_start, txn_end, type, name, value) VALUES (:id, 111, 0, :type, :name, :value)")
                         .bind("id", id)
                         .bind("type", type)
@@ -96,15 +93,15 @@ public class JellyAmberPropertyMigrater {
                         .bind("value", v)
                         .execute();
                 }
-                
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        h.close();        
-        
+        h.close();
+
     }
-    
+
     public static void s(String s) {
         log.info(s);
     }

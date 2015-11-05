@@ -3,7 +3,7 @@
 
   <groupId>au.gov.nla</groupId>
   <artifactId>amberdb</artifactId>
-  <version>1.6.2-SNAPSHOT</version>
+  <version>1.6.3-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>amberdb</name>
   <description>Digital library domain model</description>
@@ -157,16 +157,6 @@
       <version>${jackson.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-core-asl</artifactId>
-      <version>1.9.13</version>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-mapper-asl</artifactId>
-      <version>1.9.13</version>
-    </dependency>
-        <dependency>
       <groupId>javax.persistence</groupId>
       <artifactId>persistence-api</artifactId>
       <version>1.0.2</version>
