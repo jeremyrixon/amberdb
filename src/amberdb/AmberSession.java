@@ -678,6 +678,7 @@ public class AmberSession implements AutoCloseable {
         party.setName(name);
         party.setOrgUrl(orgUrl);
         party.setLogoUrl(logoUrl);
+        party.setSuppressed(false);
         return party;
     }
 
