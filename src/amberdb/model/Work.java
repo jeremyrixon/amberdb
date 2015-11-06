@@ -740,30 +740,6 @@ public interface Work extends Node {
     @JavaHandler
     List<String> getScaleEtc();
 
-    @Property("west")
-    String getWest();
-
-    @Property("west")
-    void setWest(String west);
-
-    @Property("east")
-    String getEast();
-
-    @Property("east")
-    void setEast(String east);
-
-    @Property("north")
-    String getNorth();
-
-    @Property("north")
-    void setNorth(String north);
-
-    @Property("south")
-    String getSouth();
-
-    @Property("south")
-    void setSouth(String south);
-
     @Property("tilePosition")
     String getTilePosition();
 
@@ -1196,6 +1172,24 @@ public interface Work extends Node {
 
     @JavaHandler
     boolean hasImageAccessCopy();
+
+    @Property("coordinates")
+    void setJSONCoordinates(String coordinates);
+
+    @Property("coordinates")
+    String getJSONCoordinates();
+
+    @JavaHandler
+    void addCoordinates(Coordinates coordinates) throws JsonProcessingException;
+
+    @JavaHandler
+    void setCoordinates(List<Coordinates> coordinatesList) throws JsonProcessingException;
+
+    @JavaHandler
+    List<Coordinates> getAllCoordinates();
+
+    @JavaHandler
+    Coordinates getCoordinates(int index);
 
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {
         static ObjectMapper mapper = new ObjectMapper();
@@ -1775,6 +1769,30 @@ public interface Work extends Node {
             }
 
             return orderedCopies.get(index);
+        }
+
+        @Override
+        public Coordinates getCoordinates(int index) {
+            List<Coordinates> allCoordinates = getAllCoordinates();
+            return allCoordinates.get(index);
+        }
+
+        @Override
+        public void addCoordinates(Coordinates coordinates) throws JsonProcessingException {
+            List<Coordinates> allCoordinates = getAllCoordinates();
+            allCoordinates.add(coordinates);
+            setCoordinates(allCoordinates);
+        }
+
+        @Override
+        public void setCoordinates(List<Coordinates> coordinatesList) throws JsonProcessingException {
+            setJSONCoordinates(mapper.writeValueAsString(coordinatesList));
+        }
+
+        @Override
+        public List<Coordinates> getAllCoordinates() {
+            String json = getJSONCoordinates();
+            return deserialiseJSONString(json, new TypeReference<List<Coordinates>>() {});
         }
     }
 }
