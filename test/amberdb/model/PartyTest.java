@@ -121,4 +121,18 @@ public class PartyTest {
         assertEquals(party2, party1);
         sess2.close();
     }
+    
+    @Test
+    public void shouldSuppressAParty() {
+        Party party1 = sess.addParty("BBC Suppress", "http://www.bbc.com/", null);
+        party1.setSuppressed(true);
+        sess.commit("whoami", "testing findParty");
+        
+        AmberSession session = db.begin();
+        Party p2 = session.findModelObjectById(party1.getId(), Party.class);
+        assertEquals(p2,party1);
+        Party party = session.findParty(party1.getName());
+        assertNotNull(party);
+        assertEquals(party.isSuppressed(), true);        
+    }
 }
