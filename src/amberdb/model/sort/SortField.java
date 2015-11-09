@@ -3,8 +3,12 @@ package amberdb.model.sort;
 public enum SortField {
 
     ALIAS ("alias", "Alias"),
+    SUBUNIT_NUMBER ("subUnitNo", "Sub unit number"),
     SHEET_NAME ("sheetName", "Sheet Name"),
-    ISSUE_DATE ("issueDate", "Issue Date");
+    ISSUE_DATE ("issueDate", "Issue Date"), 
+    DIGITAL_STATUS ("digitalStatus", "Capture status"),
+    SUBUNIT_TYPE ("subUnitType", "Sub unit type"),
+    ACCESS_CONDITIONS ("accessConditions", "Public availability");
 
     private SortField(String fieldName, String displayName) {
         this.fieldName = fieldName;
