@@ -74,11 +74,7 @@ public class Coordinates {
 
     @Override
     public String toString() {
-        return "Coordinates{" +
-                "north='" + north + '\'' +
-                ", south='" + south + '\'' +
-                ", east='" + east + '\'' +
-                ", west='" + west + '\'' +
-                '}';
+        return "north: " + north + ", south: " + south
+                + ", east: " + east + ", west: " + west;
     }
 }
