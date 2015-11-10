@@ -43,7 +43,7 @@ public class PartyTest {
     @Test
     public void shouldNotAddPartyWithoutName() throws Exception {
         Party party = sess.addParty(null);
-        assertNull(party);        
+        assertNull(party);
     }
 
     @Test
@@ -69,19 +69,20 @@ public class PartyTest {
         assertEquals(party.getOrgUrl(), orgUrl);
         assertEquals(party.getLogoUrl(), logoUrl);
     }
-    
+
     @Test
-    public void shouldReturnAllParties() throws Exception{        
+    public void shouldReturnAllParties() throws Exception {
         Party addParty1 = sess.addParty("BBC", "http://www.bbc.com/", null);
         Party addParty2 = sess.addParty("ABC", "http://www.abc.net.au/", "http://www.abc.net.au/homepage/2013/styles/img/abc.png");
         Party addParty3 = sess.addParty("Department of Something");
         sess.commit("whoami", "testing getAllparties");
-        AmberSession session = db.begin();
-        Iterable<Party> parties = session.getAllParties();       
-        assertTrue(Iterables.size(parties) >= 3);
-        Iterables.contains(parties, addParty1);
-        Iterables.contains(parties, addParty2);
-        Iterables.contains(parties, addParty3);
+        try (AmberSession session = db.begin()) {
+            Iterable<Party> parties = session.getAllParties();
+            assertTrue(Iterables.size(parties) >= 3);
+            Iterables.contains(parties, addParty1);
+            Iterables.contains(parties, addParty2);
+            Iterables.contains(parties, addParty3);
+        }
     }
 
     @Test
@@ -94,45 +95,47 @@ public class PartyTest {
     public void shouldFindAParty() throws Exception {
         String name = "Coding Horror";
         String url = "http://blog.codinghorror.com/";
-        
+
         Party party1 = sess.findParty(name);
         assertNull(party1);
-        party1 = sess.addParty(name, url, null);  
+        party1 = sess.addParty(name, url, null);
         assertNotNull(party1);
         sess.commit("whoami", "testing findParty");
-       
-        AmberSession session = db.begin();
-        Party p2 = session.findModelObjectById(party1.getId(), Party.class);
-        assertEquals(p2,party1);
-        Party party = session.findParty(name);
-        
-        assertNotNull(party);
-        assertEquals(party.getName(), name);
-        assertEquals(party.getOrgUrl(), url);
-        assertEquals(party.getLogoUrl(), null);
+
+        try (AmberSession session = db.begin()) {
+            Party p2 = session.findModelObjectById(party1.getId(), Party.class);
+            assertEquals(p2, party1);
+            Party party = session.findParty(name);
+
+            assertNotNull(party);
+            assertEquals(party.getName(), name);
+            assertEquals(party.getOrgUrl(), url);
+            assertEquals(party.getLogoUrl(), null);
+        }
     }
-    
+
     @Test
     public void shouldReturnPartyById() throws IOException {
-        Party party1 = sess.addParty("Unknown"); 
+        Party party1 = sess.addParty("Unknown");
         Long sessId = sess.suspend();
-        AmberSession sess2 = db.resume(sessId);
-        Party party2 = sess2.findModelObjectById(party1.getId(), Party.class);
-        assertEquals(party2, party1);
-        sess2.close();
+        try (AmberSession sess2 = db.resume(sessId)) {
+            Party party2 = sess2.findModelObjectById(party1.getId(), Party.class);
+            assertEquals(party2, party1);
+        }
     }
-    
+
     @Test
-    public void shouldSuppressAParty() {
+    public void shouldSuppressAParty() throws IOException {
         Party party1 = sess.addParty("BBC Suppress", "http://www.bbc.com/", null);
         party1.setSuppressed(true);
         sess.commit("whoami", "testing findParty");
-        
-        AmberSession session = db.begin();
-        Party p2 = session.findModelObjectById(party1.getId(), Party.class);
-        assertEquals(p2,party1);
-        Party party = session.findParty(party1.getName());
-        assertNotNull(party);
-        assertEquals(party.isSuppressed(), true);        
+
+        try (AmberSession session = db.begin()) {
+            Party p2 = session.findModelObjectById(party1.getId(), Party.class);
+            assertEquals(p2, party1);
+            Party party = session.findParty(party1.getName());
+            assertNotNull(party);
+            assertEquals(party.isSuppressed(), true);
+        }
     }
 }
