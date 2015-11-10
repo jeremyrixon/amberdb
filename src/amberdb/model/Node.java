@@ -389,6 +389,7 @@ public interface Node extends VertexFrame {
         }
 
         protected <T> T deserialiseJSONString(String json, TypeReference<T> typeReference) {
+
             try {
                 return mapper.readValue(json, typeReference);
             }

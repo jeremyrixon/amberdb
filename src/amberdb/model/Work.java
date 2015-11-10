@@ -740,30 +740,6 @@ public interface Work extends Node {
     @JavaHandler
     List<String> getScaleEtc();
 
-    @Property("west")
-    String getWest();
-
-    @Property("west")
-    void setWest(String west);
-
-    @Property("east")
-    String getEast();
-
-    @Property("east")
-    void setEast(String east);
-
-    @Property("north")
-    String getNorth();
-
-    @Property("north")
-    void setNorth(String north);
-
-    @Property("south")
-    String getSouth();
-
-    @Property("south")
-    void setSouth(String south);
-
     @Property("tilePosition")
     String getTilePosition();
 
@@ -1816,6 +1792,9 @@ public interface Work extends Node {
         @Override
         public List<Coordinates> getAllCoordinates() {
             String json = getJSONCoordinates();
+            if (json == null || json.isEmpty()) {
+                return new ArrayList<>();
+            }
             return deserialiseJSONString(json, new TypeReference<List<Coordinates>>() {});
         }
     }
