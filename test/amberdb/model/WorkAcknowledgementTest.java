@@ -60,7 +60,7 @@ public class WorkAcknowledgementTest extends AbstractDatabaseIntegrationTest {
                 assertEquals(ack.getKindOfSupport(), kindOfSupport);
                 assertEquals(ack.getWeighting(), weighting);
                 assertEquals(ack.getDate(), date);
-                assertEquals(ack.getUrlToOriginial(), url);
+                assertEquals(ack.getUrlToOriginal(), url);
             }
         }
     }
@@ -88,7 +88,7 @@ public class WorkAcknowledgementTest extends AbstractDatabaseIntegrationTest {
         assertEquals(ack.getKindOfSupport(), kindOfSupport);
         assertEquals(ack.getWeighting(), weighting);
         assertEquals(ack.getDate(), date);
-        assertEquals(ack.getUrlToOriginial(), url);
+        assertEquals(ack.getUrlToOriginal(), url);
 
         Acknowledge ack1 = w.addAcknowledgement(party, type1, kindOfSupport1, weighting1, date1, url1);
         assertNotNull(ack1);
@@ -96,7 +96,7 @@ public class WorkAcknowledgementTest extends AbstractDatabaseIntegrationTest {
         assertEquals(ack1.getKindOfSupport(), kindOfSupport1);
         assertEquals(ack1.getWeighting(), weighting1);
         assertEquals(ack1.getDate(), date1);
-        assertEquals(ack1.getUrlToOriginial(), url1);
+        assertEquals(ack1.getUrlToOriginal(), url1);
 
         // check edge id and directions
         Edge edge = ack.asEdge();
