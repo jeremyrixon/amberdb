@@ -470,7 +470,7 @@ public interface Work extends Node {
 
     @JavaHandler
     Acknowledge addAcknowledgement(final Party party, final String ackType, final String kindOfSupport,
-            final Double weighting, final Date dateOfAck, final String urlToOriginial);
+            final Double weighting, final Date dateOfAck, final String urlToOriginal);
 
     @JavaHandler
     List<Acknowledge> getOrderedAcknowledgements();
