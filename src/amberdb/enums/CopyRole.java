@@ -8,12 +8,12 @@ import java.util.List;
 import java.util.TreeMap;
 import amberdb.model.Copy;
 
-/** 
+/**
  * CopyRole ENUM that provides a code and label for display.
- * 
+ *
  * the details for 0-12th copy roles must not be changed.
- * the 13 - 47 copy roles are in alphabetical order, this 
- * must be maintained at all time when a new copy role is 
+ * the 13 - 47 copy roles are in alphabetical order, this
+ * must be maintained at all time when a new copy role is
  * added.
  */
 public enum CopyRole {
@@ -23,8 +23,8 @@ public enum CopyRole {
     CO_MASTER_COPY("c", "Co-master",3, false),
     DIGITAL_DISTRIBUTION_COPY("d", "Digital distribution",4, false),
     RELATED_METADATA_COPY("rm", "Related metadata",5, false),
-    SUMMARY_COPY("s", "Other Summary", "No",6, false),
-    TRANSCRIPT_COPY("tr", "Other Transcript", "No",7, false),
+    SUMMARY_COPY("s", "Other summary", "No",6, false),
+    TRANSCRIPT_COPY("tr", "Other transcript", "No",7, false),
     LISTENING_1_COPY("l1", "Listening 1",8, false),
     LISTENING_2_COPY("l2", "Listening 2",9, false),
     LISTENING_3_COPY("l3", "Listening 3",10, false),
@@ -33,7 +33,7 @@ public enum CopyRole {
     ACCESS_COPY("ac", "Access",130, false),
     ARCHIVE_COPY("a", "Archive",140, false),
     EDITED_COPY("ed", "Edited",150, false),
-    ELECTRONIC_SUMMARY("se", "Electronic Summary", "No",160, false),
+    ELECTRONIC_SUMMARY("se", "Electronic summary", "No",160, false),
     ELECTRONIC_TRANSCRIPT("te", "Electronic transcript", "No",170, false),
     EXAMINATION_COPY("e", "Examination",180, false),
     FILTERED_COPY("fc", "Filtered",190, false),
@@ -41,15 +41,16 @@ public enum CopyRole {
     FINDING_AID_SUPPLEMENTARY_COPY("fas", "Finding aid supplementary",201, true),
     FINDING_AID_PRINT_COPY("fap", "Finding aid print",210, false),
     FINDING_AID_VIEW_COPY("fav", "Finding aid view",220, false),
-    FLIGHT_DIAGRAM_COPY ("fd", "Flight Diagram", 230, false),
-    IMAGE_PACKAGE("ip", "Image Package",240, false),
+    FLIGHT_DIAGRAM_COPY ("fd", "Flight diagram", 230, false),
+    IMAGE_PACKAGE("ip", "Image package",240, false),
     INDEX_COPY ("i", "Index", 250, false),
     LIST_COPY("dl", "List",260, false),
+    MASTER_ANALOGUE_COPY("ma", "Master analogue",269, false),
     MICROFORM_COPY("mf", "Microform",270, false),
     OCR_METS_COPY("mt", "OCR mets",280, false),
     OCR_ALTO_COPY("at", "OCR alto",290, false),
     OCR_JSON_COPY("oc", "OCR json",300, false),
-    PAPER_SUMMARY("sp", "Paper Summary", "No",310, false),
+    PAPER_SUMMARY("sp", "Paper summary", "No",310, false),
     PAPER_TRANSCRIPT("tp", "Paper transcript", "No",320, false),
     PRINT_COPY("p", "Print",330, false),
     PRODUCTION_MASTER_AUDIO_LEFT_COPY("pmal", "Production master audio left",340, false),
@@ -63,25 +64,28 @@ public enum CopyRole {
     QUICKTIME_REF_4_COPY("rb4", "QuickTime reference 4",400, false),
     REAL_MEDIA_FILE_COPY("sa1", "RealMedia file",410, false),
     REAL_MEDIA_REF_COPY("ra1", "RealMedia reference",420, false),
-    RTF_TRANSCRIPT("tt", "rtf transcript", "No",430, false),
+    RTF_TRANSCRIPT("tt", "RTF transcript", "No",430, false),
+    SECOND_COPY("so", "Second copy",439, false),
     SPECIAL_DELIVERY_COPY("sd", "Special delivery",440, false),
     STRUCTURAL_MAP_COPY("sm", "Structural map",450, false),
     THUMBNAIL_COPY("t", "Thumbnail",460, false),
-    TIME_CODED_SUMMARY("sc", "Time coded Summary", "Yes",470, false),
+    TIME_CODED_SUMMARY("sc", "Time coded summary", "Yes",470, false),
     TIME_CODED_TRANSCRIPT_COPY("tc", "Time coded transcript", "Yes",480, false),
+    UNKNOWN_COPY ("u", "Unknown", 485, false),
     VIEW_COPY("v", "View",490, false),
     VISUAL_NAVIGATION_DELIVERY_COPY ("vn", "Visual navigation delivery", 500, false);
-	
+
+
     private String code;
     private String display;
     private String timed;
     private Integer order;
     private boolean supportMultipleCopies;
-    
+
     private CopyRole(String code, String display, Integer order, boolean supportMultipleCopies) {
         this(code, display, null, order, supportMultipleCopies);
     }
-    
+
     private CopyRole(String code, String display, String timed, Integer order, boolean supportMultipleCopies) {
         this.code = code;
         this.display = display;
@@ -112,7 +116,7 @@ public enum CopyRole {
     public String timed() {
         return this.timed;
     }
-    
+
     public int ord() {
         return this.order;
     }
@@ -136,7 +140,7 @@ public enum CopyRole {
      * Returns a List of <STRONG>CopyRole</STRONG> objects that have been sorted
      * alphabetically by the CopyRole.value
      */
-    public static List<CopyRole> listAlphabetically() {                      
+    public static List<CopyRole> listAlphabetically() {
         List<CopyRole> list = new ArrayList<CopyRole>();
         for (CopyRole c : CopyRole.values()) {
             list.add(c);
@@ -155,7 +159,9 @@ public enum CopyRole {
         TreeMap<Integer, String> rearranged = new TreeMap<>();
         for (String copyRoleStr : copyRoles) {
             CopyRole copyRole = CopyRole.fromString(copyRoleStr);
-            rearranged.put(copyRole.ord(), copyRoleStr);
+            if (copyRole != null) {
+                rearranged.put(copyRole.ord(), copyRoleStr);
+            }
         }
         return rearranged.values();
     }

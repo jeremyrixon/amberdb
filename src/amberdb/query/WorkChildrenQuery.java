@@ -8,11 +8,9 @@ import amberdb.graph.DataType;
 import amberdb.model.Section;
 import amberdb.model.Work;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import amberdb.model.sort.WorkComparator;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.util.ByteArrayMapper;
 import org.skife.jdbi.v2.util.IntegerMapper;
@@ -58,9 +56,21 @@ public class WorkChildrenQuery extends AmberQueryBase {
         descInList = "(X'" + StringUtils.join(new String[] {hex.get("Description"), hex.get("CameraData"), hex.get("EADEntity"), 
                 hex.get("EADFeature"), hex.get("GeoCoding"), hex.get("IPTC")}, "', X'") + "')";
     }
-
     
-    public List<Work> getChildRange(Long workId, int start, int num) {
+    public List<Work> getChildRangeSorted(Long workId, int start, int num, String sortPropertyName, boolean sortForward) {
+        if (StringUtils.isBlank(sortPropertyName)){
+            return getChildRange(workId, start, num);
+        }
+        List<Work> children = getChildren(getAddChildrenWorkSortBySql(workId, start, num, sortPropertyName, sortForward));
+        Collections.sort(children, new WorkComparator(sortPropertyName, sortForward));    
+        return children;
+    }
+    
+    public List<Work> getChildRange(Long workId, int start, int num){
+        return getChildren(getAddChildrenWorksSql(workId, start, num));
+    }
+    
+    private List<Work> getChildren(String addChildrenWorksSql) {
 
         StringBuilder s = new StringBuilder();
         List<Work> children =  new ArrayList<>();
@@ -76,19 +86,7 @@ public class WorkChildrenQuery extends AmberQueryBase {
             "CREATE TEMPORARY TABLE v2 (id BIGINT, obj_type CHAR(1), ord BIGINT)" + tEngine + "; \n");
         
         // add children Works excluding Sections with the limits specified on the range returned
-        s.append(
-            "INSERT INTO v1 (id, obj_type, ord) \n" +
-            "SELECT DISTINCT v.id, 'W', e.edge_order \n" +
-            "FROM vertex v, edge e, property p \n" +
-            "WHERE v.txn_end = 0 AND e.txn_end = 0 AND p.txn_end = 0 \n" +
-            " AND e.v_in = "+workId+" \n" +
-            " AND e.v_out = v.id \n" +
-            " AND e.label = 'isPartOf' \n" +
-            " AND p.id = v.id \n" +
-            " AND p.name = 'type' \n" + 
-            " AND p.value IN " + workNotSectionInList + " \n" +
-            " ORDER BY e.edge_order \n" +
-            " LIMIT "+start+","+num+"; \n");
+        s.append(addChildrenWorksSql);
         
         // get their copies
         s.append(
@@ -164,7 +162,40 @@ public class WorkChildrenQuery extends AmberQueryBase {
         }
         return children;
     }
+
+    private String getAddChildrenWorksSql(Long workId, int start, int num) {
+        return "INSERT INTO v1 (id, obj_type, ord) \n" +
+        "SELECT DISTINCT v.id, 'W', e.edge_order \n" +
+        "FROM vertex v, edge e, property p \n" +
+        "WHERE v.txn_end = 0 AND e.txn_end = 0 AND p.txn_end = 0 \n" +
+        " AND e.v_in = "+workId+" \n" +
+        " AND e.v_out = v.id \n" +
+        " AND e.label = 'isPartOf' \n" +
+        " AND p.id = v.id \n" +
+        " AND p.name = 'type' \n" + 
+        " AND p.value IN " + workNotSectionInList + " \n" +
+        " ORDER BY e.edge_order \n" +
+        " LIMIT "+start+","+num+"; \n";
+    }
     
+    private String getAddChildrenWorkSortBySql(Long workId, int start, int num, String sortBy, boolean asc) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("INSERT INTO v1 (id, obj_type, ord) "
+                + " SELECT DISTINCT v.id, 'W' obj_type, e.edge_order FROM vertex v "
+                + " INNER JOIN property p1 "
+                + " on v.txn_end = 0 AND p1.txn_end = 0 AND p1.id = v.id AND p1.name = 'type' AND p1.value IN " + workNotSectionInList
+                + " INNER JOIN edge e on e.txn_end = 0 AND e.v_out = v.id AND e.label = 'isPartOf' "
+                + " LEFT JOIN property p2 "
+                + " on p2.txn_end = 0 and p2.id = v.id AND p2.name = '"+sortBy+"' "
+                + " and p2.value != '[]' " //empty list treated as null (e.g. when sorting by alias)
+                + " WHERE e.v_in = "+workId+" ORDER BY ISNULL(p2.value), p2.value "); //null always last whether asc or desc
+        if (!asc){
+            sb.append(" desc ");
+        }
+        sb.append(" LIMIT "+start+","+num+"; ");
+        return sb.toString();
+    }
+
     public List<Section> getSections(Long workId) {
 
         StringBuilder s = new StringBuilder();

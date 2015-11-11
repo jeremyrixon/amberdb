@@ -3,6 +3,7 @@ package amberdb.model;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.util.Date;
 
 import org.junit.After;
 import org.junit.Before;
@@ -32,5 +33,16 @@ public class FileTest {
         File file = copy.addFile();
         assertEquals(0L, file.getFileSize());
         assertEquals(0L, file.getSize());
+    }
+    
+    @Test
+    public void shouldReturnTheChecksumCreationDate() {
+        Work work = amberDb.addWork();
+        Copy copy = work.addCopy();
+        File file = copy.addFile();
+        
+        Date date = new Date();
+        file.setChecksumGenerationDate(date);
+        assertEquals(date, file.getChecksumGenerationDate());
     }
 }

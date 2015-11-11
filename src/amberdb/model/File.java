@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.codehaus.jackson.JsonParseException;
@@ -91,6 +92,18 @@ public interface File extends Node {
 
     @Property("checksumType")
     public String getChecksumType();
+    
+    /**
+     * Set the date/time that the checksum was generated.
+     */
+    @Property("checksumGenerationDate")
+    public void setChecksumGenerationDate(Date date);
+
+    /**
+     * Get the date/time the checksum was generated.
+     */
+    @Property("checksumGenerationDate")
+    public Date getChecksumGenerationDate();
     
     @Property("device")
     public String getDevice();

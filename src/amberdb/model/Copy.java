@@ -242,6 +242,9 @@ public interface Copy extends Node {
     @Adjacency(label = IsSourceCopyOf.label, direction=Direction.OUT)
     public void setSourceCopy(Copy sourceCopy);
 
+    @Adjacency(label = IsSourceCopyOf.label, direction=Direction.OUT)
+    public void removeSourceCopy(final Copy sourceCopy);
+
     @Adjacency(label = IsComasterOf.label, direction=Direction.OUT)
     public Copy getComasterCopy();
 
@@ -385,14 +388,18 @@ public interface Copy extends Node {
                 if (jp2ImgPath != null) {
                     Work work = this.getWork();
 
-                    // Replace the derivative for this copy, not all.
-                    Iterable<Copy> derivatives = this.getDerivatives();
-                    if (Iterables.size(derivatives) == 0) {
+                    // Replace the access copy for this work (there's only ever one for images).
+                    ac = work.getCopy(CopyRole.ACCESS_COPY);
+                    if (ac == null) {
                         ac = work.addCopy(jp2ImgPath, CopyRole.ACCESS_COPY, jp2MimeType);
                         ac.setSourceCopy(this);
                     } else {
-                        ac = Iterables.get(derivatives, 0);
                         ac.getImageFile().put(jp2ImgPath);
+                        Copy sc = ac.getSourceCopy();
+                        if (!this.equals(sc)) {
+                            ac.removeSourceCopy(sc);
+                            ac.setSourceCopy(this);
+                        }
                     }
 
                     ImageFile acf = ac.getImageFile();

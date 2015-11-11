@@ -430,6 +430,18 @@ public interface Work extends Node {
     
     @Property("sheetCreationDate")
     void setSheetCreationDate(Date sheetCreationDate);
+    
+    /**
+     * Get the vendor identifier that was assigned by the E-Deposit app.
+     */
+    @Property("vendorId")
+    String getVendorId();
+    
+    /**
+     * Set the vendor identifier that was assigned by the E-Deposit app.
+     */
+    @Property("vendorId")
+    void setVendorId(String id);
 
     @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
     GeoCoding addGeoCoding();
@@ -442,9 +454,6 @@ public interface Work extends Node {
 
     @JavaHandler
     IPTC getIPTC();
-    
-    @JavaHandler
-    boolean isCopy();
     
     @Incidence(label = Acknowledge.label, direction = Direction.OUT)
     Acknowledge addAcknowledgement(final Party party);
@@ -1003,10 +1012,10 @@ public interface Work extends Node {
     void removeDeliveryWorkParent(final Work interview);
 
     @Incidence(label = DeliveredOn.label, direction = Direction.IN)
-    Iterable<ExistsOn> getDeliveryWorkParentEdges();
+    Iterable<DeliveredOn> getDeliveryWorkParentEdges();
 
     @JavaHandler
-    ExistsOn getDeliveryWorkParentEdge();
+    DeliveredOn getDeliveryWorkParentEdge();
 
     @JavaHandler
     void setDeliveryWorkOrder(int position);
@@ -1434,11 +1443,12 @@ public interface Work extends Node {
                 query.branch(BRANCH_FROM_ALL, new String[] {"represents"}, Direction.IN);
             }
 
-            query.branch(BRANCH_FROM_ALL, new String[] {"isCopyOf"}, Direction.IN)
+            query.branch(BRANCH_FROM_ALL, new String[] {"deliveredOn"}, Direction.IN) // gets delivery parent
+                 .branch(BRANCH_FROM_ALL, new String[] {"isCopyOf"}, Direction.IN)
                  .branch(BRANCH_FROM_PREVIOUS, new String[] {"isFileOf"}, Direction.IN)
                  .branch(BRANCH_FROM_ALL, new String[] {"descriptionOf"}, Direction.IN)
                  .branch(BRANCH_FROM_ALL, new String[] {"tags"}, Direction.IN)
-                 .branch(BRANCH_FROM_ALL, new String[]{"acknowledge"}, Direction.OUT)
+                 .branch(BRANCH_FROM_ALL, new String[] {"acknowledge"}, Direction.OUT)
                  .execute(true);
         }
 
@@ -1663,11 +1673,6 @@ public interface Work extends Node {
         }
         
         @Override
-        public boolean isCopy() {
-            return this.asVertex().getProperty("type").equals("Copy");
-        }
-
-        @Override
         public IPTC getIPTC() {
             return (IPTC) getDescription("IPTC");
         }
@@ -1759,8 +1764,8 @@ public interface Work extends Node {
         }
 
         @Override
-        public ExistsOn getDeliveryWorkParentEdge() {
-            Iterator<ExistsOn> iterator = getDeliveryWorkParentEdges().iterator();
+        public DeliveredOn getDeliveryWorkParentEdge() {
+            Iterator<DeliveredOn> iterator = getDeliveryWorkParentEdges().iterator();
             return (iterator != null && iterator.hasNext()) ? iterator.next() : null;
         }
 

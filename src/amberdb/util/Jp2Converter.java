@@ -35,7 +35,7 @@ import com.drew.metadata.exif.ExifIFD0Directory;
  *  - For colour images with more than 3 channels (RGB): turn them in to 3 channels (RGB).
  *  - For colour images with 16 or 24 bitdepth: turn bitdepth into 8.
  *  - For colour images with a colour palette (photometric > 2): strip off the colour palette.
- * 
+ *
  * It's also noticed that some colour images (tiff) can't be converted to the standard jp2 due to kakadu file format support.
  * Kakadu recommends converting them to .jpx instead:
  *     Error in Kakadu File Format Support:
@@ -117,7 +117,11 @@ public class Jp2Converter {
                 // Uncompress image as the demo app kdu_compress can't process compressed tiff
                 convertUncompress(srcFilePath, tmpFilePath);
             }
+        } catch (Exception e) {
+            log.warn("Exception occurred when attempting to manipulate image into a JP2'able state.");
+        }
 
+        try {
             Path fileToCreateJp2 = Files.exists(tmpFilePath) ? tmpFilePath : srcFilePath;
 
             // Create jp2 using kakadu kdu_compress
