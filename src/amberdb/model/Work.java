@@ -1500,7 +1500,7 @@ public interface Work extends Node {
 
         @Override
         public void setEventNote(List<String> eventNote) throws JsonProcessingException {
-            setJSONFindingAidNote(serialiseToJSON(eventNote));
+            setJSONEventNote(serialiseToJSON(eventNote));
         }
 
         @Override
