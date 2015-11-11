@@ -833,6 +833,18 @@ public interface Work extends Node {
 
     @JavaHandler
     List<String> getFindingAidNote();
+    
+    @Property("eventNote")
+    String getJSONEventNote();
+
+    @Property("eventNote")
+    void setJSONEventNote(String eventNote);
+
+    @JavaHandler
+    void setEventNote(List<String> eventNote) throws JsonProcessingException;
+
+    @JavaHandler
+    List<String> getEventNote();
 
     @Property("uniformTitle")
     String getUniformTitle();
@@ -1479,6 +1491,16 @@ public interface Work extends Node {
         @Override
         public void setFindingAidNote(List<String> findingAidNote) throws JsonProcessingException {
             setJSONFindingAidNote(serialiseToJSON(findingAidNote));
+        }
+        
+        @Override
+        public List<String> getEventNote() {
+            return deserialiseJSONString(getJSONEventNote());
+        }
+
+        @Override
+        public void setEventNote(List<String> eventNote) throws JsonProcessingException {
+            setJSONFindingAidNote(serialiseToJSON(eventNote));
         }
 
         @Override
