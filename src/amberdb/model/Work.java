@@ -1441,7 +1441,10 @@ public interface Work extends Node {
 
         @Override
         public void setOrder(int position) {
-            getParentEdge().setRelOrder(position);
+            IsPartOf parentEdge = getParentEdge();
+            if (parentEdge != null) {
+                parentEdge.setRelOrder(position);
+            }
         }
 
         @Override
