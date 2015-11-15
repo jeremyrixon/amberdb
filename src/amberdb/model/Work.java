@@ -934,6 +934,12 @@ public interface Work extends Node {
     @Property("additionalCreator")
     void getAdditionalCreator();
 
+    @Property("additionalSeries")
+    void setAdditionalSeries(String additionalSeries);
+
+    @Property("additionalSeries")
+    void getAdditionalSeries();
+
     @Adjacency(label = DeliveredOn.label, direction = Direction.OUT)
     Iterable<Work> getDeliveryWorks();
 
