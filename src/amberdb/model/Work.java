@@ -833,7 +833,7 @@ public interface Work extends Node {
 
     @JavaHandler
     List<String> getFindingAidNote();
-    
+
     @Property("eventNote")
     String getJSONEventNote();
 
@@ -915,6 +915,24 @@ public interface Work extends Node {
 
     @Property("acquisitionCategory")
     void setAcquisitionCategory(String acquisitionCategory);
+
+    @Property("additionalTitle")
+    void setAdditionalTitle(String additionalTitle);
+
+    @Property("additionalTitle")
+    String getAdditionalTitle();
+
+    @Property("additionalContributor")
+    void setAdditionalContributor(String additionalContributor);
+
+    @Property("additionalContributor")
+    String getAdditionalContributor();
+
+    @Property("additionalCreator")
+    void setAdditionalCreator(String additionalCreator);
+
+    @Property("additionalCreator")
+    void getAdditionalCreator();
 
     @Adjacency(label = DeliveredOn.label, direction = Direction.OUT)
     Iterable<Work> getDeliveryWorks();
@@ -1495,7 +1513,7 @@ public interface Work extends Node {
         public void setFindingAidNote(List<String> findingAidNote) throws JsonProcessingException {
             setJSONFindingAidNote(serialiseToJSON(findingAidNote));
         }
-        
+
         @Override
         public List<String> getEventNote() {
             return deserialiseJSONString(getJSONEventNote());
