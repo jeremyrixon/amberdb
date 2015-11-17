@@ -1227,6 +1227,12 @@ public interface Work extends Node {
     @JavaHandler
     Coordinates getCoordinates(int index);
 
+    @Property("carrier")
+    String getCarrier();
+
+    @Property("carrier")
+    void setCarrier(String carrier);
+
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {
         static ObjectMapper mapper = new ObjectMapper();
 
