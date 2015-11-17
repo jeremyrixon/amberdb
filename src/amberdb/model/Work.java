@@ -1222,7 +1222,7 @@ public interface Work extends Node {
     void setCoordinates(List<Coordinates> coordinatesList) throws JsonProcessingException;
 
     @JavaHandler
-    List<Coordinates> getAllCoordinates();
+    List<Coordinates> getCoordinates();
 
     @JavaHandler
     Coordinates getCoordinates(int index);
@@ -1828,13 +1828,13 @@ public interface Work extends Node {
 
         @Override
         public Coordinates getCoordinates(int index) {
-            List<Coordinates> allCoordinates = getAllCoordinates();
+            List<Coordinates> allCoordinates = getCoordinates();
             return allCoordinates.get(index);
         }
 
         @Override
         public void addCoordinates(Coordinates coordinates) throws JsonProcessingException {
-            List<Coordinates> allCoordinates = getAllCoordinates();
+            List<Coordinates> allCoordinates = getCoordinates();
             allCoordinates.add(coordinates);
             setCoordinates(allCoordinates);
         }
@@ -1845,7 +1845,7 @@ public interface Work extends Node {
         }
 
         @Override
-        public List<Coordinates> getAllCoordinates() {
+        public List<Coordinates> getCoordinates() {
             String json = getJSONCoordinates();
             if (json == null || json.isEmpty()) {
                 return new ArrayList<>();
