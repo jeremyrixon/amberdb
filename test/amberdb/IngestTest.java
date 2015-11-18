@@ -191,8 +191,6 @@ public class IngestTest {
 
             if (work.countParts() > 0) {
                 Page page = work.getPage(1);
-                page.rotate(10);
-                page.crop(100, 100, 200, 200);
                 page.setTitle("IV");
             }
 

@@ -6,6 +6,7 @@ import amberdb.InvalidSubtypeException;
 import amberdb.enums.CopyRole;
 import amberdb.enums.CopyType;
 import amberdb.enums.SubType;
+import amberdb.graph.AmberEdge;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberQuery;
 import amberdb.graph.AmberVertex;
@@ -14,6 +15,7 @@ import amberdb.util.WorkUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedListMultimap;
@@ -1233,6 +1235,9 @@ public interface Work extends Node {
     @Property("carrier")
     void setCarrier(String carrier);
 
+    @JavaHandler
+    Integer getOrder();
+
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {
         static ObjectMapper mapper = new ObjectMapper();
 
@@ -1851,6 +1856,23 @@ public interface Work extends Node {
                 return new ArrayList<>();
             }
             return deserialiseJSONString(json, new TypeReference<List<Coordinates>>() {});
+        }
+
+        @Override
+        public Integer getOrder() {
+            final Work currWork = this;
+            Work parent = getParent();
+            if (parent == null) {
+                return null;
+            }
+            Iterable<Edge> children = parent.asVertex().getEdges(Direction.IN, "isPartOf");
+            int pageOrder = Iterables.indexOf(children, new Predicate<Edge>() {
+                @Override
+                public boolean apply(Edge edge) {
+                    return edge.getVertex(Direction.OUT).getId().equals(currWork.getId());
+                }
+            });
+            return pageOrder;
         }
     }
 }
