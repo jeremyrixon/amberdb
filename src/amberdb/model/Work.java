@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.util.wrappers.wrapped.WrappedEdge;
 import com.tinkerpop.blueprints.util.wrappers.wrapped.WrappedVertex;
 import com.tinkerpop.frames.Adjacency;
 import com.tinkerpop.frames.Incidence;
@@ -1861,18 +1862,19 @@ public interface Work extends Node {
         @Override
         public Integer getOrder() {
             final Work currWork = this;
+            final long currId = currWork.getId();
             Work parent = getParent();
             if (parent == null) {
                 return null;
             }
-            Iterable<Edge> children = parent.asVertex().getEdges(Direction.IN, "isPartOf");
-            int pageOrder = Iterables.indexOf(children, new Predicate<Edge>() {
+            Iterable<Page> pages = parent.getPages();
+            int order = Iterables.indexOf(pages, new Predicate<Work>() {
                 @Override
-                public boolean apply(Edge edge) {
-                    return edge.getVertex(Direction.OUT).getId().equals(currWork.getId());
+                public boolean apply(Work work) {
+                    return currId == work.getId();
                 }
             });
-            return pageOrder;
+            return order;
         }
     }
 }
