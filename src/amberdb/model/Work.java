@@ -1236,6 +1236,10 @@ public interface Work extends Node {
     @Property("carrier")
     void setCarrier(String carrier);
 
+    /**
+     * Get the order in which this work appears on it's parent. I.E. The order of a 5th page would be 5. Return null
+     * if work has no order (that is, it does not have a parent).
+     */
     @JavaHandler
     Integer getOrder();
 
@@ -1874,7 +1878,7 @@ public interface Work extends Node {
                     return currId == work.getId();
                 }
             });
-            return order;
+            return order+1;
         }
     }
 }
