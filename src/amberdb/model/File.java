@@ -1,8 +1,14 @@
 package amberdb.model;
 
-import amberdb.AmberSession;
-import amberdb.relation.DescriptionOf;
-import amberdb.relation.IsFileOf;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -15,17 +21,19 @@ import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.modules.javahandler.JavaHandler;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
-import doss.*;
+
+import amber.checksum.Checksum;
+import amber.checksum.InvalidChecksumException;
+import amberdb.AmberSession;
+import amberdb.relation.DescriptionOf;
+import amberdb.relation.IsFileOf;
+import doss.Blob;
+import doss.BlobStore;
+import doss.BlobTx;
+import doss.NoSuchBlobException;
+import doss.Writable;
 import doss.core.Writables;
 import doss.local.LocalBlobStore;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.channels.SeekableByteChannel;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 @TypeValue("File")
 public interface File extends Node {
@@ -182,6 +190,12 @@ public interface File extends Node {
 
     @JavaHandler
     void put(Path source) throws IOException;
+    
+    @JavaHandler
+    void putWithChecksumValidation(Path source, Checksum checksum) throws IOException;
+    
+    @JavaHandler
+    void putWithChecksumValidation(Writable source, Checksum checksum) throws IOException;
 
     @JavaHandler
     void put(Writable writable) throws IOException;
@@ -240,11 +254,32 @@ public interface File extends Node {
         public void put(Path source) throws IOException {
             put(Writables.wrap(source));
         }
+        
+        @Override
+        public void putWithChecksumValidation(Path source, Checksum checksum) throws IOException {
+            putWithChecksumValidation(Writables.wrap(source), checksum);
+        }
 
         @Override
         public void put(Writable writable) throws IOException {
             try (BlobTx tx = getBlobStore().begin()) {
                 Blob blob = tx.put(writable);
+                setBlobId(blob.id());
+                tx.commit();
+            }
+        }
+        
+        @Override
+        public void putWithChecksumValidation(Writable writable, Checksum checksum) throws IOException {
+            try (BlobTx tx = getBlobStore().begin()) {
+                Blob blob = tx.put(writable);
+                try {
+                    if (!blob.digest(checksum.getAlgorithm().algorithm()).equals(checksum.getValue())){
+                        throw new InvalidChecksumException("Ingest failed. Digest mismatch");
+                    }
+                } catch (NoSuchAlgorithmException e) {
+                    throw new InvalidChecksumException("Ingest failed. Checksum not found in the meta xml file");
+                }
                 setBlobId(blob.id());
                 tx.commit();
             }
