@@ -198,7 +198,13 @@ public class AmberSession implements AutoCloseable {
 
     private void runPreCommitHooks() {
         for (AmberPreCommitHook preCommitHook: preCommitHooks) {
-            preCommitHook.hook(getAmberGraph().getNewVertices(), getAmberGraph().getModifiedVertices(), getAmberGraph().getRemovedVertices(), this);
+            preCommitHook.hook(getAmberGraph().getNewVertices(),
+                    getAmberGraph().getModifiedVertices(),
+                    getAmberGraph().getRemovedVertices(),
+                    getAmberGraph().getNewEdges(),
+                    getAmberGraph().getModifiedEdges(),
+                    getAmberGraph().getRemovedEdges(),
+                    this);
         }
     }
 

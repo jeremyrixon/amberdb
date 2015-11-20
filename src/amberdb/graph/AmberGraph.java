@@ -978,5 +978,17 @@ public class AmberGraph extends BaseGraph
     public List<Vertex> getModifiedVertices() {
         return new ArrayList(modifiedVertices);
     }
+
+    public List<Edge> getRemovedEdges() {
+        return new ArrayList(removedEdges.values());
+    }
+
+    public List<Edge> getNewEdges() {
+        return new ArrayList<>(newEdges);
+    }
+
+    public List<Edge> getModifiedEdges() {
+        return new ArrayList(modifiedEdges);
+    }
 }
 
