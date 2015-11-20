@@ -15,7 +15,9 @@ public enum SubUnitType {
     SHEET("Sheet"),
     SUBFONDS("Subfonds"),
     SUBGRP("Subgrp"),
-    SUBSERIES("Subseries");
+    SUBSERIES("Subseries"),
+    PART("Part"),
+    PIECE("Piece");
     
     private String code;
     
