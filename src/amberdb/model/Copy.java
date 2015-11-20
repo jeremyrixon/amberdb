@@ -1,38 +1,18 @@
 package amberdb.model;
 
-import java.lang.ProcessBuilder.Redirect;
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import amberdb.relation.*;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-import org.apache.commons.lang.StringUtils;
-import org.apache.tika.Tika;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import amberdb.AmberSession;
 import amberdb.NoSuchCopyException;
 import amberdb.enums.CopyRole;
+import amberdb.relation.*;
 import amberdb.util.Jp2Converter;
 import amberdb.util.PdfTransformerFop;
-
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.frames.Adjacency;
@@ -40,12 +20,25 @@ import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.modules.javahandler.JavaHandler;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
-
 import doss.Blob;
 import doss.BlobStore;
 import doss.NoSuchBlobException;
 import doss.Writable;
 import doss.core.Writables;
+import org.apache.commons.lang.StringUtils;
+import org.apache.tika.Tika;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.lang.ProcessBuilder.Redirect;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.*;
 
 
 /**
@@ -53,58 +46,58 @@ import doss.core.Writables;
  * one or more copies of a work, e.g. the original paper version of a piece of
  * sheet music, a microform replica and a set of digital replicas made from
  * either the original or the microform copy.
- * 
+ *
  * Copies may be either original or derived manually or automatically from
  * another copy. For the purposes of the digital library if the source of a
  * derivative is unknown we consider it original.
  */
 @TypeValue("Copy")
 public interface Copy extends Node {
-    
+
     /* DCM Legacy Data */
     @Property("dcmCopyPid")
     public String getDcmCopyPid();
 
     @Property("dcmCopyPid")
     public void setDcmCopyPid(String dcmCopyPid);
-    
+
     @Property("dcmSourceCopy")
     public String getDcmSourceCopy();
 
     @Property("dcmSourceCopy")
     public void setDcmSourceCopy(String dcmSourceCopy);
-    
+
     @Property("dcmDateTimeCreated")
     public Date getDcmDateTimeCreated();
 
     @Property("dcmDateTimeCreated")
     public void setDcmDateTimeCreated(Date dcmDateTimeCreated);
-    
+
     @Property("dcmDateTimeUpdated")
     public Date getDcmDateTimeUpdated();
 
     @Property("dcmDateTimeUpdated")
     public void setDcmDateTimeUpdated(Date dcmDateTimeUpdated);
-    
+
     @Property("dcmRecordCreator")
     public String getDcmRecordCreator();
 
     @Property("dcmRecordCreator")
     public void setDcmRecordCreator(String dcmRecordCreator);
-    
+
     @Property("dcmRecordUpdater")
     public String getDcmRecordUpdater();
 
     @Property("dcmRecordUpdater")
     public void setDcmRecordUpdater(String dcmRecordUpdater);
     /* END DCM Legacy Data */
-    
+
     @Property("currentVersion")
     public String getCurrentVersion();
 
     @Property("currentVersion")
     public void setCurrentVersion(String currentVersion);
-    
+
     @Property("versionNumber")
     public String getVersionNumber();
 
@@ -116,7 +109,7 @@ public interface Copy extends Node {
 
     @Property("copyType")
     public void setCopyType(String copyType);
-    
+
     @Property("copyRole")
     public String getCopyRole();
 
@@ -128,25 +121,25 @@ public interface Copy extends Node {
 
     @Property("carrier")
     public void setCarrier(String carrier);
-    
+
     @Property("algorithm")
     public String getAlgorithm();
-    
+
     @Property("algorithm")
     public void setAlgorithm(String algorithm);
-        
+
     @Property("bestCopy")
     public String getBestCopy();
 
     @Property("bestCopy")
     public void setBestCopy(String bestCopy);
-    
+
     @Property("materialType")
     public String getMaterialType();
 
     @Property("materialType")
     public void setMaterialType(String materialType);
-    
+
     @Property("dateCreated")
     public Date getDateCreated();
 
@@ -158,7 +151,7 @@ public interface Copy extends Node {
 
     @Property("condition")
     public void setCondition(String condition);
-    
+
     @Property("exhibition")
     public String getExhibition();
 
@@ -170,16 +163,16 @@ public interface Copy extends Node {
 
     @Property("copyStatus")
     public void setCopyStatus(String copyStatus);
-    
+
     @Property("timedStatus")
     public String getTimedStatus();
 
     @Property("timedStatus")
     public void setTimedStatus(String timedStatus);
-    
+
     @Property("segmentIndicator")
     public String getSegmentIndicator();
-    
+
     @Property("segmentIndicator")
     public void setSegmentIndicator(String segmentIndicator);
 
@@ -190,42 +183,42 @@ public interface Copy extends Node {
     public void setJSONManipulation(String manipulation);
 
     @JavaHandler
-    public void setManipulation(List<String> manipulation) throws JsonParseException, JsonMappingException, IOException;
+    public void setManipulation(List<String> manipulation) throws JsonProcessingException;
 
     @JavaHandler
-    public List<String> getManipulation() throws JsonParseException, JsonMappingException, IOException;
+    public List<String> getManipulation();
     /**
      * This property is encoded as a JSON Hash - You probably want to use getAllOtherNumbers to get this property
      */
     @Property("otherNumbers")
     public String getOtherNumbers();
-    
+
 
     /**
      * This method handles the JSON deserialisation of the OtherNumbers Property
-     * @throws IOException 
-     * @throws JsonMappingException 
-     * @throws JsonParseException 
+     * @throws IOException
+     * @throws JsonMappingException
+     * @throws JsonParseException
      */
     @JavaHandler
-    public Map<String, String> getAllOtherNumbers() throws JsonParseException, JsonMappingException, IOException;
-    
+    public Map<String, String> getAllOtherNumbers();
+
     /**
      * This property is encoded as a JSON Hash - You probably want to use setAllOtherNumbers to set this property
      */
     @Property("otherNumbers")
     public void setOtherNumbers(String otherNumbers);
- 
+
     /**
      * This method handles the JSON serialisation of the OtherNumbers Property
-     * @throws IOException 
-     * @throws JsonMappingException 
-     * @throws JsonParseException 
+     * @throws IOException
+     * @throws JsonMappingException
+     * @throws JsonParseException
      */
     @JavaHandler
-    public void setAllOtherNumbers(Map<String, String> otherNumbers) throws JsonParseException, JsonMappingException, IOException;
+    public void setAllOtherNumbers(Map<String, String> otherNumbers) throws JsonProcessingException;
 
-    
+
     /**
      * The source copy which this copy was derived from. Null if this copy is
      * original or the source copy is unknown.
@@ -235,7 +228,7 @@ public interface Copy extends Node {
 
     @Adjacency(label = IsSourceCopyOf.label, direction=Direction.IN)
     public Iterable<Copy> getDerivatives();
-    
+
     @JavaHandler
     public Iterable<Copy> getDerivatives(CopyRole copyRole);
 
@@ -256,28 +249,28 @@ public interface Copy extends Node {
 
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     public File getFile();
-    
+
     @JavaHandler
     public CameraData getCameraData();
-    
+
     @JavaHandler
     public ImageFile getImageFile();
 
     @JavaHandler
     public SoundFile getSoundFile();
-    
+
     @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
     public CameraData addCameraData();
-    
+
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     public File addFile();
-    
+
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     public ImageFile addImageFile();
 
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     public SoundFile addSoundFile();
-    
+
     @JavaHandler
     File addFile(Path source, String mimeType) throws IOException;
 
@@ -286,35 +279,35 @@ public interface Copy extends Node {
 
     @JavaHandler
     File addFile(Writable contents, String mimeType) throws IOException;
-    
+
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     void removeFile(final File file);
 
     @Adjacency(label = IsCopyOf.label)
     public Work getWork();
-    
+
     @Adjacency(label = Represents.label)
     public Iterable<Work> getRepresentedWorks();
-    
+
     @JavaHandler
     Copy deriveJp2ImageCopy(Path jp2Converter, Path imgConverter) throws IllegalStateException, IOException, InterruptedException, Exception;
 
     @JavaHandler
     Copy derivePdfCopy(Path pdfConverter, Path stylesheet, Path altStylesheet) throws IllegalStateException, NoSuchBlobException, IOException, InterruptedException;
-    
+
     @JavaHandler
     Copy derivePdfCopy(CopyRole copyRole, Reader... stylesheets) throws IOException;
 
     @JavaHandler
     int getCurrentIndex();
-    
+
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Copy {
         static final Logger log = LoggerFactory.getLogger(Copy.class);
         static ObjectMapper mapper = new ObjectMapper();
-        
+
         @Override
         public File addFile(Path source, String mimeType) throws IOException {
-           return addFile(Writables.wrap(source), mimeType);             
+           return addFile(Writables.wrap(source), mimeType);
         }
 
         @Override
@@ -430,7 +423,7 @@ public interface Copy extends Node {
                 }
             }
         }
-        
+
         @Override
         public Copy derivePdfCopy(CopyRole copyRole, Reader... stylesheets) throws IOException {
             File file = this.getFile();
@@ -439,7 +432,7 @@ public interface Copy extends Node {
             if (!file.getMimeType().equals("application/xml")) {
                 throw new RuntimeException("Failed to generate pdf copy for work " + getWork().getObjId() + " as this copy " + getObjId() + " is not an xml file.");
             }
-            
+
             Copy pdfCopy = this.getWork().addCopy();
             pdfCopy.setCopyRole(copyRole.code());
             pdfCopy.setSourceCopy(this);
@@ -447,7 +440,7 @@ public interface Copy extends Node {
             pdfCopy.addFile(Writables.wrap(pdfContent), "application/pdf");
             return pdfCopy;
         }
-        
+
         @Override
         public Copy derivePdfCopy(Path pdfConverter, Path stylesheet, Path altStylesheet) throws IllegalStateException, NoSuchBlobException, IOException, InterruptedException {
             File eadFile = this.getFile();
@@ -458,16 +451,16 @@ public interface Copy extends Node {
             try {
                 // create a temporary file processing location for generating pdf
                 stage = Files.createTempDirectory("amberdb-derivative");
-                
+
                 // assume this Copy is a FINDING_AID_COPY
                 Long blobId = this.getFile().getBlobId();
-                
+
                 // get this copy's blob store...
                 BlobStore doss = AmberSession.ownerOf(g()).getBlobStore();
-                
+
                 // pdf finally...
                 Path pdfPath = generatePdf(doss, pdfConverter, stylesheet, altStylesheet, stage, blobId);
-                
+
                 // add the derived pdf copy
                 Copy pc = null;
                 if (pdfPath != null) {
@@ -500,14 +493,14 @@ public interface Copy extends Node {
                 Long blobId) throws NoSuchBlobException, IOException, InterruptedException {
             if (blobId == null)
                 throw new NoSuchCopyException(this.getWork().getId(), CopyRole.fromString(getCopyRole()));
-            
+
             // prepare file for conversion
             Path eadPath = stage.resolve(blobId + ".xml"); // where to put the ead xml from the amber
             copyBlobToFile(doss.get(blobId), eadPath);
-            
+
             // pdf file
             Path pdfPath = stage.resolve(blobId + ".pdf"); // name the pdf derivative after the original blob id
-            
+
             // Convert to pdf
             convertToPDF(pdfConverter, stylesheet, altStylesheet, eadPath, pdfPath);
             return pdfPath;
@@ -535,9 +528,9 @@ public interface Copy extends Node {
                         pdfPath.toString()
                 });
             }
-            
+
         }
-        
+
         // Execute a command
         private void executeCmd(String[] cmd) throws IOException, InterruptedException {
             // Log command
@@ -555,19 +548,19 @@ public interface Copy extends Node {
         }
 
         @Override
-        public Map<String,String> getAllOtherNumbers() throws JsonParseException, JsonMappingException, IOException {
+        public Map<String,String> getAllOtherNumbers() {
 
             String otherNumbers = getOtherNumbers();
             if (otherNumbers == null || otherNumbers.isEmpty())
                 return new HashMap<String,String>();
-            return mapper.readValue(otherNumbers, new TypeReference<Map<String, String>>() { } );
-            
+            return deserialiseJSONString(otherNumbers, new TypeReference<Map<String, String>>() { } );
+
         }
-        
+
         @Override
         public Iterable<Copy> getDerivatives(CopyRole copyRole) {
             Iterable<Copy> copies = getDerivatives();
-            List<Copy> limitedCopies = new ArrayList<>(); 
+            List<Copy> limitedCopies = new ArrayList<>();
             if (copies != null) {
                 for (Copy copy : copies) {
                     if (copy.getCopyRole().equals(copyRole.code())) {
@@ -579,7 +572,7 @@ public interface Copy extends Node {
         }
 
         @Override
-        public void setAllOtherNumbers( Map<String,String>  otherNumbers) throws JsonParseException, JsonMappingException, IOException {
+        public void setAllOtherNumbers( Map<String,String>  otherNumbers) throws JsonProcessingException {
 
             setOtherNumbers(mapper.writeValueAsString(otherNumbers));
         }
@@ -590,21 +583,21 @@ public interface Copy extends Node {
          */
         @Deprecated
         private Path generateImage(BlobStore doss, Path tiffUncompressor, Path jp2Generator, Path stage, Long tiffBlobId) throws IOException, InterruptedException, NoSuchCopyException {
-            
+
             if (tiffBlobId == null)
                 throw new NoSuchCopyException(this.getWork().getId(), CopyRole.fromString(this.getCopyRole()));
 
             // prepare the files for conversion
             Path tiffPath = stage.resolve(tiffBlobId + ".tif");                                 // where to put the tif retrieved from the amber blob
-            Path uncompressedTiffPath = stage.resolve("uncompressed_" + tiffBlobId + ".tif");   // what to call the uncompressed tif 
+            Path uncompressedTiffPath = stage.resolve("uncompressed_" + tiffBlobId + ".tif");   // what to call the uncompressed tif
             copyBlobToFile(doss.get(tiffBlobId), tiffPath);                                     // get the blob from amber
 
             // Step 1: uncompress tiff
             String[] uncompressCmd = {
                     tiffUncompressor.toString(),
                     "-c",
-                    "none", 
-                    tiffPath.toString(), 
+                    "none",
+                    tiffPath.toString(),
                     uncompressedTiffPath.toString()};
 
             ProcessBuilder uncompressPb = new ProcessBuilder(uncompressCmd);
@@ -612,10 +605,10 @@ public interface Copy extends Node {
             Process uncompressProcess = uncompressPb.start();
             uncompressProcess.waitFor();
             int uncompressResult = uncompressProcess.exitValue();
-            
+
             // Step 2: generate and store JP2 image on DOSS
             Path jp2ImgPath = stage.resolve(tiffBlobId + ".jp2"); // name the jpeg2000 derivative after the original uncompressed blob
-            
+
             // This can be shifted out to config down the track
             String[] convertCmd = {
                     jp2Generator.toString(),
@@ -728,66 +721,66 @@ public interface Copy extends Node {
 
         private long copyBlobToFile(Blob blob, Path destinationFile) throws IOException {
             long bytesTransferred = 0;
-            try (ReadableByteChannel channel = blob.openChannel(); 
+            try (ReadableByteChannel channel = blob.openChannel();
                     FileChannel dest = FileChannel.open(
-                            destinationFile, 
-                            StandardOpenOption.WRITE, 
-                            StandardOpenOption.CREATE, 
+                            destinationFile,
+                            StandardOpenOption.WRITE,
+                            StandardOpenOption.CREATE,
                             StandardOpenOption.TRUNCATE_EXISTING)) {
                 bytesTransferred = dest.transferFrom(channel, 0, Long.MAX_VALUE);
             }
             return bytesTransferred;
         }
-        
+
         @Override
         public CameraData getCameraData() {
             Description o = getDescription("CameraData");
             return (o == null) ? null : this.g().frame(o.asVertex(), CameraData.class);
         }
-        
+
         @Override
         public ImageFile getImageFile() {
             File o = getSpecializedFile("image");
             return (o == null) ? null : this.g().frame(o.asVertex(), ImageFile.class);
         }
-        
+
         @Override
         public SoundFile getSoundFile() {
             File o = getSpecializedFile("audio");
             return (o == null) ? null : this.g().frame(o.asVertex(), SoundFile.class);
         }
-        
+
         private File getSpecializedFile(String fmt) {
             String fileType = "";
             if (fmt.equals("image"))
                 fileType = "ImageFile";
             else if (fmt.equals("audio"))
                 fileType = "SoundFile";
-            
+
             Iterable<File> files = this.getFiles();
             if (files != null) {
                 Iterator<File> it = files.iterator();
                 while (it.hasNext()) {
                     File next = it.next();
-                    if (next.getType().equals(fileType) || 
+                    if (next.getType().equals(fileType) ||
                             (next.getMimeType() != null && next.getMimeType().startsWith(fmt))) {
                         return next;
                     }
                 }
             }
             return null;
-        }    
-        
-        @Override
-        public List<String> getManipulation() throws JsonParseException, JsonMappingException, IOException {
-            String manipulation = getJSONManipulation();
-            if (manipulation == null || manipulation.isEmpty())
-                return new ArrayList<String>();
-            return mapper.readValue(manipulation, new TypeReference<List<String>>() {});
         }
 
         @Override
-        public void setManipulation(List<String> manipulation) throws JsonParseException, JsonMappingException, IOException {
+        public List<String> getManipulation() {
+            String manipulation = getJSONManipulation();
+            if (manipulation == null || manipulation.isEmpty())
+                return new ArrayList<String>();
+            return deserialiseJSONString(manipulation, new TypeReference<List<String>>() {});
+        }
+
+        @Override
+        public void setManipulation(List<String> manipulation) throws JsonProcessingException {
             setJSONManipulation(mapper.writeValueAsString(manipulation));
         }
 

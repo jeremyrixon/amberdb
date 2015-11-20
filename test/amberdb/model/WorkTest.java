@@ -517,6 +517,24 @@ public class WorkTest {
         assertTrue(constraints.contains("octopus"));
     }
     
+    @Test
+    public void testSetOrder() {
+        Work work = db.addWork();
+        work.setOrder(0);  // should not throw a NullPointerException
+        
+        Work child1 = db.addWork();
+        work.addChild(child1);
+        Work child2 = db.addWork();
+        work.addChild(child2);
+        
+        child2.setOrder(0);
+        child1.setOrder(1);
+        
+        Iterator<Work> it = work.getChildren().iterator();
+        assertEquals(child2, it.next());
+        assertEquals(child1, it.next());
+    }
+    
     @After
     public void teardown() throws IOException {
         if (db != null)

@@ -27,5 +27,11 @@ public interface Party extends Node {
 
     @Property("logoUrl")
     public void setLogoUrl(String logoUrl);   
+    
+    @Property("suppressed")
+    public Boolean isSuppressed();
+
+    @Property("suppressed")
+    public void setSuppressed(Boolean suppressed);
    
 }

@@ -19,4 +19,10 @@ public class DurationUtilsTest {
         newDuration = DurationUtils.convertDuration(null);
         assertNull(newDuration);
     }
+    
+    @Test
+    public void testConvertSecondsToDuration(){
+        String newDuration = DurationUtils.convertDurationFromSeconds((float)3747);
+        assertEquals("01:02:27", newDuration);        
+    }
 }

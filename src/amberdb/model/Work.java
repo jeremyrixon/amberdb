@@ -1,35 +1,29 @@
 package amberdb.model;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.*;
-
 import amberdb.AmberSession;
-import amberdb.relation.*;
-import amberdb.util.WorkUtils;
-
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
-
-import com.google.common.collect.LinkedListMultimap;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
-
+import amberdb.DataIntegrityException;
 import amberdb.InvalidSubtypeException;
 import amberdb.enums.CopyRole;
 import amberdb.enums.CopyType;
 import amberdb.enums.SubType;
+import amberdb.graph.AmberEdge;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberQuery;
 import amberdb.graph.AmberVertex;
-import static amberdb.graph.BranchType.*;
-
+import amberdb.relation.*;
+import amberdb.util.WorkUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Predicate;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.util.wrappers.wrapped.WrappedEdge;
 import com.tinkerpop.blueprints.util.wrappers.wrapped.WrappedVertex;
 import com.tinkerpop.frames.Adjacency;
 import com.tinkerpop.frames.Incidence;
@@ -40,14 +34,21 @@ import com.tinkerpop.frames.modules.javahandler.JavaHandler;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.*;
+
+import static amberdb.graph.BranchType.BRANCH_FROM_ALL;
+import static amberdb.graph.BranchType.BRANCH_FROM_PREVIOUS;
+
 /**
  * Any logical work that is collected or created by the library such as a book,
  * page, map, physical object or sound recording.
- * 
+ *
  * A complex digital object may be made up of multiple related works forming a
  * graph. All works in a single digital object belong to a parent-child tree
  * formed by the {@link IsPartOf} relationship.
- * 
+ *
  * @see {@link Copy}
  */
 @TypeValue("Work")
@@ -84,13 +85,13 @@ public interface Work extends Node {
      * This method handles the JSON serialisation of the dcmAltPi Property
      */
     @JavaHandler
-    void setDcmAltPi(List<String> list) throws IOException;
+    void setDcmAltPi(List<String> list) throws JsonProcessingException;
 
     /**
      * This method handles the JSON deserialisation of the dcmAltPi Property
      */
     @JavaHandler
-    List<String> getDcmAltPi() throws IOException;
+    List<String> getDcmAltPi();
 
     @Property("dcmWorkPid")
     String getDcmWorkPid();
@@ -159,7 +160,7 @@ public interface Work extends Node {
 
     @Property("form")
     void setForm(String form);
-    
+
     @Property("displayTitlePage")
     Boolean isDisplayTitlePage();
 
@@ -388,16 +389,16 @@ public interface Work extends Node {
 
     @Property("ilmsSentDateTime")
     void setIlmsSentDateTime(Date dateTime);
-    
+
     @Property("interactiveIndexAvailable")
     Boolean getInteractiveIndexAvailable();
-    
+
     @Property("interactiveIndexAvailable")
     void setInteractiveIndexAvailable(Boolean interactiveIndexAvailable);
-    
+
     @Property("html")
     String getHtml();
-    
+
     @Property("html")
     void setHtml(String html);
 
@@ -406,42 +407,48 @@ public interface Work extends Node {
 
     @Property("isMissingPage")
     void setIsMissingPage(Boolean isMissingPage);
-    
+
     @Property("workCreatedDuringMigration")
     Boolean getWorkCreatedDuringMigration();
-    
+
     @Property("workCreatedDuringMigration")
     void setWorkCreatedDuringMigration(Boolean workCreatedDuringMigration);
-    
+
     @Property("additionalSeriesStatement")
     String getAdditionalSeriesStatement();
-    
+
     @Property("additionalSeriesStatement")
     void setAdditionalSeriesStatement(String additionalSeriesStatement);
-    
+
     @Property("sheetName")
     String getSheetName();
-    
+
     @Property("sheetName")
     void setSheetName(String sheetName);
-    
+
     @Property("sheetCreationDate")
     Date getSheetCreationDate();
-    
+
     @Property("sheetCreationDate")
     void setSheetCreationDate(Date sheetCreationDate);
-    
+
     /**
      * Get the vendor identifier that was assigned by the E-Deposit app.
      */
     @Property("vendorId")
     String getVendorId();
-    
+
     /**
      * Set the vendor identifier that was assigned by the E-Deposit app.
      */
     @Property("vendorId")
     void setVendorId(String id);
+
+    @Property("totalDuration")
+    String getTotalDuration();
+
+    @Property("totalDuration")
+    void setTotalDuration(String totalDuration);
 
     @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
     GeoCoding addGeoCoding();
@@ -454,28 +461,28 @@ public interface Work extends Node {
 
     @JavaHandler
     IPTC getIPTC();
-    
+
     @Incidence(label = Acknowledge.label, direction = Direction.OUT)
     Acknowledge addAcknowledgement(final Party party);
-    
+
     @Incidence(label = Acknowledge.label, direction = Direction.OUT)
     void removeAcknowledgement(final Acknowledge ack);
-    
+
     @Incidence(label = Acknowledge.label, direction = Direction.OUT)
     Iterable<Acknowledge> getAcknowledgements();
 
     @JavaHandler
     Acknowledge addAcknowledgement(final Party party, final String ackType, final String kindOfSupport,
-            final Double weighting, final Date dateOfAck, final String urlToOriginial);
+            final Double weighting, final Date dateOfAck, final String urlToOriginal);
 
     @JavaHandler
     List<Acknowledge> getOrderedAcknowledgements();
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * getSeries to get this property
-     * 
+     *
      * NOTE: this property should not be used to retrieve manuscript series
-     *       from EAD.  For EAD related work properties, please refer to 
+     *       from EAD.  For EAD related work properties, please refer to
      *       amberdb.model.EADWork class.
      */
     @Property("series")
@@ -484,9 +491,9 @@ public interface Work extends Node {
     /**
      * This property is encoded as a JSON Array - You probably want to use
      * setSeries to set this property
-     *      
+     *
      * NOTE: this property should not be used to populate manuscript series
-     *       from EAD. For EAD related work properties, please refer to 
+     *       from EAD. For EAD related work properties, please refer to
      *       amberdb.model.EADWork class.
      */
     @Property("series")
@@ -494,31 +501,23 @@ public interface Work extends Node {
 
     /**
      * This method handles the JSON serialisation of the series Property
-     * 
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonParseException
-     * 
+     *
      * NOTE: this property should not be used to populate manuscript series
-     *       from EAD. For EAD related work properties, please refer to 
+     *       from EAD. For EAD related work properties, please refer to
      *       amberdb.model.EADWork class.
      */
     @JavaHandler
-    void setSeries(List<String> series) throws IOException;
+    void setSeries(List<String> series) throws JsonProcessingException;
 
     /**
      * This method handles the JSON deserialisation of the series Property
-     * 
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonParseException
-     * 
+     *
      * NOTE: this property should not be used to retrieve manuscript series
-     *       from EAD.  For EAD related work properties, please refer to 
+     *       from EAD.  For EAD related work properties, please refer to
      *       amberdb.model.EADWork class.
      */
     @JavaHandler
-    List<String> getSeries() throws IOException;
+    List<String> getSeries();
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
@@ -536,24 +535,17 @@ public interface Work extends Node {
 
     /**
      * This method handles the JSON serialisation of the classification Property
-     * 
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonParseException
+     *
      */
     @JavaHandler
-    void setClassification(List<String> classification) throws IOException;
+    void setClassification(List<String> classification) throws JsonProcessingException;
 
     /**
      * This method handles the JSON deserialisation of the classification
      * Property
-     * 
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonParseException
      */
     @JavaHandler
-    List<String> getClassification() throws IOException;
+    List<String> getClassification();
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
@@ -571,23 +563,17 @@ public interface Work extends Node {
 
     /**
      * This method handles the JSON serialisation of the contributor Property
-     * 
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonParseException
+     *
      */
     @JavaHandler
-    void setContributor(List<String> contributor) throws IOException;
+    void setContributor(List<String> contributor) throws JsonProcessingException;
 
     /**
      * This method handles the JSON deserialisation of the contributor Property
-     * 
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonParseException
+     *
      */
     @JavaHandler
-    List<String> getContributor() throws IOException;
+    List<String> getContributor();
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
@@ -605,23 +591,17 @@ public interface Work extends Node {
 
     /**
      * This method handles the JSON serialisation of the coverage Property
-     * 
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonParseException
+     *
      */
     @JavaHandler
-    void setCoverage(List<String> coverage) throws IOException;
+    void setCoverage(List<String> coverage) throws JsonProcessingException;
 
     /**
      * This method handles the JSON deserialisation of the coverage Property
-     * 
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonParseException
+     *
      */
     @JavaHandler
-    List<String> getCoverage() throws IOException;
+    List<String> getCoverage();
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
@@ -639,23 +619,17 @@ public interface Work extends Node {
 
     /**
      * This method handles the JSON serialisation of the occupation Property
-     * 
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonParseException
+     *
      */
     @JavaHandler
-    void setOccupation(List<String> occupation) throws IOException;
+    void setOccupation(List<String> occupation) throws JsonProcessingException;
 
     /**
      * This method handles the JSON deserialisation of the occupation Property
-     * 
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonParseException
+     *
      */
     @JavaHandler
-    List<String> getOccupation() throws IOException;
+    List<String> getOccupation();
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
@@ -673,23 +647,17 @@ public interface Work extends Node {
 
     /**
      * This method handles the JSON serialisation of the otherTitle Property
-     * 
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonParseException
+     *
      */
     @JavaHandler
-    void setOtherTitle(List<String> otherTitle) throws IOException;
+    void setOtherTitle(List<String> otherTitle) throws JsonProcessingException;
 
     /**
      * This method handles the JSON deserialisation of the otherTitle Property
-     * 
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonParseException
+     *
      */
     @JavaHandler
-    List<String> getOtherTitle() throws IOException;
+    List<String> getOtherTitle();
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
@@ -707,23 +675,17 @@ public interface Work extends Node {
 
     /**
      * This method handles the JSON serialisation of the standardId Property
-     * 
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonParseException
+     *
      */
     @JavaHandler
-    void setStandardId(List<String> standardId) throws IOException;
+    void setStandardId(List<String> standardId) throws JsonProcessingException;
 
     /**
      * This method handles the JSON deserialisation of the standardId Property
-     * 
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonParseException
+     *
      */
     @JavaHandler
-    List<String> getStandardId() throws IOException;
+    List<String> getStandardId();
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
@@ -741,23 +703,17 @@ public interface Work extends Node {
 
     /**
      * This method handles the JSON serialisation of the subject Property
-     * 
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonParseException
+     *
      */
     @JavaHandler
-    void setSubject(List<String> subject) throws IOException;
+    void setSubject(List<String> subject) throws JsonProcessingException;
 
     /**
      * This method handles the JSON deserialisation of the subject Property
-     * 
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonParseException
+     *
      */
     @JavaHandler
-    List<String> getSubject() throws IOException;
+    List<String> getSubject();
 
     /**
      * This property is encoded as a JSON Array - You probably want to use
@@ -775,47 +731,17 @@ public interface Work extends Node {
 
     /**
      * This method handles the JSON serialisation of the scaleEtc Property
-     * 
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonParseException
+     *
      */
     @JavaHandler
-    void setScaleEtc(List<String> scaleEtc) throws IOException;
+    void setScaleEtc(List<String> scaleEtc) throws JsonProcessingException;
 
     /**
      * This method handles the JSON deserialisation of the scaleEtc Property
-     * 
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonParseException
+     *
      */
     @JavaHandler
-    List<String> getScaleEtc() throws IOException;
-
-    @Property("west")
-    String getWest();
-
-    @Property("west")
-    void setWest(String west);
-
-    @Property("east")
-    String getEast();
-
-    @Property("east")
-    void setEast(String east);
-
-    @Property("north")
-    String getNorth();
-
-    @Property("north")
-    void setNorth(String north);
-
-    @Property("south")
-    String getSouth();
-
-    @Property("south")
-    void setSouth(String south);
+    List<String> getScaleEtc();
 
     @Property("tilePosition")
     String getTilePosition();
@@ -845,23 +771,17 @@ public interface Work extends Node {
 
     /**
      * This method handles the JSON serialisation of the constraint Property
-     * 
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonParseException
+     *
      */
     @JavaHandler
-    void setConstraint(Set<String> constraint) throws IOException;
+    void setConstraint(Set<String> constraint) throws JsonProcessingException;
 
     /**
      * This method handles the JSON deserialisation of the constraint Property
-     * 
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonParseException
+     *
      */
     @JavaHandler
-    Set<String> getConstraint() throws IOException;
+    Set<String> getConstraint();
 
     @Property("rights")
     String getRights();
@@ -886,36 +806,48 @@ public interface Work extends Node {
 
     @Property("sensitiveReason")
     void setJSONSensitiveReason(String sensitiveReason);
-    
+
     @JavaHandler
-    void setSensitiveReason(List<String> sensitiveReason) throws IOException;
-    
+    void setSensitiveReason(List<String> sensitiveReason) throws JsonProcessingException;
+
     @JavaHandler
-    List<String> getSensitiveReason() throws IOException;
-    
+    List<String> getSensitiveReason();
+
     @Property("restrictionsOnAccess")
     String getJSONRestrictionsOnAccess();
 
     @Property("restrictionsOnAccess")
     void setJSONRestrictionsOnAccess(String restrictionsOnAccess);
-    
+
     @JavaHandler
-    void setRestrictionsOnAccess(List<String> restrictionsOnAccess) throws IOException;
-    
+    void setRestrictionsOnAccess(List<String> restrictionsOnAccess) throws JsonProcessingException;
+
     @JavaHandler
-    List<String> getRestrictionsOnAccess() throws IOException;
+    List<String> getRestrictionsOnAccess();
 
     @Property("findingAidNote")
     String getJSONFindingAidNote();
 
     @Property("findingAidNote")
     void setJSONFindingAidNote(String findingAidNote);
-    
+
     @JavaHandler
-    void setFindingAidNote(List<String> findingAidNote) throws IOException;
-    
+    void setFindingAidNote(List<String> findingAidNote) throws JsonProcessingException;
+
     @JavaHandler
-    List<String> getFindingAidNote() throws IOException;
+    List<String> getFindingAidNote();
+
+    @Property("eventNote")
+    String getJSONEventNote();
+
+    @Property("eventNote")
+    void setJSONEventNote(String eventNote);
+
+    @JavaHandler
+    void setEventNote(List<String> eventNote) throws JsonProcessingException;
+
+    @JavaHandler
+    List<String> getEventNote();
 
     @Property("uniformTitle")
     String getUniformTitle();
@@ -928,7 +860,7 @@ public interface Work extends Node {
 
     @Property("alternativeTitle")
     void setAlternativeTitle(String alternativeTitle);
-    
+
     /**
      * summary of scope of work, description of image
      */
@@ -974,18 +906,42 @@ public interface Work extends Node {
 
     @Property("materialFromMultipleSources")
     Boolean getMaterialFromMultipleSources();
-    
+
     @Property("acquisitionStatus")
     String getAcquisitionStatus();
 
     @Property("acquisitionStatus")
     void setAcquisitionStatus(String acquisitionStatus);
-    
+
     @Property("acquisitionCategory")
     String getAcquisitionCategory();
 
     @Property("acquisitionCategory")
     void setAcquisitionCategory(String acquisitionCategory);
+
+    @Property("additionalTitle")
+    void setAdditionalTitle(String additionalTitle);
+
+    @Property("additionalTitle")
+    String getAdditionalTitle();
+
+    @Property("additionalContributor")
+    void setAdditionalContributor(String additionalContributor);
+
+    @Property("additionalContributor")
+    String getAdditionalContributor();
+
+    @Property("additionalCreator")
+    void setAdditionalCreator(String additionalCreator);
+
+    @Property("additionalCreator")
+    void getAdditionalCreator();
+
+    @Property("additionalSeries")
+    void setAdditionalSeries(String additionalSeries);
+
+    @Property("additionalSeries")
+    void getAdditionalSeries();
 
     @Adjacency(label = DeliveredOn.label, direction = Direction.OUT)
     Iterable<Work> getDeliveryWorks();
@@ -1052,13 +1008,13 @@ public interface Work extends Node {
 
     @JavaHandler
     Section asSection();
-    
+
     @JavaHandler
     EADWork asEADWork();
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     void addCopy(final Copy copy);
-    
+
     /**
      * This method is intended for internal amberdb use, to be called by the
      * removeRepresentation() method.  You probably want to use removeRepresentation()
@@ -1067,7 +1023,7 @@ public interface Work extends Node {
      */
     @Adjacency(label = Represents.label, direction = Direction.IN)
     void removeRepresentative(final Copy copy);
-    
+
     /**
      * This method calls removeRepresentative() to remove a representative image,
      * and update the hasRepresentation flag which is a shortcut for delivery.
@@ -1090,7 +1046,7 @@ public interface Work extends Node {
 
     @GremlinGroovy("it.in('isCopyOf').has('copyRole',role.code).order{it.a.id <=> it.b.id}")
     Iterable<Copy> getOrderedCopies(@GremlinParam("role") CopyRole role);
-    
+
     @GremlinGroovy("it.in('isCopyOf').has('copyRole',role.code)")
     Iterable<Copy> getCopies(@GremlinParam("role") CopyRole role);
 
@@ -1110,24 +1066,24 @@ public interface Work extends Node {
      * This method detatches the page from this work, but the page continues to
      * exist as an orphan. Use the deletePage method in AmberSession to actually
      * delete the page with copies and files from the graph.
-     * 
+     *
      * @param page
-     * 
+     *
      *            Note: remove is a naming convention used by tinkerpop frames
      *            annotation.
      */
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     void removePage(final Page page);
-    
+
     /**
-     * This method is intended for internal amberdb use, to be called by the 
+     * This method is intended for internal amberdb use, to be called by the
      * addRepresentation() method.  You probably want to use addRepresentation()
      * method to add a representative image.
      * @param copy The representative copy
      */
     @Adjacency(label = Represents.label, direction = Direction.IN)
     void addRepresentative(final Copy copy);
-    
+
     /**
      * This method calls addRepresentative() to add a representative image,
      * and update the hasRepresentation flag which is a shortcut for delivery.
@@ -1141,10 +1097,10 @@ public interface Work extends Node {
 
     @Adjacency(label = Represents.label, direction = Direction.IN)
     Iterable<Copy> getRepresentations();
-    
+
     @JavaHandler
     boolean isRepresented();
-    
+
     /**
      * Adds a page Work and create a MASTER_COPY Copy Node with a File for it
      */
@@ -1173,7 +1129,7 @@ public interface Work extends Node {
      * This method detaches the part from this work, but the part continues to
      * exist as an orphan. Use the deletePart method to actually delete the part
      * and its children from the graph.
-     * 
+     *
      * @param part The part ot be removed
      */
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
@@ -1204,7 +1160,7 @@ public interface Work extends Node {
      * This method sets the edge order of the related Nodes in the list to be
      * their index in the list. The related Nodes and their edge association to
      * this object must already exist.
-     * 
+     *
      * @param relatedNodes
      *            A list of related Nodes whose edges will have their edge
      *            ordering updated.
@@ -1220,7 +1176,7 @@ public interface Work extends Node {
     /**
      * Orders the parts in the given list by their list order. This is a
      * specialization of orderRelated.
-     * 
+     *
      * @param parts
      *            The list of parts.
      */
@@ -1237,10 +1193,10 @@ public interface Work extends Node {
      */
     @JavaHandler
     Work getRepresentativeImageWork();
-    
+
     @JavaHandler
-    List<String> getJsonList(String propertyName) throws IOException;
-    
+    List<String> getJsonList(String propertyName);
+
     @JavaHandler
     boolean hasBornDigitalCopy();
 
@@ -1251,26 +1207,57 @@ public interface Work extends Node {
     boolean hasCopyRole(CopyRole role);
 
     @JavaHandler
-    boolean hasUniqueAlias(AmberSession session) throws IOException;
-    
+    boolean hasUniqueAlias(AmberSession session);
+
     @JavaHandler
     boolean hasImageAccessCopy();
+
+    @Property("coordinates")
+    void setJSONCoordinates(String coordinates);
+
+    @Property("coordinates")
+    String getJSONCoordinates();
+
+    @JavaHandler
+    void addCoordinates(Coordinates coordinates) throws JsonProcessingException;
+
+    @JavaHandler
+    void setCoordinates(List<Coordinates> coordinatesList) throws JsonProcessingException;
+
+    @JavaHandler
+    List<Coordinates> getCoordinates();
+
+    @JavaHandler
+    Coordinates getCoordinates(int index);
+
+    @Property("carrier")
+    String getCarrier();
+
+    @Property("carrier")
+    void setCarrier(String carrier);
+
+    /**
+     * Get the order in which this work appears on it's parent. I.E. The order of a 5th page would be 5. Return null
+     * if work has no order (that is, it does not have a parent).
+     */
+    @JavaHandler
+    Integer getOrder();
 
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {
         static ObjectMapper mapper = new ObjectMapper();
 
         @Override
-        public Acknowledge addAcknowledgement(final Party party, final String ackType, final String kindOfSupport, 
-                final Double weighting, final Date dateOfAck, final String urlToOriginial) {           
+        public Acknowledge addAcknowledgement(final Party party, final String ackType, final String kindOfSupport,
+                final Double weighting, final Date dateOfAck, final String urlToOriginal) {
             Acknowledge ack = addAcknowledgement(party);
             ack.setAckType(ackType);
             ack.setKindOfSupport(kindOfSupport);
             ack.setWeighting(weighting);
-            ack.setUrlToOriginial(urlToOriginial);
+            ack.setUrlToOriginal(urlToOriginal);
             ack.setDate(dateOfAck);
             return ack;
         }
-        
+
         @Override
         public List<Acknowledge> getOrderedAcknowledgements() {
             List<Acknowledge> list = Lists.newArrayList(getAcknowledgements());
@@ -1381,7 +1368,7 @@ public interface Work extends Node {
         public Section asSection() {
             return frame(this.asVertex(), Section.class);
         }
-        
+
         @Override
         public EADWork asEADWork() {
             return frame(this.asVertex(), EADWork.class);
@@ -1408,7 +1395,7 @@ public interface Work extends Node {
                 }
             }
         }
-        
+
         private List<Edge> parts() {
             return (gremlin().inE(IsPartOf.label) == null) ? null : gremlin().inE(IsPartOf.label).toList();
         }
@@ -1494,7 +1481,10 @@ public interface Work extends Node {
 
         @Override
         public void setOrder(int position) {
-            getParentEdge().setRelOrder(position);
+            IsPartOf parentEdge = getParentEdge();
+            if (parentEdge != null) {
+                parentEdge.setRelOrder(position);
+            }
         }
 
         @Override
@@ -1504,7 +1494,7 @@ public interface Work extends Node {
         }
 
         @Override
-        public Set<String> getConstraint() throws IOException {
+        public Set<String> getConstraint() {
             List<String> list = deserialiseJSONString(getJSONConstraint());
             LinkedHashSet<String> constraint = new LinkedHashSet<>();
             constraint.addAll(list);
@@ -1512,148 +1502,163 @@ public interface Work extends Node {
         }
 
         @Override
-        public void setConstraint(Set<String> constraint) throws IOException {
+        public void setConstraint(Set<String> constraint) throws JsonProcessingException {
             setJSONConstraint(serialiseToJSON(constraint));
         }
-        
+
         @Override
-        public List<String> getSensitiveReason() throws IOException {
+        public List<String> getSensitiveReason() {
             return deserialiseJSONString(getJSONSensitiveReason());
         }
 
         @Override
-        public void setSensitiveReason(List<String> sensitiveReason) throws IOException {
+        public void setSensitiveReason(List<String> sensitiveReason) throws JsonProcessingException {
             setJSONSensitiveReason(serialiseToJSON(sensitiveReason));
         }
-        
+
         @Override
-        public List<String> getRestrictionsOnAccess() throws IOException {
+        public List<String> getRestrictionsOnAccess() {
             return deserialiseJSONString(getJSONRestrictionsOnAccess());
         }
 
         @Override
-        public void setRestrictionsOnAccess(List<String> restrictionsOnAccess) throws IOException {
+        public void setRestrictionsOnAccess(List<String> restrictionsOnAccess) throws JsonProcessingException {
             setJSONRestrictionsOnAccess(serialiseToJSON(restrictionsOnAccess));
         }
-        
+
         @Override
-        public List<String> getFindingAidNote() throws IOException {
+        public List<String> getFindingAidNote() {
             return deserialiseJSONString(getJSONFindingAidNote());
         }
 
         @Override
-        public void setFindingAidNote(List<String> findingAidNote) throws IOException {
+        public void setFindingAidNote(List<String> findingAidNote) throws JsonProcessingException {
             setJSONFindingAidNote(serialiseToJSON(findingAidNote));
         }
 
         @Override
-        public List<String> getSeries() throws IOException {
+        public List<String> getEventNote() {
+            return deserialiseJSONString(getJSONEventNote());
+        }
+
+        @Override
+        public void setEventNote(List<String> eventNote) throws JsonProcessingException {
+            setJSONEventNote(serialiseToJSON(eventNote));
+        }
+
+        @Override
+        public List<String> getSeries() {
             return deserialiseJSONString(getJSONSeries());
         }
 
         @Override
-        public void setSeries(List<String> series) throws IOException {
+        public void setSeries(List<String> series) throws JsonProcessingException {
             setJSONSeries(serialiseToJSON(series));
         }
 
         @Override
-        public List<String> getClassification() throws IOException {
+        public List<String> getClassification() {
             return deserialiseJSONString(getJSONClassification());
         }
 
         @Override
-        public void setClassification(List<String> classification) throws IOException {
+        public void setClassification(List<String> classification) throws JsonProcessingException {
             setJSONClassification(serialiseToJSON(classification));
         }
 
         @Override
-        public List<String> getContributor() throws IOException {
+        public List<String> getContributor() {
             return deserialiseJSONString(getJSONContributor());
         }
 
         @Override
-        public void setContributor(List<String> contributor) throws IOException {
+        public void setContributor(List<String> contributor) throws JsonProcessingException {
             setJSONContributor(serialiseToJSON(contributor));
         }
 
         @Override
-        public List<String> getCoverage() throws IOException {
+        public List<String> getCoverage() {
             return deserialiseJSONString(getJSONCoverage());
         }
 
         @Override
-        public void setCoverage(List<String> coverage) throws IOException {
+        public void setCoverage(List<String> coverage) throws JsonProcessingException {
             setJSONCoverage(serialiseToJSON(coverage));
         }
 
         @Override
-        public List<String> getOccupation() throws IOException {
+        public List<String> getOccupation() {
             return deserialiseJSONString(getJSONOccupation());
         }
 
         @Override
-        public void setOccupation(List<String> occupation) throws IOException {
+        public void setOccupation(List<String> occupation) throws JsonProcessingException {
             setJSONOccupation(serialiseToJSON(occupation));
         }
 
         @Override
-        public List<String> getOtherTitle() throws IOException {
+        public List<String> getOtherTitle() {
             return deserialiseJSONString(getJSONOtherTitle());
         }
 
         @Override
-        public void setOtherTitle(List<String> otherTitle) throws IOException {
+        public void setOtherTitle(List<String> otherTitle) throws JsonProcessingException {
             setJSONOtherTitle(serialiseToJSON(otherTitle));
         }
 
         @Override
-        public List<String> getStandardId() throws IOException {
+        public List<String> getStandardId() {
             return deserialiseJSONString(getJSONStandardId());
         }
 
         @Override
-        public void setStandardId(List<String> standardId) throws IOException {
+        public void setStandardId(List<String> standardId) throws JsonProcessingException {
             setJSONStandardId(serialiseToJSON(standardId));
         }
 
         @Override
-        public List<String> getSubject() throws IOException {
+        public List<String> getSubject() {
             return deserialiseJSONString(getJSONSubject());
         }
 
         @Override
-        public void setSubject(List<String> subject) throws IOException {
+        public void setSubject(List<String> subject) throws JsonProcessingException {
             // ensure each subject entry is unique
             setJSONSubject((null == subject)? null : serialiseToJSON(new HashSet<>(subject)));
         }
 
         @Override
-        public List<String> getScaleEtc() throws IOException {
+        public List<String> getScaleEtc() {
             return deserialiseJSONString(getJSONScaleEtc());
         }
 
         @Override
-        public void setScaleEtc(List<String> scaleEtc) throws IOException {
+        public void setScaleEtc(List<String> scaleEtc) throws JsonProcessingException {
             setJSONScaleEtc(serialiseToJSON(scaleEtc));
         }
 
-        protected List<String> deserialiseJSONString(String json) throws IOException {
+        protected List<String> deserialiseJSONString(String json) {
             if (json == null || json.isEmpty())
                 return new ArrayList<>();
-            return mapper.readValue(json, new TypeReference<List<String>>() {
-            });
+            try {
+                return mapper.readValue(json, new TypeReference<List<String>>() {
+                });
+            }
+            catch (IOException e) {
+                throw new DataIntegrityException("Could not deserialize property", e);
+            }
         }
 
-        protected String serialiseToJSON(Collection<String> list) throws IOException {
-            if (list == null || list.isEmpty()) return null;    
+        protected String serialiseToJSON(Collection<String> list) throws JsonProcessingException {
+            if (list == null || list.isEmpty()) return null;
             return mapper.writeValueAsString(list);
         }
 
         @Override
-        public List<String> getJsonList(String propertyName) throws IOException {
+        public List<String> getJsonList(String propertyName) {
             return deserialiseJSONString((String) this.asVertex().getProperty(propertyName));
         }
-        
+
         @Override
         public void orderRelated(List<Work> relatedNodes, String label, Direction direction) {
             for (int i = 0; i < relatedNodes.size(); i++) {
@@ -1671,33 +1676,33 @@ public interface Work extends Node {
         public GeoCoding getGeoCoding() {
             return (GeoCoding) getDescription("GeoCoding");
         }
-        
+
         @Override
         public IPTC getIPTC() {
             return (IPTC) getDescription("IPTC");
         }
 
         @Override
-        public List<String> getDcmAltPi() throws IOException {
+        public List<String> getDcmAltPi() {
             return deserialiseJSONString(getJSONDcmAltPi());
         }
 
         @Override
-        public void setDcmAltPi(List<String> list) throws IOException {
+        public void setDcmAltPi(List<String> list) throws JsonProcessingException {
             setJSONDcmAltPi(serialiseToJSON(list));
         }
-        
+
         @Override
         public boolean isRepresented() {
             Iterable<Copy> representations = getRepresentations();
             return representations != null && Iterables.size(representations) != 0;
         }
-        
+
         @Override
         public void removeRepresentation(final Copy copy) {
             removeRepresentative(copy);
         }
-        
+
         @Override
         public void addRepresentation(final Copy copy) {
             addRepresentative(copy);
@@ -1712,7 +1717,7 @@ public interface Work extends Node {
             }
 
             Iterable<Work> children = getChildren();
-            if (Iterables.size(children) == 0) {
+            if (!children.iterator().hasNext()) {
                 return null;
             }
             Work child = Iterables.get(children, 0);
@@ -1786,7 +1791,7 @@ public interface Work extends Node {
         }
 
         @Override
-        public boolean hasUniqueAlias(AmberSession session) throws IOException {
+        public boolean hasUniqueAlias(AmberSession session) {
             List<String> aliases = getAlias();
             if (aliases == null || aliases.size() == 0 || aliases.size() > 1) {
                 return false;
@@ -1810,7 +1815,7 @@ public interface Work extends Node {
             }
             return orderedCopyMap.asMap();
         }
-        
+
         @Override
         public boolean hasImageAccessCopy(){
             Copy accessCopy = getCopy(CopyRole.ACCESS_COPY);
@@ -1829,6 +1834,51 @@ public interface Work extends Node {
             }
 
             return orderedCopies.get(index);
+        }
+
+        @Override
+        public Coordinates getCoordinates(int index) {
+            List<Coordinates> allCoordinates = getCoordinates();
+            return allCoordinates.get(index);
+        }
+
+        @Override
+        public void addCoordinates(Coordinates coordinates) throws JsonProcessingException {
+            List<Coordinates> allCoordinates = getCoordinates();
+            allCoordinates.add(coordinates);
+            setCoordinates(allCoordinates);
+        }
+
+        @Override
+        public void setCoordinates(List<Coordinates> coordinatesList) throws JsonProcessingException {
+            setJSONCoordinates(mapper.writeValueAsString(coordinatesList));
+        }
+
+        @Override
+        public List<Coordinates> getCoordinates() {
+            String json = getJSONCoordinates();
+            if (json == null || json.isEmpty()) {
+                return new ArrayList<>();
+            }
+            return deserialiseJSONString(json, new TypeReference<List<Coordinates>>() {});
+        }
+
+        @Override
+        public Integer getOrder() {
+            final Work currWork = this;
+            final long currId = currWork.getId();
+            Work parent = getParent();
+            if (parent == null) {
+                return null;
+            }
+            Iterable<Page> pages = parent.getPages();
+            int order = Iterables.indexOf(pages, new Predicate<Work>() {
+                @Override
+                public boolean apply(Work work) {
+                    return currId == work.getId();
+                }
+            });
+            return order+1;
         }
     }
 }

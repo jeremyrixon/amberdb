@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
@@ -129,16 +131,19 @@ public class AmberVertex extends BaseVertex {
     
     
     public String toJson() {
-        StringBuilder sb = new StringBuilder("{\n");
-        sb.append("  \"id\": "        + getId()    + ",\n")
-          .append("  \"txnStart\": "  + txnStart   + ",\n")
-          .append("  \"txnEnd\": "    + txnEnd     + ",\n")
-          .append("  \"properties\": {\n");
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode root = mapper.createObjectNode();
+        root.put("id", (Long)getId());
+        root.put("txnStart", txnStart);
+        root.put("txnEnd", txnEnd);
+
+        ObjectNode propertiesNode = mapper.createObjectNode();
+        root.put("properties", propertiesNode);
         for (String prop : getPropertyKeys()) {
-            sb.append("    \"" + prop + "\": " + getProperty(prop) + "\n");
+            propertiesNode.put(prop, (String)getProperty(prop));
         }
-        sb.append("  }\n}");
-        return sb.toString();
+
+        return root.toString();
     }
 }
 

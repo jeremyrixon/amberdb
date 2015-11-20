@@ -34,11 +34,11 @@ public interface Acknowledge extends Relation {
     @Property("weighting")
     public void setWeighting(Double weighting);
 
-    @Property("urlToOriginial")
-    public String getUrlToOriginial();
+    @Property("urlToOriginal")
+    public String getUrlToOriginal();
 
-    @Property("urlToOriginial")
-    public void setUrlToOriginial(String urlToOriginial);
+    @Property("urlToOriginal")
+    public void setUrlToOriginal(String urlToOriginal);
 
     // date of acknowledgement
     @Property("date")

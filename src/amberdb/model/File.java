@@ -4,27 +4,29 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
-
-import amberdb.AmberSession;
-import amberdb.relation.IsFileOf;
-import amberdb.relation.DescriptionOf;
-
-import com.tinkerpop.blueprints.Vertex;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.frames.Adjacency;
 import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.modules.javahandler.JavaHandler;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
+import amber.checksum.Checksum;
+import amber.checksum.InvalidChecksumException;
+import amberdb.AmberSession;
+import amberdb.relation.DescriptionOf;
+import amberdb.relation.IsFileOf;
 import doss.Blob;
 import doss.BlobStore;
 import doss.BlobTx;
@@ -47,7 +49,7 @@ public interface File extends Node {
 
     @Property("mimeType")
     public String getMimeType();
-    
+
     /**
      * Name of the original file upload
      */
@@ -56,43 +58,43 @@ public interface File extends Node {
 
     @Property("fileName")
     public String getFileName();
-    
+
     @Property("fileFormat")
     public void setFileFormat(String fileFormat);
 
     @Property("fileFormat")
     public String getFileFormat();
-    
+
     @Property("fileFormatVersion")
     public void setFileFormatVersion(String fileFormatVersion);
 
     @Property("fileFormatVersion")
     public String getFileFormatVersion();
-    
+
     @Property("fileSize")
     public void setFileSize(long fileSize);
 
     @JavaHandler
     public long getFileSize();
-    
+
     @Property("compression")
     public void setCompression(String compression);
 
     @Property("compression")
     public String getCompression();
-    
+
     @Property("checksum")
     public void setChecksum(String checksum);
 
     @Property("checksum")
     public String getChecksum();
-    
+
     @Property("checksumType")
     public void setChecksumType(String checksumType);
 
     @Property("checksumType")
     public String getChecksumType();
-    
+
     /**
      * Set the date/time that the checksum was generated.
      */
@@ -104,37 +106,37 @@ public interface File extends Node {
      */
     @Property("checksumGenerationDate")
     public Date getChecksumGenerationDate();
-    
+
     @Property("device")
     public String getDevice();
-    
+
     @Property("device")
     public void setDevice(String device);
-    
+
     @Property("deviceSerialNumber")
     public String getDeviceSerialNumber();
 
     @Property("deviceSerialNumber")
     public void setDeviceSerialNumber(String deviceSerialNumber);
-    
+
     @Property("software")
     public String getSoftware();
-    
+
     @Property("software")
     public void setSoftware(String software);
-    
+
     @Property("softwareSerialNumber")
     public String getSoftwareSerialNumber();
-    
+
     @Property("softwareSerialNumber")
     public void setSoftwareSerialNumber(String softwareSerialNumber);
-    
+
     @Property("encoding")
     public String getEncoding();
-    
+
     @Property("encoding")
     public void setEncoding(String encoding);
-    
+
     /**
      * This property is encoded as a JSON Array - You probably want to use getToolId to get this property
      */
@@ -154,7 +156,7 @@ public interface File extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public List<Long> getToolId() throws JsonParseException, JsonMappingException, IOException;
+    public List<Long> getToolId();
 
     /**
      * This method handles the JSON serialisation of the toolId Property
@@ -163,17 +165,17 @@ public interface File extends Node {
      * @throws JsonParseException
      */
     @JavaHandler
-    public void setToolId(List<Long> toolId) throws JsonParseException, JsonMappingException, IOException;
-    
+    public void setToolId(List<Long> toolId) throws JsonProcessingException;
+
     /*
      * Fields migrated from DCM
      */
     @Property("dcmCopyPid")
     public String getDcmCopyPid();
-    
+
     @Property("dcmCopyPid")
     public void setDcmCopyPid(String dcmCopyPid);
-   
+
     @Adjacency(label = IsFileOf.label)
     public Copy getCopy();
 
@@ -188,6 +190,12 @@ public interface File extends Node {
 
     @JavaHandler
     void put(Path source) throws IOException;
+    
+    @JavaHandler
+    void putWithChecksumValidation(Path source, Checksum checksum) throws IOException;
+    
+    @JavaHandler
+    void putWithChecksumValidation(Writable source, Checksum checksum) throws IOException;
 
     @JavaHandler
     void put(Writable writable) throws IOException;
@@ -211,15 +219,15 @@ public interface File extends Node {
             }
             return getBlobStore().get(getBlobId());
         }
-        
+
         @Override
         public long getFileSize() {
             Long fileSize = this.asVertex().getProperty("fileSize");
-            return (fileSize == null)? 0L : fileSize;  
+            return (fileSize == null)? 0L : fileSize;
         }
-        
+
         /**
-         * Return the size of the blob. If an exception occurs try and 
+         * Return the size of the blob. If an exception occurs try and
          * return the fileSize property. If that fails, return 0L.
          */
         @Override
@@ -246,11 +254,32 @@ public interface File extends Node {
         public void put(Path source) throws IOException {
             put(Writables.wrap(source));
         }
+        
+        @Override
+        public void putWithChecksumValidation(Path source, Checksum checksum) throws IOException {
+            putWithChecksumValidation(Writables.wrap(source), checksum);
+        }
 
         @Override
         public void put(Writable writable) throws IOException {
             try (BlobTx tx = getBlobStore().begin()) {
                 Blob blob = tx.put(writable);
+                setBlobId(blob.id());
+                tx.commit();
+            }
+        }
+        
+        @Override
+        public void putWithChecksumValidation(Writable writable, Checksum checksum) throws IOException {
+            try (BlobTx tx = getBlobStore().begin()) {
+                Blob blob = tx.put(writable);
+                try {
+                    if (!blob.digest(checksum.getAlgorithm().algorithm()).equals(checksum.getValue())){
+                        throw new InvalidChecksumException("Ingest failed. Digest mismatch");
+                    }
+                } catch (NoSuchAlgorithmException e) {
+                    throw new InvalidChecksumException("Ingest failed. Checksum not found in the meta xml file");
+                }
                 setBlobId(blob.id());
                 tx.commit();
             }
@@ -266,15 +295,15 @@ public interface File extends Node {
         }
 
         @Override
-        public List<Long> getToolId() throws JsonParseException, JsonMappingException, IOException {
+        public List<Long> getToolId() {
             String toolId = getJSONToolId();
             if (toolId == null || toolId.isEmpty())
                 return new ArrayList<Long>();
-            return mapper.readValue(toolId, new TypeReference<List<Long>>() {});
+            return deserialiseJSONString(toolId, new TypeReference<List<Long>>() {});
         }
 
         @Override
-        public void setToolId(List<Long> toolId) throws JsonParseException, JsonMappingException, IOException {
+        public void setToolId(List<Long> toolId) throws JsonProcessingException {
             setJSONToolId(mapper.writeValueAsString(toolId));
         }
     }

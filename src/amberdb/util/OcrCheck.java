@@ -1,28 +1,23 @@
 package amberdb.util;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.util.List;
-import java.util.zip.GZIPInputStream;
-
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.ArrayNode;
-
 import amberdb.enums.CopyRole;
 import amberdb.model.*;
+import amberdb.model.File;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+
+import java.io.*;
+import java.util.List;
+import java.util.zip.GZIPInputStream;
 
 public class OcrCheck {
     Work work;
     Boolean hasImageCopy = null;
     ImageFile image = null;
-    
+
     /**
-     * OcrCheck constructor: construct an OcrCheck instance base on the input work.  
+     * OcrCheck constructor: construct an OcrCheck instance base on the input work.
      * @param work - a page containing image and ocr to be compared with or the parent work of the page to be checked.
      */
     public OcrCheck(Work work) {
@@ -31,7 +26,7 @@ public class OcrCheck {
         }
         this.work = work;
     }
-    
+
     /**
      * ocrOutOfBound: validate the input co-ords x, y, w, h are within the corresponding width and length of the image the ocr
      * @param x - the start value in x axis
@@ -43,7 +38,7 @@ public class OcrCheck {
     public boolean ocrOutOfBound(int x, int y, int w, int h) {
         return ocrOutOfBound(getImage(), x, y, w, h);
     }
-    
+
     /**
      * ocrOutOfBound: validate the generated ocr json in the jsonFile, and return true if the bounding box for the first paragraph
      *                is not within the corresponding width and length of the image the ocr is generated from. This method can be
@@ -60,7 +55,7 @@ public class OcrCheck {
         }
         return ocrOutOfBound(work, new FileInputStream(jsonFile));
     }
-    
+
     /**
      * ocrOutOfBound: validate the generated ocr json in the work's ocr json copy, and return true if the bounding box for the first paragraph
      *                is not within the corresponding width and length of the image the ocr is generated from.  This method can be called to
@@ -72,7 +67,7 @@ public class OcrCheck {
     public boolean ocrOutOfBound() throws UnsupportedEncodingException, IOException {
         return ocrOutOfBound(this.work);
     }
-    
+
     protected ImageFile getImage() {
         if (hasImageCopy != null) {
             return image;
@@ -90,16 +85,16 @@ public class OcrCheck {
         }
         return image;
     }
-    
+
     private boolean ocrOutOfBound(Work work) throws UnsupportedEncodingException, IOException {
         return ocrOutOfBound(work, null);
     }
-    
+
     private boolean ocrOutOfBound(ImageFile image, int x, int y, int w, int h) {
         if (x < 0 || y < 0) {
             throw new RuntimeException("Invalid ocr bounding box x and y from (x: " + x + ", y: " + y + ")");
         }
-        
+
         if (w <= 0 || h <= 0) {
             throw new RuntimeException("Invalid ocr bounding box width and length from (w: " + w + ", h: " + h + ")");
         }
@@ -107,7 +102,7 @@ public class OcrCheck {
         if (image == null) {
             throw new RuntimeException("No image is found for the work " + work.getObjId());
         }
-        
+
         Integer imageWidth = image.getImageWidth();
         Integer imageLength = image.getImageLength();
         Integer resolutionX = null;
@@ -123,42 +118,42 @@ public class OcrCheck {
         } catch (NumberFormatException e) {
             throw new RuntimeException("Invalid image resolution " +  resolution + " for page " + work.getObjId());
         }
-        
+
         if (imageWidth == null || imageWidth <= 0) {
             throw new RuntimeException("Missing image width for page " + work.getObjId());
         }
-        
+
         if (imageLength == null || imageLength <= 0) {
             throw new RuntimeException("Missing image length for page " + work.getObjId());
         }
-        
+
         if (x > imageWidth || y > imageLength) {
             return true;
         }
-        
+
         if (w > imageWidth || h > imageLength) {
             return true;
         }
         return false;
     }
-    
+
     public boolean ocrOutOfBound(Work work, InputStream in) throws UnsupportedEncodingException, IOException {
         if (work instanceof Page) {
-            ImageFile image = getImage();            
+            ImageFile image = getImage();
             InputStream ocrStream = in;
             if (ocrStream == null) {
                 Copy ocrJson = work.getCopy(CopyRole.OCR_JSON_COPY);
                 if (ocrJson == null) {
                     return false;
                 }
-                
+
                 File ocrJsonFile = ocrJson.getFile();
                 if (ocrJsonFile == null) {
                     return false;
                 }
                 ocrStream = ocrJsonFile.openStream();
             }
-            
+
             try (InputStreamReader isr = new InputStreamReader(new GZIPInputStream(ocrStream), "utf8")) {
                 JsonNode ocr = new ObjectMapper().readTree(isr);
                 JsonNode element = ocr.get("print").get("ps");
@@ -172,10 +167,10 @@ public class OcrCheck {
                     if (coOrds == null || coOrds.length != 4) {
                         throw new RuntimeException("Invalid bounding box " + firstBoundingBox + " in ocr json for work " + work.getObjId());
                     }
-                    
+
                     try {
                         Integer startX = Integer.parseInt(coOrds[0]);
-                        Integer startY = Integer.parseInt(coOrds[1]);                       
+                        Integer startY = Integer.parseInt(coOrds[1]);
                         Integer widthBound = Integer.parseInt(coOrds[2]);
                         Integer lengthBound = Integer.parseInt(coOrds[3]);
                         return ocrOutOfBound(image, startX, startY, widthBound, lengthBound);

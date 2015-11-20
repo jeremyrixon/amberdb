@@ -3,13 +3,7 @@ package amberdb.graph;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -971,6 +965,30 @@ public class AmberGraph extends BaseGraph
             }
             return edges;
         }
+    }
+
+    public List<Vertex> getRemovedVertices() {
+        return new ArrayList(removedVertices.values());
+    }
+
+    public List<Vertex> getNewVertices() {
+        return new ArrayList<>(newVertices);
+    }
+
+    public List<Vertex> getModifiedVertices() {
+        return new ArrayList(modifiedVertices);
+    }
+
+    public List<Edge> getRemovedEdges() {
+        return new ArrayList(removedEdges.values());
+    }
+
+    public List<Edge> getNewEdges() {
+        return new ArrayList<>(newEdges);
+    }
+
+    public List<Edge> getModifiedEdges() {
+        return new ArrayList(modifiedEdges);
     }
 }
 

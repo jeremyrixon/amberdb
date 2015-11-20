@@ -1,29 +1,21 @@
 package amberdb;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import amberdb.enums.CopyRole;
+import amberdb.model.Page;
+import amberdb.model.Work;
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.*;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
-
-import amberdb.enums.CopyRole;
-import amberdb.model.Page;
-import amberdb.model.Work;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 
 public class IngestTest {
@@ -178,32 +170,30 @@ public class IngestTest {
 
         // show the qa form
         try {
-            
+
             Page p1;
             Page p2;
-            
+
             if (work.countParts() > 1) {
-                
+
                 p1 = work.getPage(1);
                 p2 = work.getPage(2);
-                
+
                 Page a = work.getPage(1);
                 Page b = work.getPage(2);
-                
+
                 a.setOrder(2);
                 b.setOrder(1);
-                
+
                 assertEquals(p1, work.getPage(2));
                 assertEquals(p2, work.getPage(1));
             }
 
             if (work.countParts() > 0) {
                 Page page = work.getPage(1);
-                page.rotate(10);
-                page.crop(100, 100, 200, 200);
                 page.setTitle("IV");
             }
-            
+
             assertEquals(work.getPage(1).getTitle(), "IV");
 
         } catch (Exception e) {

@@ -1,49 +1,16 @@
 package amberdb;
 
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.sql.DataSource;
-
-import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.skife.jdbi.v2.DBI;
-
-import amberdb.model.CameraData;
-import amberdb.model.Copy;
-import amberdb.model.Description;
-import amberdb.model.EADWork;
-import amberdb.model.File;
-import amberdb.model.GeoCoding;
-import amberdb.model.IPTC;
-import amberdb.model.ImageFile;
-import amberdb.model.Page;
-import amberdb.model.Party;
-import amberdb.model.Section;
-import amberdb.model.SoundFile;
-import amberdb.model.Tag;
-import amberdb.model.Work;
+import amberdb.graph.*;
+import amberdb.graph.AmberMultipartQuery.QueryClause;
+import amberdb.model.*;
 import amberdb.sql.ListLu;
 import amberdb.sql.Lookups;
 import amberdb.sql.LookupsSchema;
-import amberdb.graph.AmberGraph;
-import amberdb.graph.AmberHistory;
-import amberdb.graph.AmberMultipartQuery;
-import amberdb.graph.AmberMultipartQuery.QueryClause;
-import amberdb.graph.AmberTransaction;
-
-import static amberdb.graph.BranchType.*;
-
-import com.google.common.collect.Lists;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.TransactionalGraph;
@@ -56,8 +23,18 @@ import com.tinkerpop.frames.FramedGraphFactory;
 import com.tinkerpop.frames.modules.gremlingroovy.GremlinGroovyModule;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerModule;
 import com.tinkerpop.frames.modules.typedgraph.TypedGraphModuleBuilder;
-
 import doss.BlobStore;
+import org.apache.commons.lang.StringUtils;
+import org.h2.jdbcx.JdbcConnectionPool;
+import org.skife.jdbi.v2.DBI;
+
+import javax.sql.DataSource;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.*;
+
+import static amberdb.graph.BranchType.BRANCH_FROM_ALL;
+import static amberdb.graph.BranchType.BRANCH_FROM_PREVIOUS;
 
 
 public class AmberSession implements AutoCloseable {
@@ -88,6 +65,7 @@ public class AmberSession implements AutoCloseable {
                 .withClass(Tag.class)
                 .withClass(Party.class)
                 .build());
+    private List<AmberPreCommitHook> preCommitHooks = new ArrayList<>();
 
 
     /**
@@ -140,6 +118,18 @@ public class AmberSession implements AutoCloseable {
 
 
     public AmberSession(DataSource dataSource, BlobStore blobStore, Long sessionId) {
+        AmberGraph amber = init(dataSource, sessionId);
+        tempDir = null;
+
+        // DOSS
+        this.blobStore = blobStore;
+
+        // Graph
+        graph = openGraph(amber);
+    }
+
+    public AmberSession(DataSource dataSource, BlobStore blobStore, Long sessionId, List<AmberPreCommitHook> preCommitHooks) {
+        this.preCommitHooks = preCommitHooks;
 
         AmberGraph amber = init(dataSource, sessionId);
         tempDir = null;
@@ -202,7 +192,20 @@ public class AmberSession implements AutoCloseable {
      * commit saves everything in the current transaction.
      */
     public void commit() {
+        runPreCommitHooks();
         ((TransactionalGraph) graph).commit();
+    }
+
+    private void runPreCommitHooks() {
+        for (AmberPreCommitHook preCommitHook: preCommitHooks) {
+            preCommitHook.hook(getAmberGraph().getNewVertices(),
+                    getAmberGraph().getModifiedVertices(),
+                    getAmberGraph().getRemovedVertices(),
+                    getAmberGraph().getNewEdges(),
+                    getAmberGraph().getModifiedEdges(),
+                    getAmberGraph().getRemovedEdges(),
+                    this);
+        }
     }
 
 
@@ -213,6 +216,7 @@ public class AmberSession implements AutoCloseable {
      * @param why the operation they were fulfilling by commiting the transaction
      */
     public Long commit(String who, String why) {
+        runPreCommitHooks();
         return getAmberGraph().commit(who, why);
     }
 
@@ -680,6 +684,7 @@ public class AmberSession implements AutoCloseable {
         party.setName(name);
         party.setOrgUrl(orgUrl);
         party.setLogoUrl(logoUrl);
+        party.setSuppressed(false);
         return party;
     }
 
