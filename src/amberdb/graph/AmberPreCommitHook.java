@@ -63,7 +63,7 @@ public abstract class AmberPreCommitHook<T> {
 
         for (Vertex element: vertices) {
             if (element.getProperty("type") != null && getValidNodeTypes().contains(element.getProperty("type"))) {
-                nodesOfCorrectType.add(graph.frame((Vertex)element, getExpectedNodeType()));
+                nodesOfCorrectType.add(graph.frame(element, getExpectedNodeType()));
             }
         }
 
