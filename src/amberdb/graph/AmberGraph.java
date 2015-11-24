@@ -990,5 +990,148 @@ public class AmberGraph extends BaseGraph
     public List<Edge> getModifiedEdges() {
         return new ArrayList(modifiedEdges);
     }
+
+
+    private void specialCommitSuspendVertices(Long sessId) {
+
+        AmberVertexBatch vertices = new AmberVertexBatch();
+        AmberPropertyBatch properties = new AmberPropertyBatch();
+
+        log.debug("suspending verts -- deleted:{} new:{} modified:{} ",
+                removedVertices.size(), newVertices.size(), modifiedVertices.size());
+
+        int batchLimit = 0;
+        for (Vertex v : removedVertices.values()) {
+            modifiedVertices.remove(v);
+            if (newVertices.remove(v)) continue;
+            vertices.add(new AmberVertexWithState((AmberVertex) v, "DEL"));
+
+            batchLimit++;
+            if (batchLimit >= COMMIT_BATCH_SIZE) {
+                log.debug("Batched vertex marshalling");
+                dao.suspendVertices(sessId, vertices.id, vertices.txnStart, vertices.txnEnd, vertices.state);
+                vertices.clear();
+                batchLimit = 0;
+            }
+        }
+
+        for (Vertex v : graphVertices.values()) {
+            AmberVertex av = (AmberVertex) v;
+            if (newVertices.contains(v)) {
+                modifiedVertices.remove(v); // a modified new vertex is just a new vertex
+                vertices.add(new AmberVertexWithState(av, "NEW"));
+                properties.add((Long) av.getId(), av.getProperties());
+            } else if (modifiedVertices.contains(v)) {
+                vertices.add(new AmberVertexWithState(av, "MOD"));
+                properties.add((Long) av.getId(), av.getProperties());
+            } //else {
+              //  vertices.add(new AmberVertexWithState(av, "AMB"));
+              //}
+              //properties.add((Long) av.getId(), av.getProperties());
+
+            batchLimit++;
+            batchLimit += (av.getProperties() == null) ? 0 : av.getProperties().size();
+            if (batchLimit >= COMMIT_BATCH_SIZE) {
+                log.debug("Batched vertex marshalling");
+                dao.suspendVertices(sessId, vertices.id, vertices.txnStart, vertices.txnEnd, vertices.state);
+                dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
+                vertices.clear();
+                properties.clear();
+                batchLimit = 0;
+            }
+        }
+        dao.suspendVertices(sessId, vertices.id, vertices.txnStart, vertices.txnEnd, vertices.state);
+        dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
+    }
+
+
+    private void specialCommitSuspendEdges(Long sessId) {
+
+        AmberEdgeBatch edges = new AmberEdgeBatch();
+        AmberPropertyBatch properties = new AmberPropertyBatch();
+
+        log.debug("suspending edges -- deleted:{} new:{} modified:{}",
+                removedEdges.size(), newEdges.size(), modifiedEdges.size());
+
+        int batchLimit = 0;
+        for (Edge e : removedEdges.values()) {
+            modifiedEdges.remove(e);
+            if (newEdges.remove(e)) continue;
+            edges.add(new AmberEdgeWithState((AmberEdge) e, "DEL"));
+
+            batchLimit++;
+            if (batchLimit >= COMMIT_BATCH_SIZE) {
+                log.debug("Batched edge marshalling");
+                dao.suspendEdges(sessId, edges.id, edges.txnStart, edges.txnEnd,
+                        edges.vertexOut, edges.vertexIn, edges.label, edges.order, edges.state);
+                edges.clear();
+                batchLimit = 0;
+            }
+        }
+
+        for (Edge e : graphEdges.values()) {
+            AmberEdge ae = (AmberEdge) e;
+            if (newEdges.contains(e)) {
+                modifiedEdges.remove(e); // a modified new edge is just a new edge
+                edges.add(new AmberEdgeWithState(ae, "NEW"));
+                properties.add((Long) ae.getId(), ae.getProperties());
+
+            } else if (modifiedEdges.contains(e)) {
+                edges.add(new AmberEdgeWithState(ae, "MOD"));
+                properties.add((Long) ae.getId(), ae.getProperties());
+
+            } //else {
+              //  edges.add(new AmberEdgeWithState(ae, "AMB"));
+              //}
+              //properties.add((Long) ae.getId(), ae.getProperties());
+
+            batchLimit++;
+            batchLimit += (ae.getProperties() == null) ? 0 : ae.getProperties().size();
+            if (batchLimit >= COMMIT_BATCH_SIZE) {
+                log.debug("Batched edge marshalling");
+                dao.suspendEdges(sessId, edges.id, edges.txnStart, edges.txnEnd,
+                        edges.vertexOut, edges.vertexIn, edges.label, edges.order, edges.state);
+                dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
+                edges.clear();
+                properties.clear();
+                batchLimit = 0;
+            }
+        }
+        dao.suspendEdges(sessId, edges.id, edges.txnStart, edges.txnEnd,
+                edges.vertexOut, edges.vertexIn, edges.label, edges.order, edges.state);
+        dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
+    }
+
+
+    public Long suspendForSpecialCommit() {
+
+        // set up batch sql data structures
+        Long sessId = newId();
+
+        specialCommitSuspendEdges(sessId);
+        specialCommitSuspendVertices(sessId);
+        log.debug("finished suspend for commit");
+
+        return sessId;
+    }
+
+
+    public Long specialCommit(String user, String operation) {
+
+        Long txnId = suspendForSpecialCommit();
+        commitSqlWrappedWithRetry(txnId, user, operation, 4, 300);
+        log.debug("Commence clearing session");
+        dao.clearSession(txnId);
+        log.debug("Finished clearing session");
+
+        clearChangeSets();
+        return txnId;
+    }
+
+
+    public void specialCommit() {
+        specialCommit("amberdb", "commit");
+    }
+
 }
 
