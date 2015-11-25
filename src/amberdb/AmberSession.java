@@ -4,9 +4,7 @@ package amberdb;
 import amberdb.graph.*;
 import amberdb.graph.AmberMultipartQuery.QueryClause;
 import amberdb.model.*;
-import amberdb.sql.ListLu;
 import amberdb.sql.Lookups;
-import amberdb.sql.LookupsSchema;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
@@ -143,10 +141,6 @@ public class AmberSession implements AutoCloseable {
 
 
     private AmberGraph init(DataSource dataSource, Long sessionId) {
-
-        // NLA specific lookup table config
-        initLookupData(dataSource);
-
         // Graph
         AmberGraph amber = new AmberGraph(dataSource);
         if (sessionId != null)
@@ -155,30 +149,14 @@ public class AmberSession implements AutoCloseable {
         return amber;
     }
 
-
-    private void initLookupData(DataSource dataSource) {
-        lookupsDbi = new DBI(dataSource);
-        LookupsSchema luSchema = lookupsDbi.onDemand(LookupsSchema.class);
-        Lookups lookups = getLookups();
-        if (!luSchema.schemaTablesExist()) {
-            luSchema.createLookupsSchema();
-            List<ListLu> list = lookups.findActiveLookups();
-            luSchema.setupToolsAssociations(list);
-        }
-        if(!luSchema.carrierAlgorithmTableExist()){
-            luSchema.createCarrierAlgorithmTable();
-        }
-        lookups.migrate();
-    }
-
-
     public AmberGraph getAmberGraph() {
         return ((OwnedGraph) graph.getBaseGraph()).getAmberGraph();
     }
 
 
     public Lookups getLookups() {
-        return lookupsDbi.onDemand(Lookups.class);
+        // return AmberDb.lookupsDbi().onDemand(Lookups.class);
+        return AmberDb.lookups();
     }
 
 
