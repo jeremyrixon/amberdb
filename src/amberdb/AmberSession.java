@@ -876,6 +876,31 @@ public class AmberSession implements AutoCloseable {
         return components;
     }
 
+    public List<Vertex> loadParentsAndCopies(final List<Long> ids) {
+        AmberGraph g = getAmberGraph();
+
+        List<Vertex> components;
+        AmberQuery q = g.newQuery(ids);
+
+        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn"}, Direction.OUT);
+        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn" }, Direction.OUT);
+        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn" }, Direction.OUT);
+        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn" }, Direction.OUT);
+        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn"}, Direction.OUT);
+        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn"}, Direction.OUT);
+        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn" }, Direction.OUT);
+        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn" }, Direction.OUT);
+        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn" }, Direction.OUT);
+        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn" }, Direction.OUT);
+
+        // get all the copies, files etc
+        q.branch(BRANCH_FROM_ALL, new String[]{"isCopyOf"}, Direction.IN);
+        components = q.execute(false);
+
+        return components;
+
+    }
+
     public List<Vertex> loadMultiLevelWorks(final List<Long> ids) {
         return loadMultiLevelWorks(ids.toArray(new Long[ids.size()]));
     }
