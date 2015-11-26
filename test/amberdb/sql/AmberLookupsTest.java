@@ -5,21 +5,30 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 import java.util.List;
 
+import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
+import amberdb.AmberDb;
 import amberdb.AmberSession;
 import amberdb.util.NaturalSort;
 
 public class AmberLookupsTest {
     private AmberSession session;
+    private AmberDb adb;
     private Lookups lookups;
+    
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
 
     @Before
     public void setup() {
-        session = new AmberSession();
-        lookups = session.getAmberGraph().dbi().onDemand(Lookups.class);
+        adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist","lookups","lookups"), folder.getRoot().toPath());
+        session = adb.begin();
+        lookups = session.getLookups();
     }
 
     @After
