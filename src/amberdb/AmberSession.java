@@ -38,7 +38,7 @@ import static amberdb.graph.BranchType.BRANCH_FROM_PREVIOUS;
 public class AmberSession implements AutoCloseable {
     private final FramedGraph<TransactionalGraph> graph;
     private final BlobStore blobStore;
-    private final DBI lookupsDbi;
+    private DBI lookupsDbi;
     private final TempDirectory tempDir;
 
     private final static FramedGraphFactory framedGraphFactory =
@@ -91,9 +91,6 @@ public class AmberSession implements AutoCloseable {
         DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:graph;DB_CLOSE_DELAY=-1;MVCC=TRUE;", "amb", "amb");
         AmberGraph amber = init(dataSource, sessionId);
         tempDir = null;
-
-        // Lookups dbi
-        lookupsDbi = new DBI(dataSource);
         
         // DOSS
         this.blobStore = blobStore;
@@ -109,9 +106,6 @@ public class AmberSession implements AutoCloseable {
         AmberGraph amber = init(dataSource, null);
         tempDir = null;
         
-        // Lookups dbi
-        lookupsDbi = new DBI(dataSource);
-        
         // DOSS
         this.blobStore = blobStore;
 
@@ -123,9 +117,6 @@ public class AmberSession implements AutoCloseable {
     public AmberSession(DataSource dataSource, BlobStore blobStore, Long sessionId) {
         AmberGraph amber = init(dataSource, sessionId);
         tempDir = null;
-        
-        // Lookups dbi
-        lookupsDbi = new DBI(dataSource);
 
         // DOSS
         this.blobStore = blobStore;
@@ -139,9 +130,6 @@ public class AmberSession implements AutoCloseable {
 
         AmberGraph amber = init(dataSource, sessionId);
         tempDir = null;
-
-        // Lookups dbi
-        lookupsDbi = new DBI(dataSource);
         
         // DOSS
         this.blobStore = blobStore;
@@ -152,6 +140,9 @@ public class AmberSession implements AutoCloseable {
 
 
     private AmberGraph init(DataSource dataSource, Long sessionId) {
+        // Lookups dbi
+        lookupsDbi = new DBI(dataSource);
+        
         // Graph
         AmberGraph amber = new AmberGraph(dataSource);
         if (sessionId != null)
