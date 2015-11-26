@@ -36,12 +36,10 @@ import static amberdb.graph.BranchType.BRANCH_FROM_PREVIOUS;
 
 
 public class AmberSession implements AutoCloseable {
-
-
     private final FramedGraph<TransactionalGraph> graph;
     private final BlobStore blobStore;
+    private final DBI lookupsDbi;
     private final TempDirectory tempDir;
-    private DBI lookupsDbi;
 
     private final static FramedGraphFactory framedGraphFactory =
             new FramedGraphFactory(
@@ -80,6 +78,7 @@ public class AmberSession implements AutoCloseable {
         // Graph
         DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:graph;DB_CLOSE_DELAY=-1;MVCC=TRUE;", "amb", "amb");
         AmberGraph amber = init(dataSource, null);
+        lookupsDbi = new DBI(dataSource);
         graph = openGraph(amber);
     }
 
@@ -93,6 +92,9 @@ public class AmberSession implements AutoCloseable {
         AmberGraph amber = init(dataSource, sessionId);
         tempDir = null;
 
+        // Lookups dbi
+        lookupsDbi = new DBI(dataSource);
+        
         // DOSS
         this.blobStore = blobStore;
 
@@ -106,7 +108,10 @@ public class AmberSession implements AutoCloseable {
         DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:graph;DB_CLOSE_DELAY=-1;MVCC=TRUE;", "amb", "amb");
         AmberGraph amber = init(dataSource, null);
         tempDir = null;
-
+        
+        // Lookups dbi
+        lookupsDbi = new DBI(dataSource);
+        
         // DOSS
         this.blobStore = blobStore;
 
@@ -118,6 +123,9 @@ public class AmberSession implements AutoCloseable {
     public AmberSession(DataSource dataSource, BlobStore blobStore, Long sessionId) {
         AmberGraph amber = init(dataSource, sessionId);
         tempDir = null;
+        
+        // Lookups dbi
+        lookupsDbi = new DBI(dataSource);
 
         // DOSS
         this.blobStore = blobStore;
@@ -132,6 +140,9 @@ public class AmberSession implements AutoCloseable {
         AmberGraph amber = init(dataSource, sessionId);
         tempDir = null;
 
+        // Lookups dbi
+        lookupsDbi = new DBI(dataSource);
+        
         // DOSS
         this.blobStore = blobStore;
 
@@ -145,7 +156,6 @@ public class AmberSession implements AutoCloseable {
         AmberGraph amber = new AmberGraph(dataSource);
         if (sessionId != null)
             amber.resume(sessionId);
-
         return amber;
     }
 
@@ -155,8 +165,7 @@ public class AmberSession implements AutoCloseable {
 
 
     public Lookups getLookups() {
-        // return AmberDb.lookupsDbi().onDemand(Lookups.class);
-        return AmberDb.lookups();
+        return lookupsDbi.onDemand(Lookups.class);
     }
 
 

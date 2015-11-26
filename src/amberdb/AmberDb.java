@@ -20,14 +20,10 @@ import doss.CorruptBlobStoreException;
 public class AmberDb {
     final private DataSource dataSource;
     final private Path rootPath;
-    static private DBI lookupsDbi;
-    static private Lookups lookups;
     
     public AmberDb(DataSource dataSource, Path rootPath) {
         this.dataSource = dataSource;
         this.rootPath = rootPath;
-        // NLA specific lookup table config
-        lookupsDbi = new DBI(dataSource);
         initLookupData(dataSource);
     }
 
@@ -44,8 +40,10 @@ public class AmberDb {
     }
 
     private void initLookupData(DataSource dataSource) {
+        // NLA specific lookup table config
+        DBI lookupsDbi = new DBI(dataSource);
         LookupsSchema luSchema = lookupsDbi.onDemand(LookupsSchema.class);
-        lookups = lookupsDbi.onDemand(Lookups.class);
+        Lookups lookups = lookupsDbi.onDemand(Lookups.class);
         if (!luSchema.schemaTablesExist()) {
             luSchema.createLookupsSchema();
             List<ListLu> list = lookups.findActiveLookups();
@@ -55,6 +53,9 @@ public class AmberDb {
             luSchema.createCarrierAlgorithmTable();
         }
         lookups.migrate();
+        lookupsDbi.close(luSchema);
+        lookupsDbi.close(lookups);
+        lookupsDbi = null;
     }
     
     static BlobStore openBlobStore(Path root) {
@@ -68,13 +69,5 @@ public class AmberDb {
             }
             return LocalBlobStore.open(root);
         }
-    }
-    
-    static DBI lookupsDbi() {
-        return lookupsDbi;
-    }
-    
-    static Lookups lookups() {
-        return lookups;
     }
 }
