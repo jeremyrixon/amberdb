@@ -78,7 +78,6 @@ public class AmberSession implements AutoCloseable {
         // Graph
         DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:graph;DB_CLOSE_DELAY=-1;MVCC=TRUE;", "amb", "amb");
         AmberGraph amber = init(dataSource, null);
-        lookupsDbi = new DBI(dataSource);
         graph = openGraph(amber);
     }
 
@@ -91,7 +90,7 @@ public class AmberSession implements AutoCloseable {
         DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:graph;DB_CLOSE_DELAY=-1;MVCC=TRUE;", "amb", "amb");
         AmberGraph amber = init(dataSource, sessionId);
         tempDir = null;
-        
+
         // DOSS
         this.blobStore = blobStore;
 
@@ -105,7 +104,7 @@ public class AmberSession implements AutoCloseable {
         DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:graph;DB_CLOSE_DELAY=-1;MVCC=TRUE;", "amb", "amb");
         AmberGraph amber = init(dataSource, null);
         tempDir = null;
-        
+
         // DOSS
         this.blobStore = blobStore;
 
@@ -130,7 +129,7 @@ public class AmberSession implements AutoCloseable {
 
         AmberGraph amber = init(dataSource, sessionId);
         tempDir = null;
-        
+
         // DOSS
         this.blobStore = blobStore;
 
