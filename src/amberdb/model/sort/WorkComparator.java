@@ -1,8 +1,10 @@
 package amberdb.model.sort;
 
 
-import amberdb.model.Work;
 import java.util.Comparator;
+
+import amberdb.model.Work;
+import amberdb.util.NaturalSort;
 
 /**
  * Use to sort Works based on a given property.
@@ -45,8 +47,11 @@ public class WorkComparator implements Comparator<Work> {
             if (o1.equals("[]")) return 1;
         }
 
-        // easy comparisons for Strings, Booleans, Dates and a variety of number formats
-        if (o1 instanceof Comparable) {
+     // easy comparisons for Strings, Booleans, Dates and a variety of number formats
+        if (o1 instanceof String){
+            int i = NaturalSort.compareNatural((String)o1, (String)o2);
+            return sortForward ? i : -i;
+        }else if (o1 instanceof Comparable) {
             int i = ((Comparable) o1).compareTo(o2);
             return sortForward ? i : -i;
         }
