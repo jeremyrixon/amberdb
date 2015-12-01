@@ -4,6 +4,7 @@ import amberdb.AmberSession;
 import amberdb.NoSuchCopyException;
 import amberdb.enums.CopyRole;
 import amberdb.relation.*;
+import amberdb.util.EPubConverter;
 import amberdb.util.Jp2Converter;
 import amberdb.util.PdfTransformerFop;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -297,6 +298,9 @@ public interface Copy extends Node {
 
     @JavaHandler
     Copy derivePdfCopy(CopyRole copyRole, Reader... stylesheets) throws IOException;
+    
+    @JavaHandler
+    Copy deriveEPubCopy(Path epubConverter) throws Exception;
 
     @JavaHandler
     int getCurrentIndex();
@@ -342,6 +346,79 @@ public interface Copy extends Node {
             file.putLegacyDoss(dossPath);
             file.setMimeType(mimeType);
         }
+        
+        @Override
+        public Copy deriveEPubCopy(Path epubConverterPath) throws Exception {
+            File file = this.getFile();
+            if (file == null) {
+                // Is not an image
+                return null;
+            }
+            
+            // Do we need to check?
+            String mimeType = file.getMimeType();
+            if (!(mimeType.matches("application/.*"))) {
+                throw new IllegalStateException(this.getWork().getObjId() + " is not a application/* type file. Unable to convert to EPub");
+            }
+
+            Path stage = null;
+            try {
+                // create a temporary file processing location for deriving the jpeg2000 from the master/comaster
+                stage = Files.createTempDirectory("amberdb-derivative");
+
+                // assume this Copy is a master copy and access the amber file
+                Long blobId = (this.getFile() == null)? null: this.getFile().getBlobId();
+
+                // get this copy's blob store.
+                BlobStore doss = AmberSession.ownerOf(g()).getBlobStore();
+
+                // generate the derivative.
+                Path epubPath = generateEPubFile(doss, epubConverterPath, stage, blobId);
+
+                // Set mimetype based on tika detection
+                String epubMimeType = new Tika().detect(epubPath.toFile());
+
+                // add the derived EPub to this Copy's work as an access copy
+                Copy ac = null;
+                if (epubPath != null) {
+                    Work work = this.getWork();
+
+                    // Replace the access copy for this work (there's only ever one for images).
+                    ac = work.getCopy(CopyRole.ACCESS_COPY);
+                    if (ac == null) {
+                        ac = work.addCopy(epubPath, CopyRole.ACCESS_COPY, epubMimeType);
+                        ac.setSourceCopy(this);
+                    } else {
+                        ac.getFile().put(epubPath);
+                        Copy sc = ac.getSourceCopy();
+                        if (!this.equals(sc)) {
+                            ac.removeSourceCopy(sc);
+                            ac.setSourceCopy(this);
+                        }
+                    }
+
+                    File acf = ac.getFile();
+                    acf.setFileSize(Files.size(epubPath));
+                    acf.setMimeType(epubMimeType);
+                }
+                
+                return ac;
+            } catch (Exception e) {
+                throw e;
+            } finally {
+                // clean up temporary working space
+                if (stage != null) {
+                    java.io.File[] files = stage.toFile().listFiles();
+                    if (files != null) {
+                        for (java.io.File f : files) {
+                            f.delete();
+                        }
+                    }
+                    stage.toFile().delete();
+                }
+            }
+        }
+
 
         @Override
         public Copy deriveJp2ImageCopy(Path jp2Converter, Path imgConverter) throws IllegalStateException, IOException, InterruptedException, Exception {
@@ -637,6 +714,47 @@ public interface Copy extends Node {
             // NOTE: to return null at this point to cater for TiffEcho and JP2Echo test cases running in Travis env.
             if (!tiffUncompressor.toFile().exists() || !jp2Generator.toFile().exists()) return null;
             return jp2ImgPath;
+        }
+        
+        private Path generateEPubFile(BlobStore doss, Path epubConverterPath, Path stage, Long blobId) throws Exception {
+            if (blobId == null) {
+                throw new NoSuchCopyException(this.getWork().getId(), CopyRole.fromString(this.getCopyRole()));
+            }
+
+            // prepare the files for conversion
+            Path tmpPath = stage.resolve("" + blobId);  // where to put the source retrieved from the amber blob
+            copyBlobToFile(doss.get(blobId), tmpPath);  // get the blob from amber
+
+            // Add the right file extension to filename based on the original file name
+            String fileExtension = null;
+            String filename = getFile().getFileName();
+            if (filename != null && filename.contains(".")) {
+                fileExtension = filename.substring(filename.indexOf("."));
+            } else {
+                // couldn't use the file name so try the mime type
+                String mimetype = new Tika().detect(tmpPath.toFile());
+                switch (mimetype) {
+                    case "application/x-mobipocket-ebook": fileExtension = ".mobi"; break;
+                    case "application/vnd.amazon.ebook": fileExtension = ".azw"; break;
+                    default: throw new RuntimeException(mimetype + ": Not a file that can be converted to epub");
+                }
+            }
+
+            // Rename the file
+            String newFilename = "" + blobId + fileExtension;
+            Path srcPath = tmpPath.resolveSibling(newFilename);
+            Files.move(tmpPath, srcPath);
+
+            // Convert to EPub
+            EPubConverter epubConverter = new EPubConverter(epubConverterPath);
+
+            Path epubPath = stage.resolve(blobId + ".epub"); // name the epub derivative after the original uncompressed blob
+            epubConverter.convertFile(srcPath, epubPath);
+
+            // NOTE: to return null at this point to cater for TiffEcho and JP2Echo test cases running in Travis env.
+            if (!epubConverterPath.toFile().exists()) return null;
+
+            return epubPath;
         }
 
         private Path generateJp2Image(BlobStore doss, Path jp2Converter, Path imgConverter, Path stage, Long imgBlobId) throws IOException, InterruptedException, NoSuchCopyException, Exception {
