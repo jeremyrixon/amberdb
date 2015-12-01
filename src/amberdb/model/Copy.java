@@ -351,11 +351,10 @@ public interface Copy extends Node {
         public Copy deriveEPubCopy(Path epubConverterPath) throws Exception {
             File file = this.getFile();
             if (file == null) {
-                // Is not an image
                 return null;
             }
             
-            // Do we need to check?
+            // Check that the file is something that we can process
             String mimeType = file.getMimeType();
             if (!(mimeType.matches("application/.*"))) {
                 throw new IllegalStateException(this.getWork().getObjId() + " is not a application/* type file. Unable to convert to EPub");
@@ -363,7 +362,7 @@ public interface Copy extends Node {
 
             Path stage = null;
             try {
-                // create a temporary file processing location for deriving the jpeg2000 from the master/comaster
+                // create a temporary file processing location for deriving the EPub file
                 stage = Files.createTempDirectory("amberdb-derivative");
 
                 // assume this Copy is a master copy and access the amber file
@@ -383,7 +382,7 @@ public interface Copy extends Node {
                 if (epubPath != null) {
                     Work work = this.getWork();
 
-                    // Replace the access copy for this work (there's only ever one for images).
+                    // Replace the access copy for this work (there's only ever one for ebooks).
                     ac = work.getCopy(CopyRole.ACCESS_COPY);
                     if (ac == null) {
                         ac = work.addCopy(epubPath, CopyRole.ACCESS_COPY, epubMimeType);
@@ -403,8 +402,6 @@ public interface Copy extends Node {
                 }
                 
                 return ac;
-            } catch (Exception e) {
-                throw e;
             } finally {
                 // clean up temporary working space
                 if (stage != null) {
@@ -722,7 +719,7 @@ public interface Copy extends Node {
             }
 
             // prepare the files for conversion
-            Path tmpPath = stage.resolve("" + blobId);  // where to put the source retrieved from the amber blob
+            Path tmpPath = stage.resolve(Long.toString(blobId));  // where to put the source retrieved from the amber blob
             copyBlobToFile(doss.get(blobId), tmpPath);  // get the blob from amber
 
             // Add the right file extension to filename based on the original file name
@@ -741,7 +738,7 @@ public interface Copy extends Node {
             }
 
             // Rename the file
-            String newFilename = "" + blobId + fileExtension;
+            String newFilename = Long.toString(blobId) + fileExtension;
             Path srcPath = tmpPath.resolveSibling(newFilename);
             Files.move(tmpPath, srcPath);
 
