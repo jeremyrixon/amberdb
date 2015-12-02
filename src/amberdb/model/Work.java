@@ -449,7 +449,7 @@ public interface Work extends Node {
 
     @Property("totalDuration")
     void setTotalDuration(String totalDuration);
-
+    
     @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
     GeoCoding addGeoCoding();
 
@@ -935,13 +935,13 @@ public interface Work extends Node {
     void setAdditionalCreator(String additionalCreator);
 
     @Property("additionalCreator")
-    void getAdditionalCreator();
+    String getAdditionalCreator();
 
     @Property("additionalSeries")
     void setAdditionalSeries(String additionalSeries);
 
     @Property("additionalSeries")
-    void getAdditionalSeries();
+    String getAdditionalSeries();
 
     @Adjacency(label = DeliveredOn.label, direction = Direction.OUT)
     Iterable<Work> getDeliveryWorks();

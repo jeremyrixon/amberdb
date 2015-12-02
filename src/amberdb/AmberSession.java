@@ -4,9 +4,7 @@ package amberdb;
 import amberdb.graph.*;
 import amberdb.graph.AmberMultipartQuery.QueryClause;
 import amberdb.model.*;
-import amberdb.sql.ListLu;
 import amberdb.sql.Lookups;
-import amberdb.sql.LookupsSchema;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
@@ -38,12 +36,10 @@ import static amberdb.graph.BranchType.BRANCH_FROM_PREVIOUS;
 
 
 public class AmberSession implements AutoCloseable {
-
-
     private final FramedGraph<TransactionalGraph> graph;
     private final BlobStore blobStore;
-    private final TempDirectory tempDir;
     private DBI lookupsDbi;
+    private final TempDirectory tempDir;
 
     private final static FramedGraphFactory framedGraphFactory =
             new FramedGraphFactory(
@@ -143,34 +139,15 @@ public class AmberSession implements AutoCloseable {
 
 
     private AmberGraph init(DataSource dataSource, Long sessionId) {
-
-        // NLA specific lookup table config
-        initLookupData(dataSource);
-
+        // Lookups dbi
+        lookupsDbi = new DBI(dataSource);
+        
         // Graph
         AmberGraph amber = new AmberGraph(dataSource);
         if (sessionId != null)
             amber.resume(sessionId);
-
         return amber;
     }
-
-
-    private void initLookupData(DataSource dataSource) {
-        lookupsDbi = new DBI(dataSource);
-        LookupsSchema luSchema = lookupsDbi.onDemand(LookupsSchema.class);
-        Lookups lookups = getLookups();
-        if (!luSchema.schemaTablesExist()) {
-            luSchema.createLookupsSchema();
-            List<ListLu> list = lookups.findActiveLookups();
-            luSchema.setupToolsAssociations(list);
-        }
-        if(!luSchema.carrierAlgorithmTableExist()){
-            luSchema.createCarrierAlgorithmTable();
-        }
-        lookups.migrate();
-    }
-
 
     public AmberGraph getAmberGraph() {
         return ((OwnedGraph) graph.getBaseGraph()).getAmberGraph();
@@ -874,6 +851,31 @@ public class AmberSession implements AutoCloseable {
             components = q.getResults(true);
         }
         return components;
+    }
+
+    public List<Vertex> loadParentsAndCopies(final List<Long> ids) {
+        AmberGraph g = getAmberGraph();
+
+        List<Vertex> components;
+        AmberQuery q = g.newQuery(ids);
+
+        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn"}, Direction.OUT);
+        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn" }, Direction.OUT);
+        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn" }, Direction.OUT);
+        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn" }, Direction.OUT);
+        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn"}, Direction.OUT);
+        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn"}, Direction.OUT);
+        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn" }, Direction.OUT);
+        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn" }, Direction.OUT);
+        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn" }, Direction.OUT);
+        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn" }, Direction.OUT);
+
+        // get all the copies, files etc
+        q.branch(BRANCH_FROM_ALL, new String[]{"isCopyOf"}, Direction.IN);
+        components = q.execute(false);
+
+        return components;
+
     }
 
     public List<Vertex> loadMultiLevelWorks(final List<Long> ids) {
