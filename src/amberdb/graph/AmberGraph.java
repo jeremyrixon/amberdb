@@ -277,7 +277,7 @@ public class AmberGraph extends BaseGraph
     
     private void batchSuspendEdges(AmberEdgeBatch edges, AmberPropertyBatch properties) {
         
-        log.debug("suspending edges -- deleted:{} new:{} modified:{}", 
+        log.debug("suspending edges -- deleted:{} new:{} modified:{}",
                 removedEdges.size(), newEdges.size(), modifiedEdges.size());
         
         for (Edge e : removedEdges.values()) {
@@ -371,7 +371,7 @@ public class AmberGraph extends BaseGraph
         
         // get, then separate the properties into the maps for their elements
         List<AmberProperty> properties = dao.resumeProperties(sessId);
-        Map<Long, Map<String, Object>> propertyMaps = new HashMap<Long, Map<String, Object>>();
+        Map<Long, Map<String, Object>> propertyMaps = new HashMap<>();
         for (AmberProperty prop : properties) {
             Long id = prop.getId();
             if (propertyMaps.get(id) == null) {
@@ -412,7 +412,13 @@ public class AmberGraph extends BaseGraph
                 removedEdges.put(edge.getId(), edge);
                 continue;
             } 
-            
+
+            if (edge.inId == 0 || edge.outId == 0) {
+                log.warn("Stale session resumed: Failed to restore [{}] from session {}", edge, sessId);
+                log.warn("-- One or both of the incident vertices was deleted from the database after session suspension but before resumption.");
+                continue;
+            }
+
             addEdgeToGraph(edge);
             edge.replaceProperties(propertyMaps.get((Long) edge.getId()));
             
@@ -429,7 +435,7 @@ public class AmberGraph extends BaseGraph
     }
     
     private List<AmberVertexWithState> resumeVertices(Long sessId) {
-        List<AmberVertexWithState> vertices = new ArrayList<AmberVertexWithState>();
+        List<AmberVertexWithState> vertices = new ArrayList<>();
         try (Handle h = dbi.open()) {
             vertices = h.createQuery(
                 "SELECT id, txn_start, txn_end, state " + 
@@ -442,7 +448,7 @@ public class AmberGraph extends BaseGraph
     }
     
     private List<AmberEdgeWithState> resumeEdges(Long sessId) {
-        List<AmberEdgeWithState> edges = new ArrayList<AmberEdgeWithState>();
+        List<AmberEdgeWithState> edges = new ArrayList<>();
         try (Handle h = dbi.open()) {
             edges = h.createQuery(
                 "SELECT id, txn_start, txn_end, v_out, v_in, label, edge_order, state " + 

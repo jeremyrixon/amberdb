@@ -134,6 +134,45 @@ public class AmberGraphSuspendResumeTest {
 
 
     @Test
+    public void testSessionAddEdgeThenDeleteVertex() throws Exception {
+
+        // persist vertex
+        Vertex v1 = graph.addVertex(null);
+        v1.setProperty("date", new Date());
+
+        // persist vertex
+        Vertex v2 = graph.addVertex(null);
+        v2.setProperty("date", new Date());
+
+
+        Object vId1 = v1.getId();
+        Object vId2 = v2.getId();
+        graph.commit("tester", "test");
+
+        // clear local session
+        graph.clear();
+
+        // get from persistent data store
+        v1 = graph.getVertex(vId1);
+        v2 = graph.getVertex(vId2);
+
+        Edge e = graph.addEdge(null, v1, v2, "connects");
+        Long eId = (Long) e.getId();
+        Long sId = graph.suspend();
+
+        graph.removeVertex(v1);
+        graph.commit();
+
+        graph.clear();
+        graph2 = new AmberGraph(src);
+        graph2.resume(sId);
+
+        e = graph2.getEdge(eId);
+        assertNull(e);
+    }
+
+
+    @Test
     public void testSuspendResume() throws Exception {
         
         // persist vertex
