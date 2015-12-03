@@ -115,14 +115,13 @@ public class AmberGraphSuspendResumeTest {
 
         Edge e = graph.addEdge(null, v1, v2, "connects");
         Long eId = (Long) e.getId();
-        s(e);
-
         Long sId = graph.suspend();
 
         graph.clear();
         graph2 = new AmberGraph(src);
         graph2.resume(sId);
 
+        // test that despite local mode the vertices are still read from amber
         graph2.setLocalMode(true);
 
         e = graph2.getEdge(eId);
@@ -219,12 +218,5 @@ public class AmberGraphSuspendResumeTest {
         assertNull(graph.getEdge(eId));
         assertNull(graph.getVertex(removedVertexId));
         assertNotNull(graph.getVertex(remainingVertexId));
-    }
-
-    /*
-     * my convenience 
-     */
-    public void s(Object s) {
-        System.out.println(s);
     }
 }
