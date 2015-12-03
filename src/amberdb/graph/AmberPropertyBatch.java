@@ -16,6 +16,7 @@ public class AmberPropertyBatch {
 
     
     void add(Long id, Map<String, Object> properties) {
+        if (this.id.contains(id)) return; // properties already added
         if (properties == null) return;
         for (String name : properties.keySet()) {
 
