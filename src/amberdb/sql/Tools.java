@@ -9,17 +9,18 @@ import java.util.Map;
 
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
-import org.skife.jdbi.v2.sqlobject.CreateSqlObject;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
-
-import amberdb.graph.dao.AmberDao;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public abstract class Tools implements Transactional<Tools>{   
+    
+    private static final Logger log = LoggerFactory.getLogger(Tools.class);
 
     @RegisterMapper(Tools.ToolsLuMapper.class)
     @SqlQuery(
@@ -43,10 +44,22 @@ public abstract class Tools implements Transactional<Tools>{
             + "on t.toolCategoryId = tcl.id "
             + "left join  (select id, value from lookups where deleted = 'N') mtl "
             + "on t.materialTypeId = mtl.id "
-            + "where (t.deleted = :deleted "
-            + "or t.id = :inclId) "
+            + "where (t.deleted = :deleted or t.id = :inclId) "
             + "order by t.name ")
-    public abstract List<ToolsLu> findTools(@Bind("deleted") String deleted, @Bind("inclId") Long inclId);   
+    public abstract List<ToolsLu> findTools(@Bind("deleted") String deleted, @Bind("inclId") Long inclId);  
+    
+    @RegisterMapper(Tools.ToolsLuMapper.class)
+    @SqlQuery(
+            "select distinct t.*, tl.value as toolType, tcl.value as toolCategory, mtl.value as materialType "
+            + "from tools t left join (select id, value from lookups where deleted = 'N') tl " 
+            + "on t.toolTypeId = tl.id "        
+            + "left join  (select id, value from lookups where deleted = 'N') tcl "
+            + "on t.toolCategoryId = tcl.id "
+            + "left join  (select id, value from lookups where deleted = 'N') mtl "
+            + "on t.materialTypeId = mtl.id "
+            + "where t.deleted = :deleted and t.id = :id "
+            + "order by t.name ")
+    public abstract List<ToolsLu> findToolsById(@Bind("deleted") String deleted, @Bind("id") Long id);  
     
     public List<ToolsLu> findAllToolsEverRecorded() {
         List<ToolsLu> allTools = new ArrayList<>();
@@ -98,6 +111,10 @@ public abstract class Tools implements Transactional<Tools>{
         }
     }
     
+    /**
+     * To be replaced by findUndeletedAndDeletedTool()
+     */
+    @Deprecated
     public ToolsLu findTool(long id) {
         List<ToolsLu> tools = findAllToolsEverRecorded();
         for (ToolsLu  tool : tools) {
@@ -105,6 +122,62 @@ public abstract class Tools implements Transactional<Tools>{
                 return tool;
         }
         throw new RuntimeException("Tool of id " + id + " is not found.");
+    }
+    
+    /**
+     * First try finding the undeleted tool (suppressed or unsuppressed tool)
+     * if not found, then try finding the first deleted tool
+     */
+    public ToolsLu findUndeletedAndDeletedTool(long id){
+        ToolsLu tool = findUndeletedTool(id);
+        if (tool == null){
+            tool = findDeletedTool(id);
+        }
+        return tool;
+    }
+
+    /**
+     * Find the undeleted tools
+     * Undeleted tool means suppressed or unsuppressed tool
+     */
+    public List<ToolsLu> findUndeletedTools(){
+        List<ToolsLu> unsuppressedTools = findTools("N");
+        List<ToolsLu> suppressedTools = findTools("D");
+        List<ToolsLu> tools = new ArrayList<>();
+        tools.addAll(unsuppressedTools);
+        tools.addAll(suppressedTools);
+        return tools;
+    }
+    
+    /**
+     * Find the undeleted tool with specified id
+     * Undeleted tool means suppressed or unsuppressed tool
+     */
+    public ToolsLu findUndeletedTool(long id){
+        List<ToolsLu> unsuppressedTools = findToolsById("N", id);
+        List<ToolsLu> suppressedTools = findToolsById("D", id);
+        List<ToolsLu> tools = new ArrayList<>();
+        tools.addAll(unsuppressedTools);
+        tools.addAll(suppressedTools);
+        if (tools.size() > 1){
+            log.error("Tool with id {} has multiple undeleted entries", id);
+            //Ideally we should throw a dataIntegrity exception here. But considering we have already have invalid data in database, 
+            //and there are processes calling this method that cannot simply recover from the exception, 
+            //we would rather return something that might be incorrect than totally breaking the system
+            return tools.get(0);
+        }
+        if (tools.size() == 1){
+            return tools.get(0);
+        }
+        return null;
+    }
+    
+    private ToolsLu findDeletedTool(long id) {
+        List<ToolsLu> deletedTools = findToolsById("Y", id);
+        if (!deletedTools.isEmpty()){
+            return deletedTools.get(0);
+        }
+        return null;
     }
     
     public ToolsLu findActiveTool(long id) {
@@ -215,21 +288,16 @@ public abstract class Tools implements Transactional<Tools>{
     }
     
     public synchronized void deleteTool(Long id) {
-        // archive previously deleted tool entry
-        archiveDeletedTool(id);
-        
-        // mark the current tool entry deleted.
-        // Note: this is so that if a tool entry is marked as deleted,
-        // all the dlir app records referencing the tool entry
-        // can still display the referenced tool.
-        markToolDeleted(id);
+        suppress(id);
+        delete(id);
     }
     
-    public synchronized void undeleteTool(Long id) {
-        ToolsLu tool = findTool(id);
-        if (tool.isDeleted()) {
-          markToolUnDeleted(id);  
-        } 
+    public synchronized void unsuppressTool(Long id) {
+        unsuppress(id);  
+    }
+
+    public synchronized void suppressTool(Long id){
+        suppress(id);
     }
     
     public synchronized void updTool(ToolsLu toolsLu) {
@@ -265,12 +333,12 @@ public abstract class Tools implements Transactional<Tools>{
     protected abstract void deleteEmptyToolRecord(@Bind("id") Long id);
     
     @SqlUpdate("UPDATE tools SET deleted = 'D' where id = :id and deleted = 'N'")
-    protected abstract void markToolDeleted(@Bind("id") Long id);
+    protected abstract void suppress(@Bind("id") Long id);
     
     @SqlUpdate("UPDATE tools SET deleted = 'Y' where id = :id and deleted = 'D'")
-    protected abstract void archiveDeletedTool(@Bind("id") Long id);
+    protected abstract void delete(@Bind("id") Long id);
     
     @SqlUpdate("UPDATE tools SET deleted = 'N' where id = :id and deleted = 'D'")
-    protected abstract void markToolUnDeleted(@Bind("id") Long id);
+    protected abstract void unsuppress(@Bind("id") Long id);
 }
 

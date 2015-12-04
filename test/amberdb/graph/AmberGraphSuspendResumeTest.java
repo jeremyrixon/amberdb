@@ -89,7 +89,89 @@ public class AmberGraphSuspendResumeTest {
 
     }
 
-    
+
+    @Test
+    public void testAddEdgeToUnchangedVertex() throws Exception {
+
+        // persist vertex
+        Vertex v1 = graph.addVertex(null);
+        v1.setProperty("date", new Date());
+
+        // persist vertex
+        Vertex v2 = graph.addVertex(null);
+        v2.setProperty("date", new Date());
+
+
+        Object vId1 = v1.getId();
+        Object vId2 = v2.getId();
+        graph.commit("tester", "test");
+
+        // clear local session
+        graph.clear();
+
+        // get from persistent data store
+        v1 = graph.getVertex(vId1);
+        v2 = graph.getVertex(vId2);
+
+        Edge e = graph.addEdge(null, v1, v2, "connects");
+        Long eId = (Long) e.getId();
+        Long sId = graph.suspend();
+
+        graph.clear();
+        graph2 = new AmberGraph(src);
+        graph2.resume(sId);
+
+        // test that despite local mode the vertices are still read from amber
+        graph2.setLocalMode(true);
+
+        e = graph2.getEdge(eId);
+        assertNotNull(e);
+        v1 = e.getVertex(Direction.IN);
+
+        assertNotNull(v1);
+        assertNotNull(v2);
+    }
+
+
+    @Test
+    public void testSessionAddEdgeThenDeleteVertex() throws Exception {
+
+        // persist vertex
+        Vertex v1 = graph.addVertex(null);
+        v1.setProperty("date", new Date());
+
+        // persist vertex
+        Vertex v2 = graph.addVertex(null);
+        v2.setProperty("date", new Date());
+
+
+        Object vId1 = v1.getId();
+        Object vId2 = v2.getId();
+        graph.commit("tester", "test");
+
+        // clear local session
+        graph.clear();
+
+        // get from persistent data store
+        v1 = graph.getVertex(vId1);
+        v2 = graph.getVertex(vId2);
+
+        Edge e = graph.addEdge(null, v1, v2, "connects");
+        Long eId = (Long) e.getId();
+        Long sId = graph.suspend();
+
+        graph.removeVertex(v1);
+        graph.commit();
+
+        graph.clear();
+        graph2 = new AmberGraph(src);
+        graph2.resume(sId);
+
+        e = graph2.getEdge(eId);
+        assertNull(e);
+    }
+
+
     @Test
     public void testSuspendResume() throws Exception {
         
@@ -155,7 +237,7 @@ public class AmberGraphSuspendResumeTest {
         assertEquals(e, e4);
         
         // modify and persist
-        e4.setProperty("array", new char[] {'1','a'});
+        e4.setProperty("array", new char[]{'1', 'a'});
         graph.commit("tester", "testModifyAndPersist");
         
         graph.clear(); // double clear :-)
@@ -175,12 +257,5 @@ public class AmberGraphSuspendResumeTest {
         assertNull(graph.getEdge(eId));
         assertNull(graph.getVertex(removedVertexId));
         assertNotNull(graph.getVertex(remainingVertexId));
-    }
-
-    /*
-     * my convenience 
-     */
-    public void s(String s) {
-        System.out.println(s);
     }
 }

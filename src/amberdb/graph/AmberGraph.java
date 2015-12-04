@@ -32,7 +32,7 @@ public class AmberGraph extends BaseGraph
         ElementModifiedListener, EdgeFactory, VertexFactory {
 
     private static final int COMMIT_BATCH_SIZE = 4000;
-    private static final int BIG_COMMIT_THRESHOLD = 50000;
+    private static final int BIG_COMMIT_THRESHOLD = 20000;
     private static final Logger log = LoggerFactory.getLogger(AmberGraph.class);
     
     public static final DataSource DEFAULT_DATASOURCE = 
@@ -277,7 +277,7 @@ public class AmberGraph extends BaseGraph
     
     private void batchSuspendEdges(AmberEdgeBatch edges, AmberPropertyBatch properties) {
         
-        log.debug("suspending edges -- deleted:{} new:{} modified:{}", 
+        log.debug("suspending edges -- deleted:{} new:{} modified:{}",
                 removedEdges.size(), newEdges.size(), modifiedEdges.size());
         
         for (Edge e : removedEdges.values()) {
@@ -285,17 +285,17 @@ public class AmberGraph extends BaseGraph
             if (newEdges.remove(e)) continue;
             edges.add(new AmberEdgeWithState((AmberEdge) e, "DEL"));
         }
-        
-        for (Edge e : graphEdges.values()) {
+
+        for (Edge e : newEdges) {
             AmberEdge ae = (AmberEdge) e;
-            if (newEdges.contains(e)) {
-                modifiedEdges.remove(e); // a modified new edge is just a new edge
-                edges.add(new AmberEdgeWithState(ae, "NEW"));
-            } else if (modifiedEdges.contains(e)) {
-                edges.add(new AmberEdgeWithState(ae, "MOD"));
-            } else {
-                edges.add(new AmberEdgeWithState(ae, "AMB"));
-            }
+            modifiedEdges.remove(e);
+            edges.add(new AmberEdgeWithState(ae, "NEW"));
+            properties.add((Long) ae.getId(), ae.getProperties());
+        }
+
+        for (Edge e : modifiedEdges) {
+            AmberEdge ae = (AmberEdge) e;
+            edges.add(new AmberEdgeWithState(ae, "MOD"));
             properties.add((Long) ae.getId(), ae.getProperties());
         }
     }
@@ -312,16 +312,16 @@ public class AmberGraph extends BaseGraph
             vertices.add(new AmberVertexWithState((AmberVertex) v, "DEL"));
         }
 
-        for (Vertex v : graphVertices.values()) {
+        for (Vertex v : newVertices) {
             AmberVertex av = (AmberVertex) v;
-            if (newVertices.contains(v)) {
-                modifiedVertices.remove(v); // a modified new vertex is just a new vertex
-                vertices.add(new AmberVertexWithState(av, "NEW"));
-            } else if (modifiedVertices.contains(v)) {
-                vertices.add(new AmberVertexWithState(av, "MOD"));
-            } else {
-                vertices.add(new AmberVertexWithState(av, "AMB"));
-            }
+            modifiedVertices.remove(v);
+            vertices.add(new AmberVertexWithState(av, "NEW"));
+            properties.add((Long) av.getId(), av.getProperties());
+        }
+
+        for (Vertex v : modifiedVertices) {
+            AmberVertex av = (AmberVertex) v;
+            vertices.add(new AmberVertexWithState(av, "MOD"));
             properties.add((Long) av.getId(), av.getProperties());
         }
     }
@@ -371,7 +371,7 @@ public class AmberGraph extends BaseGraph
         
         // get, then separate the properties into the maps for their elements
         List<AmberProperty> properties = dao.resumeProperties(sessId);
-        Map<Long, Map<String, Object>> propertyMaps = new HashMap<Long, Map<String, Object>>();
+        Map<Long, Map<String, Object>> propertyMaps = new HashMap<>();
         for (AmberProperty prop : properties) {
             Long id = prop.getId();
             if (propertyMaps.get(id) == null) {
@@ -412,7 +412,13 @@ public class AmberGraph extends BaseGraph
                 removedEdges.put(edge.getId(), edge);
                 continue;
             } 
-            
+
+            if (edge.inId == 0 || edge.outId == 0) {
+                log.warn("Stale session resumed: Failed to restore [{}] from session {}", edge, sessId);
+                log.warn("-- One or both of the incident vertices was deleted from the database after session suspension but before resumption.");
+                continue;
+            }
+
             addEdgeToGraph(edge);
             edge.replaceProperties(propertyMaps.get((Long) edge.getId()));
             
@@ -429,7 +435,7 @@ public class AmberGraph extends BaseGraph
     }
     
     private List<AmberVertexWithState> resumeVertices(Long sessId) {
-        List<AmberVertexWithState> vertices = new ArrayList<AmberVertexWithState>();
+        List<AmberVertexWithState> vertices = new ArrayList<>();
         try (Handle h = dbi.open()) {
             vertices = h.createQuery(
                 "SELECT id, txn_start, txn_end, state " + 
@@ -442,7 +448,7 @@ public class AmberGraph extends BaseGraph
     }
     
     private List<AmberEdgeWithState> resumeEdges(Long sessId) {
-        List<AmberEdgeWithState> edges = new ArrayList<AmberEdgeWithState>();
+        List<AmberEdgeWithState> edges = new ArrayList<>();
         try (Handle h = dbi.open()) {
             edges = h.createQuery(
                 "SELECT id, txn_start, txn_end, v_out, v_in, label, edge_order, state " + 
@@ -454,10 +460,18 @@ public class AmberGraph extends BaseGraph
         return edges;
     }
     
-    
+    private int getModifiedElementCount() {
+        return newVertices.size() +
+                modifiedVertices.size() +
+                removedVertices.size() +
+                newEdges.size() +
+                modifiedEdges.size() +
+                removedEdges.size();
+    }
+
     public Long commit(String user, String operation) {
 
-        if (graphVertices.size() + graphEdges.size() > BIG_COMMIT_THRESHOLD) {
+        if (getModifiedElementCount() > BIG_COMMIT_THRESHOLD) {
             log.warn("Graph to be committed exceeds {} elements. Using big commit to process.", BIG_COMMIT_THRESHOLD);
             return commitBig(user, operation);
         }
@@ -809,13 +823,11 @@ public class AmberGraph extends BaseGraph
             if (newVertices.contains(v)) {
                 modifiedVertices.remove(v); // a modified new vertex is just a new vertex
                 vertices.add(new AmberVertexWithState(av, "NEW"));
+                properties.add((Long) av.getId(), av.getProperties());
             } else if (modifiedVertices.contains(v)) {
                 vertices.add(new AmberVertexWithState(av, "MOD"));
-            } else {
-                vertices.add(new AmberVertexWithState(av, "AMB"));
+                properties.add((Long) av.getId(), av.getProperties());
             }
-            properties.add((Long) av.getId(), av.getProperties());
-
             batchLimit++;
             batchLimit += (av.getProperties() == null) ? 0 : av.getProperties().size();
             if (batchLimit >= COMMIT_BATCH_SIZE) {
@@ -861,13 +873,11 @@ public class AmberGraph extends BaseGraph
             if (newEdges.contains(e)) {
                 modifiedEdges.remove(e); // a modified new edge is just a new edge
                 edges.add(new AmberEdgeWithState(ae, "NEW"));
+                properties.add((Long) ae.getId(), ae.getProperties());
             } else if (modifiedEdges.contains(e)) {
                 edges.add(new AmberEdgeWithState(ae, "MOD"));
-            } else {
-                edges.add(new AmberEdgeWithState(ae, "AMB"));
+                properties.add((Long) ae.getId(), ae.getProperties());
             }
-            properties.add((Long) ae.getId(), ae.getProperties());
-
             batchLimit++;
             batchLimit += (ae.getProperties() == null) ? 0 : ae.getProperties().size();
             if (batchLimit >= COMMIT_BATCH_SIZE) {
