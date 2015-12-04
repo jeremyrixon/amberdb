@@ -427,10 +427,10 @@ public interface Work extends Node {
     void setSheetName(String sheetName);
 
     @Property("sheetCreationDate")
-    Date getSheetCreationDate();
+    String getSheetCreationDate();
 
     @Property("sheetCreationDate")
-    void setSheetCreationDate(Date sheetCreationDate);
+    void setSheetCreationDate(String sheetCreationDate);
 
     /**
      * Get the vendor identifier that was assigned by the E-Deposit app.
