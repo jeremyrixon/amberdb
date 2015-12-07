@@ -11,6 +11,8 @@ import amberdb.model.Work;
 import java.util.*;
 
 import amberdb.model.sort.WorkComparator;
+import com.google.common.base.Joiner;
+import org.apache.commons.collections.CollectionUtils;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.util.ByteArrayMapper;
 import org.skife.jdbi.v2.util.IntegerMapper;
@@ -287,6 +289,30 @@ public class WorkChildrenQuery extends AmberQueryBase {
         for (byte[] bytes : copyRoleCodes) {
             String code = (String) AmberProperty.decode(bytes, DataType.STR);
             copyRoles.add(CopyRole.fromString(code));
+        }
+        return copyRoles;
+    }
+
+    public List<CopyRole> getAllCopyRoles(List<Long> workIds){
+        List<CopyRole> copyRoles = new ArrayList<CopyRole>();
+        if (CollectionUtils.isNotEmpty(workIds)){
+            List<byte[]> copyRoleCodes;
+            try (Handle h = graph.dbi().open()) {
+                copyRoleCodes = h.createQuery(
+                        "select distinct convert(value using utf8) " +
+                                "from property p, edge e, vertex v " +
+                                "where p.txn_end = 0 and e.txn_end = 0 and v.txn_end = 0 " +
+                                "and p.id = e.v_out and v.id = p.id " +
+                                "and e.label = 'isCopyOf' and p.name = 'copyRole' and e.v_in in ("+ Joiner.on(",").join(workIds)+")")
+                        .map(ByteArrayMapper.FIRST).list();
+            }
+            for (byte[] bytes : copyRoleCodes) {
+                String code = (String) AmberProperty.decode(bytes, DataType.STR);
+                CopyRole copyRole = CopyRole.fromString(code);
+                if (copyRole != null){
+                    copyRoles.add(copyRole);
+                }
+            }
         }
         return copyRoles;
     }
