@@ -250,7 +250,18 @@ public class AmberGraph extends BaseGraph
 
     
     public Long suspend() {
-    
+
+        if (getModifiedElementCount() > BIG_COMMIT_THRESHOLD) {
+            log.warn("Graph to be committed exceeds {} elements. Using big suspend to process.", BIG_COMMIT_THRESHOLD);
+            Long txnId = suspendBig();
+            log.debug("Commence clearing session");
+            dao.clearSession(txnId);
+            log.debug("Finished clearing session");
+
+            clearChangeSets();
+            return txnId;
+        }
+
         // set up batch sql data structures
         Long sessId = newId();
         
@@ -795,7 +806,7 @@ public class AmberGraph extends BaseGraph
     }
 
 
-    private void bigCommitSuspendVertices(Long sessId) {
+    private void bigSuspendVertices(Long sessId) {
 
         AmberVertexBatch vertices = new AmberVertexBatch();
         AmberPropertyBatch properties = new AmberPropertyBatch();
@@ -844,7 +855,7 @@ public class AmberGraph extends BaseGraph
     }
 
 
-    private void bigCommitSuspendEdges(Long sessId) {
+    private void bigSuspendEdges(Long sessId) {
 
         AmberEdgeBatch edges = new AmberEdgeBatch();
         AmberPropertyBatch properties = new AmberPropertyBatch();
@@ -896,14 +907,14 @@ public class AmberGraph extends BaseGraph
     }
 
 
-    public Long suspendForBigCommit() {
+    public Long suspendBig() {
 
         // set up batch sql data structures
         Long sessId = newId();
 
-        bigCommitSuspendEdges(sessId);
-        bigCommitSuspendVertices(sessId);
-        log.debug("finished suspend for commit");
+        bigSuspendEdges(sessId);
+        bigSuspendVertices(sessId);
+        log.debug("finished suspend");
 
         return sessId;
     }
@@ -911,7 +922,7 @@ public class AmberGraph extends BaseGraph
 
     public Long commitBig(String user, String operation) {
 
-        Long txnId = suspendForBigCommit();
+        Long txnId = suspendBig();
         commitSqlWrappedWithRetry(txnId, user, operation, 4, 300);
         log.debug("Commence clearing session");
         dao.clearSession(txnId);
