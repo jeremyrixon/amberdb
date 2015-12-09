@@ -52,7 +52,7 @@ import static amberdb.graph.BranchType.BRANCH_FROM_PREVIOUS;
  * @see {@link Copy}
  */
 @TypeValue("Work")
-public interface  Work extends Node {
+public interface Work extends Node {
     @Property("abstract")
     String getAbstract();
 
