@@ -254,11 +254,7 @@ public class AmberGraph extends BaseGraph
         if (getModifiedElementCount() > BIG_COMMIT_THRESHOLD) {
             log.warn("Graph to be committed exceeds {} elements. Using big suspend to process.", BIG_COMMIT_THRESHOLD);
             Long txnId = suspendBig();
-            log.debug("Commence clearing session");
-            dao.clearSession(txnId);
-            log.debug("Finished clearing session");
-
-            clearChangeSets();
+            clear();
             return txnId;
         }
 
