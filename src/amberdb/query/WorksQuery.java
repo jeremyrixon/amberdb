@@ -3,8 +3,7 @@ package amberdb.query;
 import java.util.*;
 
 import amberdb.graph.*;
-import amberdb.relation.DeliveredOn;
-import amberdb.relation.IsPartOf;
+import amberdb.relation.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.util.ByteArrayMapper;
@@ -78,7 +77,9 @@ public class WorksQuery {
     public static Map<Long, Copy> getCopiesWithWorksMap(AmberSession sess, List<Long> copyIds) {
         Map<Long, Copy> copies = new HashMap<Long, Copy>();
         AmberQuery query = sess.getAmberGraph().newQuery(copyIds);
-        query.branch(BranchType.BRANCH_FROM_ALL, new String[] { "isCopyOf" }, Direction.OUT);
+        query.branch(BranchType.BRANCH_FROM_ALL, new String[] {IsCopyOf.label}, Direction.OUT);
+        query.branch(BranchType.BRANCH_FROM_LISTED, Arrays.asList(IsSourceCopyOf.label), Direction.OUT, Arrays.asList(0));
+        query.branch(BranchType.BRANCH_FROM_LISTED, Arrays.asList(IsFileOf.label), Direction.IN, Arrays.asList(0));
         List<Vertex> vertices = query.execute();
         for (Vertex v : vertices) {
             if (v.getProperty("type").equals("Copy")) {
