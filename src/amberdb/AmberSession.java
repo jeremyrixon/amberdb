@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static amberdb.graph.BranchType.BRANCH_FROM_ALL;
+import static amberdb.graph.BranchType.BRANCH_FROM_LISTED;
 import static amberdb.graph.BranchType.BRANCH_FROM_PREVIOUS;
 
 
@@ -859,16 +860,42 @@ public class AmberSession implements AutoCloseable {
         List<Vertex> components;
         AmberQuery q = g.newQuery(ids);
 
-        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn"}, Direction.OUT);
-        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn" }, Direction.OUT);
-        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn" }, Direction.OUT);
-        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn" }, Direction.OUT);
-        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn"}, Direction.OUT);
-        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn"}, Direction.OUT);
-        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn" }, Direction.OUT);
-        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn" }, Direction.OUT);
-        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn" }, Direction.OUT);
-        q.branch(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf", "deliveredOn" }, Direction.OUT);
+        q.branch(BRANCH_FROM_LISTED, new String[] { "isPartOf"}, Direction.OUT, new Integer[] {0});
+        q.branch(BRANCH_FROM_LISTED, new String[] { "deliveredOn"}, Direction.IN, new Integer[] {0});
+
+        q.branch(BRANCH_FROM_LISTED, new String[] { "isPartOf"}, Direction.OUT, new Integer[] {1,2});
+        q.branch(BRANCH_FROM_LISTED, new String[] { "deliveredOn"}, Direction.IN, new Integer[] {1,2});
+
+        q.branch(BRANCH_FROM_LISTED, new String[] { "isPartOf"}, Direction.OUT, new Integer[] {3,4});
+        q.branch(BRANCH_FROM_LISTED, new String[] { "deliveredOn"}, Direction.IN, new Integer[] {3,4});
+
+        q.branch(BRANCH_FROM_LISTED, new String[] { "isPartOf"}, Direction.OUT, new Integer[] {5,6});
+        q.branch(BRANCH_FROM_LISTED, new String[] { "deliveredOn"}, Direction.IN, new Integer[] {5,6});
+
+        q.branch(BRANCH_FROM_LISTED, new String[] { "isPartOf"}, Direction.OUT, new Integer[] {7,8});
+        q.branch(BRANCH_FROM_LISTED, new String[] { "deliveredOn"}, Direction.IN, new Integer[] {7,8});
+
+        q.branch(BRANCH_FROM_LISTED, new String[] { "isPartOf"}, Direction.OUT, new Integer[] {9,10});
+        q.branch(BRANCH_FROM_LISTED, new String[] { "deliveredOn"}, Direction.IN, new Integer[] {9,10});
+
+        q.branch(BRANCH_FROM_LISTED, new String[] { "isPartOf"}, Direction.OUT, new Integer[] {11,12});
+        q.branch(BRANCH_FROM_LISTED, new String[] { "deliveredOn"}, Direction.IN, new Integer[] {11,12});
+
+        q.branch(BRANCH_FROM_LISTED, new String[] { "isPartOf"}, Direction.OUT, new Integer[] {13,14});
+        q.branch(BRANCH_FROM_LISTED, new String[] { "deliveredOn"}, Direction.IN, new Integer[] {13,14});
+
+        q.branch(BRANCH_FROM_LISTED, new String[] { "isPartOf"}, Direction.OUT, new Integer[] {15,16});
+        q.branch(BRANCH_FROM_LISTED, new String[] { "deliveredOn"}, Direction.IN, new Integer[] {15,16});
+
+        q.branch(BRANCH_FROM_LISTED, new String[] { "isPartOf"}, Direction.OUT, new Integer[] {17,18});
+        q.branch(BRANCH_FROM_LISTED, new String[] { "deliveredOn"}, Direction.IN, new Integer[] {17,18});
+
+        q.branch(BRANCH_FROM_LISTED, new String[] { "isPartOf"}, Direction.OUT, new Integer[] {19,20});
+        q.branch(BRANCH_FROM_LISTED, new String[] { "deliveredOn"}, Direction.IN, new Integer[] {19,20});
+
+        q.branch(BRANCH_FROM_LISTED, new String[] { "isPartOf"}, Direction.OUT, new Integer[] {21,22});
+        q.branch(BRANCH_FROM_LISTED, new String[] { "deliveredOn"}, Direction.IN, new Integer[] {21,22});
+
 
         // get all the copies, files etc
         q.branch(BRANCH_FROM_ALL, new String[]{"isCopyOf"}, Direction.IN);
