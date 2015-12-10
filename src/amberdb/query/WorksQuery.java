@@ -5,6 +5,7 @@ import java.util.*;
 import amberdb.graph.*;
 import amberdb.relation.*;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.util.ByteArrayMapper;
 
@@ -67,7 +68,7 @@ public class WorksQuery {
         query.branch(BranchType.BRANCH_FROM_ALL, new String[] { "isCopyOf" }, Direction.OUT);
         List<Vertex> vertices = query.execute();
         for (Vertex v : vertices) {
-            if (v.getProperty("type").equals("Copy")) {
+            if (StringUtils.equalsIgnoreCase((String) v.getProperty("type"), "Copy")) {
                 copies.add(sess.getGraph().frame(v, Copy.class));
             }
         }
@@ -75,16 +76,18 @@ public class WorksQuery {
     }
 
     public static Map<Long, Copy> getCopiesWithWorksMap(AmberSession sess, List<Long> copyIds) {
-        Map<Long, Copy> copies = new HashMap<Long, Copy>();
+        Map<Long, Copy> copies = new HashMap<>();
         AmberQuery query = sess.getAmberGraph().newQuery(copyIds);
         query.branch(BranchType.BRANCH_FROM_ALL, new String[] {IsCopyOf.label}, Direction.OUT);
         query.branch(BranchType.BRANCH_FROM_LISTED, Arrays.asList(IsSourceCopyOf.label), Direction.OUT, Arrays.asList(0));
         query.branch(BranchType.BRANCH_FROM_LISTED, Arrays.asList(IsFileOf.label), Direction.IN, Arrays.asList(0));
         List<Vertex> vertices = query.execute();
-        for (Vertex v : vertices) {
-            if (v.getProperty("type").equals("Copy")) {
-                Copy copy = sess.getGraph().frame(v, Copy.class);
-                copies.put(Long.valueOf(copy.getId()), copy);
+        if (vertices != null){
+            for (Vertex v : vertices) {
+                if (StringUtils.equalsIgnoreCase((String) v.getProperty("type"), "Copy")) {
+                    Copy copy = sess.getGraph().frame(v, Copy.class);
+                    copies.put(Long.valueOf(copy.getId()), copy);
+                }
             }
         }
         return copies;
