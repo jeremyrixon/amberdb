@@ -82,12 +82,10 @@ public class WorksQuery {
         query.branch(BranchType.BRANCH_FROM_LISTED, Arrays.asList(IsSourceCopyOf.label), Direction.OUT, Arrays.asList(0));
         query.branch(BranchType.BRANCH_FROM_LISTED, Arrays.asList(IsFileOf.label), Direction.IN, Arrays.asList(0));
         List<Vertex> vertices = query.execute();
-        if (vertices != null){
-            for (Vertex v : vertices) {
-                if (StringUtils.equalsIgnoreCase((String) v.getProperty("type"), "Copy")) {
-                    Copy copy = sess.getGraph().frame(v, Copy.class);
-                    copies.put(Long.valueOf(copy.getId()), copy);
-                }
+        for (Vertex v : vertices) {
+            if (StringUtils.equalsIgnoreCase((String) v.getProperty("type"), "Copy")) {
+                Copy copy = sess.getGraph().frame(v, Copy.class);
+                copies.put(Long.valueOf(copy.getId()), copy);
             }
         }
         return copies;
