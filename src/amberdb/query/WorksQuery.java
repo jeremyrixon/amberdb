@@ -1,12 +1,11 @@
 package amberdb.query;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import amberdb.graph.*;
+import amberdb.relation.*;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.util.ByteArrayMapper;
 
@@ -16,10 +15,6 @@ import com.tinkerpop.blueprints.Vertex;
 
 import amberdb.AmberSession;
 import amberdb.enums.BibLevel;
-import amberdb.graph.AmberProperty;
-import amberdb.graph.AmberQuery;
-import amberdb.graph.BranchType;
-import amberdb.graph.DataType;
 import amberdb.model.Copy;
 import amberdb.model.Work;
 
@@ -35,22 +30,45 @@ public class WorksQuery {
     }
     
     public static Map<Long, Work> getWorksMap(AmberSession sess, List<Long> ids) {
-        Map<Long, Work> works = new HashMap<Long, Work>();
-        List<Vertex> verts = sess.getAmberGraph().newQuery(ids).execute();
+        Map<Long, Work> works = new HashMap();
+        AmberQuery query = sess.getAmberGraph().newQuery(ids);
+        query.branch(BranchType.BRANCH_FROM_PREVIOUS, Arrays.asList(IsPartOf.label), Direction.OUT);
+        query.branch(BranchType.BRANCH_FROM_LISTED, Arrays.asList(DeliveredOn.label), Direction.IN, Arrays.asList(0));
+        Map<Long, AmberTransaction> firstTransactionMap = getFirstTransactions(sess, ids);
+        Map<Long, AmberTransaction> lastTransactionMap = getLastTransactions(sess, ids);
+        List<Vertex> verts = query.execute();
         for (Vertex v : verts) {
             Work work = sess.getGraph().frame(v, Work.class);
+            populateFirstTransactionDetails(work, firstTransactionMap);
+            populateLastTransactionDetails(work, lastTransactionMap);
             works.put(Long.valueOf(work.getId()), work);
         }
         return works;
     }
-    
+
+    private static void populateFirstTransactionDetails(Work work, Map<Long, AmberTransaction> map) {
+        AmberTransaction transaction = map.get(work.getId());
+        if (transaction != null) {
+            work.asVertex().setProperty("createdOn", new Date(transaction.getTime()));
+            work.asVertex().setProperty("createdBy", transaction.getUser());
+        }
+    }
+
+    private static void populateLastTransactionDetails(Work work, Map<Long, AmberTransaction> map) {
+        AmberTransaction transaction = map.get(work.getId());
+        if (transaction != null) {
+            work.asVertex().setProperty("modifiedOn", new Date(transaction.getTime()));
+            work.asVertex().setProperty("modifiedBy", transaction.getUser());
+        }
+    }
+
     public static List<Copy> getCopiesWithWorks(AmberSession sess, List<Long> copyIds) {
         List<Copy> copies = new ArrayList<>();
         AmberQuery query = sess.getAmberGraph().newQuery(copyIds);
         query.branch(BranchType.BRANCH_FROM_ALL, new String[] { "isCopyOf" }, Direction.OUT);
         List<Vertex> vertices = query.execute();
         for (Vertex v : vertices) {
-            if (v.getProperty("type").equals("Copy")) {
+            if (StringUtils.equalsIgnoreCase((String) v.getProperty("type"), "Copy")) {
                 copies.add(sess.getGraph().frame(v, Copy.class));
             }
         }
@@ -58,12 +76,14 @@ public class WorksQuery {
     }
 
     public static Map<Long, Copy> getCopiesWithWorksMap(AmberSession sess, List<Long> copyIds) {
-        Map<Long, Copy> copies = new HashMap<Long, Copy>();
+        Map<Long, Copy> copies = new HashMap<>();
         AmberQuery query = sess.getAmberGraph().newQuery(copyIds);
-        query.branch(BranchType.BRANCH_FROM_ALL, new String[] { "isCopyOf" }, Direction.OUT);
+        query.branch(BranchType.BRANCH_FROM_ALL, new String[] {IsCopyOf.label}, Direction.OUT);
+        query.branch(BranchType.BRANCH_FROM_LISTED, Arrays.asList(IsSourceCopyOf.label), Direction.OUT, Arrays.asList(0));
+        query.branch(BranchType.BRANCH_FROM_LISTED, Arrays.asList(IsFileOf.label), Direction.IN, Arrays.asList(0));
         List<Vertex> vertices = query.execute();
         for (Vertex v : vertices) {
-            if (v.getProperty("type").equals("Copy")) {
+            if (StringUtils.equalsIgnoreCase((String) v.getProperty("type"), "Copy")) {
                 Copy copy = sess.getGraph().frame(v, Copy.class);
                 copies.put(Long.valueOf(copy.getId()), copy);
             }
@@ -105,5 +125,39 @@ public class WorksQuery {
             }
         }
         return bibLevels;
+    }
+    
+    private static Map<Long, AmberTransaction> getFirstTransactions(AmberSession sess, List<Long> workIds){
+        if (CollectionUtils.isNotEmpty(workIds)) {
+            String sql = "select t1.time, t1.user, t1.operation, t2.transaction_id, t2.vertex_id " +
+                    "from transaction t1, (select min(t.id) transaction_id, v.id vertex_id from transaction t, vertex v " +
+                    "where t.id = v.txn_start and v.id in (" + Joiner.on(",").join(workIds) + ") group by v.id) " +
+                    "as t2 where t1.id = t2.transaction_id";
+            return getTransactions(sess, sql);
+        }
+        return new HashMap<>();
+    }
+
+    private static Map<Long, AmberTransaction> getLastTransactions(AmberSession sess, List<Long> workIds){
+        if (CollectionUtils.isNotEmpty(workIds)) {
+            String sql = "select t1.time, t1.user, t1.operation, t2.transaction_id, t2.vertex_id " +
+                    "from transaction t1, (select max(t.id) transaction_id, v.id vertex_id from transaction t, vertex v " +
+                    "where t.id = v.txn_start and v.id in (" + Joiner.on(",").join(workIds) + ") group by v.id) " +
+                    "as t2 where t1.id = t2.transaction_id";
+            return getTransactions(sess, sql);
+        }
+        return new HashMap<>();
+    }
+
+    private static Map<Long, AmberTransaction> getTransactions(AmberSession sess, String sql){
+        Map<Long, AmberTransaction> map = new HashMap<>();
+        List<AmberVertexTransaction> list;
+        try (Handle h = sess.getAmberGraph().dbi().open()) {
+            list = h.createQuery(sql).map(new VertexTransactionMapper()).list();
+        }
+        for (AmberVertexTransaction transaction : list) {
+            map.put(transaction.getVertexId(), transaction.getTransaction());
+        }
+        return map;
     }
 }
