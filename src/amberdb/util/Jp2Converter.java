@@ -1,7 +1,6 @@
 package amberdb.util;
 
 
-import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -9,12 +8,11 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.tika.Tika;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
+
 
 /*
  * This class is to convert an image (tiff or jpeg for now) to jpeg 2000 (.jp2),
@@ -47,17 +45,17 @@ import com.drew.metadata.exif.ExifIFD0Directory;
  * For the mean time, we'll just use imagemagick convert to convert it to jp2.
 */
 
-public class Jp2Converter {
+public class Jp2Converter extends ExternalToolConverter {
     private static final Logger log = LoggerFactory.getLogger(Jp2Converter.class);
 
     Path imgConverter;
     Path jp2Converter;
-    Tika tika;
 
     public Jp2Converter(Path jp2Converter, Path imgConverter) {
+        super();
+        
         this.jp2Converter = jp2Converter;
         this.imgConverter = imgConverter;
-        this.tika = new Tika();
     }
 
     public void convertFile(Path srcFilePath, Path dstFilePath) throws Exception {
@@ -195,22 +193,6 @@ public class Jp2Converter {
                 srcFilePath.toString(),
                 dstFilePath.toString()
         });
-    }
-
-    // Execute a command
-    private void executeCmd(String[] cmd) throws Exception {
-        // Log command
-        log.debug("Run command: ", StringUtils.join(cmd, ' '));
-
-        // Execute command
-        ProcessBuilder builder = new ProcessBuilder(cmd);
-        builder.redirectError(Redirect.INHERIT).redirectOutput(Redirect.INHERIT);
-        Process p = builder.start();
-        p.waitFor();
-        int exitVal = p.exitValue();
-        if (exitVal > 0) {
-            throw new Exception("Error in executeCmd");
-        }
     }
 
     class ImageInfo {
