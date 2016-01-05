@@ -13,7 +13,6 @@ import com.drew.imaging.ImageMetadataReader;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
 
-
 /*
  * This class is to convert an image (tiff or jpeg for now) to jpeg 2000 (.jp2),
  * and to make sure that the jp2 file can be delivered by the IIP image server.
@@ -76,6 +75,18 @@ public class Jp2Converter extends ExternalToolConverter {
     }
 
     private void convertFile(Path srcFilePath, ImageInfo imgInfo, Path dstFilePath) throws Exception {
+        try {
+            performConvertFile(srcFilePath, imgInfo, dstFilePath);
+        } catch (Exception e) {
+            Files.deleteIfExists(dstFilePath);
+            Path tmpFilePath = dstFilePath.getParent().resolve("tmp_" + dstFilePath.getFileName() + "_retry.tif");
+            convertImage(srcFilePath, tmpFilePath);
+            convertFile(tmpFilePath, dstFilePath);
+            Files.deleteIfExists(tmpFilePath);
+        }
+    }
+    
+    private void performConvertFile(Path srcFilePath, ImageInfo imgInfo, Path dstFilePath) throws Exception {
         // Main method to convert an image to a jpeg2000 file (jp2 or jpx) - imgInfo has to be accurate!
         // Jpeg2000 file must end with .jp2 or .jpx
         if (dstFilePath == null || dstFilePath.getParent() == null || dstFilePath.getFileName() == null) {
@@ -114,6 +125,8 @@ public class Jp2Converter extends ExternalToolConverter {
             } else if (imgInfo.compression > 1) {
                 // Uncompress image as the demo app kdu_compress can't process compressed tiff
                 convertUncompress(srcFilePath, tmpFilePath);
+            } else {
+                convertJPXRelated(srcFilePath, tmpFilePath);
             }
         } catch (Exception e) {
             log.warn("Exception occurred when attempting to manipulate image into a JP2'able state.");
@@ -121,7 +134,7 @@ public class Jp2Converter extends ExternalToolConverter {
 
         try {
             Path fileToCreateJp2 = Files.exists(tmpFilePath) ? tmpFilePath : srcFilePath;
-
+            
             // Create jp2 using kakadu kdu_compress
             createJp2(fileToCreateJp2, dstFilePath);
         } catch (Exception e) {
@@ -150,6 +163,11 @@ public class Jp2Converter extends ExternalToolConverter {
     private void convertUncompress(Path srcFilePath, Path dstFilePath) throws Exception {
         convertImage(srcFilePath, dstFilePath, "-compress", "None");
     }
+    
+    // Remove extra Tiff header fields
+    private void convertJPXRelated(Path srcFilePath, Path dstFilePath) throws Exception {
+        convertImage(srcFilePath, dstFilePath, "-strip");
+  }
 
     // Convert an image with imagemagick
     private void convertImage(Path srcFilePath, Path dstFilePath, String... params) throws Exception {
@@ -169,7 +187,7 @@ public class Jp2Converter extends ExternalToolConverter {
         // Use kakadu to create jp2
         executeCmd(new String[] {
                 jp2Converter.toString(),
-                "-i",
+                "-i",  
                 srcFilePath.toString(),
                 "-o",
                 dstFilePath.toString(),
