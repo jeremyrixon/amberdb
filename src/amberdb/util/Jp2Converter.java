@@ -107,8 +107,8 @@ public class Jp2Converter extends ExternalToolConverter {
         Path tmpFilePath = dstFilePath.getParent().resolve("tmp_" + dstFilePath.getFileName() + ".tif");
 
         try {
-            if ("image/jpeg".equals(imgInfo.mimeType)) {
-                // Jpeg - Convert to tiff
+            if (!"image/tiff".equals(imgInfo.mimeType)) {
+                // e.g. Jpeg - Convert to tiff
                 convertUncompress(srcFilePath, tmpFilePath);
             } else if (imgInfo.samplesPerPixel == 1 && imgInfo.bitsPerSample == 1) {
                 // Bitonal image - Convert to greyscale (8 bit depth)
