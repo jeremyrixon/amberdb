@@ -456,7 +456,7 @@ public class AmberSession implements AutoCloseable {
 
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         graph.shutdown();
         if (tempDir != null) {
             tempDir.delete();
