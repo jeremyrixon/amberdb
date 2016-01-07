@@ -346,7 +346,7 @@ public class WorkChildrenQuery extends AmberQueryBase {
                             "and p1.id = e.v_out and p2.id = e.v_out and v.id = p1.id and v.id = p2.id " +
                             "and e.label = 'isPartOf' " +
                             "and p1.name = 'bibLevel' and p1.value = :bibLevel " +
-                            "and p2.name = 'subType' and p2.value = :subType" +
+                            "and p2.name = 'subType' and p2.value = :subType " +
                             "and e.v_in in ("+ Joiner.on(",").join(parentIds)+")")
                     .bind("bibLevel", bibLevel.code())
                     .bind("subType", subType.code())
