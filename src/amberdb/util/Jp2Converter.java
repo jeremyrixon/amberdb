@@ -82,7 +82,7 @@ public class Jp2Converter extends ExternalToolConverter {
             Files.deleteIfExists(dstFilePath);
             Path tmpFilePath = dstFilePath.getParent().resolve("tmp_" + dstFilePath.getFileName() + "_retry.tif");
             convertImage(srcFilePath, tmpFilePath);
-            convertFile(tmpFilePath, dstFilePath);
+            performConvertFile(tmpFilePath, imgInfo, dstFilePath);
             Files.deleteIfExists(tmpFilePath);
         }
     }
@@ -127,7 +127,7 @@ public class Jp2Converter extends ExternalToolConverter {
                 // Uncompress image as the demo app kdu_compress can't process compressed tiff
                 convertUncompress(srcFilePath, tmpFilePath);
             } else {
-                convertJPXRelated(srcFilePath, tmpFilePath);
+                stripProfile(srcFilePath, tmpFilePath);
             }
         } catch (Exception e) {
             log.warn("Exception occurred when attempting to manipulate image into a JP2'able state.");
@@ -166,7 +166,7 @@ public class Jp2Converter extends ExternalToolConverter {
     }
     
     // Remove extra Tiff header fields
-    private void convertJPXRelated(Path srcFilePath, Path dstFilePath) throws Exception {
+    private void stripProfile(Path srcFilePath, Path dstFilePath) throws Exception {
         convertImage(srcFilePath, dstFilePath, "-strip");
   }
 
