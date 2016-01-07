@@ -168,7 +168,7 @@ public class Jp2Converter extends ExternalToolConverter {
     // Remove extra Tiff header fields
     private void stripProfile(Path srcFilePath, Path dstFilePath) throws Exception {
         convertImage(srcFilePath, dstFilePath, "-strip");
-  }
+    }
 
     // Convert an image with imagemagick
     private void convertImage(Path srcFilePath, Path dstFilePath, String... params) throws Exception {
