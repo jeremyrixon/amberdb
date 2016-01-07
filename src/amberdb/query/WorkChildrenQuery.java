@@ -24,7 +24,6 @@ import com.tinkerpop.blueprints.Vertex;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
-import org.skife.jdbi.v2.util.LongColumnMapper;
 import org.skife.jdbi.v2.util.LongMapper;
 
 public class WorkChildrenQuery extends AmberQueryBase {
@@ -351,7 +350,7 @@ public class WorkChildrenQuery extends AmberQueryBase {
                             "and e.v_in in ("+ Joiner.on(",").join(parentIds)+")")
                     .bind("bibLevel", bibLevel.code())
                     .bind("subType", subType.code())
-                    .map(LongColumnMapper.PRIMITIVE);
+                    .map(LongMapper.FIRST);
         }
         return h.createQuery(
                 "select distinct v.id from property p1, edge e, vertex v " +
@@ -361,6 +360,6 @@ public class WorkChildrenQuery extends AmberQueryBase {
                         "and p1.name = 'bibLevel' and p1.value = :bibLevel " +
                         "and e.v_in in (" + Joiner.on(",").join(parentIds) + ")")
                 .bind("bibLevel", bibLevel.code())
-                .map(LongColumnMapper.PRIMITIVE);
+                .map(LongMapper.FIRST);
     }
 }
