@@ -13,7 +13,9 @@ import amberdb.model.Work;
 import java.util.*;
 
 import amberdb.model.sort.WorkComparator;
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import org.apache.commons.collections.CollectionUtils;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.Query;
@@ -328,28 +330,33 @@ public class WorkChildrenQuery extends AmberQueryBase {
      * @param subType subtype of the child, can be null
      * @return a list of children Ids with the specified bib level and specified sub type
      */
-    public List<Long> getChildrenIdsByBibLevelSubType(List<Long> parentIds, BibLevel bibLevel, SubType subType){
+    public List<Long> getChildrenIdsByBibLevelSubType(List<Long> parentIds, BibLevel bibLevel, List<String> subTypes){
         if (CollectionUtils.isNotEmpty(parentIds)){
             try (Handle h = graph.dbi().open()) {
-                Query query = getChildrenIdsByBibLevelSubTypeQuery(h, parentIds, bibLevel, subType);
+                Query query = getChildrenIdsByBibLevelSubTypeQuery(h, parentIds, bibLevel, subTypes);
                 return query.list();
             }
         }
         return new ArrayList<>();
     }
 
-    private Query getChildrenIdsByBibLevelSubTypeQuery(Handle h, List<Long> parentIds, BibLevel bibLevel, SubType subType) {
-        if (subType != null){
+    private Query getChildrenIdsByBibLevelSubTypeQuery(Handle h, List<Long> parentIds, BibLevel bibLevel, List<String> subTypes) {
+        if (CollectionUtils.isNotEmpty(subTypes)){
+            Function<String,String> addQuotes = new Function<String,String>() {
+                @Override public String apply(String s) {
+                    return new StringBuilder(s.length()+2).append("'").append(s).append("'").toString();
+                }
+            };
+            String subTypeStr = Joiner.on(", ").join(Iterables.transform(subTypes, addQuotes));
             return h.createQuery(
                     "select distinct v.id from property p1, property p2, edge e, vertex v " +
                             "where p1.txn_end = 0 and e.txn_end = 0 and v.txn_end = 0 and p2.txn_end = 0 " +
                             "and p1.id = e.v_out and p2.id = e.v_out and v.id = p1.id and v.id = p2.id " +
                             "and e.label = 'isPartOf' " +
                             "and p1.name = 'bibLevel' and p1.value = :bibLevel " +
-                            "and p2.name = 'subType' and p2.value = :subType " +
-                            "and e.v_in in ("+ Joiner.on(",").join(parentIds)+")")
+                            "and p2.name = 'subType' and p2.value in ("+ subTypeStr + ") " +
+                            "and e.v_in in (" + Joiner.on(",").join(parentIds) + ")")
                     .bind("bibLevel", bibLevel.code())
-                    .bind("subType", subType.code())
                     .map(LongMapper.FIRST);
         }
         return h.createQuery(
