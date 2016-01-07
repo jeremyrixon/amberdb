@@ -135,7 +135,7 @@ public class Jp2Converter extends ExternalToolConverter {
 
         try {
             Path fileToCreateJp2 = Files.exists(tmpFilePath) ? tmpFilePath : srcFilePath;
-            
+
             // Create jp2 using kakadu kdu_compress
             createJp2(fileToCreateJp2, dstFilePath);
         } catch (Exception e) {
@@ -188,7 +188,7 @@ public class Jp2Converter extends ExternalToolConverter {
         // Use kakadu to create jp2
         executeCmd(new String[] {
                 jp2Converter.toString(),
-                "-i",  
+                "-i",
                 srcFilePath.toString(),
                 "-o",
                 dstFilePath.toString(),
