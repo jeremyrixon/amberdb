@@ -6,12 +6,10 @@ import amberdb.InvalidSubtypeException;
 import amberdb.enums.CopyRole;
 import amberdb.enums.CopyType;
 import amberdb.enums.SubType;
-import amberdb.graph.AmberEdge;
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberQuery;
 import amberdb.graph.AmberVertex;
 import amberdb.relation.*;
-import amberdb.util.WorkUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.util.wrappers.wrapped.WrappedEdge;
 import com.tinkerpop.blueprints.util.wrappers.wrapped.WrappedVertex;
 import com.tinkerpop.frames.Adjacency;
 import com.tinkerpop.frames.Incidence;
@@ -1183,17 +1180,6 @@ public interface Work extends Node {
     @JavaHandler
     void orderParts(List<Work> parts);
 
-    /**
-     *
-     * Returns the work that contains the access copy to be used for this work's representative image.
-     *
-     * @return The work with the image copy that should be used to represent this work, or null if no image is
-     * specified.
-     *
-     */
-    @JavaHandler
-    Work getRepresentativeImageWork();
-
     @JavaHandler
     List<String> getJsonList(String propertyName);
 
@@ -1706,41 +1692,6 @@ public interface Work extends Node {
         @Override
         public void addRepresentation(final Copy copy) {
             addRepresentative(copy);
-        }
-
-        @Override
-        public Work getRepresentativeImageWork() {
-
-            Work repImageOrAccessCopy = getRepImageOrAccessCopy(this);
-            if (repImageOrAccessCopy != null) {
-                return repImageOrAccessCopy;
-            }
-
-            Iterable<Work> children = getChildren();
-            if (!children.iterator().hasNext()) {
-                return null;
-            }
-            Work child = Iterables.get(children, 0);
-            if (WorkUtils.checkCanReturnRepImage(child)) {
-                return getRepImageOrAccessCopy(child);
-            }
-            return null;
-        }
-
-        private static Work getRepImageOrAccessCopy(Work work) {
-            Iterator<Copy> representations = work.getRepresentations().iterator();
-            if (representations.hasNext()) {
-                Work repWork = representations.next().getWork();
-                if (!WorkUtils.checkCanReturnRepImage(repWork)) {
-                    return null;
-                }
-                return repWork;
-            }
-            Copy accessCopy = work.getCopy(CopyRole.ACCESS_COPY);
-            if (accessCopy != null && accessCopy.getImageFile() != null) {
-                return work;
-            }
-            return null;
         }
 
         @Override
