@@ -13,7 +13,6 @@ import com.drew.imaging.ImageMetadataReader;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
 
-
 /*
  * This class is to convert an image (tiff or jpeg for now) to jpeg 2000 (.jp2),
  * and to make sure that the jp2 file can be delivered by the IIP image server.
@@ -76,6 +75,19 @@ public class Jp2Converter extends ExternalToolConverter {
     }
 
     private void convertFile(Path srcFilePath, ImageInfo imgInfo, Path dstFilePath) throws Exception {
+        try {
+            performConvertFile(srcFilePath, imgInfo, dstFilePath);
+        } catch (Exception e) {
+            log.warn("Retrying jp2 creation from source {} as the following exception has occurred: {}", srcFilePath.getFileName(), e.getMessage());
+            Files.deleteIfExists(dstFilePath);
+            Path tmpFilePath = dstFilePath.getParent().resolve("tmp_" + dstFilePath.getFileName() + "_retry.tif");
+            convertStripProfile(srcFilePath, tmpFilePath);
+            performConvertFile(tmpFilePath, imgInfo, dstFilePath);
+            Files.deleteIfExists(tmpFilePath);
+        }
+    }
+    
+    private void performConvertFile(Path srcFilePath, ImageInfo imgInfo, Path dstFilePath) throws Exception {
         // Main method to convert an image to a jpeg2000 file (jp2 or jpx) - imgInfo has to be accurate!
         // Jpeg2000 file must end with .jp2 or .jpx
         if (dstFilePath == null || dstFilePath.getParent() == null || dstFilePath.getFileName() == null) {
@@ -149,6 +161,11 @@ public class Jp2Converter extends ExternalToolConverter {
     // Uncompress an image
     private void convertUncompress(Path srcFilePath, Path dstFilePath) throws Exception {
         convertImage(srcFilePath, dstFilePath, "-compress", "None");
+    }
+    
+    // Remove extra Tiff header fields
+    private void convertStripProfile(Path srcFilePath, Path dstFilePath) throws Exception {
+        convertImage(srcFilePath, dstFilePath, "-strip");
     }
 
     // Convert an image with imagemagick
