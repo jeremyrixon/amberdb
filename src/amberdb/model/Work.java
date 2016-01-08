@@ -1729,36 +1729,7 @@ public interface Work extends Node {
 
         @Override
         public Work getRepresentativeImageWork() {
-            Work repImageOrAccessCopy = getRepImageOrAccessCopy(this);
-            if (repImageOrAccessCopy != null) {
-                return repImageOrAccessCopy;
-            }
-
-           Iterable<Work> children = getChildren();
-            if (!children.iterator().hasNext()) {
-                return null;
-            }
-            Work child = Iterables.get(children, 0);
-            if (WorkUtils.checkCanReturnRepImage(child)) {
-                return getRepImageOrAccessCopy(child);
-           }
-            return null;
-        }
-
-        private static Work getRepImageOrAccessCopy(Work work) {
-            Iterator<Copy> representations = work.getRepresentations().iterator();
-            if (representations.hasNext()) {
-                Work repWork = representations.next().getWork();
-               if (!WorkUtils.checkCanReturnRepImage(repWork)) {
-                    return null;
-                }
-                return repWork;
-            }
-            Copy accessCopy = work.getCopy(CopyRole.ACCESS_COPY);
-            if (accessCopy != null && accessCopy.getImageFile() != null) {
-                return work;
-            }
-            return null;
+            return (Work)this.asVertex().getProperty("representativeImageWork");
         }
 
         @Override
