@@ -1,7 +1,9 @@
 package amberdb.query;
 
 import amberdb.AmberSession;
+import amberdb.enums.BibLevel;
 import amberdb.enums.CopyRole;
+import amberdb.enums.SubType;
 import amberdb.graph.AmberProperty;
 import amberdb.graph.AmberQueryBase;
 import amberdb.graph.DataType;
@@ -11,9 +13,12 @@ import amberdb.model.Work;
 import java.util.*;
 
 import amberdb.model.sort.WorkComparator;
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import org.apache.commons.collections.CollectionUtils;
 import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.Query;
 import org.skife.jdbi.v2.util.ByteArrayMapper;
 import org.skife.jdbi.v2.util.IntegerMapper;
 
@@ -21,6 +26,7 @@ import com.tinkerpop.blueprints.Vertex;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
+import org.skife.jdbi.v2.util.LongMapper;
 
 public class WorkChildrenQuery extends AmberQueryBase {
 
@@ -294,7 +300,7 @@ public class WorkChildrenQuery extends AmberQueryBase {
     }
 
     public List<CopyRole> getAllCopyRoles(List<Long> workIds){
-        List<CopyRole> copyRoles = new ArrayList<CopyRole>();
+        List<CopyRole> copyRoles = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(workIds)){
             List<byte[]> copyRoleCodes;
             try (Handle h = graph.dbi().open()) {
@@ -303,7 +309,7 @@ public class WorkChildrenQuery extends AmberQueryBase {
                                 "from property p, edge e, vertex v " +
                                 "where p.txn_end = 0 and e.txn_end = 0 and v.txn_end = 0 " +
                                 "and p.id = e.v_out and v.id = p.id " +
-                                "and e.label = 'isCopyOf' and p.name = 'copyRole' and e.v_in in ("+ Joiner.on(",").join(workIds)+")")
+                                "and e.label = 'isCopyOf' and p.name = 'copyRole' and e.v_in in (" + Joiner.on(",").join(workIds) + ")")
                         .map(ByteArrayMapper.FIRST).list();
             }
             for (byte[] bytes : copyRoleCodes) {
@@ -315,5 +321,52 @@ public class WorkChildrenQuery extends AmberQueryBase {
             }
         }
         return copyRoles;
+    }
+
+    /**
+     * Retrieve children Ids of a list of parent Ids by the specified bib level and specified sub type
+     * @param parentIds a list of parent Ids
+     * @param bibLevel bibLevel of the child
+     * @param subType subtype of the child, can be null
+     * @return a list of children Ids with the specified bib level and specified sub type
+     */
+    public List<Long> getChildrenIdsByBibLevelSubType(List<Long> parentIds, BibLevel bibLevel, List<String> subTypes){
+        if (CollectionUtils.isNotEmpty(parentIds)){
+            try (Handle h = graph.dbi().open()) {
+                Query query = getChildrenIdsByBibLevelSubTypeQuery(h, parentIds, bibLevel, subTypes);
+                return query.list();
+            }
+        }
+        return new ArrayList<>();
+    }
+
+    private Query getChildrenIdsByBibLevelSubTypeQuery(Handle h, List<Long> parentIds, BibLevel bibLevel, List<String> subTypes) {
+        if (CollectionUtils.isNotEmpty(subTypes)){
+            Function<String,String> addQuotes = new Function<String,String>() {
+                @Override public String apply(String s) {
+                    return new StringBuilder(s.length()+2).append("'").append(s).append("'").toString();
+                }
+            };
+            String subTypeStr = Joiner.on(", ").join(Iterables.transform(subTypes, addQuotes));
+            return h.createQuery(
+                    "select distinct v.id from property p1, property p2, edge e, vertex v " +
+                            "where p1.txn_end = 0 and e.txn_end = 0 and v.txn_end = 0 and p2.txn_end = 0 " +
+                            "and p1.id = e.v_out and p2.id = e.v_out and v.id = p1.id and v.id = p2.id " +
+                            "and e.label = 'isPartOf' " +
+                            "and p1.name = 'bibLevel' and p1.value = :bibLevel " +
+                            "and p2.name = 'subType' and p2.value in ("+ subTypeStr + ") " +
+                            "and e.v_in in (" + Joiner.on(",").join(parentIds) + ")")
+                    .bind("bibLevel", bibLevel.code())
+                    .map(LongMapper.FIRST);
+        }
+        return h.createQuery(
+                "select distinct v.id from property p1, edge e, vertex v " +
+                        "where p1.txn_end = 0 and e.txn_end = 0 and v.txn_end = 0 " +
+                        "and p1.id = e.v_out and v.id = p1.id " +
+                        "and e.label = 'isPartOf' " +
+                        "and p1.name = 'bibLevel' and p1.value = :bibLevel " +
+                        "and e.v_in in (" + Joiner.on(",").join(parentIds) + ")")
+                .bind("bibLevel", bibLevel.code())
+                .map(LongMapper.FIRST);
     }
 }
