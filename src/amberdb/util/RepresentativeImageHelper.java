@@ -34,7 +34,10 @@ public class RepresentativeImageHelper {
     }
     
     public static void setRepresentativeImageWorkProperty(Work work, AmberSession amberSession){
-        work.asVertex().setProperty("representativeImageWork", getRepresentativeImageWork(work, amberSession));
+        Work representativeImageWork = getRepresentativeImageWork(work, amberSession);
+        if (representativeImageWork != null){
+            work.asVertex().setProperty("representativeImageWork", representativeImageWork);    
+        }
     }
 
     private static Work getRepImageOrAccessCopy(Work work) {
