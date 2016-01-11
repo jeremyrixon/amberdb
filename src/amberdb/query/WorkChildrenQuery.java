@@ -369,4 +369,24 @@ public class WorkChildrenQuery extends AmberQueryBase {
                 .bind("bibLevel", bibLevel.code())
                 .map(LongMapper.FIRST);
     }
+
+    /**
+     * Retrieve the max edge order of the children of the specified parent Id.
+     * If the parent has no children, return 0
+     */
+    public int getMaxEdgeOrder(Long parentId){
+        try (Handle h = graph.dbi().open()) {
+            List<Integer> maxEdgeOrder = h.createQuery(
+                    "select max(e.edge_order) from edge e, vertex v " +
+                            "where e.txn_end = 0 and v.txn_end = 0 " +
+                            "and v.id = e.v_out " +
+                            "and e.v_in = :parentId ")
+                    .bind("parentId", parentId)
+                    .map(IntegerMapper.FIRST).list();
+            if (CollectionUtils.isNotEmpty(maxEdgeOrder)){
+                return maxEdgeOrder.get(0);
+            }
+        }
+        return 0;
+    }
 }
