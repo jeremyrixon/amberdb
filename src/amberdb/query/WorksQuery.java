@@ -18,7 +18,6 @@ import amberdb.enums.BibLevel;
 import amberdb.model.Copy;
 import amberdb.model.Work;
 import org.skife.jdbi.v2.util.LongMapper;
-import sun.java2d.pipe.AAShapePipe;
 
 public class WorksQuery {
 
