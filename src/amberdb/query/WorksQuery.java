@@ -17,6 +17,8 @@ import amberdb.AmberSession;
 import amberdb.enums.BibLevel;
 import amberdb.model.Copy;
 import amberdb.model.Work;
+import org.skife.jdbi.v2.util.LongMapper;
+import sun.java2d.pipe.AAShapePipe;
 
 public class WorksQuery {
 
@@ -159,5 +161,20 @@ public class WorksQuery {
             map.put(transaction.getVertexId(), transaction.getTransaction());
         }
         return map;
+    }
+
+    /**
+     * Find the first N vertex ids order by the txn_start column desc among the specified list of vertex ids
+     * @param vertexIds input vertex Ids
+     * @param n the first N rows returned by the query
+     */
+    public static List<Long> getNLastCreatedVertexIds(AmberSession sess, List<Long> vertexIds, long n){
+        if (CollectionUtils.isNotEmpty(vertexIds)){
+            String sql = "select id from vertex where id in (" + Joiner.on(",").join(vertexIds) + ") group by id order by min(txn_start) desc limit :n";
+            try (Handle h = sess.getAmberGraph().dbi().open()) {
+                return h.createQuery(sql).bind("n", n).map(LongMapper.FIRST).list();
+            }
+        }
+        return new ArrayList<>();
     }
 }
