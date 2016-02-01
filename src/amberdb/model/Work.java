@@ -1,17 +1,23 @@
 package amberdb.model;
 
-import amberdb.AmberSession;
-import amberdb.DataIntegrityException;
-import amberdb.InvalidSubtypeException;
-import amberdb.enums.CopyRole;
-import amberdb.enums.CopyType;
-import amberdb.enums.SubType;
-import amberdb.graph.AmberEdge;
-import amberdb.graph.AmberGraph;
-import amberdb.graph.AmberQuery;
-import amberdb.graph.AmberVertex;
-import amberdb.relation.*;
-import amberdb.util.WorkUtils;
+import static amberdb.graph.BranchType.BRANCH_FROM_ALL;
+import static amberdb.graph.BranchType.BRANCH_FROM_PREVIOUS;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,7 +29,6 @@ import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.util.wrappers.wrapped.WrappedEdge;
 import com.tinkerpop.blueprints.util.wrappers.wrapped.WrappedVertex;
 import com.tinkerpop.frames.Adjacency;
 import com.tinkerpop.frames.Incidence;
@@ -34,12 +39,22 @@ import com.tinkerpop.frames.modules.javahandler.JavaHandler;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.*;
-
-import static amberdb.graph.BranchType.BRANCH_FROM_ALL;
-import static amberdb.graph.BranchType.BRANCH_FROM_PREVIOUS;
+import amberdb.AmberSession;
+import amberdb.DataIntegrityException;
+import amberdb.InvalidSubtypeException;
+import amberdb.enums.CopyRole;
+import amberdb.enums.CopyType;
+import amberdb.enums.SubType;
+import amberdb.graph.AmberGraph;
+import amberdb.graph.AmberQuery;
+import amberdb.graph.AmberVertex;
+import amberdb.relation.Acknowledge;
+import amberdb.relation.DeliveredOn;
+import amberdb.relation.DescriptionOf;
+import amberdb.relation.IsCopyOf;
+import amberdb.relation.IsPartOf;
+import amberdb.relation.Represents;
+import amberdb.util.WorkUtils;
 
 /**
  * Any logical work that is collected or created by the library such as a book,
@@ -1183,17 +1198,6 @@ public interface Work extends Node {
     @JavaHandler
     void orderParts(List<Work> parts);
 
-    /**
-     *
-     * Returns the work that contains the access copy to be used for this work's representative image.
-     *
-     * @return The work with the image copy that should be used to represent this work, or null if no image is
-     * specified.
-     *
-     */
-    @JavaHandler
-    Work getRepresentativeImageWork();
-
     @JavaHandler
     List<String> getJsonList(String propertyName);
 
@@ -1208,6 +1212,9 @@ public interface Work extends Node {
 
     @JavaHandler
     boolean hasUniqueAlias(AmberSession session);
+    
+    @JavaHandler
+    Work getRepresentativeImageWork();
 
     @JavaHandler
     boolean hasImageAccessCopy();
@@ -1709,41 +1716,6 @@ public interface Work extends Node {
         }
 
         @Override
-        public Work getRepresentativeImageWork() {
-
-            Work repImageOrAccessCopy = getRepImageOrAccessCopy(this);
-            if (repImageOrAccessCopy != null) {
-                return repImageOrAccessCopy;
-            }
-
-            Iterable<Work> children = getChildren();
-            if (!children.iterator().hasNext()) {
-                return null;
-            }
-            Work child = Iterables.get(children, 0);
-            if (WorkUtils.checkCanReturnRepImage(child)) {
-                return getRepImageOrAccessCopy(child);
-            }
-            return null;
-        }
-
-        private static Work getRepImageOrAccessCopy(Work work) {
-            Iterator<Copy> representations = work.getRepresentations().iterator();
-            if (representations.hasNext()) {
-                Work repWork = representations.next().getWork();
-                if (!WorkUtils.checkCanReturnRepImage(repWork)) {
-                    return null;
-                }
-                return repWork;
-            }
-            Copy accessCopy = work.getCopy(CopyRole.ACCESS_COPY);
-            if (accessCopy != null && accessCopy.getImageFile() != null) {
-                return work;
-            }
-            return null;
-        }
-
-        @Override
         public List<String> getDeliveryWorkIds() {
             Iterable<Work> deliveryWorks = getDeliveryWorks();
 
@@ -1753,6 +1725,11 @@ public interface Work extends Node {
             }
 
             return ids;
+        }
+
+        @Override
+        public Work getRepresentativeImageWork() {
+            return (Work)this.asVertex().getProperty("representativeImageWork");
         }
 
         @Override

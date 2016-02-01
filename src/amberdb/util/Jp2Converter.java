@@ -1,7 +1,6 @@
 package amberdb.util;
 
 
-import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -9,8 +8,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.tika.Tika;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.metadata.Metadata;
@@ -47,17 +44,17 @@ import com.drew.metadata.exif.ExifIFD0Directory;
  * For the mean time, we'll just use imagemagick convert to convert it to jp2.
 */
 
-public class Jp2Converter {
+public class Jp2Converter extends ExternalToolConverter {
     private static final Logger log = LoggerFactory.getLogger(Jp2Converter.class);
 
     Path imgConverter;
     Path jp2Converter;
-    Tika tika;
 
     public Jp2Converter(Path jp2Converter, Path imgConverter) {
+        super();
+        
         this.jp2Converter = jp2Converter;
         this.imgConverter = imgConverter;
-        this.tika = new Tika();
     }
 
     public void convertFile(Path srcFilePath, Path dstFilePath) throws Exception {
@@ -78,6 +75,19 @@ public class Jp2Converter {
     }
 
     private void convertFile(Path srcFilePath, ImageInfo imgInfo, Path dstFilePath) throws Exception {
+        try {
+            performConvertFile(srcFilePath, imgInfo, dstFilePath);
+        } catch (Exception e) {
+            log.warn("Retrying jp2 creation from source {} as the following exception has occurred: {}", srcFilePath.getFileName(), e.getMessage());
+            Files.deleteIfExists(dstFilePath);
+            Path tmpFilePath = dstFilePath.getParent().resolve("tmp_" + dstFilePath.getFileName() + "_retry.tif");
+            convertStripProfile(srcFilePath, tmpFilePath);
+            performConvertFile(tmpFilePath, imgInfo, dstFilePath);
+            Files.deleteIfExists(tmpFilePath);
+        }
+    }
+    
+    private void performConvertFile(Path srcFilePath, ImageInfo imgInfo, Path dstFilePath) throws Exception {
         // Main method to convert an image to a jpeg2000 file (jp2 or jpx) - imgInfo has to be accurate!
         // Jpeg2000 file must end with .jp2 or .jpx
         if (dstFilePath == null || dstFilePath.getParent() == null || dstFilePath.getFileName() == null) {
@@ -152,6 +162,11 @@ public class Jp2Converter {
     private void convertUncompress(Path srcFilePath, Path dstFilePath) throws Exception {
         convertImage(srcFilePath, dstFilePath, "-compress", "None");
     }
+    
+    // Remove extra Tiff header fields
+    private void convertStripProfile(Path srcFilePath, Path dstFilePath) throws Exception {
+        convertImage(srcFilePath, dstFilePath, "-strip");
+    }
 
     // Convert an image with imagemagick
     private void convertImage(Path srcFilePath, Path dstFilePath, String... params) throws Exception {
@@ -195,22 +210,6 @@ public class Jp2Converter {
                 srcFilePath.toString(),
                 dstFilePath.toString()
         });
-    }
-
-    // Execute a command
-    private void executeCmd(String[] cmd) throws Exception {
-        // Log command
-        log.debug("Run command: ", StringUtils.join(cmd, ' '));
-
-        // Execute command
-        ProcessBuilder builder = new ProcessBuilder(cmd);
-        builder.redirectError(Redirect.INHERIT).redirectOutput(Redirect.INHERIT);
-        Process p = builder.start();
-        p.waitFor();
-        int exitVal = p.exitValue();
-        if (exitVal > 0) {
-            throw new Exception("Error in executeCmd");
-        }
     }
 
     class ImageInfo {
