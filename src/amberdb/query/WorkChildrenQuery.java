@@ -47,12 +47,12 @@ public class WorkChildrenQuery extends AmberQueryBase {
      *  strings defined directly below. */
     static Map<String, String> hex = new HashMap<>();
     static String[] types = {
-        "Work", "Page", "EADWork", "Section", 
-        "Copy", 
-        "File", "ImageFile", "SoundFile", 
+        "Work", "Page", "EADWork", "Section",
+        "Copy",
+        "File", "ImageFile", "SoundFile", "MovingImageFile",
         "Description", "CameraData", "EADEntity", "EADFeature", "GeoCoding", "IPTC"
     };
-    static String workNotSectionInList; 
+    static String workNotSectionInList;
     static String fileInList;
     static String descInList;
     static {
@@ -60,7 +60,7 @@ public class WorkChildrenQuery extends AmberQueryBase {
             hex.put(t, Hex.encodeHexString(AmberProperty.encode(t)));
         }
         workNotSectionInList = "(X'" + StringUtils.join(new String[] {hex.get("Work"), hex.get("Page"), hex.get("EADWork")}, "', X'") + "')";
-        fileInList = "(X'" + StringUtils.join(new String[] {hex.get("File"), hex.get("ImageFile"), hex.get("SoundFile")}, "', X'") + "')";
+        fileInList = "(X'" + StringUtils.join(new String[] {hex.get("File"), hex.get("ImageFile"), hex.get("SoundFile"), hex.get("MovingImageFile")}, "', X'") + "')";
         descInList = "(X'" + StringUtils.join(new String[] {hex.get("Description"), hex.get("CameraData"), hex.get("EADEntity"), 
                 hex.get("EADFeature"), hex.get("GeoCoding"), hex.get("IPTC")}, "', X'") + "')";
     }
