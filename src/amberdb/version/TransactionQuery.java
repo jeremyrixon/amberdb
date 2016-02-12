@@ -258,10 +258,11 @@ public class TransactionQuery {
                +  txnWhereClause1
                + "AND v.id = p.id \n"
                + "AND p.name = 'type' \n"
-               + "AND cast(p.value as char(100)) IN (" 
-               + toHex("File") + ", " 
-               + toHex("ImageFile") + ", " 
-               + toHex("SoundFile") + "); \n");
+               + "AND cast(p.value as char(100)) IN ("
+               + toHex("File") + ", "
+               + toHex("ImageFile") + ", "
+               + toHex("SoundFile") + ", "
+               + toHex("MovingImageFile") + "); \n");
         
         s.append("INSERT INTO f0 (id) \n"
                + "SELECT DISTINCT v.id \n"
@@ -269,10 +270,11 @@ public class TransactionQuery {
                +  txnWhereClause2
                + "AND v.id = p.id \n"
                + "AND p.name = 'type' \n"
-               + "AND cast(p.value as char(100)) IN (" 
-               + toHex("File") + ", " 
-               + toHex("ImageFile") + ", " 
-               + toHex("SoundFile") + "); \n");
+               + "AND cast(p.value as char(100)) IN ("
+               + toHex("File") + ", "
+               + toHex("ImageFile") + ", "
+               + toHex("SoundFile") + ", "
+               + toHex("MovingImageFile") + "); \n");
         return s.toString();
     }
 

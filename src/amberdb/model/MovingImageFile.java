@@ -8,8 +8,8 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
 import amberdb.util.DurationUtils;
 
-@TypeValue("SoundFile")
-public interface SoundFile extends File {
+@TypeValue("MovingImageFile")
+public interface MovingImageFile extends File {
 
     @Property("surface")
     public String getSurface();    
@@ -110,7 +110,7 @@ public interface SoundFile extends File {
     @JavaHandler
     public String getDurationAsHHMMSS();
 
-    abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, SoundFile {
+    abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, MovingImageFile {
 
         @Override
         public String getDurationAsHHMMSS(){
