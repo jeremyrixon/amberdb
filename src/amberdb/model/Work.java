@@ -465,6 +465,18 @@ public interface Work extends Node {
     @Property("totalDuration")
     void setTotalDuration(String totalDuration);
     
+    @Property("preservicaType")
+    String getPreservicaType();
+
+    @Property("preservicaType")
+    void setPreservicaType(String type);
+    
+    @Property("preservicaId")
+    String getPreservicaId();
+
+    @Property("preservicaId")
+    void setPreservicaId(String id);
+    
     @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
     GeoCoding addGeoCoding();
 
