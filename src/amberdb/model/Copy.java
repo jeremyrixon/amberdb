@@ -3,6 +3,7 @@ package amberdb.model;
 import amberdb.AmberSession;
 import amberdb.NoSuchCopyException;
 import amberdb.enums.CopyRole;
+import amberdb.enums.MaterialType;
 import amberdb.relation.*;
 import amberdb.util.EPubConverter;
 import amberdb.util.Jp2Converter;
@@ -329,16 +330,17 @@ public interface Copy extends Node {
 
         @Override
         public File addFile(Writable contents, String mimeType) throws IOException {
-            File file;
-            if (mimeType.startsWith("image")) {
-                file = addImageFile();
-                this.setMaterialType("Image");
-            } else if (mimeType.startsWith("audio")) {
-                file = addSoundFile();
-                this.setMaterialType("Sound");
-            } else if (mimeType.startsWith("video") || mimeType.equals("application/mxf")) {
-                file = addMovingImageFile();
-                this.setMaterialType("Moving Image");
+            File file = null;
+            MaterialType mt = MaterialType.fromMimeType(mimeType);
+            if (mt != null && (mt == MaterialType.IMAGE || mt == MaterialType.SOUND || mt == MaterialType.MOVINGIMAGE)) {
+                if (mt == MaterialType.IMAGE) {
+                    file = addImageFile();
+                } else if (mt == MaterialType.SOUND) {
+                    file = addSoundFile();
+                } else if (mt == MaterialType.MOVINGIMAGE) {
+                    file = addMovingImageFile();
+                }
+                this.setMaterialType(mt.code());
             } else {
                 file = addFile();
             }
