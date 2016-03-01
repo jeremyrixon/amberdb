@@ -133,10 +133,11 @@ public class CopyRoleTest {
         assertEquals(460,CopyRole.THUMBNAIL_COPY.ord());
         assertEquals(470,CopyRole.TIME_CODED_SUMMARY.ord());
         assertEquals(480,CopyRole.TIME_CODED_TRANSCRIPT_COPY.ord());
+        assertEquals(482,CopyRole.TRANSCRIPT_DELIVERY_COPY.ord());
         assertEquals(485,CopyRole.UNKNOWN_COPY.ord());
         assertEquals(490,CopyRole.VIEW_COPY.ord());
         assertEquals(500,CopyRole.VISUAL_NAVIGATION_DELIVERY_COPY.ord());
-        assertEquals(57,CopyRole.values().length);
+        assertEquals(58,CopyRole.values().length);
     }
     
     private void compareItemsBefore(int index, List<CopyRole> roles) {        
