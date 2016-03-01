@@ -290,6 +290,9 @@ public interface Copy extends Node {
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     void removeFile(final File file);
 
+    @JavaHandler
+    public void removeFileIfExists();
+
     @Adjacency(label = IsCopyOf.label)
     public Work getWork();
 
@@ -930,6 +933,14 @@ public interface Copy extends Node {
                                             }
                                         });
             return ind +1;
+        }
+
+        @Override
+        public void removeFileIfExists(){
+            File file = getFile();
+            if (file != null) {
+                removeFile(file);
+            }
         }
     }
 }
