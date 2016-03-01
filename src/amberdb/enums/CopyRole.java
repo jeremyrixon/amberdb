@@ -71,6 +71,7 @@ public enum CopyRole {
     THUMBNAIL_COPY("t", "Thumbnail",460, false),
     TIME_CODED_SUMMARY("sc", "Time coded summary", "Yes",470, false),
     TIME_CODED_TRANSCRIPT_COPY("tc", "Time coded transcript", "Yes",480, false),
+    TRANSCRIPT_DELIVERY_COPY("td", "Transcript delivery", "Yes",482, false),
     UNKNOWN_COPY ("u", "Unknown", 485, false),
     VIEW_COPY("v", "View",490, false),
     VISUAL_NAVIGATION_DELIVERY_COPY ("vn", "Visual navigation delivery", 500, false);
