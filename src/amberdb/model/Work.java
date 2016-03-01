@@ -1223,6 +1223,9 @@ public interface Work extends Node {
     boolean hasCopyRole(CopyRole role);
 
     @JavaHandler
+    Copy getOrCreateCopy(CopyRole role);
+
+    @JavaHandler
     boolean hasUniqueAlias(AmberSession session);
     
     @JavaHandler
@@ -1254,6 +1257,8 @@ public interface Work extends Node {
 
     @Property("carrier")
     void setCarrier(String carrier);
+
+
 
     /**
      * Get the order in which this work appears on it's parent. I.E. The order of a 5th page would be 5. Return null
@@ -1777,6 +1782,16 @@ public interface Work extends Node {
         @Override
         public boolean hasCopyRole(CopyRole role) {
             return getCopy(role) != null;
+        }
+
+        @Override
+        public Copy getOrCreateCopy(CopyRole role) {
+            Copy copy = getCopy(role);
+            if (copy == null) {
+                copy = addCopy();
+                copy.setCopyRole(role.code());
+            }
+            return copy;
         }
 
         @Override
