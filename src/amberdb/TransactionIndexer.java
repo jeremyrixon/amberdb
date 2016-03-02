@@ -71,6 +71,7 @@ public class TransactionIndexer {
             case "File":
             case "ImageFile":
             case "SoundFile":
+            case "MovingImageFile":
                 continue vertexLoop;
             }
 

@@ -101,8 +101,7 @@ public class CopyTest {
         assertEquals(6, aliases.size());
         assertTrue(aliases.contains("octopus"));
     }
-    
-    
+
     @Test
     public void testGetFiles() throws IOException {
         Copy copy = amberDb.addWork().addCopy();
@@ -111,19 +110,23 @@ public class CopyTest {
         assertEquals(null, copy.getImageFile());
         ImageFile imageFile = copy.addImageFile();
         assertEquals(null, copy.getSoundFile());
+        assertEquals(null, copy.getMovingImageFile());
         SoundFile soundFile = copy.addSoundFile();
+        MovingImageFile movingImageFile = copy.addMovingImageFile();
         imageFile.setDevice("frog");
         soundFile.setBitrate("amsterdam");
+        movingImageFile.setBitDepth("12");
         ImageFile otherImageFile = copy.getImageFile();
         SoundFile otherSoundFile = copy.getSoundFile();
+        MovingImageFile otherMovingImageFile = copy.getMovingImageFile();
         assertEquals("ImageFile", otherImageFile.getType());
         assertEquals("frog", otherImageFile.getDevice());
         assertEquals("SoundFile", otherSoundFile.getType());
         assertEquals("amsterdam", otherSoundFile.getBitrate());
+        assertEquals("MovingImageFile", otherMovingImageFile.getType());
+        assertEquals("12", otherMovingImageFile.getBitDepth());
     }
-    
-    
-    
+
     @Test
     public void testDateProperties() throws IOException, ParseException {
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
@@ -132,7 +135,7 @@ public class CopyTest {
         copy.setDateCreated(date);
         assertEquals(date, copy.getDateCreated());
     }
-    
+
     @Test
     public void testIntegerProperties() throws IOException {
         Copy copy = amberDb.addWork().addCopy();

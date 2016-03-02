@@ -51,6 +51,7 @@ public class AmberSession implements AutoCloseable {
                 .withClass(File.class)
                 .withClass(ImageFile.class)
                 .withClass(SoundFile.class)
+                .withClass(MovingImageFile.class)
                 .withClass(Page.class)
                 .withClass(Section.class)
                 .withClass(Work.class)

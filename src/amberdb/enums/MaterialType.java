@@ -37,4 +37,19 @@ public enum MaterialType {
         }
         return list;
     }
+
+    public static MaterialType fromMimeType(String mimeType) {
+        if (mimeType.startsWith("image")) {
+            return IMAGE;
+        } else if (mimeType.startsWith("audio")) {
+            return SOUND;
+        } else if (mimeType.startsWith("video") || mimeType.equals("application/mxf")) {
+            return MOVINGIMAGE;
+        } else if (mimeType.startsWith("text") || mimeType.equals("application/xml")) {
+            return TEXT;
+        } else if ("application/epub+zip application/pdf application/x-mobipocket-ebook application/vnd.amazon.ebook".contains(mimeType)) {
+            return TEXT;
+        }
+        return null;
+    }
 }

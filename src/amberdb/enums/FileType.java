@@ -5,7 +5,8 @@ import java.util.List;
 
 public enum FileType {
     IMAGE_FILE("ImageFile", "image", "Image"),
-    SOUND_FILE("SoundFile", "audio", "Sound");
+    SOUND_FILE("SoundFile", "audio", "Sound"),
+    MOVINGIMAGE_FILE("MovingImageFile", "video", "Moving Image");
     
     private String code;
     private String mimeTypePrefix;
