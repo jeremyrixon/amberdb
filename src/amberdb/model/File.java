@@ -8,8 +8,10 @@ import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -19,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.util.wrappers.wrapped.WrappedVertex;
 import com.tinkerpop.frames.Adjacency;
 import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.modules.javahandler.JavaHandler;
@@ -29,6 +32,7 @@ import amber.checksum.Checksum;
 import amber.checksum.InvalidChecksumException;
 import amberdb.AmberSession;
 import amberdb.enums.MaterialType;
+import amberdb.graph.AmberVertex;
 import amberdb.relation.DescriptionOf;
 import amberdb.relation.IsFileOf;
 import doss.Blob;
@@ -152,6 +156,12 @@ public interface File extends Node {
      */
     @Property("toolId")
     public void setJSONToolId(String toolId);
+    
+    @Property("type")
+    public String getType();
+    
+    @Property("type")
+    public String setType(String type);
 
     /**
      * This method handles the JSON deserialisation of the toolId Property
@@ -328,13 +338,25 @@ public interface File extends Node {
                 }
             }
             if (materialType == MaterialType.IMAGE) {
-                return frame(this.asVertex(), ImageFile.class);
+                ImageFile file = frame(this.asVertex(), ImageFile.class);
+                file.setType("ImageFile");
+                file.getCopy().setFile(file);
+                return file;
             } else if (materialType == MaterialType.MOVINGIMAGE) {
-                return frame(this.asVertex(), MovingImageFile.class);
+                MovingImageFile file = frame(this.asVertex(), MovingImageFile.class);
+                file.setType("MovingImageFile");
+                file.getCopy().setFile(file);
+                return file;
             } else if (materialType == MaterialType.SOUND) {
-                return frame(this.asVertex(), SoundFile.class);
+                SoundFile file = frame(this.asVertex(), SoundFile.class);
+                file.setType("SoundFile");
+                file.getCopy().setFile(file);
+                return file;
             } else {
-                return frame(this.asVertex(), File.class);
+                File file = frame(this.asVertex(), File.class);
+                file.setType("File");
+                file.getCopy().setFile(file);
+                return file;
             }
         }
 
