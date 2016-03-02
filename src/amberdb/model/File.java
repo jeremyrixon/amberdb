@@ -152,6 +152,12 @@ public interface File extends Node {
      */
     @Property("toolId")
     public void setJSONToolId(String toolId);
+    
+    @Property("type")
+    public String getType();
+    
+    @Property("type")
+    public String setType(String type);
 
     /**
      * This method handles the JSON deserialisation of the toolId Property
@@ -328,13 +334,25 @@ public interface File extends Node {
                 }
             }
             if (materialType == MaterialType.IMAGE) {
-                return frame(this.asVertex(), ImageFile.class);
+                ImageFile file = frame(this.asVertex(), ImageFile.class);
+                file.setType("ImageFile");
+                file.getCopy().setFile(file);
+                return file;
             } else if (materialType == MaterialType.MOVINGIMAGE) {
-                return frame(this.asVertex(), MovingImageFile.class);
+                MovingImageFile file = frame(this.asVertex(), MovingImageFile.class);
+                file.setType("MovingImageFile");
+                file.getCopy().setFile(file);
+                return file;
             } else if (materialType == MaterialType.SOUND) {
-                return frame(this.asVertex(), SoundFile.class);
+                SoundFile file = frame(this.asVertex(), SoundFile.class);
+                file.setType("SoundFile");
+                file.getCopy().setFile(file);
+                return file;
             } else {
-                return frame(this.asVertex(), File.class);
+                File file = frame(this.asVertex(), File.class);
+                file.setType("File");
+                file.getCopy().setFile(file);
+                return file;
             }
         }
 
