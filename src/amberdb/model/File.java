@@ -28,6 +28,7 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 import amber.checksum.Checksum;
 import amber.checksum.InvalidChecksumException;
 import amberdb.AmberSession;
+import amberdb.enums.MaterialType;
 import amberdb.relation.DescriptionOf;
 import amberdb.relation.IsFileOf;
 import doss.Blob;
@@ -213,7 +214,7 @@ public interface File extends Node {
      *  the technical metadata for the current version of the file would be reset to blank.
      */
     @JavaHandler
-    void resetTechnicalProperties();
+    File resetTechnicalProperties(MaterialType materialType);
 
     @JavaHandler
     void putLegacyDoss(Path dossPath) throws IOException;
@@ -319,12 +320,21 @@ public interface File extends Node {
         }
         
         @Override
-        public void resetTechnicalProperties() {
+        public File resetTechnicalProperties(MaterialType materialType) {
             Set<String> properties = this.asVertex().getPropertyKeys();
             for (String property : properties) {
                 if (!mandatoryfldNames.contains(property.toUpperCase())) {
                     this.asVertex().removeProperty(property);
                 }
+            }
+            if (materialType == MaterialType.IMAGE) {
+                return frame(this.asVertex(), ImageFile.class);
+            } else if (materialType == MaterialType.MOVINGIMAGE) {
+                return frame(this.asVertex(), MovingImageFile.class);
+            } else if (materialType == MaterialType.SOUND) {
+                return frame(this.asVertex(), SoundFile.class);
+            } else {
+                return frame(this.asVertex(), File.class);
             }
         }
 
