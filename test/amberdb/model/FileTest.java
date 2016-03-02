@@ -166,7 +166,6 @@ public class FileTest {
         assertTrue(file instanceof ImageFile);
         
         file = file.resetTechnicalProperties(MaterialType.TEXT);
-        assertFalse(file instanceof ImageFile);
         assertTrue(file instanceof File);
         assertTrue(blobId == file.getBlobId());
         assertEquals(mimeType, file.getMimeType());
