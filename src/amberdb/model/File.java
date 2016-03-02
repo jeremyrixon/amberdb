@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -202,9 +203,6 @@ public interface File extends Node {
     @JavaHandler
     void put(Writable writable) throws IOException;
     
-    @JavaHandler
-    List<String> getMandatoryFields();
-    
     /**
      * This method resets all the technical metadata property values to null, it can
      * be called when a new file is uploaded for a existing copy and the file has a
@@ -225,7 +223,7 @@ public interface File extends Node {
 
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, File {
         static ObjectMapper mapper = new ObjectMapper();
-        static List<String> mandatoryfldNames = new ArrayList<>();
+        static Set<String> mandatoryfldNames = new HashSet<>();
         static {
             Method[] methods = File.class.getDeclaredMethods();
             for (Method method : methods) {
@@ -233,10 +231,6 @@ public interface File extends Node {
                     mandatoryfldNames.add(method.getName().substring(3).toUpperCase());
                 }
             }
-        }
-        
-        public List<String> getMandatoryFields() {
-            return mandatoryfldNames;
         }
 
         private BlobStore getBlobStore() {
