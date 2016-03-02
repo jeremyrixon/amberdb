@@ -2,12 +2,14 @@ package amberdb.model;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -199,6 +201,21 @@ public interface File extends Node {
 
     @JavaHandler
     void put(Writable writable) throws IOException;
+    
+    @JavaHandler
+    List<String> getMandatoryFields();
+    
+    /**
+     * This method resets all the technical metadata property values to null, it can
+     * be called when a new file is uploaded for a existing copy and the file has a
+     * different material type.  
+     * 
+     * e.g. if a existing copy has a image file, and a new text file is uploaded as the 
+     * current version of file for this copy, then:
+     *  the technical metadata for the current version of the file would be reset to blank.
+     */
+    @JavaHandler
+    void resetTechnicalProperties();
 
     @JavaHandler
     void putLegacyDoss(Path dossPath) throws IOException;
@@ -208,6 +225,19 @@ public interface File extends Node {
 
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, File {
         static ObjectMapper mapper = new ObjectMapper();
+        static List<String> mandatoryfldNames = new ArrayList<>();
+        static {
+            Method[] methods = File.class.getDeclaredMethods();
+            for (Method method : methods) {
+                if (method.getName().startsWith("get")) {
+                    mandatoryfldNames.add(method.getName().substring(3).toUpperCase());
+                }
+            }
+        }
+        
+        public List<String> getMandatoryFields() {
+            return mandatoryfldNames;
+        }
 
         private BlobStore getBlobStore() {
             return AmberSession.ownerOf(g()).getBlobStore();
@@ -291,6 +321,16 @@ public interface File extends Node {
                 Long blobId = tx.putLegacy(dossPath);
                 setBlobId(blobId);
                 tx.commit();
+            }
+        }
+        
+        @Override
+        public void resetTechnicalProperties() {
+            Set<String> properties = this.asVertex().getPropertyKeys();
+            for (String property : properties) {
+                if (!mandatoryfldNames.contains(property.toUpperCase())) {
+                    this.asVertex().removeProperty(property);
+                }
             }
         }
 
