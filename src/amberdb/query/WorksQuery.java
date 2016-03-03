@@ -176,4 +176,14 @@ public class WorksQuery {
         }
         return new ArrayList<>();
     }
+
+    public static List<Long> getWorkIdsByProperties(AmberSession sess, List<WorkProperty> workProperties){
+        if (CollectionUtils.isNotEmpty(workProperties)){
+            try (Handle h = sess.getAmberGraph().dbi().open()) {
+                PropertyQueryAssembler assembler = new PropertyQueryAssembler(workProperties);
+                return assembler.query(h).list();
+            }
+        }
+        return new ArrayList<>();
+    }
 }
