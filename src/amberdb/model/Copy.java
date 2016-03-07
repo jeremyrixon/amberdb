@@ -269,9 +269,6 @@ public interface Copy extends Node {
 
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     public File addFile();
-    
-    @Adjacency(label = IsFileOf.label, direction = Direction.IN)
-    public void setFile(File file);
 
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     public ImageFile addImageFile();

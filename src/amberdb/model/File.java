@@ -157,7 +157,7 @@ public interface File extends Node {
     public String getType();
     
     @Property("type")
-    public String setType(String type);
+    public void setType(String type);
 
     /**
      * This method handles the JSON deserialisation of the toolId Property
@@ -333,27 +333,22 @@ public interface File extends Node {
                     this.asVertex().removeProperty(property);
                 }
             }
+            
+            File file;
             if (materialType == MaterialType.IMAGE) {
-                ImageFile file = frame(this.asVertex(), ImageFile.class);
+                file = frame(this.asVertex(), ImageFile.class);
                 file.setType("ImageFile");
-                file.getCopy().setFile(file);
-                return file;
             } else if (materialType == MaterialType.MOVINGIMAGE) {
-                MovingImageFile file = frame(this.asVertex(), MovingImageFile.class);
+                file = frame(this.asVertex(), MovingImageFile.class);
                 file.setType("MovingImageFile");
-                file.getCopy().setFile(file);
-                return file;
             } else if (materialType == MaterialType.SOUND) {
-                SoundFile file = frame(this.asVertex(), SoundFile.class);
+                file = frame(this.asVertex(), SoundFile.class);
                 file.setType("SoundFile");
-                file.getCopy().setFile(file);
-                return file;
             } else {
-                File file = frame(this.asVertex(), File.class);
+                file = frame(this.asVertex(), File.class);
                 file.setType("File");
-                file.getCopy().setFile(file);
-                return file;
             }
+            return file;
         }
 
         @Override
