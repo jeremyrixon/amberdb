@@ -2,12 +2,15 @@ package amberdb.model;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,6 +28,7 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 import amber.checksum.Checksum;
 import amber.checksum.InvalidChecksumException;
 import amberdb.AmberSession;
+import amberdb.enums.MaterialType;
 import amberdb.relation.DescriptionOf;
 import amberdb.relation.IsFileOf;
 import doss.Blob;
@@ -148,6 +152,12 @@ public interface File extends Node {
      */
     @Property("toolId")
     public void setJSONToolId(String toolId);
+    
+    @Property("type")
+    public String getType();
+    
+    @Property("type")
+    public void setType(String type);
 
     /**
      * This method handles the JSON deserialisation of the toolId Property
@@ -199,6 +209,18 @@ public interface File extends Node {
 
     @JavaHandler
     void put(Writable writable) throws IOException;
+    
+    /**
+     * This method resets all the technical metadata property values to null, it can
+     * be called when a new file is uploaded for a existing copy and the file has a
+     * different material type.  
+     * 
+     * e.g. if a existing copy has a image file, and a new text file is uploaded as the 
+     * current version of file for this copy, then:
+     *  the technical metadata for the current version of the file would be reset to blank.
+     */
+    @JavaHandler
+    File resetTechnicalProperties(MaterialType materialType);
 
     @JavaHandler
     void putLegacyDoss(Path dossPath) throws IOException;
@@ -208,6 +230,15 @@ public interface File extends Node {
 
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, File {
         static ObjectMapper mapper = new ObjectMapper();
+        static Set<String> mandatoryfldNames = new HashSet<>();
+        static {
+            Method[] methods = File.class.getDeclaredMethods();
+            for (Method method : methods) {
+                if (method.getName().startsWith("get")) {
+                    mandatoryfldNames.add(method.getName().substring(3).toUpperCase());
+                }
+            }
+        }
 
         private BlobStore getBlobStore() {
             return AmberSession.ownerOf(g()).getBlobStore();
@@ -292,6 +323,32 @@ public interface File extends Node {
                 setBlobId(blobId);
                 tx.commit();
             }
+        }
+        
+        @Override
+        public File resetTechnicalProperties(MaterialType materialType) {
+            Set<String> properties = this.asVertex().getPropertyKeys();
+            for (String property : properties) {
+                if (!mandatoryfldNames.contains(property.toUpperCase())) {
+                    this.asVertex().removeProperty(property);
+                }
+            }
+            
+            File file;
+            if (materialType == MaterialType.IMAGE) {
+                file = frame(this.asVertex(), ImageFile.class);
+                file.setType("ImageFile");
+            } else if (materialType == MaterialType.MOVINGIMAGE) {
+                file = frame(this.asVertex(), MovingImageFile.class);
+                file.setType("MovingImageFile");
+            } else if (materialType == MaterialType.SOUND) {
+                file = frame(this.asVertex(), SoundFile.class);
+                file.setType("SoundFile");
+            } else {
+                file = frame(this.asVertex(), File.class);
+                file.setType("File");
+            }
+            return file;
         }
 
         @Override
