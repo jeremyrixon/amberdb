@@ -9,6 +9,8 @@ import java.util.List;
 
 /**
  * @see amberdb.query.PropertyQueryAssemblerTest
+ *
+ * Assemble a SQL using work properties (name/value pair).
  */
 public class PropertyQueryAssembler {
     private static String SQL_TEMPLATE = "select v.id from %s vertex v where v.txn_end=0 %s and v.id=p1.id %s %s";
