@@ -58,14 +58,29 @@ public class PropertyQueryAssembler {
     /**
      * @return where clause for name/value pair
      * e.g. and p1.name='title' and p1.value=?
-     *      and p2.name='collection' and p2.value=? and
-     *      p3.name='recordSource' and p3.value=?
+     *      and p2.name='collection' and convert(p2.value using utf8)=? and
+     *      p3.name='recordSource' and convert(p3.value using utf8)=?
      */
     private String whereClauseForNameAndValuePair(){
         StringBuilder sb = new StringBuilder();
         for (int i=0; i< workProperties.size(); i++){
-            String name = workProperties.get(i).getName();
-            sb.append("and p").append(i+1).append(".name='").append(name).append("' and p").append(i+1).append(".value=? ");
+            WorkProperty workProperty = workProperties.get(i);
+            sb.append("and p").append(i+1).append(".name='").append(workProperty.getName()).append("' and ");
+            sb.append(whereClauseValueColumn(i+1, workProperty.isCaseSensitive()));
+            sb.append("=? ");
+        }
+        return sb.toString();
+    }
+
+    /**
+     * @return pi.value if case sensitive, convert(pi.value using utf8) if case insensitive
+     */
+    private String whereClauseValueColumn(int index, boolean isCaseSensitive){
+        StringBuilder sb = new StringBuilder();
+        if (isCaseSensitive) {
+            sb.append("p").append(index).append(".value");
+        }else{
+            sb.append("convert(p").append(index).append(".value using utf8)");
         }
         return sb.toString();
     }
