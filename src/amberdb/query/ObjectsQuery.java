@@ -79,22 +79,6 @@ public class ObjectsQuery extends AmberQueryBase {
                     "  AND (txn_start < @start_transaction)\n" + 
                     "ORDER BY id ASC\n" +
                     "LIMIT ?,?;", skip, take);
-            
-            //long totalResultSize = h.createQuery("select FOUND_ROWS();").map(LongMapper.FIRST).first();
-           
-            //long totalResultSize = (Long)h.createQuery("select FOUND_ROWS();").list().get(0).get("found_rows");
-            //System.out.println("TOTAL RESULT SIZE: " + totalResultSize);
-
-            /*
-            for (Map<String, Object> m : h.createQuery("select FOUND_ROWS();").list()) {
-                System.out.print("MAPPERS: ");
-                for (Entry<String, Object> e : m.entrySet()) {
-                    System.out.print(e.getKey() + " -> " + e.getValue());
-                }
-                System.out.println();
-                System.out.flush();
-            }
-            */
 
             Query<Map<String, Object>> q = h.createQuery(
                     "SELECT id,\n" + 
