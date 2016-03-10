@@ -3,11 +3,9 @@ package amberdb.query;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.Query;
-import org.skife.jdbi.v2.util.LongMapper;
 
 import com.google.common.base.Predicate;
 
@@ -31,15 +29,14 @@ public class ObjectsQuery extends AmberQueryBase {
         
         try (Handle h = graph.dbi().open()) {
             h.begin();
-            h.execute("DROP TEMPORARY TABLE IF EXISTS v0; CREATE TEMPORARY TABLE v0 (id BIGINT) ENGINE=memory;");
-            h.execute("SET @start_transaction = ?", txns.get(0) - 1);
-            h.execute("SET @end_transaction = ?", txns.get(txns.size() - 1) + 1);
-
-            System.out.println("start_txn: " + (txns.get(0) - 1) + ", end_txn: " + (txns.get(txns.size() - 1) + 1));
+            h.execute("DROP " + graph.getTempTableDrop() + " TABLE IF EXISTS v0; CREATE TEMPORARY TABLE v0 (id BIGINT) " + graph.getTempTableEngine() + ";");
+            h.execute("SET @start_transaction = ?", txns.get(0));
+            h.execute("SET @end_transaction = ?", txns.get(txns.size() - 1));
             
             h.execute(
-                    "REPLACE INTO v0 (id)\n" + 
-                    "SELECT SQL_CALC_FOUND_ROWS id\n" + 
+                    "INSERT INTO v0 (id)\n" + 
+                    "SELECT DISTINCT id FROM (" +
+                    "SELECT id\n" + 
                     "FROM vertex\n" + 
                     "WHERE (txn_start >= @start_transaction\n" + 
                     "       AND txn_start <= @end_transaction)\n" + 
@@ -77,42 +74,37 @@ public class ObjectsQuery extends AmberQueryBase {
                     "WHERE (txn_end >= @start_transaction\n" + 
                     "       AND txn_end <= @end_transaction)\n" + 
                     "  AND (txn_start < @start_transaction)\n" + 
-                    "ORDER BY id ASC\n" +
-                    "LIMIT ?,?;", skip, take);
+                    ") AS results ORDER BY id ASC LIMIT ?,?;"
+                    , skip, take);
 
             Query<Map<String, Object>> q = h.createQuery(
-                    "SELECT id,\n" + 
-                    "       (CASE\n" + 
-                    "            WHEN (txn_start < @start_transaction\n" + 
-                    "                  AND txn_end <= @end_transaction\n" + 
-                    "                  AND txn_end <> 0) THEN 'DELETED'\n" + 
-                    "            ELSE (CASE WHEN (v_count_before = 0) THEN 'NEW' ELSE 'MODIFIED' END)\n" + 
-                    "        END) AS transition\n" + 
-                    "FROM\n" + 
-                    "  ( SELECT a.id,\n" + 
-                    "\n" + 
-                    "     ( SELECT b.txn_start\n" + 
-                    "      FROM vertex b\n" + 
-                    "      WHERE a.id = b.id\n" + 
-                    "      ORDER BY b.txn_start DESC LIMIT 1 ) AS txn_start,\n" + 
-                    "\n" + 
-                    "     ( SELECT b.txn_end\n" + 
-                    "      FROM vertex b\n" + 
-                    "      WHERE a.id = b.id\n" + 
-                    "      ORDER BY b.txn_start DESC LIMIT 1 ) AS txn_end,\n" + 
-                    "\n" + 
-                    "     ( SELECT count(*)\n" + 
-                    "      FROM vertex b\n" + 
-                    "      WHERE a.id = b.id\n" + 
-                    "      ORDER BY b.txn_start DESC LIMIT 1 ) AS v_count,\n" + 
-                    "\n" + 
-                    "     ( SELECT count(*)\n" + 
-                    "      FROM vertex b\n" + 
-                    "      WHERE a.id = b.id\n" + 
-                    "        AND b.txn_start < @start_transaction\n" + 
-                    "      ORDER BY b.txn_start DESC LIMIT 1 ) AS v_count_before\n" + 
-                    "   FROM v0 a\n" + 
-                    "   ORDER BY id) AS vertices_with_transition;");
+                            "SELECT DISTINCT id,\n" + 
+                            "       (CASE WHEN (txn_start < @start_transaction AND txn_end <= @end_transaction AND txn_end <> 0) THEN 'DELETED' ELSE\n" + 
+                            "         (CASE WHEN (v_count_before = 0) THEN 'NEW' ELSE 'MODIFIED' END)\n" + 
+                            "        END) AS transition\n" + 
+                            "FROM\n" + 
+                            "(\n" + 
+                            "    SELECT a.id,\n" + 
+                            "    (\n" + 
+                            "      SELECT b.txn_start FROM vertex b\n" + 
+                            "      WHERE a.id = b.id\n" + 
+                            "      ORDER BY b.txn_start DESC\n" + 
+                            "      LIMIT 1\n" + 
+                            "    ) as txn_start,\n" + 
+                            "    (\n" + 
+                            "      SELECT b.txn_end FROM vertex b\n" + 
+                            "      WHERE a.id = b.id\n" + 
+                            "      ORDER BY b.txn_start DESC\n" + 
+                            "      LIMIT 1\n" + 
+                            "    ) as txn_end,\n" + 
+                            "    (\n" + 
+                            "      SELECT count(id) FROM vertex b\n" + 
+                            "      WHERE a.id = b.id AND b.txn_start < @start_transaction\n" + 
+                            "    ) as v_count_before\n" + 
+                            "    FROM v0 a\n" + 
+                            "    ORDER BY id\n" + 
+                            ") AS vertices_with_transition;"
+                            );
 
             VersionedGraph vGraph = new VersionedGraph(graph.dbi());
             
@@ -128,8 +120,7 @@ public class ObjectsQuery extends AmberQueryBase {
                 }
             }
             
-            boolean hasMore = (q.list().size() >= take); // && q.list().size < totalResultSize;
-            System.out.println("qlistsize: " + q.list().size() + ", take: " + take + ", hasMore: " + hasMore);
+            boolean hasMore = (q.list().size() >= take);
             return new ModifiedObjectsQueryResponse(modifiedObjects, hasMore, hasMore ? skip + take : -1);
         }
     }
