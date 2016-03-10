@@ -1271,6 +1271,9 @@ public interface Work extends Node {
     @JavaHandler
     boolean isVoyagerRecord();
 
+    @JavaHandler
+    boolean anyCopyExist(List<CopyRole> copyRoles);
+
 
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {
         static ObjectMapper mapper = new ObjectMapper();
@@ -1894,5 +1897,18 @@ public interface Work extends Node {
         public boolean isVoyagerRecord() {
             return StringUtils.isNotBlank(getBibId()) && StringUtils.equalsIgnoreCase(getRecordSource(), "voyager");
         }
+
+        @Override
+        public boolean anyCopyExist(List<CopyRole> copyRoles){
+            if (copyRoles != null){
+                for (CopyRole copyRole: copyRoles){
+                    if (getCopy(copyRole) != null){
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
     }
 }

@@ -508,7 +508,7 @@ public class WorkTest {
         constraints.add("testingd");
         work.setConstraint(constraints);
         constraints = work.getConstraint();
-        assertEquals(5,constraints.size());
+        assertEquals(5, constraints.size());
         assertTrue(constraints.contains("testingc"));
         constraints.add("octopus");
         work.setConstraint(constraints);
@@ -533,6 +533,16 @@ public class WorkTest {
         Iterator<Work> it = work.getChildren().iterator();
         assertEquals(child2, it.next());
         assertEquals(child1, it.next());
+    }
+
+    @Test
+    public void anyCopyExist(){
+        Work work = db.addWork();
+        Copy copy1 = work.addCopy();
+        copy1.setCopyRole(CopyRole.ACCESS_COPY.code());
+        assertTrue(work.anyCopyExist(Arrays.asList(CopyRole.MASTER_COPY, CopyRole.ACCESS_COPY)));
+        assertFalse(work.anyCopyExist(Arrays.asList(CopyRole.MASTER_COPY, CopyRole.ORIGINAL_COPY)));
+        assertFalse(work.anyCopyExist(null));
     }
     
     @After
