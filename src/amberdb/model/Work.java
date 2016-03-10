@@ -55,6 +55,7 @@ import amberdb.relation.IsCopyOf;
 import amberdb.relation.IsPartOf;
 import amberdb.relation.Represents;
 import amberdb.util.WorkUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Any logical work that is collected or created by the library such as a book,
@@ -1267,6 +1268,10 @@ public interface Work extends Node {
     @JavaHandler
     Integer getOrder();
 
+    @JavaHandler
+    boolean isVoyagerRecord();
+
+
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {
         static ObjectMapper mapper = new ObjectMapper();
 
@@ -1883,6 +1888,11 @@ public interface Work extends Node {
                 }
             });
             return order+1;
+        }
+
+        @Override
+        public boolean isVoyagerRecord() {
+            return StringUtils.isNotBlank(getBibId()) && StringUtils.equalsIgnoreCase(getRecordSource(), "voyager");
         }
     }
 }
