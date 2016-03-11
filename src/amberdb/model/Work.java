@@ -1223,6 +1223,12 @@ public interface Work extends Node {
     @JavaHandler
     boolean hasCopyRole(CopyRole role);
 
+    /**
+     * @return true if work has any of the copy roles in the list
+     */
+    @JavaHandler
+    boolean hasCopyRole(List<CopyRole> copyRoles);
+
     @JavaHandler
     Copy getOrCreateCopy(CopyRole role);
 
@@ -1271,8 +1277,7 @@ public interface Work extends Node {
     @JavaHandler
     boolean isVoyagerRecord();
 
-    @JavaHandler
-    boolean anyCopyExist(List<CopyRole> copyRoles);
+
 
 
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {
@@ -1793,6 +1798,18 @@ public interface Work extends Node {
         }
 
         @Override
+        public boolean hasCopyRole(List<CopyRole> copyRoles){
+            if (copyRoles != null){
+                for (CopyRole copyRole: copyRoles){
+                    if (hasCopyRole(copyRole)){
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        @Override
         public Copy getOrCreateCopy(CopyRole role) {
             Copy copy = getCopy(role);
             if (copy == null) {
@@ -1896,18 +1913,6 @@ public interface Work extends Node {
         @Override
         public boolean isVoyagerRecord() {
             return StringUtils.isNotBlank(getBibId()) && StringUtils.equalsIgnoreCase(getRecordSource(), "voyager");
-        }
-
-        @Override
-        public boolean anyCopyExist(List<CopyRole> copyRoles){
-            if (copyRoles != null){
-                for (CopyRole copyRole: copyRoles){
-                    if (getCopy(copyRole) != null){
-                        return true;
-                    }
-                }
-            }
-            return false;
         }
 
     }

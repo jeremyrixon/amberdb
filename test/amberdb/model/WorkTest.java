@@ -536,13 +536,12 @@ public class WorkTest {
     }
 
     @Test
-    public void anyCopyExist(){
+    public void hasCopyRoleList(){
         Work work = db.addWork();
         Copy copy1 = work.addCopy();
         copy1.setCopyRole(CopyRole.ACCESS_COPY.code());
-        assertTrue(work.anyCopyExist(Arrays.asList(CopyRole.MASTER_COPY, CopyRole.ACCESS_COPY)));
-        assertFalse(work.anyCopyExist(Arrays.asList(CopyRole.MASTER_COPY, CopyRole.ORIGINAL_COPY)));
-        assertFalse(work.anyCopyExist(null));
+        assertTrue(work.hasCopyRole(Arrays.asList(CopyRole.MASTER_COPY, CopyRole.ACCESS_COPY)));
+        assertFalse(work.hasCopyRole(Arrays.asList(CopyRole.MASTER_COPY, CopyRole.ORIGINAL_COPY)));
     }
     
     @After
