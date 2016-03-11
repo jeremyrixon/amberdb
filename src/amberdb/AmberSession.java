@@ -4,9 +4,13 @@ package amberdb;
 import amberdb.graph.*;
 import amberdb.graph.AmberMultipartQuery.QueryClause;
 import amberdb.model.*;
+import amberdb.query.ModifiedObjectsQueryResponse;
 import amberdb.sql.Lookups;
+import amberdb.version.VersionedVertex;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
@@ -566,7 +570,6 @@ public class AmberSession implements AutoCloseable {
         return blobStore;
     }
 
-
     /**
      * Get the ids of objects that have been modified since a given time. If an
      * edge has been modified, then both its connected objects (vertices) are
@@ -576,10 +579,18 @@ public class AmberSession implements AutoCloseable {
      *            time of first modifications to be included
      * @return a map of object ids and how they changed
      */
-    public Map<Long, String> getModifiedObjectIds(Date when) {
-        return getAmberHistory().getModifiedObjectIds(when);
+    public LinkedHashMap<Long, String> getModifiedObjectIds(Date from) {
+        return getAmberHistory().getModifiedObjectIds(from);
     }
 
+    public ModifiedObjectsQueryResponse getModifiedObjectIds(Date from, long skip, long take) {
+        return getAmberHistory().getModifiedObjectIds(from, skip, take);
+    }
+    
+    public ModifiedObjectsQueryResponse getModifiedObjectIds(Date from, Predicate<VersionedVertex> filterPredicate, long skip, long take) {
+        return getAmberHistory().getModifiedObjectIds(from, filterPredicate, skip, take);
+    }
+    
     public AmberTransaction getTransaction(long id) {
         return getAmberGraph().getTransaction(id);
     }
