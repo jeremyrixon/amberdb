@@ -4,6 +4,7 @@ package amberdb;
 import amberdb.graph.*;
 import amberdb.graph.AmberMultipartQuery.QueryClause;
 import amberdb.model.*;
+import amberdb.query.ModifiedObjectsQueryRequest;
 import amberdb.query.ModifiedObjectsQueryResponse;
 import amberdb.sql.Lookups;
 import amberdb.version.VersionedVertex;
@@ -583,14 +584,10 @@ public class AmberSession implements AutoCloseable {
         return getAmberHistory().getModifiedObjectIds(from);
     }
 
-    public ModifiedObjectsQueryResponse getModifiedObjectIds(Date from, long skip, long take) {
-        return getAmberHistory().getModifiedObjectIds(from, skip, take);
+    public ModifiedObjectsQueryResponse getModifiedObjectIds(ModifiedObjectsQueryRequest request) {
+        return getAmberHistory().getModifiedObjectIds(request);
     }
-    
-    public ModifiedObjectsQueryResponse getModifiedObjectIds(Date from, Predicate<VersionedVertex> filterPredicate, long skip, long take) {
-        return getAmberHistory().getModifiedObjectIds(from, filterPredicate, skip, take);
-    }
-    
+
     public AmberTransaction getTransaction(long id) {
         return getAmberGraph().getTransaction(id);
     }

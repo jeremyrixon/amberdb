@@ -12,8 +12,10 @@ import java.util.Set;
 import com.google.common.base.Predicate;
 import com.tinkerpop.blueprints.Direction;
 
+import amberdb.query.ModifiedObjectsQueryRequest;
 import amberdb.query.ModifiedObjectsQueryResponse;
 import amberdb.query.ObjectsQuery;
+import amberdb.query.WorkProperty;
 import amberdb.util.AmberModelTypes;
 import amberdb.version.TEdgeDiff;
 import amberdb.version.TTransition;
@@ -42,7 +44,6 @@ public class AmberHistory {
         vGraph.loadTransactionGraph(txn1, txn2, true);
         return vGraph;
     }
-
 
     /**
      * @return the set of versioned vertices present in the given versioned
@@ -73,27 +74,16 @@ public class AmberHistory {
             }
         }
         return changedEdges;
-    }    
+    }
+
+    protected ModifiedObjectsQueryResponse getModifiedObjectIds(List<Long> transactions, Predicate<VersionedVertex> filterPredicate, List<WorkProperty> propertyFilters, boolean onlyPropertiesWithinTransactionRange, int skip, int take) {
+        ObjectsQuery query = new ObjectsQuery(graph);
+        return query.getModifiedObjectIds(transactions, filterPredicate, propertyFilters, onlyPropertiesWithinTransactionRange, skip, take);
+    }
 
     protected ModifiedObjectsQueryResponse getModifiedObjectIds(List<Long> transactions) {
-        return getModifiedObjectIds(transactions, 0, Integer.MAX_VALUE);
+        return getModifiedObjectIds(transactions, null, null, false, 0, Integer.MAX_VALUE);
     }
-    
-    protected ModifiedObjectsQueryResponse getModifiedObjectIds(List<Long> transactions, long skip, long take) {
-        ObjectsQuery query = new ObjectsQuery(graph);
-        return query.getModifiedObjectIds(transactions, new Predicate<VersionedVertex>() {
-            @Override
-            public boolean apply(VersionedVertex versionedVertex) {
-                return true;
-            }
-        }, skip, take);
-    }
-
-    protected ModifiedObjectsQueryResponse getModifiedObjectIds(List<Long> transactions, Predicate<VersionedVertex> filterPredicate, long skip, long take) {
-        ObjectsQuery query = new ObjectsQuery(graph);
-        return query.getModifiedObjectIds(transactions, filterPredicate, skip, take);
-    }
-    
     
     protected Map<Long, String> getModifiedWorkIds(List<Long> transactions) {
         Map<Long, String> modifiedWorks = new HashMap<>();
@@ -131,25 +121,13 @@ public class AmberHistory {
     public Map<Long, String> getModifiedWorkIds(Date from, Date to) {
         return getModifiedWorkIds(getTxnsBetween(from, to));
     }
-
+    
     public LinkedHashMap<Long, String> getModifiedObjectIds(Date from) {
         return getModifiedObjectIds(getTxnsSince(from)).getModifiedObjects();
     }
 
-    public ModifiedObjectsQueryResponse getModifiedObjectIds(Date from, long skip, long take) {
-        return getModifiedObjectIds(getTxnsSince(from), skip, take);
-    }
-    
-    public ModifiedObjectsQueryResponse getModifiedOBjectIds(Date from, Date to) {
-        return getModifiedObjectIds(getTxnsBetween(from, to));
-    }
-
-    public ModifiedObjectsQueryResponse getModifiedObjectIds(Date from, Predicate<VersionedVertex> filterPredicate, long skip, long take) {
-        return getModifiedObjectIds(getTxnsSince(from), filterPredicate, skip, take);
-    }
-
-    public ModifiedObjectsQueryResponse getModifiedOBjectIds(Date from, Date to, Predicate<VersionedVertex> filterPredicate, long skip, long take) {
-        return getModifiedObjectIds(getTxnsBetween(from, to), filterPredicate, skip, take);
+    public ModifiedObjectsQueryResponse getModifiedObjectIds(ModifiedObjectsQueryRequest request) {
+        return getModifiedObjectIds(getTxnsBetween(request.getFrom(), request.getTo()), request.getFilterPredicate(), request.getPropertyFilters(), request.isOnlyPropertiesWithinTransactionRange(), request.getSkip(), request.getTake());
     }
 
     private Set<VersionedVertex> getWorksForObject(Long id, Set<VersionedVertex> works) {
