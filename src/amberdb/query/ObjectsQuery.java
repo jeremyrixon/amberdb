@@ -79,7 +79,7 @@ public class ObjectsQuery extends AmberQueryBase {
 
             Query<Map<String, Object>> q = h.createQuery(
                             "SELECT DISTINCT id,\n" + 
-                            "       (CASE WHEN (txn_start < @start_transaction AND txn_end <= @end_transaction AND txn_end <> 0) THEN 'DELETED' ELSE\n" + 
+                            "       (CASE WHEN (txn_end <= @end_transaction AND txn_end <> 0) THEN 'DELETED' ELSE\n" + 
                             "         (CASE WHEN (v_count_before = 0) THEN 'NEW' ELSE 'MODIFIED' END)\n" + 
                             "        END) AS transition\n" + 
                             "FROM\n" + 
