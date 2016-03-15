@@ -41,7 +41,6 @@ public class ObjectsQuery extends AmberQueryBase {
             h.execute("SET @end_transaction = ?", txns.get(txns.size() - 1));
 
             Update insert = createInsertStatement(h, propertyFilters, onlyPropertiesWithinTransactionRange, skip, take);
-            long now = new Date().getTime();
             insert.execute();
 
             Query<Map<String, Object>> q = h.createQuery(
@@ -72,8 +71,7 @@ public class ObjectsQuery extends AmberQueryBase {
                             "    ORDER BY id\n" + 
                             ") AS vertices_with_transition;"
                             );
-            
-            now = new Date().getTime();
+
             for (Map<String, Object> row : q.list()) {
                 Long id = (Long)row.get("id");
                 String transition = (String)row.get("transition");
