@@ -1,11 +1,14 @@
 package amberdb.query;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.Query;
+import org.skife.jdbi.v2.Update;
 
 import com.google.common.base.Predicate;
 
@@ -16,11 +19,15 @@ import amberdb.version.VersionedVertex;
 
 public class ObjectsQuery extends AmberQueryBase {
     
+    private VersionedGraph vGraph;
+    
     public ObjectsQuery(AmberGraph graph) {
         super(graph);
+        this.vGraph = new VersionedGraph(graph.dbi());
+        this.vGraph.clear();
     }
-    
-    public ModifiedObjectsQueryResponse getModifiedObjectIds(List<Long> txns, Predicate<VersionedVertex> filterPredicate, long skip, long take) {
+
+    public ModifiedObjectsQueryResponse getModifiedObjectIds(List<Long> txns, Predicate<VersionedVertex> filterPredicate, List<WorkProperty> propertyFilters, boolean onlyPropertiesWithinTransactionRange, int skip, int take) {
         LinkedHashMap<Long, String> modifiedObjects = new LinkedHashMap<Long, String>();
         
         if (txns == null || txns.size() == 0) {
@@ -32,50 +39,9 @@ public class ObjectsQuery extends AmberQueryBase {
             h.execute("DROP " + graph.getTempTableDrop() + " TABLE IF EXISTS v0; CREATE TEMPORARY TABLE v0 (id BIGINT) " + graph.getTempTableEngine() + ";");
             h.execute("SET @start_transaction = ?", txns.get(0));
             h.execute("SET @end_transaction = ?", txns.get(txns.size() - 1));
-            
-            h.execute(
-                    "INSERT INTO v0 (id)\n" + 
-                    "SELECT DISTINCT id FROM (" +
-                    "SELECT id\n" + 
-                    "FROM vertex\n" + 
-                    "WHERE (txn_start >= @start_transaction\n" + 
-                    "       AND txn_start <= @end_transaction)\n" + 
-                    "  AND (txn_end > @end_transaction\n" + 
-                    "       OR txn_end = 0)\n" + 
-                    "UNION\n" + 
-                    "SELECT id\n" + 
-                    "FROM vertex\n" + 
-                    "WHERE (txn_end >= @start_transaction\n" + 
-                    "       AND txn_end <= @end_transaction)\n" + 
-                    "  AND (txn_start < @start_transaction)\n" + 
-                    "UNION\n" + 
-                    "SELECT v_in\n" + 
-                    "FROM edge\n" + 
-                    "WHERE (txn_start >= @start_transaction\n" + 
-                    "       AND txn_start <= @end_transaction)\n" + 
-                    "  AND (txn_end > @end_transaction\n" + 
-                    "       OR txn_end = 0)\n" + 
-                    "UNION\n" + 
-                    "SELECT v_in\n" + 
-                    "FROM edge\n" + 
-                    "WHERE (txn_end >= @start_transaction\n" + 
-                    "       AND txn_end <= @end_transaction)\n" + 
-                    "  AND (txn_start < @start_transaction)\n" + 
-                    "UNION\n" + 
-                    "SELECT v_out\n" + 
-                    "FROM edge\n" + 
-                    "WHERE (txn_start >= @start_transaction\n" + 
-                    "       AND txn_start <= @end_transaction)\n" + 
-                    "  AND (txn_end > @end_transaction\n" + 
-                    "       OR txn_end = 0)\n" + 
-                    "UNION\n" + 
-                    "SELECT v_out\n" + 
-                    "FROM edge\n" + 
-                    "WHERE (txn_end >= @start_transaction\n" + 
-                    "       AND txn_end <= @end_transaction)\n" + 
-                    "  AND (txn_start < @start_transaction)\n" + 
-                    ") AS results ORDER BY id ASC LIMIT ?,?;"
-                    , skip, take);
+
+            Update insert = createInsertStatement(h, propertyFilters, onlyPropertiesWithinTransactionRange, skip, take);
+            insert.execute();
 
             Query<Map<String, Object>> q = h.createQuery(
                             "SELECT DISTINCT id,\n" + 
@@ -106,22 +72,101 @@ public class ObjectsQuery extends AmberQueryBase {
                             ") AS vertices_with_transition;"
                             );
 
-            VersionedGraph vGraph = new VersionedGraph(graph.dbi());
-            
             for (Map<String, Object> row : q.list()) {
                 Long id = (Long)row.get("id");
                 String transition = (String)row.get("transition");
-
-                vGraph.clear();
-                VersionedVertex vv = vGraph.getVertex(id);
                 
-                if (filterPredicate.apply(vv)) {
+                if (filterPredicate != null) {
+                    vGraph.clear();
+                    VersionedVertex vv = vGraph.getVertex(id);
+                    
+                    if (filterPredicate.apply(vv)) {
+                        modifiedObjects.put(id, transition);
+                    }
+                } else {
                     modifiedObjects.put(id, transition);
                 }
             }
-            
+
             boolean hasMore = (q.list().size() >= take);
             return new ModifiedObjectsQueryResponse(modifiedObjects, hasMore, hasMore ? skip + take : -1);
         }
+    }
+
+    private Update createInsertStatement(Handle h, List<WorkProperty> propertyFilters, boolean onlyPropertiesWithinTransactionRange, long skip, long take) {
+        if (propertyFilters == null) {
+            propertyFilters = new ArrayList<WorkProperty>();
+        }
+
+        String insert =
+                "INSERT INTO v0 (id)\n" + 
+                "SELECT DISTINCT v.id\n" + 
+                "FROM\n" + 
+                "  ( SELECT id\n" + 
+                "   FROM vertex\n" + 
+                "   WHERE (txn_start >= @start_transaction\n" + 
+                "          AND txn_start <= @end_transaction)\n" + 
+                "     AND (txn_end > @end_transaction\n" + 
+                "          OR txn_end = 0)\n" + 
+                "   UNION SELECT id\n" + 
+                "   FROM vertex\n" + 
+                "   WHERE (txn_end >= @start_transaction\n" + 
+                "          AND txn_end <= @end_transaction)\n" + 
+                "     AND (txn_start < @start_transaction)\n" + 
+                "   UNION SELECT v_in AS id\n" + 
+                "   FROM edge\n" + 
+                "   WHERE (txn_start >= @start_transaction\n" + 
+                "          AND txn_start <= @end_transaction)\n" + 
+                "     AND (txn_end > @end_transaction\n" + 
+                "          OR txn_end = 0)\n" + 
+                "   UNION SELECT v_in AS id\n" + 
+                "   FROM edge\n" + 
+                "   WHERE (txn_end >= @start_transaction\n" + 
+                "          AND txn_end <= @end_transaction)\n" + 
+                "     AND (txn_start < @start_transaction)\n" + 
+                "   UNION SELECT v_out AS id\n" + 
+                "   FROM edge\n" + 
+                "   WHERE (txn_start >= @start_transaction\n" + 
+                "          AND txn_start <= @end_transaction)\n" + 
+                "     AND (txn_end > @end_transaction\n" + 
+                "          OR txn_end = 0)\n" + 
+                "   UNION SELECT v_out AS id\n" + 
+                "   FROM edge\n" + 
+                "   WHERE (txn_end >= @start_transaction\n" + 
+                "          AND txn_end <= @end_transaction)\n" + 
+                "     AND (txn_start < @start_transaction)) AS v\n";
+
+        if (propertyFilters.size() > 0) {
+            insert +=
+                "    , property p\n" + 
+                "    WHERE v.id = p.id\n";
+                        if (onlyPropertiesWithinTransactionRange) {
+                            insert += "      AND p.txn_end >= @start_transaction AND (p.txn_end <= @end_transaction OR p.txn_end = 0)\n";
+                        }
+            insert +=
+                "      AND ( \n";
+
+            for (int i = 0; i < propertyFilters.size(); i++) {
+                insert += "        (p.name = :name_" + i + " AND CAST(p.value AS char) = :value_" + i + ")\n";
+                if (i < propertyFilters.size() - 1) {
+                    insert += "        OR\n";
+                }
+            }
+            insert += "    )\n";
+        }
+
+        insert += "ORDER BY v.id ASC LIMIT :skip,:take;";
+
+        Update u = h.createStatement(insert);
+        
+        for (int i = 0; i < propertyFilters.size(); i++) {
+            u.bind("name_" + i, propertyFilters.get(i).getName());
+            u.bind("value_" + i, propertyFilters.get(i).getValue());
+        }
+
+        u.bind("skip", skip);
+        u.bind("take", take);
+
+        return u;
     }
 }
