@@ -27,6 +27,10 @@ public class ObjectsQuery extends AmberQueryBase {
     public ModifiedObjectsQueryResponse getModifiedObjectIds(ModifiedObjectsBetweenTransactionsQueryRequest request) {
         LinkedHashMap<Long, String> modifiedObjects = new LinkedHashMap<Long, String>();
         
+        if (!request.hasTransactions()) {
+            return new ModifiedObjectsQueryResponse();
+        }
+        
         try (Handle h = graph.dbi().open()) {
             h.begin();
             h.execute("DROP " + graph.getTempTableDrop() + " TABLE IF EXISTS v0; CREATE TEMPORARY TABLE v0 (id BIGINT) " + graph.getTempTableEngine() + ";");
