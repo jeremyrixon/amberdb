@@ -478,6 +478,15 @@ public interface Work extends Node {
     @Property("preservicaId")
     void setPreservicaId(String id);
     
+    /**
+     * If true, access to the work is allowed within the NLA reading rooms through a restricted method.
+     */
+    @Property("allowOnsiteAccess")
+    Boolean getAllowOnsiteAccess();
+
+    @Property("allowOnsiteAccess")
+    void setAllowOnsiteAccess(Boolean allow);
+    
     @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
     GeoCoding addGeoCoding();
 
