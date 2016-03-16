@@ -580,7 +580,7 @@ public class AmberSession implements AutoCloseable {
      *            time of first modifications to be included
      * @return a map of object ids and how they changed
      */
-    public LinkedHashMap<Long, String> getModifiedObjectIds(Date from) {
+    public Map<Long, String> getModifiedObjectIds(Date from) {
         return getAmberHistory().getModifiedObjectIds(from);
     }
 
