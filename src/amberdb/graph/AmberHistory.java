@@ -118,8 +118,22 @@ public class AmberHistory {
         return getModifiedWorkIds(getTxnsBetween(from, to));
     }
     
-    public LinkedHashMap<Long, String> getModifiedObjectIds(Date from) {
+    public Map<Long, String> getModifiedObjectIds(Date from) {
         return getModifiedObjectIds(getTxnsSince(from)).getModifiedObjects();
+    }
+
+    public Map<Long, String> getModifiedOBjectIds(Date from, Date to) {
+        return getModifiedObjectIds(getTxnsBetween(from, to)).getModifiedObjects();
+    }
+
+    public Map<Long, String> getModifiedObjectIds(Date from, Predicate<VersionedVertex> filterPredicate) {
+        ObjectsQuery query = new ObjectsQuery(graph);
+        return query.getModifiedObjectIds(new ModifiedObjectsBetweenTransactionsQueryRequest(getTxnsSince(from), filterPredicate, null, false, 0, Integer.MAX_VALUE)).getModifiedObjects();
+    }
+
+    public Map<Long, String> getModifiedOBjectIds(Date from, Date to, Predicate<VersionedVertex> filterPredicate) {
+        ObjectsQuery query = new ObjectsQuery(graph);
+        return query.getModifiedObjectIds(new ModifiedObjectsBetweenTransactionsQueryRequest(getTxnsBetween(from, to), filterPredicate, null, false, 0, Integer.MAX_VALUE)).getModifiedObjects();
     }
 
     public ModifiedObjectsQueryResponse getModifiedObjectIds(ModifiedObjectsQueryRequest request) {
