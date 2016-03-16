@@ -12,10 +12,10 @@ import java.util.Set;
 import com.google.common.base.Predicate;
 import com.tinkerpop.blueprints.Direction;
 
+import amberdb.query.ModifiedObjectsBetweenTransactionsQueryRequest;
 import amberdb.query.ModifiedObjectsQueryRequest;
 import amberdb.query.ModifiedObjectsQueryResponse;
 import amberdb.query.ObjectsQuery;
-import amberdb.query.WorkProperty;
 import amberdb.util.AmberModelTypes;
 import amberdb.version.TEdgeDiff;
 import amberdb.version.TTransition;
@@ -76,13 +76,8 @@ public class AmberHistory {
         return changedEdges;
     }
 
-    protected ModifiedObjectsQueryResponse getModifiedObjectIds(List<Long> transactions, Predicate<VersionedVertex> filterPredicate, List<WorkProperty> propertyFilters, boolean onlyPropertiesWithinTransactionRange, int skip, int take) {
-        ObjectsQuery query = new ObjectsQuery(graph);
-        return query.getModifiedObjectIds(transactions, filterPredicate, propertyFilters, onlyPropertiesWithinTransactionRange, skip, take);
-    }
-
     protected ModifiedObjectsQueryResponse getModifiedObjectIds(List<Long> transactions) {
-        return getModifiedObjectIds(transactions, null, null, false, 0, Integer.MAX_VALUE);
+        return getModifiedObjectIds(new ModifiedObjectsBetweenTransactionsQueryRequest(transactions);
     }
     
     protected Map<Long, String> getModifiedWorkIds(List<Long> transactions) {
@@ -127,7 +122,14 @@ public class AmberHistory {
     }
 
     public ModifiedObjectsQueryResponse getModifiedObjectIds(ModifiedObjectsQueryRequest request) {
-        return getModifiedObjectIds(getTxnsBetween(request.getFrom(), request.getTo()), request.getFilterPredicate(), request.getPropertyFilters(), request.isOnlyPropertiesWithinTransactionRange(), request.getSkip(), request.getTake());
+        ObjectsQuery query = new ObjectsQuery(graph);
+        return query.getModifiedObjectIds(new ModifiedObjectsBetweenTransactionsQueryRequest(request, new ModifiedObjectsBetweenTransactionsQueryRequest.TransactionsBetweenFinder() {
+            
+            @Override
+            public List<Long> getTransactionsBetween(Date startTime, Date endTime) {
+                return getTxnsBetween(startTime, endTime);
+            }
+        }));
     }
 
     private Set<VersionedVertex> getWorksForObject(Long id, Set<VersionedVertex> works) {

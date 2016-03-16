@@ -1,7 +1,6 @@
 package amberdb.query;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,8 +8,6 @@ import java.util.Map;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.Query;
 import org.skife.jdbi.v2.Update;
-
-import com.google.common.base.Predicate;
 
 import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberQueryBase;
@@ -27,20 +24,16 @@ public class ObjectsQuery extends AmberQueryBase {
         this.vGraph.clear();
     }
 
-    public ModifiedObjectsQueryResponse getModifiedObjectIds(List<Long> txns, Predicate<VersionedVertex> filterPredicate, List<WorkProperty> propertyFilters, boolean onlyPropertiesWithinTransactionRange, int skip, int take) {
+    public ModifiedObjectsQueryResponse getModifiedObjectIds(ModifiedObjectsBetweenTransactionsQueryRequest request) {
         LinkedHashMap<Long, String> modifiedObjects = new LinkedHashMap<Long, String>();
-        
-        if (txns == null || txns.size() == 0) {
-            return new ModifiedObjectsQueryResponse();
-        }
         
         try (Handle h = graph.dbi().open()) {
             h.begin();
             h.execute("DROP " + graph.getTempTableDrop() + " TABLE IF EXISTS v0; CREATE TEMPORARY TABLE v0 (id BIGINT) " + graph.getTempTableEngine() + ";");
-            h.execute("SET @start_transaction = ?", txns.get(0));
-            h.execute("SET @end_transaction = ?", txns.get(txns.size() - 1));
+            h.execute("SET @start_transaction = ?", request.getFromTxn());
+            h.execute("SET @end_transaction = ?", request.getToTxn());
 
-            Update insert = createInsertStatement(h, propertyFilters, onlyPropertiesWithinTransactionRange, skip, take);
+            Update insert = createInsertStatement(h, request.getPropertyFilters(), request.isOnlyPropertiesWithinTransactionRange(), request.getSkip(), request.getTake());
             insert.execute();
 
             Query<Map<String, Object>> q = h.createQuery(
@@ -76,11 +69,11 @@ public class ObjectsQuery extends AmberQueryBase {
                 Long id = (Long)row.get("id");
                 String transition = (String)row.get("transition");
                 
-                if (filterPredicate != null) {
+                if (request.hasFilterPredicate()) {
                     vGraph.clear();
                     VersionedVertex vv = vGraph.getVertex(id);
                     
-                    if (filterPredicate.apply(vv)) {
+                    if (request.getFilterPredicate().apply(vv)) {
                         modifiedObjects.put(id, transition);
                     }
                 } else {
@@ -88,8 +81,8 @@ public class ObjectsQuery extends AmberQueryBase {
                 }
             }
 
-            boolean hasMore = (q.list().size() >= take);
-            return new ModifiedObjectsQueryResponse(modifiedObjects, hasMore, hasMore ? skip + take : -1);
+            boolean hasMore = (q.list().size() >= request.getTake());
+            return new ModifiedObjectsQueryResponse(modifiedObjects, hasMore, hasMore ? request.getSkip() + request.getTake() : -1);
         }
     }
 

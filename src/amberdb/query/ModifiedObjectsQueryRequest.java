@@ -61,15 +61,19 @@ public class ModifiedObjectsQueryRequest {
         this.take = take;
     }
     
+    public ModifiedObjectsQueryRequest(ModifiedObjectsQueryRequest request) {
+        this(request.getFrom(), request.getTo(), request.getFilterPredicate(), request.getPropertyFilters(), request.isOnlyPropertiesWithinTransactionRange(), request.getSkip(), request.getTake());
+    }
+    
     public boolean hasFilterPredicate() {
         return filterPredicate != null;
     }
 
-    public Date getFrom() {
+    protected Date getFrom() {
         return from;
     }
 
-    public Date getTo() {
+    protected Date getTo() {
         return to;
     }
 
