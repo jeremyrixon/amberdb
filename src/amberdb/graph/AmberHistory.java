@@ -77,7 +77,7 @@ public class AmberHistory {
     }
 
     protected ModifiedObjectsQueryResponse getModifiedObjectIds(List<Long> transactions) {
-        return getModifiedObjectIds(new ModifiedObjectsBetweenTransactionsQueryRequest(transactions);
+        return getModifiedObjectIds(new ModifiedObjectsBetweenTransactionsQueryRequest(transactions));
     }
     
     protected Map<Long, String> getModifiedWorkIds(List<Long> transactions) {
