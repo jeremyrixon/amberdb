@@ -1093,6 +1093,14 @@ public interface Work extends Node {
     @JavaHandler
     Copy getCopy(CopyRole role, int index);
 
+    /**
+     * Get the first not null copy from the specified list of Copy roles
+     * @param role
+     * @return
+     */
+    @JavaHandler
+    Copy getFirstExistingCopy(CopyRole... roles);
+
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     Section addSection();
 
@@ -1826,6 +1834,19 @@ public interface Work extends Node {
                 copy.setCopyRole(role.code());
             }
             return copy;
+        }
+
+        @Override
+        public Copy getFirstExistingCopy(CopyRole... roles){
+            if (roles != null){
+                for (CopyRole copyRole : roles){
+                    Copy copy = getCopy(copyRole);
+                    if (copy != null){
+                        return copy;
+                    }
+                }
+            }
+            return null;
         }
 
         @Override
