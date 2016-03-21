@@ -23,6 +23,8 @@ import amberdb.enums.CopyRole;
 import amberdb.enums.CopyrightPolicy;
 import amberdb.enums.SubType;
 
+import static org.hamcrest.CoreMatchers.*;
+
 public class WorkTest {
 
     private Work workCollection;
@@ -542,6 +544,40 @@ public class WorkTest {
         copy1.setCopyRole(CopyRole.ACCESS_COPY.code());
         assertTrue(work.hasCopyRole(Arrays.asList(CopyRole.MASTER_COPY, CopyRole.ACCESS_COPY)));
         assertFalse(work.hasCopyRole(Arrays.asList(CopyRole.MASTER_COPY, CopyRole.ORIGINAL_COPY)));
+    }
+
+    @Test
+    public void getFirstExistingCopy(){
+        Work work = db.addWork();
+        Copy masterCopy = work.addCopy();
+        masterCopy.setCopyRole(CopyRole.MASTER_COPY.code());
+        Copy copy = work.getFirstExistingCopy(CopyRole.ACCESS_COPY, CopyRole.MASTER_COPY);
+        assertThat(copy.getCopyRole(), is(CopyRole.MASTER_COPY.code()));
+    }
+
+    @Test
+    public void getFirstExistingCopyWorkHasNoCopy(){
+        Work work = db.addWork();
+        Copy copy = work.getFirstExistingCopy(CopyRole.ACCESS_COPY, CopyRole.MASTER_COPY);
+        assertThat (copy, is(nullValue()));
+    }
+
+    @Test
+    public void getFirstExistingNoCopy(){
+        Work work = db.addWork();
+        Copy masterCopy = work.addCopy();
+        masterCopy.setCopyRole(CopyRole.MASTER_COPY.code());
+        Copy copy = work.getFirstExistingCopy(null);
+        assertThat (copy, is(nullValue()));
+    }
+
+    @Test
+    public void getFirstExistingCopyNoMatchingCopy(){
+        Work work = db.addWork();
+        Copy masterCopy = work.addCopy();
+        masterCopy.setCopyRole(CopyRole.MASTER_COPY.code());
+        Copy copy = work.getFirstExistingCopy(CopyRole.ACCESS_COPY, CopyRole.ORIGINAL_COPY);
+        assertThat (copy, is(nullValue()));
     }
     
     @After
