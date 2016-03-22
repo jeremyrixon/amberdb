@@ -1,8 +1,8 @@
 AmberDB
 =======
 
-###Latest AmberDb snapshot version : 1.12.2-SNAPSHOT
-###Latest AmberDb release version  : 1.12.0-RELEASE
+###Latest AmberDb snapshot version : 1.12.7-SNAPSHOT
+###Latest AmberDb release version  : 1.13.0-RELEASE
 
 [<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Ant_in_amber.jpg/320px-Ant_in_amber.jpg" align="right">](http://commons.wikimedia.org/wiki/File:Ant_in_amber.jpg)
 

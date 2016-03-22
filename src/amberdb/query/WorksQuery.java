@@ -176,4 +176,26 @@ public class WorksQuery {
         }
         return new ArrayList<>();
     }
+
+    /**
+     * Find the a list of work ids given the specified work properties (name/value pair)
+     *
+     * Only string(STR) type is catered for now.
+     *
+     * Please be aware of the performance. You shouldn't use it to return a large result set.
+     * For example, you shouldn't use it to return collection = 'nla.pic' and recordSource = 'voyager'
+     *
+     * You should specify at least one search criteria that limits the result to only a few records
+     * For example, return collection = 'nla.pic' and recordSource = 'voyager' and title = 'abcde'
+     * @return
+     */
+    public static List<Long> getWorkIdsByProperties(AmberSession sess, List<WorkProperty> workProperties){
+        if (CollectionUtils.isNotEmpty(workProperties)){
+            try (Handle h = sess.getAmberGraph().dbi().open()) {
+                PropertyQueryAssembler assembler = new PropertyQueryAssembler(workProperties);
+                return assembler.query(h).list();
+            }
+        }
+        return new ArrayList<>();
+    }
 }
