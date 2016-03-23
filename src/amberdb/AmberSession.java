@@ -584,6 +584,10 @@ public class AmberSession implements AutoCloseable {
         return getAmberHistory().getModifiedObjectIds(from);
     }
 
+    public ModifiedObjectsQueryResponse getArticlesForIndexing(ModifiedObjectsQueryRequest request) {
+        return getAmberHistory().getArticlesForIndexing(request);
+    }
+    
     public ModifiedObjectsQueryResponse getModifiedObjectIds(ModifiedObjectsQueryRequest request) {
         return getAmberHistory().getModifiedObjectIds(request);
     }

@@ -24,6 +24,141 @@ public class ObjectsQuery extends AmberQueryBase {
         this.vGraph.clear();
     }
 
+    public ModifiedObjectsQueryResponse getArticlesForIndexing(ModifiedObjectsBetweenTransactionsQueryRequest request) {
+        LinkedHashMap<Long, String> modifiedObjects = new LinkedHashMap<Long, String>();
+        LinkedHashMap<Long, String> reasons = new LinkedHashMap<Long, String>();
+
+        try (Handle h = graph.dbi().open()) {
+            h.begin();
+            h.execute("SET @start_transaction = ?", request.getFromTxn());
+            h.execute("SET @end_transaction = ?", request.getToTxn());
+
+            Query<Map<String, Object>> q = h.createQuery(
+                    "\n" + 
+                    "  (SELECT DISTINCT p.id AS id,\n" + 
+                    "          'DELETED' AS transition,\n" + 
+                    "          'PARENT_JOURNAL_RESTRICTED' AS reason\n" + 
+                    "   FROM property p,\n" + 
+                    "        edge e\n" + 
+                    "   WHERE e.label = \"isPartOf\"\n" + 
+                    "     AND e.v_out = p.id\n" + 
+                    "     AND (e.txn_start <= p.txn_end\n" + 
+                    "          OR p.txn_end = 0)\n" + 
+                    "     AND (e.txn_end > p.txn_end\n" + 
+                    "          OR e.txn_end = 0)\n" + 
+                    "     AND p.name = 'subType'\n" + 
+                    "     AND CAST(p.value AS char) = 'article'\n" + 
+                    "     AND\n" + 
+                    "       (SELECT CAST(value AS char) AS value\n" + 
+                    "        FROM property pp\n" + 
+                    "        WHERE pp.id = e.v_in\n" + 
+                    "          AND pp.name = 'form'\n" + 
+                    "          AND (pp.txn_start <= e.txn_end\n" + 
+                    "               OR e.txn_end = 0)\n" + 
+                    "        ORDER BY pp.txn_start DESC LIMIT 1) = 'Journal'\n" + 
+                    "     AND\n" + 
+                    "       (SELECT CAST(value AS char) AS value\n" + 
+                    "        FROM property pp\n" + 
+                    "        WHERE pp.id = e.v_in\n" + 
+                    "          AND pp.name = 'accessConditions'\n" + 
+                    "          AND (pp.txn_start <= e.txn_end\n" + 
+                    "               OR e.txn_end = 0)\n" + 
+                    "        ORDER BY pp.txn_start DESC LIMIT 1) = 'Restricted'\n" + 
+                    "   ORDER BY p.id,\n" + 
+                    "            p.txn_start ASC)\n" + 
+                    "UNION\n" + 
+                    "  (SELECT DISTINCT e.v_out AS id,\n" + 
+                    "                   'DELETED' AS transition,\n" + 
+                    "                   'RESTRICTED_PAGE' AS reason\n" + 
+                    "   FROM property p,\n" + 
+                    "        edge e\n" + 
+                    "   WHERE e.label = \"existsOn\"\n" + 
+                    "     AND e.v_in = p.id\n" + 
+                    "     AND (e.txn_start <= p.txn_end\n" + 
+                    "          OR p.txn_end = 0)\n" + 
+                    "     AND (e.txn_end > p.txn_end\n" + 
+                    "          OR e.txn_end = 0)\n" + 
+                    "     AND p.name = 'type'\n" + 
+                    "     AND CAST(p.value AS char) = 'Page'\n" + 
+                    "     AND\n" + 
+                    "       (SELECT CAST(value AS char) AS value\n" + 
+                    "        FROM property pp\n" + 
+                    "        WHERE pp.id = p.id\n" + 
+                    "          AND pp.name = 'accessConditions'\n" + 
+                    "          AND (pp.txn_start <= p.txn_end\n" + 
+                    "               OR p.txn_end = 0)\n" + 
+                    "        ORDER BY pp.txn_start DESC LIMIT 1) = 'Restricted'\n" + 
+                    "     AND\n" + 
+                    "       (SELECT CAST(value AS char) AS value\n" + 
+                    "        FROM property pp\n" + 
+                    "        WHERE pp.id = e.v_out\n" + 
+                    "          AND pp.name = 'subType'\n" + 
+                    "          AND (pp.txn_start <= e.txn_end\n" + 
+                    "               OR e.txn_end = 0)\n" + 
+                    "        ORDER BY pp.txn_start DESC LIMIT 1) = 'article'\n" + 
+                    "   ORDER BY p.id,\n" + 
+                    "            p.txn_start ASC)\n" + 
+                    "UNION\n" + 
+                    "  (SELECT DISTINCT id,\n" + 
+                    "          (CASE WHEN (txn_start < @start_transaction\n" + 
+                    "                      AND txn_end <= @end_transaction\n" + 
+                    "                      AND txn_end <> 0) THEN 'DELETED' ELSE (CASE WHEN (v_count_before = 0) THEN 'NEW' ELSE 'MODIFIED' END) END) AS transition,\n" + 
+                    "          'NEW_MODIFIED_DELETED' AS reason\n" + 
+                    "   FROM (\n" + 
+                    "           (SELECT p.id,\n" + 
+                    "                   p.txn_start,\n" + 
+                    "                   p.txn_end,\n" + 
+                    "                   p.name,\n" + 
+                    "                   CAST(p.value AS char) AS value,\n" + 
+                    "\n" + 
+                    "              (SELECT count(id)\n" + 
+                    "               FROM vertex b\n" + 
+                    "               WHERE p.id = b.id\n" + 
+                    "                 AND b.txn_start < @start_transaction) AS v_count_before\n" + 
+                    "            FROM property p\n" + 
+                    "            WHERE p.name = 'subType'\n" + 
+                    "              AND CAST(p.value AS char) = 'article'\n" + 
+                    "              AND ((p.txn_end >= @start_transaction\n" + 
+                    "                    AND p.txn_end <= @end_transaction)\n" + 
+                    "                   AND (p.txn_start < @start_transaction)))" + 
+                    "         UNION ALL\n" + 
+                    "           (SELECT p.id,\n" + 
+                    "                   p.txn_start,\n" + 
+                    "                   p.txn_end,\n" + 
+                    "                   p.name,\n" + 
+                    "                   CAST(p.value AS char) AS value,\n" + 
+                    "\n" + 
+                    "              (SELECT count(id)\n" + 
+                    "               FROM vertex b\n" + 
+                    "               WHERE p.id = b.id\n" + 
+                    "                 AND b.txn_start < @start_transaction) AS v_count_before\n" + 
+                    "            FROM property p\n" + 
+                    "            WHERE p.name = 'subType'\n" + 
+                    "              AND CAST(p.value AS char) = 'article'\n" + 
+                    "              AND ((p.txn_start >= @start_transaction\n" + 
+                    "                    AND p.txn_start <= @end_transaction)\n" + 
+                    "                   AND (p.txn_end > @end_transaction\n" + 
+                    "                        OR p.txn_end = 0)))\n" + 
+                    "   ) AS articles\n" + 
+                    "   ORDER BY id ASC) ORDER BY id ASC LIMIT :skip, :take");
+
+            q.bind("skip", request.getSkip());
+            q.bind("take", request.getTake());
+            
+            for (Map<String, Object> row : q.list()) {
+                Long id = (Long)row.get("id");
+                String transition = (String)row.get("transition");
+                String reason = (String)row.get("reason");
+
+                modifiedObjects.put(id, transition);
+                reasons.put(id, reason);
+            }
+
+            boolean hasMore = (q.list().size() >= request.getTake());
+            return new ModifiedObjectsQueryResponse(modifiedObjects, reasons, hasMore, hasMore ? request.getSkip() + request.getTake() : -1);
+        }
+    }
+    
     public ModifiedObjectsQueryResponse getModifiedObjectIds(ModifiedObjectsBetweenTransactionsQueryRequest request) {
         LinkedHashMap<Long, String> modifiedObjects = new LinkedHashMap<Long, String>();
         
