@@ -105,7 +105,7 @@ public class ObjectsQuery extends AmberQueryBase {
                     "                      AND txn_end <> 0) THEN 'DELETED' ELSE (CASE WHEN (v_count_before = 0) THEN 'NEW' ELSE 'MODIFIED' END) END) AS transition,\n" + 
                     "          'NEW_MODIFIED_DELETED' AS reason\n" + 
                     "   FROM (\n" + 
-                    "           (SELECT p.id,\n" + 
+                    "           (SELECT DISTINCT p.id,\n" + 
                     "                   p.txn_start,\n" + 
                     "                   p.txn_end,\n" + 
                     "                   p.name,\n" + 
@@ -121,8 +121,8 @@ public class ObjectsQuery extends AmberQueryBase {
                     "              AND ((p.txn_end >= @start_transaction\n" + 
                     "                    AND p.txn_end <= @end_transaction)\n" + 
                     "                   AND (p.txn_start < @start_transaction)))" + 
-                    "         UNION ALL\n" + 
-                    "           (SELECT p.id,\n" + 
+                    "         UNION\n" + 
+                    "           (SELECT DISTINCT p.id,\n" + 
                     "                   p.txn_start,\n" + 
                     "                   p.txn_end,\n" + 
                     "                   p.name,\n" + 
@@ -150,11 +150,14 @@ public class ObjectsQuery extends AmberQueryBase {
                 String transition = (String)row.get("transition");
                 String reason = (String)row.get("reason");
 
-                modifiedObjects.put(id, transition);
-                reasons.put(id, reason);
+                if (!modifiedObjects.containsKey(id) || !"DELETED".equals(modifiedObjects.get(id))) {
+                    modifiedObjects.put(id, transition);
+                    reasons.put(id, reason);
+                }
             }
 
             boolean hasMore = (q.list().size() >= request.getTake());
+
             return new ModifiedObjectsQueryResponse(modifiedObjects, reasons, hasMore, hasMore ? request.getSkip() + request.getTake() : -1);
         }
     }
