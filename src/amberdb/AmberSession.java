@@ -323,7 +323,10 @@ public class AmberSession implements AutoCloseable {
         }
         return nodes;
     }
-
+    
+    public VersionedVertex findVersionedVertex(long objectId) {
+        return getAmberHistory().getVersionedGraph().getVertex(objectId);
+    }
 
     /**
      * Creates a new work.
