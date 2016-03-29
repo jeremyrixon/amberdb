@@ -146,6 +146,19 @@ public class AmberHistory {
             }
         }));
     }
+    
+    public ModifiedObjectsQueryResponse getArticlesForIndexing(ModifiedObjectsQueryRequest request) {
+        ObjectsQuery query = new ObjectsQuery(graph);
+
+        return query.getArticlesForIndexing(new ModifiedObjectsBetweenTransactionsQueryRequest(request, new ModifiedObjectsBetweenTransactionsQueryRequest.TransactionsBetweenFinder() {
+            
+            @Override
+            public List<Long> getTransactionsBetween(Date startTime, Date endTime) {
+                return getTxnsBetween(startTime, endTime);
+            }
+        }));
+        
+    }
 
     private Set<VersionedVertex> getWorksForObject(Long id, Set<VersionedVertex> works) {
         

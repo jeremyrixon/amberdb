@@ -3,7 +3,7 @@
 
   <groupId>au.gov.nla</groupId>
   <artifactId>amberdb</artifactId>
-  <version>1.13.0-RELEASE</version>
+  <version>1.13.1-RELEASE</version>
   <packaging>jar</packaging>
   <name>amberdb</name>
   <description>Digital library domain model</description>
@@ -186,7 +186,7 @@
     <dependency>
       <groupId>org.apache.tika</groupId>
       <artifactId>tika-core</artifactId>
-      <version>1.4</version>
+      <version>1.12</version>
     </dependency>
     <dependency>
       <groupId>com.drewnoakes</groupId>
