@@ -214,11 +214,9 @@ public class ObjectsQuery extends AmberQueryBase {
                 if (request.hasFilterPredicate()) {
                     vGraph.clear();
                     VersionedVertex vv = vGraph.getVertex(id);
-                    if (vv != null){
-                        if (request.getFilterPredicate().apply(vv)) {
-                            modifiedObjects.put(id, transition);
-                        }    
-                    }
+                    if (vv != null && request.getFilterPredicate().apply(vv)) {
+                        modifiedObjects.put(id, transition);
+                    } 
                 } else {
                     modifiedObjects.put(id, transition);
                 }
