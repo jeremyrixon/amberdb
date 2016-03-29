@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
@@ -275,7 +276,7 @@ public class VersionedGraph {
                 .bind("id", vId)
                 .map(new TVertexMapper()).list();
 
-            if (vertices == null) return null;
+            if (CollectionUtils.isEmpty(vertices)) return null;
             
             Map<TId, Map<String, Object>> propMap = getElementPropertyMap(vId, h);
             for (TVertex tv : vertices) {
