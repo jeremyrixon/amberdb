@@ -250,34 +250,36 @@ public class AmberGraph extends BaseGraph
 
     
     public Long suspend() {
-
+        dao.begin();
+        Long sessId = null;
         if (getModifiedElementCount() > BIG_COMMIT_THRESHOLD) {
-            log.warn("Graph to be committed exceeds {} elements. Using big suspend to process.", BIG_COMMIT_THRESHOLD);
-            Long txnId = suspendBig();
+            log.warn("Graph to be committed exceeds {} elements. Using big suspend to process.",
+                    BIG_COMMIT_THRESHOLD);
+            sessId = suspendBig();
             clear();
-            return txnId;
+        } else {
+
+            // set up batch sql data structures
+            sessId = newId();
+
+            AmberEdgeBatch e = new AmberEdgeBatch();
+            AmberVertexBatch v = new AmberVertexBatch();
+            AmberPropertyBatch p = new AmberPropertyBatch();
+
+            batchSuspendEdges(e, p);
+            batchSuspendVertices(v, p);
+
+            log.debug("batches -- vertices:{} edges:{} properties:{}",
+                    v.id.size(), e.id.size(), p.id.size());
+
+            dao.suspendEdges(sessId, e.id, e.txnStart, e.txnEnd, e.vertexOut,
+                    e.vertexIn, e.label, e.order, e.state);
+            dao.suspendVertices(sessId, v.id, v.txnStart, v.txnEnd, v.state);
+            dao.suspendProperties(sessId, p.id, p.name, p.type, p.value);
         }
 
-        // set up batch sql data structures
-        Long sessId = newId();
-        
-        AmberEdgeBatch e = new AmberEdgeBatch();
-        AmberVertexBatch v = new AmberVertexBatch();
-        AmberPropertyBatch p = new AmberPropertyBatch();
-
-        batchSuspendEdges(e, p);
-        batchSuspendVertices(v, p);
-        
-        log.debug("batches -- vertices:{} edges:{} properties:{}", v.id.size(), e.id.size(), p.id.size() );
-        
-        dao.begin();
-        
-        dao.suspendEdges(sessId, e.id, e.txnStart, e.txnEnd, e.vertexOut, e.vertexIn, e.label, e.order, e.state);
-        dao.suspendVertices(sessId, v.id, v.txnStart, v.txnEnd, v.state);
-        dao.suspendProperties(sessId, p.id, p.name, p.type, p.value);
-        
         dao.commit();
-        
+
         return sessId;
     }
 
