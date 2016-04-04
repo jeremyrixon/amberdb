@@ -13,6 +13,8 @@ import javax.sql.DataSource;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.Transaction;
+import org.skife.jdbi.v2.TransactionStatus;
 
 import amberdb.graph.dao.AmberDao;
 import amberdb.graph.dao.AmberDaoH2;
@@ -95,7 +97,7 @@ public class AmberGraph extends BaseGraph
         edgeFactory = this;
         vertexFactory = this;
         elementModListener = this;
-        
+
         dbi = new DBI(dataSource);
         dao = selectDao(dataSource);
         if (!dao.schemaTablesExist()) {
@@ -255,8 +257,10 @@ public class AmberGraph extends BaseGraph
         if (getModifiedElementCount() > BIG_COMMIT_THRESHOLD) {
             log.warn("Graph to be committed exceeds {} elements. Using big suspend to process.",
                     BIG_COMMIT_THRESHOLD);
+       
             sessId = suspendBig();
             clear();
+       
         } else {
 
             // set up batch sql data structures
@@ -273,14 +277,16 @@ public class AmberGraph extends BaseGraph
                     v.id.size(), e.id.size(), p.id.size());
             
             dao.begin();
-
+            
             dao.suspendEdges(sessId, e.id, e.txnStart, e.txnEnd, e.vertexOut,
                     e.vertexIn, e.label, e.order, e.state);
             dao.suspendVertices(sessId, v.id, v.txnStart, v.txnEnd, v.state);
             dao.suspendProperties(sessId, p.id, p.name, p.type, p.value);
+            
+            dao.commit();
         }
 
-        dao.commit();
+        
 
         return sessId;
     }
@@ -910,16 +916,22 @@ public class AmberGraph extends BaseGraph
     public Long suspendBig() {
 
         // set up batch sql data structures
-        Long sessId = newId();
-
-        bigSuspendEdges(sessId);
-        bigSuspendVertices(sessId);
-        log.debug("finished suspend");
+        final Long sessId = newId();
+        dao.inTransaction(new Transaction<Long, AmberDao>() {
+            @Override
+            public Long inTransaction(AmberDao dao,
+                    TransactionStatus transactionStatus) throws Exception {
+                bigSuspendEdges(sessId);
+                bigSuspendVertices(sessId);
+                log.info("finished big suspend");
+                return sessId;
+            }
+        });
 
         return sessId;
     }
 
-
+    
     public Long commitBig(String user, String operation) {
 
         Long txnId = suspendBig();
