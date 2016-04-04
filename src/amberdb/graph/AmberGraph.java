@@ -917,15 +917,14 @@ public class AmberGraph extends BaseGraph
 
         // set up batch sql data structures
         final Long sessId = newId();
-        dao.inTransaction(new Transaction<Object, AmberDao>() {
+        dao.inTransaction(new Transaction<Long, AmberDao>() {
             @Override
-            public Object inTransaction(AmberDao dao,
+            public Long inTransaction(AmberDao dao,
                     TransactionStatus transactionStatus) throws Exception {
                 bigSuspendEdges(sessId);
                 bigSuspendVertices(sessId);
                 log.info("finished big suspend");
-                // No need to return anything here
-                return null;
+                return sessId;
             }
         });
 
