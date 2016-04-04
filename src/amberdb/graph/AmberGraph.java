@@ -14,7 +14,6 @@ import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.Transaction;
-import org.skife.jdbi.v2.TransactionCallback;
 import org.skife.jdbi.v2.TransactionStatus;
 
 import amberdb.graph.dao.AmberDao;
@@ -276,7 +275,9 @@ public class AmberGraph extends BaseGraph
 
             log.debug("batches -- vertices:{} edges:{} properties:{}",
                     v.id.size(), e.id.size(), p.id.size());
+            
             dao.begin();
+            
             dao.suspendEdges(sessId, e.id, e.txnStart, e.txnEnd, e.vertexOut,
                     e.vertexIn, e.label, e.order, e.state);
             dao.suspendVertices(sessId, v.id, v.txnStart, v.txnEnd, v.state);
@@ -918,7 +919,7 @@ public class AmberGraph extends BaseGraph
         final Long sessId = newId();
         dao.inTransaction(new Transaction<Object, AmberDao>() {
             @Override
-            public Object inTransaction(AmberDao amberDao,
+            public Object inTransaction(AmberDao dao,
                     TransactionStatus transactionStatus) throws Exception {
                 bigSuspendEdges(sessId);
                 bigSuspendVertices(sessId);
@@ -931,6 +932,7 @@ public class AmberGraph extends BaseGraph
         return sessId;
     }
 
+    
     public Long commitBig(String user, String operation) {
 
         Long txnId = suspendBig();
