@@ -250,7 +250,7 @@ public class AmberGraph extends BaseGraph
 
     
     public Long suspend() {
-        dao.begin();
+        
         Long sessId = null;
         if (getModifiedElementCount() > BIG_COMMIT_THRESHOLD) {
             log.warn("Graph to be committed exceeds {} elements. Using big suspend to process.",
@@ -271,6 +271,8 @@ public class AmberGraph extends BaseGraph
 
             log.debug("batches -- vertices:{} edges:{} properties:{}",
                     v.id.size(), e.id.size(), p.id.size());
+            
+            dao.begin();
 
             dao.suspendEdges(sessId, e.id, e.txnStart, e.txnEnd, e.vertexOut,
                     e.vertexIn, e.label, e.order, e.state);
