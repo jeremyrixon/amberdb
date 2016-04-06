@@ -10,6 +10,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
 
 import amberdb.AmberSession;
@@ -578,6 +580,21 @@ public class WorkTest {
         masterCopy.setCopyRole(CopyRole.MASTER_COPY.code());
         Copy copy = work.getFirstExistingCopy(CopyRole.ACCESS_COPY, CopyRole.ORIGINAL_COPY);
         assertThat (copy, is(nullValue()));
+    }
+    
+    @Test
+    public void removeCopies(){
+        Work work = db.addWork();
+        Copy masterCopy = work.addCopy();
+        masterCopy.setCopyRole(CopyRole.MASTER_COPY.code());
+        Copy accessCopy1 = work.addCopy();
+        accessCopy1.setCopyRole(CopyRole.ACCESS_COPY.code());
+        Copy originalCopy = work.addCopy();
+        originalCopy.setCopyRole(CopyRole.ORIGINAL_COPY.code());
+        work.removeCopies(Arrays.asList(CopyRole.MASTER_COPY, CopyRole.ACCESS_COPY));
+        List<Copy> copies = Lists.newArrayList(work.getCopies().iterator());
+        assertThat (copies.size(), is (1));
+        assertThat (copies.get(0).getCopyRole(), is(CopyRole.ORIGINAL_COPY.code()));
     }
     
     @After

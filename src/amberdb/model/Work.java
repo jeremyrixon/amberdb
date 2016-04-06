@@ -1074,6 +1074,9 @@ public interface Work extends Node {
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     void removeCopy(final Copy copy);
+    
+    @JavaHandler
+    void removeCopies(List<CopyRole> copyRoles);
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     Iterable<Copy> getCopies();
@@ -1943,6 +1946,16 @@ public interface Work extends Node {
         @Override
         public boolean isVoyagerRecord() {
             return StringUtils.isNotBlank(getBibId()) && StringUtils.equalsIgnoreCase(getRecordSource(), "voyager");
+        }
+        
+        @Override
+        public void removeCopies(List<CopyRole> copyRoles) {
+            for (CopyRole copyRole : copyRoles){
+                Iterator<Copy> copies = getCopies(copyRole).iterator();
+                while (copies.hasNext()) {
+                    removeCopy(copies.next());
+                }
+            }
         }
 
     }
