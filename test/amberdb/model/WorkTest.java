@@ -589,11 +589,9 @@ public class WorkTest {
         masterCopy.setCopyRole(CopyRole.MASTER_COPY.code());
         Copy accessCopy1 = work.addCopy();
         accessCopy1.setCopyRole(CopyRole.ACCESS_COPY.code());
-        Copy accessCopy2 = work.addCopy();
-        accessCopy2.setCopyRole(CopyRole.ACCESS_COPY.code());
         Copy originalCopy = work.addCopy();
         originalCopy.setCopyRole(CopyRole.ORIGINAL_COPY.code());
-        work.removeCopies(Arrays.asList(CopyRole.MASTER_COPY, CopyRole.ACCESS_COPY, CopyRole.CO_MASTER_COPY));
+        work.removeCopies(Arrays.asList(CopyRole.MASTER_COPY, CopyRole.ACCESS_COPY));
         List<Copy> copies = Lists.newArrayList(work.getCopies().iterator());
         assertThat (copies.size(), is (1));
         assertThat (copies.get(0).getCopyRole(), is(CopyRole.ORIGINAL_COPY.code()));
