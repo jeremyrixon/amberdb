@@ -688,7 +688,7 @@ public class AmberSession implements AutoCloseable {
 
     public Party findParty(String name) {
         for (Party party : getAllParties()) {
-            if (party.getName().equals(name)) {
+            if (StringUtils.equalsIgnoreCase(party.getName(), name)) {
                 return party;
             }
         }
