@@ -9,6 +9,7 @@ import amberdb.query.ModifiedObjectsQueryResponse;
 import amberdb.sql.Lookups;
 import amberdb.version.VersionedVertex;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Predicate;
@@ -26,12 +27,15 @@ import com.tinkerpop.frames.FramedGraphFactory;
 import com.tinkerpop.frames.modules.gremlingroovy.GremlinGroovyModule;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerModule;
 import com.tinkerpop.frames.modules.typedgraph.TypedGraphModuleBuilder;
+
 import doss.BlobStore;
+
 import org.apache.commons.lang.StringUtils;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
 
 import javax.sql.DataSource;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
@@ -635,6 +639,26 @@ public class AmberSession implements AutoCloseable {
         Tag t = addTag();
         t.setName(name);
         return t;
+    }
+    
+    public Tag addTagForCollection(String collection, String name, String hasAttribute) throws JsonProcessingException {
+        Tag tag = addTag();
+        tag.setName(name);
+        List<Work> works = findModelByValue("collection", collection, Work.class);
+        HashMap<String, List<Long>> map = new LinkedHashMap<>();
+        for (Work work : works) {
+            Object val = work.asVertex().getProperty(hasAttribute);
+            if (val != null) {
+                List<Long> mappedWorks = map.get(val.toString());
+                if (mappedWorks == null) {
+                    mappedWorks = new ArrayList<Long>();
+                    map.put(val.toString(), mappedWorks);
+                }
+                mappedWorks.add(work.getId());
+            }
+        }
+        tag.setDescription(new ObjectMapper().writeValueAsString(map));
+        return tag;
     }
 
 
