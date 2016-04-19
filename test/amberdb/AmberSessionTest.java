@@ -9,10 +9,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,6 +25,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Vertex;
@@ -32,6 +38,7 @@ import doss.local.LocalBlobStore;
 import amberdb.graph.AmberGraph;
 import amberdb.model.Copy;
 import amberdb.model.Page;
+import amberdb.model.Tag;
 import amberdb.model.Work;
 import amberdb.model.AliasItem;
 import amberdb.AmberSession;
@@ -356,5 +363,34 @@ public class AmberSessionTest {
 
         works = sess.findModelByValue("dcmDateTimeCreated", d1, Work.class);
         assertEquals(2, works.size());
+    }
+    
+    @Test
+    public void testAddTagForCollection() throws IOException {
+        List<Work> records = new ArrayList<>();
+        String[] collections = { "nla.aus", "nla.gen", "nla.aus", "nla.aus"};
+        String[] alias = {"alias", "altalias"};
+        for (int i = 0; i < 4; i++) {
+            Work record = sess.addWork();
+            records.add(record);
+            record.setCollection(collections[i]);
+            List<String> recordAlias = new ArrayList<>();
+            for (String alia : alias) {
+                recordAlias.add(alia + i);
+            }
+            record.setAlias(recordAlias);
+        }        
+        sess.commit();
+        Tag tag = sess.addTagForCollection("nla.aus", "nla-aus-alias-tag", "alias", true);
+        sess.commit();
+        
+        HashMap<String, List<Long>> map = new ObjectMapper().readValue(tag.getDescription(), new TypeReference<LinkedHashMap<String, List<Long>>>() {});
+        for (String alia : map.keySet()) {
+            List<Long> recordIds = map.get(alia);
+            for (Long recordId : recordIds) {
+                Work record = sess.findWork(recordId);
+                assertTrue(record.getAlias().contains(alia));
+            }
+        }
     }
 }

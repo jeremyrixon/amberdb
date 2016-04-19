@@ -10,6 +10,7 @@ import amberdb.sql.Lookups;
 import amberdb.version.VersionedVertex;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Predicate;
@@ -641,26 +642,40 @@ public class AmberSession implements AutoCloseable {
         return t;
     }
     
-    public Tag addTagForCollection(String collection, String name, String hasAttribute) throws JsonProcessingException {
+    public Tag addTagForCollection(String collection, String name, String hasAttribute, boolean multivalued) throws IOException {
         Tag tag = addTag();
         tag.setName(name);
+        ObjectMapper om = new ObjectMapper();
         List<Work> works = findModelByValue("collection", collection, Work.class);
-        HashMap<String, List<Long>> map = new LinkedHashMap<>();
+        LinkedHashMap<String, List<Long>> map = new LinkedHashMap<>();
         for (Work work : works) {
             Object val = work.asVertex().getProperty(hasAttribute);
             if (val != null) {
-                List<Long> mappedWorks = map.get(val.toString());
-                if (mappedWorks == null) {
-                    mappedWorks = new ArrayList<Long>();
-                    map.put(val.toString(), mappedWorks);
+                List<String> valList = null;
+                if (multivalued) {
+                    valList = om.readValue(val.toString(), new TypeReference<List<String>>(){});
+                } else {
+                    valList = new ArrayList<>();
+                    valList.add(val.toString());
                 }
-                mappedWorks.add(work.getId());
+                
+                for (String value : valList) {
+                    mapWork(map, work, value);
+                }
             }
         }
-        tag.setDescription(new ObjectMapper().writeValueAsString(map));
+        tag.setDescription(om.writeValueAsString(map));
         return tag;
     }
-
+    
+    private void mapWork(LinkedHashMap<String, List<Long>> map, Work work, String value) {
+        List<Long> mappedWorks = map.get(value);
+        if (mappedWorks == null) {
+            mappedWorks = new ArrayList<Long>();
+            map.put(value.toString(), mappedWorks);
+        }
+        mappedWorks.add(work.getId());
+    }
 
     public Tag findTag(String name) {
         for (Tag t : getAllTags()) {
