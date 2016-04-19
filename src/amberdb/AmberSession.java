@@ -642,17 +642,17 @@ public class AmberSession implements AutoCloseable {
         return t;
     }
     
-    public Tag addTagForCollection(String collection, String name, String hasAttribute, boolean multivalued) throws IOException {
+    public Tag addTagForCollection(String collection, String tagName, String attributeName, boolean multivaluedAttribute) throws IOException {
         Tag tag = addTag();
-        tag.setName(name);
+        tag.setName(tagName);
         ObjectMapper om = new ObjectMapper();
         List<Work> works = findModelByValue("collection", collection, Work.class);
         LinkedHashMap<String, List<Long>> map = new LinkedHashMap<>();
         for (Work work : works) {
-            Object val = work.asVertex().getProperty(hasAttribute);
+            Object val = work.asVertex().getProperty(attributeName);
             if (val != null) {
                 List<String> valList = null;
-                if (multivalued) {
+                if (multivaluedAttribute) {
                     valList = om.readValue(val.toString(), new TypeReference<List<String>>(){});
                 } else {
                     valList = new ArrayList<>();
