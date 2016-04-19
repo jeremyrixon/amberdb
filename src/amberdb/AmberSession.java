@@ -9,6 +9,8 @@ import amberdb.query.ModifiedObjectsQueryResponse;
 import amberdb.sql.Lookups;
 import amberdb.version.VersionedVertex;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Predicate;
@@ -26,12 +28,15 @@ import com.tinkerpop.frames.FramedGraphFactory;
 import com.tinkerpop.frames.modules.gremlingroovy.GremlinGroovyModule;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerModule;
 import com.tinkerpop.frames.modules.typedgraph.TypedGraphModuleBuilder;
+
 import doss.BlobStore;
+
 import org.apache.commons.lang.StringUtils;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
 
 import javax.sql.DataSource;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
@@ -636,7 +641,41 @@ public class AmberSession implements AutoCloseable {
         t.setName(name);
         return t;
     }
-
+    
+    public Tag addTagForCollection(String collection, String tagName, String attributeName, boolean multivaluedAttribute) throws IOException {
+        Tag tag = addTag();
+        tag.setName(tagName);
+        ObjectMapper om = new ObjectMapper();
+        List<Work> works = findModelByValue("collection", collection, Work.class);
+        LinkedHashMap<String, List<Long>> map = new LinkedHashMap<>();
+        for (Work work : works) {
+            Object val = work.asVertex().getProperty(attributeName);
+            if (val != null) {
+                List<String> valList = null;
+                if (multivaluedAttribute) {
+                    valList = om.readValue(val.toString(), new TypeReference<List<String>>(){});
+                } else {
+                    valList = new ArrayList<>();
+                    valList.add(val.toString());
+                }
+                
+                for (String value : valList) {
+                    mapWork(map, work, value);
+                }
+            }
+        }
+        tag.setDescription(om.writeValueAsString(map));
+        return tag;
+    }
+    
+    private void mapWork(LinkedHashMap<String, List<Long>> map, Work work, String value) {
+        List<Long> mappedWorks = map.get(value);
+        if (mappedWorks == null) {
+            mappedWorks = new ArrayList<Long>();
+            map.put(value.toString(), mappedWorks);
+        }
+        mappedWorks.add(work.getId());
+    }
 
     public Tag findTag(String name) {
         for (Tag t : getAllTags()) {
