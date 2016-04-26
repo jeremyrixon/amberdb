@@ -275,6 +275,12 @@ public interface Work extends Node {
 
     @Property("copyrightPolicy")
     void setCopyrightPolicy(String copyrightPolicy);
+   
+    @Property("commercialStatus")
+    String getCommercialStatus();
+
+    @Property("commercialStatus")
+    void setCommercialStatus(String commercialStatus);
 
     @Property("firstPart")
     @Deprecated
