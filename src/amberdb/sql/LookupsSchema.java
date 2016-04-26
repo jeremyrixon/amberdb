@@ -117,6 +117,8 @@ public abstract class LookupsSchema {
       + "('copyrightStatus', 'No known copyright restrictions'),"
       + "('copyrightStatus', 'Mixed copyright'),"
       + "('copyrightStatus', 'Perpetual'),"
+      + "('commercialStatus', 'Commercial'),"
+      + "('commercialStatus', 'Non-commercial'),"
       + "('carrier', 'File system'),"
       + "('carrier', 'Working Reel'),"
       + "('carrier', 'User Cassette'),"
