@@ -117,8 +117,6 @@ public abstract class LookupsSchema {
       + "('copyrightStatus', 'No known copyright restrictions'),"
       + "('copyrightStatus', 'Mixed copyright'),"
       + "('copyrightStatus', 'Perpetual'),"
-      + "('commercialStatus', 'Commercial'),"
-      + "('commercialStatus', 'Non-commercial'),"
       + "('carrier', 'File system'),"
       + "('carrier', 'Working Reel'),"
       + "('carrier', 'User Cassette'),"
@@ -1037,6 +1035,11 @@ public abstract class LookupsSchema {
     + "('collection','nla.gd', 'Government deposit')")
     public abstract void seedCollectionList();
 
+    @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
+            + "('commercialStatus', 'Commercial', 'Commercial'),"
+            + "('commercialStatus', 'Non-commercial', 'Non-commercial')")
+    public abstract void seedCommercialStatusList();
+
     
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
             + "('copyType', 'p', 'Physical'),"
@@ -1143,6 +1146,7 @@ public abstract class LookupsSchema {
         seedEADUpdateReviewRequired();
         seedDataValidationMsgs();
         seedCollectionList();
+        seedCommercialStatusList();
         seedCopyTypeList();
         seedTiffMetaLuList();
         seedValuesForKeyList();
