@@ -28,9 +28,9 @@ public class AmberQueryBase {
         
         List<AmberProperty> propList = h.createQuery(String.format(
                 "SELECT p.id, p.name, p.type, p.value "
-                + "FROM property p, %1$s " 
-                + "WHERE p.id = %1$s.%2$s "
-                + "AND p.txn_end = 0", 
+                + " FROM property p, %1$s "
+                + " WHERE "
+                + " p.txn_end = 0 AND p.id = %1$s.%2$s ",
                 elementIdTable, elementIdColumn))
                 .map(new PropertyMapper()).list();
 
@@ -52,10 +52,10 @@ public class AmberQueryBase {
         List<Vertex> vertices = new ArrayList<>();
         List<AmberVertexWithState> wrappedVertices = h.createQuery(String.format(
                 "SELECT v.id, v.txn_start, v.txn_end, 'AMB' state "
-                + "FROM vertex v, %1$s "
-                + "WHERE v.id = %1$s.%2$s "
-                + "AND v.txn_end = 0 "
-                + "ORDER BY %1$s.%3$s, %1$s.%2$s",
+                + " FROM vertex v, %1$s "
+                + " WHERE "
+                + " v.txn_end = 0 AND v.id = %1$s.%2$s "
+                + " ORDER BY %1$s.%3$s, %1$s.%2$s",
                 vertexIdTable, vertexIdColumn, vertexOrderColumn))
                 .map(new VertexMapper(graph)).list();
 
@@ -84,9 +84,9 @@ public class AmberQueryBase {
         List<Edge> edges = new ArrayList<>();
         List<AmberEdgeWithState> wrappedEdges = h.createQuery(String.format(
                 "SELECT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order, 'AMB' state "
-                + "FROM edge e, %1$s "
-                + "WHERE e.id = %1$s.%2$s "
-                + "AND e.txn_end = 0",
+                + " FROM edge e, %1$s "
+                + " WHERE e.txn_end = 0 "
+                + " AND e.id = %1$s.%2$s",
                 edgeIdTable, edgeIdColumn))
                 .map(new EdgeMapper(graph, true)).list();
         
@@ -115,10 +115,10 @@ public class AmberQueryBase {
 
         List<AmberEdgeWithState> wrappedEdges = h.createQuery(String.format(
                 "SELECT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order, 'AMB' state "
-                + "FROM edge e, %1$s, %3$s "
-                + "WHERE e.v_in = %1$s.%2$s "
-                + "AND e.v_out = %3$s.%4$s "
-                + "AND e.txn_end = 0",
+                + " FROM edge e, %1$s, %3$s "
+                + " WHERE e.txn_end = 0 "
+                + " AND e.v_in = %1$s.%2$s "
+                + " AND e.v_out = %3$s.%4$s ",
                 inVertexIdTable, inVertexIdColumn, outVertexIdTable, outVertexIdColumn))
                 .map(new EdgeMapper(graph, true)).list();
         
