@@ -17,7 +17,7 @@ import com.tinkerpop.blueprints.Vertex;
 
 public class ObjectsWithPropertyReportQuery extends AmberQueryBase {
 
-    
+
     public ObjectsWithPropertyReportQuery(AmberGraph graph) {
         super(graph);
     }
@@ -31,56 +31,29 @@ public class ObjectsWithPropertyReportQuery extends AmberQueryBase {
             h.execute("DROP " + graph.getTempTableDrop() + " TABLE IF EXISTS vp; CREATE TEMPORARY TABLE vp (id BIGINT) " + graph.getTempTableEngine() + ";");
             Update q = h.createStatement(
                     "INSERT INTO vp (id) \n"
-                    + "SELECT DISTINCT p.id \n"
-                    + "FROM property p, property cp, property tp \n"
-                    + "WHERE p.txn_end = 0 AND cp.txn_end = 0 AND tp.txn_end = 0 "
-                    + " AND cp.id = p.id AND tp.id = p.id "
-                    + " AND tp.name= :typeName "
-                    + " AND tp.value = :type1 "
-                    + " AND cp.name = :collection " 
-                    + " AND p.name = :name "
-                    + " AND cp.value = :value "
-                    + "UNION \n"
-                    + "SELECT DISTINCT p.id \n"
-                    + "FROM property p, property cp, edge ed, property tp \n"
-                    + "WHERE p.txn_end = 0 AND cp.txn_end = 0 AND tp.txn_end = 0 and ed.txn_end = 0 "
-                    + " AND p.id = ed.v_out AND tp.id = p.id and ed.v_in=cp.id "
-                    + " AND tp.name= :typeName "
-                    + " AND tp.value = :type2 "
-                    + " AND cp.name = :collection "
-                    + " AND p.name = :name "
-                    + " AND cp.value = :value "
-                    + "UNION \n"
-                    + "SELECT DISTINCT p.id \n"
-                    + "FROM property p, property cp, property tp \n"
-                    + "WHERE p.txn_end = 0 AND cp.txn_end = 0 AND tp.txn_end = 0 "
-                    + " AND cp.id = p.id AND tp.id = p.id "
-                    + " AND tp.name= :typeName "
-                    + " AND tp.value = :type3 "
-                    + " AND cp.name = :collection " 
-                    + " AND p.name = :name "
-                    + " AND cp.value = :value "
-                    + "UNION \n"
-                    + "SELECT DISTINCT p.id \n"
-                    + "FROM property p, property cp, property tp \n"
-                    + "WHERE p.txn_end = 0 AND cp.txn_end = 0 AND tp.txn_end = 0 "
-                    + " AND cp.id = p.id AND tp.id = p.id "
-                    + " AND tp.name= :typeName "
-                    + " AND tp.value = :type4 "
-                    + " AND cp.name = :collection " 
-                    + " AND p.name = :name "
-                    + " AND cp.value = :value "
-                    + "UNION \n"
-                    + "SELECT DISTINCT p.id \n"
-                    + "FROM property p, property cp, property tp \n"
-                    + "WHERE p.txn_end = 0 AND cp.txn_end = 0 AND tp.txn_end = 0 "
-                    + " AND cp.id = p.id AND tp.id = p.id "
-                    + " AND tp.name= :typeName "
-                    + " AND tp.value = :type5 "
-                    + " AND cp.name = :collection " 
-                    + " AND p.name = :name "
-                    + " AND cp.value = :value ;"
-                    );
+                            + "SELECT DISTINCT p.id \n"
+                            + "FROM property p, property cp, property tp \n"
+                            + "WHERE "
+                            + " tp.value in ( :type1, :type3, :type4, :type5) "
+                            + " AND cp.value = :value "
+                            + " AND p.name = :name "
+                            + " AND cp.name = :collection "
+                            + " AND tp.name= :typeName "
+                            + " AND p.txn_end = 0 AND cp.txn_end = 0 AND tp.txn_end = 0 "
+                            + " AND cp.id = p.id AND tp.id = p.id "
+                            + " UNION ALL \n"
+                            + " SELECT DISTINCT p.id \n"
+                            + " FROM property p, property cp, edge ed, property tp \n"
+                            + " WHERE "
+                            + " tp.value = :type2 "
+                            + " AND cp.value = :value "
+                            + " AND p.name = :name "
+                            + " AND cp.name = :collection "
+                            + " AND tp.name= :typeName "
+                            + " AND p.txn_end = 0 AND cp.txn_end = 0 AND tp.txn_end = 0 and ed.txn_end = 0 "
+                            + " AND p.id = ed.v_out AND tp.id = p.id and ed.v_in=cp.id "
+
+            );
 
             q.bind("name", name);
             q.bind("typeName", "type");
@@ -99,7 +72,83 @@ public class ObjectsWithPropertyReportQuery extends AmberQueryBase {
         }
         return vertices;
     }
-    
+
+    public List<Vertex> generateDuplicateAliasReport_bak(String name, String collectionName) {
+
+        List<Vertex> vertices;
+        try (Handle h = graph.dbi().open()) {
+            h.begin();
+            h.execute("DROP " + graph.getTempTableDrop() + " TABLE IF EXISTS vp; CREATE TEMPORARY TABLE vp (id BIGINT) " + graph.getTempTableEngine() + ";");
+            Update q = h.createStatement(
+                    "INSERT INTO vp (id) \n"
+                            + "SELECT DISTINCT p.id \n"
+                            + "FROM property p, property cp, property tp \n"
+                            + "WHERE p.txn_end = 0 AND cp.txn_end = 0 AND tp.txn_end = 0 "
+                            + " AND cp.id = p.id AND tp.id = p.id "
+                            + " AND tp.name= :typeName "
+                            + " AND tp.value = :type1 "
+                            + " AND cp.name = :collection "
+                            + " AND p.name = :name "
+                            + " AND cp.value = :value "
+                            + "UNION \n"
+                            + "SELECT DISTINCT p.id \n"
+                            + "FROM property p, property cp, edge ed, property tp \n"
+                            + "WHERE p.txn_end = 0 AND cp.txn_end = 0 AND tp.txn_end = 0 and ed.txn_end = 0 "
+                            + " AND p.id = ed.v_out AND tp.id = p.id and ed.v_in=cp.id "
+                            + " AND tp.name= :typeName "
+                            + " AND tp.value = :type2 "
+                            + " AND cp.name = :collection "
+                            + " AND p.name = :name "
+                            + " AND cp.value = :value "
+                            + "UNION \n"
+                            + "SELECT DISTINCT p.id \n"
+                            + "FROM property p, property cp, property tp \n"
+                            + "WHERE p.txn_end = 0 AND cp.txn_end = 0 AND tp.txn_end = 0 "
+                            + " AND cp.id = p.id AND tp.id = p.id "
+                            + " AND tp.name= :typeName "
+                            + " AND tp.value = :type3 "
+                            + " AND cp.name = :collection "
+                            + " AND p.name = :name "
+                            + " AND cp.value = :value "
+                            + "UNION \n"
+                            + "SELECT DISTINCT p.id \n"
+                            + "FROM property p, property cp, property tp \n"
+                            + "WHERE p.txn_end = 0 AND cp.txn_end = 0 AND tp.txn_end = 0 "
+                            + " AND cp.id = p.id AND tp.id = p.id "
+                            + " AND tp.name= :typeName "
+                            + " AND tp.value = :type4 "
+                            + " AND cp.name = :collection "
+                            + " AND p.name = :name "
+                            + " AND cp.value = :value "
+                            + "UNION \n"
+                            + "SELECT DISTINCT p.id \n"
+                            + "FROM property p, property cp, property tp \n"
+                            + "WHERE p.txn_end = 0 AND cp.txn_end = 0 AND tp.txn_end = 0 "
+                            + " AND cp.id = p.id AND tp.id = p.id "
+                            + " AND tp.name= :typeName "
+                            + " AND tp.value = :type5 "
+                            + " AND cp.name = :collection "
+                            + " AND p.name = :name "
+                            + " AND cp.value = :value ;"
+            );
+
+            q.bind("name", name);
+            q.bind("typeName", "type");
+            q.bind("type1", AmberProperty.encode("Work"));
+            q.bind("type2", AmberProperty.encode("Copy"));
+            q.bind("type3", AmberProperty.encode("EADWork"));
+            q.bind("type4", AmberProperty.encode("Section"));
+            q.bind("type5", AmberProperty.encode("Page"));
+            q.bind("collection", "collection");
+            q.bind("value", AmberProperty.encode(collectionName));
+            q.execute();
+            h.commit();
+
+            Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h, "vp", "id");
+            vertices = getVertices(h, graph, propMaps, "vp", "id", "id");
+        }
+        return vertices;
+    }
     
     public List<Vertex> generateExpiryReport(Date expiryYear,
             String collectionName) {
