@@ -1042,7 +1042,7 @@ public abstract class LookupsSchema {
 
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
             + "('depositMethod', 'OnlineLegal', 'Online legal deposit'),"
-            + "('depositMethod', 'OnlineGovernment', 'Online government deposit')"
+            + "('depositMethod', 'OnlineGovernment', 'Online government deposit'),"
             + "('depositMethod', 'OnlineVoluntary', 'Online voluntary deposit'),"
             + "('depositMethod', 'OfflineVoluntary', 'Offline voluntary deposit')")
     public abstract void seedDepositMethodList();
