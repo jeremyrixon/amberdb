@@ -23,7 +23,7 @@ Usage
 In-memory:
 
 ```java
-try (AmberDb db = new AmberDb() {
+try (AmberDb db = new AmberDb()) {
     Work work = db.addWork();
 }
 ```
