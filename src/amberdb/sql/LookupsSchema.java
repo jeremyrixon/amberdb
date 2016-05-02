@@ -1160,6 +1160,7 @@ public abstract class LookupsSchema {
         seedToolTypesLookups();
         seedToolCategoriesLookups();
         seedMaterialTypesLookups();
+        seedDepositMethodList();
         seedManipulationLookups();
     }
     
