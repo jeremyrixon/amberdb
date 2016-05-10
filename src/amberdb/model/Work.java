@@ -171,11 +171,11 @@ public interface Work extends Node {
     @Property("collection")
     void setCollection(String collection);
 
-    @Property("depositMethod")
-    String getDepositMethod();
+    @Property("depositType")
+    String getDepositType();
 
-    @Property("depositMethod")
-    void setDepositMethod(String depositMethod);
+    @Property("depositType")
+    void setDepositType(String depositType);
 
     @Property("form")
     String getForm();
