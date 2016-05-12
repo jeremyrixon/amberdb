@@ -1035,6 +1035,17 @@ public abstract class LookupsSchema {
     + "('collection','nla.gd', 'Government deposit')")
     public abstract void seedCollectionList();
 
+    @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
+            + "('commercialStatus', 'Commercial', 'Commercial'),"
+            + "('commercialStatus', 'Non-commercial', 'Non-commercial')")
+    public abstract void seedCommercialStatusList();
+
+    @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
+            + "('depositType', 'OnlineLegal', 'Online legal deposit'),"
+            + "('depositType', 'OnlineGovernment', 'Online government deposit'),"
+            + "('depositType', 'OnlineVoluntary', 'Online voluntary deposit'),"
+            + "('depositType', 'OfflineVoluntary', 'Offline voluntary deposit')")
+    public abstract void seedDepositTypeList();
     
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
             + "('copyType', 'p', 'Physical'),"
@@ -1141,6 +1152,7 @@ public abstract class LookupsSchema {
         seedEADUpdateReviewRequired();
         seedDataValidationMsgs();
         seedCollectionList();
+        seedCommercialStatusList();
         seedCopyTypeList();
         seedTiffMetaLuList();
         seedValuesForKeyList();
@@ -1148,6 +1160,7 @@ public abstract class LookupsSchema {
         seedToolTypesLookups();
         seedToolCategoriesLookups();
         seedMaterialTypesLookups();
+        seedDepositTypeList();
         seedManipulationLookups();
     }
     

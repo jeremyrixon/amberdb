@@ -4,17 +4,20 @@ package amberdb.graph;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.Sets;
 import com.tinkerpop.blueprints.Direction;
 
+import amberdb.query.ModifiedObjectsBetweenTransactionsQueryRequest;
+import amberdb.query.ModifiedObjectsQueryRequest;
+import amberdb.query.ModifiedObjectsQueryResponse;
+import amberdb.query.ObjectsQuery;
 import amberdb.util.AmberModelTypes;
 import amberdb.version.TEdgeDiff;
-import amberdb.version.TId;
 import amberdb.version.TTransition;
 import amberdb.version.TVertexDiff;
 import amberdb.version.VersionedEdge;
@@ -24,11 +27,11 @@ import amberdb.version.VersionedVertex;
 
 public class AmberHistory {
 
-    
     private VersionedGraph vGraph;
-    
+    private AmberGraph graph;
     
     public AmberHistory(AmberGraph graph) {
+        this.graph = graph;
         vGraph = new VersionedGraph(graph.dbi());
     }
 
@@ -41,7 +44,6 @@ public class AmberHistory {
         vGraph.loadTransactionGraph(txn1, txn2, true);
         return vGraph;
     }
-
 
     /**
      * @return the set of versioned vertices present in the given versioned
@@ -72,77 +74,16 @@ public class AmberHistory {
             }
         }
         return changedEdges;
-    }    
-
-    
-    protected Map<Long, String> getModifiedObjectIds(List<Long> txns, Predicate<VersionedVertex> filterPredicate) {
-
-        // Get the txns involved
-        Map<Long, String> modifiedIds = new HashMap<>();
-        if (txns.size() == 0) {
-            return modifiedIds;
-        }
-        
-        // set our transaction period
-        Long txn1 = txns.get(0) - 1;
-        Long txn2 = txns.get(txns.size()-1) + 1; // > than last txn
-        
-        // load the graph
-        VersionedGraph vGraph = loadChangedGraphForPeriod(txn1, txn2);
-        Set<VersionedVertex> vertices = getChangedVertices(vGraph, txn1, txn2);
-        Set<VersionedEdge> edges = getChangedEdges(vGraph, txn1, txn2);
-
-        vertices = Sets.filter(vertices, filterPredicate);
-
-        for (VersionedVertex v : vertices) {
-            TVertexDiff diff = v.getDiff(txn1, txn2);
-            TTransition change = diff.getTransition();
-            Long id = diff.getId()[0].getId();
-
-            // Deletion trumps all changes - don't replace
-            if (modifiedIds.get(id) != null
-                    && modifiedIds.get(id).equals(TTransition.DELETED.toString())) {
-                continue;
-            }
-            modifiedIds.put(id, change.toString());
-        }
-        
-        // find and return the vertices for any changed edge
-        Long id;
-        VersionedVertex vert;
-        for (VersionedEdge e : edges) {
-            vert = e.getVertex(Direction.IN);
-            if (filterPredicate.apply(vert)) {
-                id = (Long) vert.getId();
-                if (!modifiedIds.containsKey(id) && !(TTransition.DELETED.toString().equals(modifiedIds.get(id)))) {
-                    modifiedIds.put(id, TTransition.MODIFIED.toString());
-                }
-            }
-
-            vert = e.getVertex(Direction.OUT);
-            if (filterPredicate.apply(vert)) {
-                id = (Long) vert.getId();
-                if (!modifiedIds.containsKey(id) && !(TTransition.DELETED.toString().equals(modifiedIds.get(id)))) {
-                    modifiedIds.put(id, TTransition.MODIFIED.toString());
-                }
-            }
-        }
-        
-        return modifiedIds;
     }
 
-    protected Map<Long, String> getModifiedObjectIds(List<Long> transactions) {
-        return getModifiedObjectIds(transactions, new Predicate<VersionedVertex>() {
-            @Override
-            public boolean apply(VersionedVertex versionedVertex) {
-                return true;
-            }
-        });
+    protected ModifiedObjectsQueryResponse getModifiedObjectIds(List<Long> transactions) {
+        ObjectsQuery query = new ObjectsQuery(graph);
+        return query.getModifiedObjectIds(new ModifiedObjectsBetweenTransactionsQueryRequest(transactions, null, null, false, 0, Integer.MAX_VALUE));
     }
     
     protected Map<Long, String> getModifiedWorkIds(List<Long> transactions) {
         Map<Long, String> modifiedWorks = new HashMap<>();
-        Map<Long, String> modifiedObjs = getModifiedObjectIds(transactions);
+        Map<Long, String> modifiedObjs = getModifiedObjectIds(transactions).getModifiedObjects();
 
         for (Long id : modifiedObjs.keySet()) {
             Set<VersionedVertex> works = getWorksForObject(id, new HashSet<VersionedVertex>());
@@ -176,23 +117,48 @@ public class AmberHistory {
     public Map<Long, String> getModifiedWorkIds(Date from, Date to) {
         return getModifiedWorkIds(getTxnsBetween(from, to));
     }
-
+    
     public Map<Long, String> getModifiedObjectIds(Date from) {
-        return getModifiedObjectIds(getTxnsSince(from));
+        return getModifiedObjectIds(getTxnsSince(from)).getModifiedObjects();
     }
 
     public Map<Long, String> getModifiedOBjectIds(Date from, Date to) {
-        return getModifiedObjectIds(getTxnsBetween(from, to));
+        return getModifiedObjectIds(getTxnsBetween(from, to)).getModifiedObjects();
     }
 
     public Map<Long, String> getModifiedObjectIds(Date from, Predicate<VersionedVertex> filterPredicate) {
-        return getModifiedObjectIds(getTxnsSince(from), filterPredicate);
+        ObjectsQuery query = new ObjectsQuery(graph);
+        return query.getModifiedObjectIds(new ModifiedObjectsBetweenTransactionsQueryRequest(getTxnsSince(from), filterPredicate, null, false, 0, Integer.MAX_VALUE)).getModifiedObjects();
     }
 
     public Map<Long, String> getModifiedOBjectIds(Date from, Date to, Predicate<VersionedVertex> filterPredicate) {
-        return getModifiedObjectIds(getTxnsBetween(from, to), filterPredicate);
+        ObjectsQuery query = new ObjectsQuery(graph);
+        return query.getModifiedObjectIds(new ModifiedObjectsBetweenTransactionsQueryRequest(getTxnsBetween(from, to), filterPredicate, null, false, 0, Integer.MAX_VALUE)).getModifiedObjects();
+    }
+
+    public ModifiedObjectsQueryResponse getModifiedObjectIds(ModifiedObjectsQueryRequest request) {
+        ObjectsQuery query = new ObjectsQuery(graph);
+        return query.getModifiedObjectIds(new ModifiedObjectsBetweenTransactionsQueryRequest(request, new ModifiedObjectsBetweenTransactionsQueryRequest.TransactionsBetweenFinder() {
+            
+            @Override
+            public List<Long> getTransactionsBetween(Date startTime, Date endTime) {
+                return getTxnsBetween(startTime, endTime);
+            }
+        }));
     }
     
+    public ModifiedObjectsQueryResponse getArticlesForIndexing(ModifiedObjectsQueryRequest request) {
+        ObjectsQuery query = new ObjectsQuery(graph);
+
+        return query.getArticlesForIndexing(new ModifiedObjectsBetweenTransactionsQueryRequest(request, new ModifiedObjectsBetweenTransactionsQueryRequest.TransactionsBetweenFinder() {
+            
+            @Override
+            public List<Long> getTransactionsBetween(Date startTime, Date endTime) {
+                return getTxnsBetween(startTime, endTime);
+            }
+        }));
+        
+    }
 
     private Set<VersionedVertex> getWorksForObject(Long id, Set<VersionedVertex> works) {
         

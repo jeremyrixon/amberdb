@@ -55,6 +55,7 @@ import amberdb.relation.IsCopyOf;
 import amberdb.relation.IsPartOf;
 import amberdb.relation.Represents;
 import amberdb.util.WorkUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Any logical work that is collected or created by the library such as a book,
@@ -170,6 +171,12 @@ public interface Work extends Node {
     @Property("collection")
     void setCollection(String collection);
 
+    @Property("depositType")
+    String getDepositType();
+
+    @Property("depositType")
+    void setDepositType(String depositType);
+
     @Property("form")
     String getForm();
 
@@ -274,6 +281,12 @@ public interface Work extends Node {
 
     @Property("copyrightPolicy")
     void setCopyrightPolicy(String copyrightPolicy);
+   
+    @Property("commercialStatus")
+    String getCommercialStatus();
+
+    @Property("commercialStatus")
+    void setCommercialStatus(String commercialStatus);
 
     @Property("firstPart")
     @Deprecated
@@ -464,6 +477,27 @@ public interface Work extends Node {
 
     @Property("totalDuration")
     void setTotalDuration(String totalDuration);
+    
+    @Property("preservicaType")
+    String getPreservicaType();
+
+    @Property("preservicaType")
+    void setPreservicaType(String type);
+    
+    @Property("preservicaId")
+    String getPreservicaId();
+
+    @Property("preservicaId")
+    void setPreservicaId(String id);
+    
+    /**
+     * If true, access to the work is allowed within the NLA reading rooms through a restricted method.
+     */
+    @Property("allowOnsiteAccess")
+    Boolean getAllowOnsiteAccess();
+
+    @Property("allowOnsiteAccess")
+    void setAllowOnsiteAccess(Boolean allow);
     
     @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
     GeoCoding addGeoCoding();
@@ -1052,6 +1086,9 @@ public interface Work extends Node {
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     void removeCopy(final Copy copy);
+    
+    @JavaHandler
+    void removeCopies(List<CopyRole> copyRoles);
 
     @Adjacency(label = IsCopyOf.label, direction = Direction.IN)
     Iterable<Copy> getCopies();
@@ -1070,6 +1107,14 @@ public interface Work extends Node {
 
     @JavaHandler
     Copy getCopy(CopyRole role, int index);
+
+    /**
+     * Get the first not null copy from the specified list of Copy roles
+     * @param role
+     * @return
+     */
+    @JavaHandler
+    Copy getFirstExistingCopy(CopyRole... roles);
 
     @Adjacency(label = IsPartOf.label, direction = Direction.IN)
     Section addSection();
@@ -1210,6 +1255,15 @@ public interface Work extends Node {
     @JavaHandler
     boolean hasCopyRole(CopyRole role);
 
+    /**
+     * @return true if work has any of the copy roles in the list
+     */
+    @JavaHandler
+    boolean hasCopyRole(List<CopyRole> copyRoles);
+
+    @JavaHandler
+    Copy getOrCreateCopy(CopyRole role);
+
     @JavaHandler
     boolean hasUniqueAlias(AmberSession session);
     
@@ -1243,12 +1297,20 @@ public interface Work extends Node {
     @Property("carrier")
     void setCarrier(String carrier);
 
+
+
     /**
      * Get the order in which this work appears on it's parent. I.E. The order of a 5th page would be 5. Return null
      * if work has no order (that is, it does not have a parent).
      */
     @JavaHandler
     Integer getOrder();
+
+    @JavaHandler
+    boolean isVoyagerRecord();
+
+
+
 
     abstract class Impl extends Node.Impl implements JavaHandlerContext<Vertex>, Work {
         static ObjectMapper mapper = new ObjectMapper();
@@ -1768,6 +1830,41 @@ public interface Work extends Node {
         }
 
         @Override
+        public boolean hasCopyRole(List<CopyRole> copyRoles){
+            if (copyRoles != null){
+                for (CopyRole copyRole: copyRoles){
+                    if (hasCopyRole(copyRole)){
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public Copy getOrCreateCopy(CopyRole role) {
+            Copy copy = getCopy(role);
+            if (copy == null) {
+                copy = addCopy();
+                copy.setCopyRole(role.code());
+            }
+            return copy;
+        }
+
+        @Override
+        public Copy getFirstExistingCopy(CopyRole... roles){
+            if (roles != null){
+                for (CopyRole copyRole : roles){
+                    Copy copy = getCopy(copyRole);
+                    if (copy != null){
+                        return copy;
+                    }
+                }
+            }
+            return null;
+        }
+
+        @Override
         public boolean hasUniqueAlias(AmberSession session) {
             List<String> aliases = getAlias();
             if (aliases == null || aliases.size() == 0 || aliases.size() > 1) {
@@ -1857,5 +1954,21 @@ public interface Work extends Node {
             });
             return order+1;
         }
+
+        @Override
+        public boolean isVoyagerRecord() {
+            return StringUtils.isNotBlank(getBibId()) && StringUtils.equalsIgnoreCase(getRecordSource(), "voyager");
+        }
+        
+        @Override
+        public void removeCopies(List<CopyRole> copyRoles) {
+            for (CopyRole copyRole : copyRoles){
+                Iterator<Copy> copies = getCopies(copyRole).iterator();
+                while (copies.hasNext()) {
+                    removeCopy(copies.next());
+                }
+            }
+        }
+
     }
 }

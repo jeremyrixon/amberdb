@@ -10,6 +10,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
 
 import amberdb.AmberSession;
@@ -22,6 +24,8 @@ import amberdb.enums.Compression;
 import amberdb.enums.CopyRole;
 import amberdb.enums.CopyrightPolicy;
 import amberdb.enums.SubType;
+
+import static org.hamcrest.CoreMatchers.*;
 
 public class WorkTest {
 
@@ -508,7 +512,7 @@ public class WorkTest {
         constraints.add("testingd");
         work.setConstraint(constraints);
         constraints = work.getConstraint();
-        assertEquals(5,constraints.size());
+        assertEquals(5, constraints.size());
         assertTrue(constraints.contains("testingc"));
         constraints.add("octopus");
         work.setConstraint(constraints);
@@ -533,6 +537,64 @@ public class WorkTest {
         Iterator<Work> it = work.getChildren().iterator();
         assertEquals(child2, it.next());
         assertEquals(child1, it.next());
+    }
+
+    @Test
+    public void hasCopyRoleList(){
+        Work work = db.addWork();
+        Copy copy1 = work.addCopy();
+        copy1.setCopyRole(CopyRole.ACCESS_COPY.code());
+        assertTrue(work.hasCopyRole(Arrays.asList(CopyRole.MASTER_COPY, CopyRole.ACCESS_COPY)));
+        assertFalse(work.hasCopyRole(Arrays.asList(CopyRole.MASTER_COPY, CopyRole.ORIGINAL_COPY)));
+    }
+
+    @Test
+    public void getFirstExistingCopy(){
+        Work work = db.addWork();
+        Copy masterCopy = work.addCopy();
+        masterCopy.setCopyRole(CopyRole.MASTER_COPY.code());
+        Copy copy = work.getFirstExistingCopy(CopyRole.ACCESS_COPY, CopyRole.MASTER_COPY);
+        assertThat(copy.getCopyRole(), is(CopyRole.MASTER_COPY.code()));
+    }
+
+    @Test
+    public void getFirstExistingCopyWorkHasNoCopy(){
+        Work work = db.addWork();
+        Copy copy = work.getFirstExistingCopy(CopyRole.ACCESS_COPY, CopyRole.MASTER_COPY);
+        assertThat (copy, is(nullValue()));
+    }
+
+    @Test
+    public void getFirstExistingNoCopy(){
+        Work work = db.addWork();
+        Copy masterCopy = work.addCopy();
+        masterCopy.setCopyRole(CopyRole.MASTER_COPY.code());
+        Copy copy = work.getFirstExistingCopy(null);
+        assertThat (copy, is(nullValue()));
+    }
+
+    @Test
+    public void getFirstExistingCopyNoMatchingCopy(){
+        Work work = db.addWork();
+        Copy masterCopy = work.addCopy();
+        masterCopy.setCopyRole(CopyRole.MASTER_COPY.code());
+        Copy copy = work.getFirstExistingCopy(CopyRole.ACCESS_COPY, CopyRole.ORIGINAL_COPY);
+        assertThat (copy, is(nullValue()));
+    }
+    
+    @Test
+    public void removeCopies(){
+        Work work = db.addWork();
+        Copy masterCopy = work.addCopy();
+        masterCopy.setCopyRole(CopyRole.MASTER_COPY.code());
+        Copy accessCopy1 = work.addCopy();
+        accessCopy1.setCopyRole(CopyRole.ACCESS_COPY.code());
+        Copy originalCopy = work.addCopy();
+        originalCopy.setCopyRole(CopyRole.ORIGINAL_COPY.code());
+        work.removeCopies(Arrays.asList(CopyRole.MASTER_COPY, CopyRole.ACCESS_COPY));
+        List<Copy> copies = Lists.newArrayList(work.getCopies().iterator());
+        assertThat (copies.size(), is (1));
+        assertThat (copies.get(0).getCopyRole(), is(CopyRole.ORIGINAL_COPY.code()));
     }
     
     @After

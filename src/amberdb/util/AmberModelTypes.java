@@ -10,7 +10,7 @@ public class AmberModelTypes {
 
     public static final List<String> WORK_TYPES = Lists.newArrayList("Work", "Page", "Section", "EADWork");  
     public static final List<String> COPY_TYPES = Lists.newArrayList("Copy");  
-    public static final List<String> FILE_TYPES = Lists.newArrayList("File", "ImageFile", "SoundFile");  
+    public static final List<String> FILE_TYPES = Lists.newArrayList("File", "ImageFile", "SoundFile", "MovingImageFile");
     public static final List<String> DESC_TYPES = Lists.newArrayList("Description", "IPTC", "GeoCoding", "CameraData");  
     
     public static boolean isWork(String type) {

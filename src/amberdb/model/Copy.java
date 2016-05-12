@@ -3,6 +3,7 @@ package amberdb.model;
 import amberdb.AmberSession;
 import amberdb.NoSuchCopyException;
 import amberdb.enums.CopyRole;
+import amberdb.enums.MaterialType;
 import amberdb.relation.*;
 import amberdb.util.EPubConverter;
 import amberdb.util.Jp2Converter;
@@ -260,6 +261,9 @@ public interface Copy extends Node {
     @JavaHandler
     public SoundFile getSoundFile();
 
+    @JavaHandler
+    public MovingImageFile getMovingImageFile();
+
     @Adjacency(label = DescriptionOf.label, direction = Direction.IN)
     public CameraData addCameraData();
 
@@ -272,6 +276,9 @@ public interface Copy extends Node {
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     public SoundFile addSoundFile();
 
+    @Adjacency(label = IsFileOf.label, direction = Direction.IN)
+    public MovingImageFile addMovingImageFile();
+
     @JavaHandler
     File addFile(Path source, String mimeType) throws IOException;
 
@@ -283,6 +290,9 @@ public interface Copy extends Node {
 
     @Adjacency(label = IsFileOf.label, direction = Direction.IN)
     void removeFile(final File file);
+
+    @JavaHandler
+    public void removeFileIfExists();
 
     @Adjacency(label = IsCopyOf.label)
     public Work getWork();
@@ -323,13 +333,17 @@ public interface Copy extends Node {
 
         @Override
         public File addFile(Writable contents, String mimeType) throws IOException {
-            File file;
-            if (mimeType.startsWith("image")) {
-                file = addImageFile();
-                this.setMaterialType("Image");
-            } else if (mimeType.startsWith("audio")) {
-                file = addSoundFile();
-                this.setMaterialType("Sound");
+            File file = null;
+            MaterialType mt = MaterialType.fromMimeType(mimeType);
+            if (mt != null && (mt == MaterialType.IMAGE || mt == MaterialType.SOUND || mt == MaterialType.MOVINGIMAGE)) {
+                if (mt == MaterialType.IMAGE) {
+                    file = addImageFile();
+                } else if (mt == MaterialType.SOUND) {
+                    file = addSoundFile();
+                } else if (mt == MaterialType.MOVINGIMAGE) {
+                    file = addMovingImageFile();
+                }
+                this.setMaterialType(mt.code());
             } else {
                 file = addFile();
             }
@@ -865,12 +879,23 @@ public interface Copy extends Node {
             return (o == null) ? null : this.g().frame(o.asVertex(), SoundFile.class);
         }
 
+        @Override
+        public MovingImageFile getMovingImageFile() {
+            File o = getSpecializedFile("video");
+            if (o == null) {
+                o = getSpecializedFile("application/mxf");
+            }
+            return (o == null) ? null : this.g().frame(o.asVertex(), MovingImageFile.class);
+        }
+
         private File getSpecializedFile(String fmt) {
             String fileType = "";
             if (fmt.equals("image"))
                 fileType = "ImageFile";
             else if (fmt.equals("audio"))
                 fileType = "SoundFile";
+            else if (fmt.equals("video") || fmt.equals("application/mxf"))
+                fileType = "MovingImageFile";
 
             Iterable<File> files = this.getFiles();
             if (files != null) {
@@ -910,6 +935,14 @@ public interface Copy extends Node {
                                             }
                                         });
             return ind +1;
+        }
+
+        @Override
+        public void removeFileIfExists(){
+            File file = getFile();
+            if (file != null) {
+                removeFile(file);
+            }
         }
     }
 }

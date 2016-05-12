@@ -31,6 +31,14 @@ public class WorkComparator implements Comparator<Work> {
 
     @Override
     public int compare(Work w1, Work w2) {
+        
+        if (w1 == w2) {
+            return 0;
+        }
+        
+        // We want the order to always be deterministic to avoid UI behaviour of works showing in different orders
+        // So we fall back to ordering by object id if the return value would be 0
+        int fallbackOrder = w1.getObjId().compareTo(w2.getObjId()) * (sortForward ? 1 : -1);
 
         Object o1 = w1.asVertex().getProperty(sortPropertyName);
         Object o2 = w2.asVertex().getProperty(sortPropertyName);
@@ -40,7 +48,7 @@ public class WorkComparator implements Comparator<Work> {
         if (o2 == null) return -1;
 
         // easy comparisons
-        if (o1.equals(o2)) return 0;
+        if (o1.equals(o2)) return fallbackOrder;
 
         // check for a json encoded list and treat empty lists same as null
         if (o1 instanceof String && ((String) o1).startsWith("[")) {
@@ -57,6 +65,6 @@ public class WorkComparator implements Comparator<Work> {
         }
 
         // can't decide how to compare - call them equal
-        return 0;
+        return fallbackOrder;
     }
 }
