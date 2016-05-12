@@ -256,8 +256,8 @@ public interface File extends Node {
          * then goes to the blob to get the file's size. If getting the size from the blob
          * is successful (or if this file vertex has no blob).
          *
-         * This method's side-effect is to set's the fileSize attribute to that reported
-         * by the blob, or sets fileSize to 0 if this file has no blob.
+         * This method's side-effect is to set the fileSize attribute to that reported by
+         * the blob, or sets fileSize to 0 if this file has no blob.
          *
          * If an IOException occurs, this method returns 0 without a side effect.
          *
