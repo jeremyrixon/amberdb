@@ -220,23 +220,58 @@ public interface File extends Node {
             return getBlobStore().get(getBlobId());
         }
 
+        /**
+         * Tries to return the fileSize attribute of the file vertex first. If this fails,
+         * then goes to the blob to get the file's size. If getting the size from the blob
+         * is successful (or if this file vertex has no blob).
+         *
+         * This method's side-effect is to set's the fileSize attribute to that reported
+         * by the blob, or sets fileSize to 0 if this file has no blob.
+         *
+         * If an IOException occurs, this method returns 0 without a side effect.
+         *
+         * @return the file's size in bytes.
+         */
         @Override
         public long getFileSize() {
             Long fileSize = this.asVertex().getProperty("fileSize");
-            return (fileSize == null)? 0L : fileSize;
+            if (fileSize == null) {
+                try {
+                    fileSize = getBlob().size();
+                    setFileSize(fileSize);
+
+                } catch (NoSuchBlobException e) {
+                    fileSize = 0L;
+                    setFileSize(fileSize);
+
+                } catch (IOException e) {
+                    return 0L;
+                    // leave fileSize attribute null, so it can try again next time
+                }
+            }
+            return fileSize;
         }
 
         /**
-         * Return the size of the blob. If an exception occurs try and
+         * Return the size of the blob. If an IOException occurs try and
          * return the fileSize property. If that fails, return 0L.
          */
         @Override
         public long getSize() {
             try {
                 return getBlob().size();
-            } catch (NoSuchBlobException | IOException e) {
+
+            } catch (NoSuchBlobException e) {
+                return 0L; // no blob, so size is 0
+
+            } catch (IOException e) {
                 // As a last resort see if the file has a size property to return
-                return getFileSize();
+                Long fileSize = this.asVertex().getProperty("fileSize");
+                if (fileSize != null) {
+                    return fileSize;
+                }
+                // no, so call it 0 for now
+                return 0L;
             }
         }
 
