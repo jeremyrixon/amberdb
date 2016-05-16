@@ -45,6 +45,16 @@ public class FileTest extends AbstractDatabaseIntegrationTest {
         assertEquals(4L, file.getFileSize());
         assertEquals(4L, file.getSize());
 
+        // replace file
+        file.put(Writables.wrap("TEXT5"));
+        assertEquals(5L, file.getFileSize());
+        assertEquals(5L, file.getSize());
+
+        // point to non-existent blob
+        file.setBlobIdAndSize(0L);
+        assertEquals(0L, file.getFileSize());
+        assertEquals(0L, file.getSize());
+
         copy = work.addCopy();
         file = copy.addFile();
         file.putLegacyDoss(Paths.get("test/resources/hello.txt"));
