@@ -3,9 +3,19 @@ package amberdb.model;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.List;
 
+import amber.checksum.Checksum;
+import amber.checksum.ChecksumAlgorithm;
+import amberdb.AbstractDatabaseIntegrationTest;
+import doss.core.Writables;
+import org.bouncycastle.util.encoders.Hex;
+import org.h2.store.fs.FilePath;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,33 +24,49 @@ import amberdb.AmberSession;
 import amberdb.enums.MaterialType;
 
 
-public class FileTest {
-    private AmberSession amberDb;
-    
-    @Before
-    public void startup() {
-        amberDb = new AmberSession();           
-    }
-    
-    @After
-    public void teardown() throws IOException {
-        if (amberDb != null) {
-            amberDb.close();
-        }       
-    }
-    
+public class FileTest extends AbstractDatabaseIntegrationTest {
+
     @Test
     public void shouldReturn0InAbsenceOfFileSize() {
-        Work work = amberDb.addWork();
+        Work work = amberSession.addWork();
         Copy copy = work.addCopy();
         File file = copy.addFile();
         assertEquals(0L, file.getFileSize());
         assertEquals(0L, file.getSize());
     }
-    
+
+    @Test
+    public void shouldSetFileSizeOnSetBlobId() throws IOException, NoSuchAlgorithmException {
+        Work work = amberSession.addWork();
+
+        Copy copy = work.addCopy();
+        File file = copy.addFile();
+        file.put(Writables.wrap("TEXT"));
+        assertEquals(4L, file.getFileSize());
+        assertEquals(4L, file.getSize());
+
+        copy = work.addCopy();
+        file = copy.addFile();
+        file.putLegacyDoss(Paths.get("test/resources/hello.txt"));
+        assertEquals(5L, file.getFileSize());
+        assertEquals(5L, file.getSize());
+
+        copy = work.addCopy();
+        file = copy.addFile();
+        byte[] testFile = new byte[] {1,2,3,4,5,6};
+        byte[] cs = MessageDigest.getInstance("sha1").digest(testFile);
+        file.putWithChecksumValidation(Writables.wrap(testFile),
+                new Checksum(ChecksumAlgorithm.fromString("sha1"),
+                        org.apache.commons.codec.binary.Hex.encodeHexString(cs)));
+        assertEquals(6L, file.getFileSize());
+        assertEquals(6L, file.getSize());
+
+
+    }
+
     @Test
     public void shouldReturnTheChecksumCreationDate() {
-        Work work = amberDb.addWork();
+        Work work = amberSession.addWork();
         Copy copy = work.addCopy();
         File file = copy.addFile();
         
@@ -51,7 +77,7 @@ public class FileTest {
     
     @Test
     public void shouldResetTechnicalProperties() {
-        Work work = amberDb.addWork();
+        Work work = amberSession.addWork();
         Copy copy = work.addCopy();
         File file = copy.addImageFile();
         ImageFile imageFile = (ImageFile) file;
@@ -92,7 +118,7 @@ public class FileTest {
         String cpLocation = "cp location";
         String zoomLevel = "zoom level";
         
-        imageFile.setBlobId(blobId);
+        imageFile.setBlobIdAndSize(blobId);
         imageFile.setMimeType(mimeType);
         imageFile.setFileName(fileName);
         imageFile.setFileFormat(fileFormat);

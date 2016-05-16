@@ -42,8 +42,8 @@ import doss.local.LocalBlobStore;
 @TypeValue("File")
 public interface File extends Node {
 
-    @Property("blobId")
-    public void setBlobId(Long id);
+    @JavaHandler
+    public void setBlobIdAndSize(Long id);
 
     @Property("blobId")
     public Long getBlobId();
@@ -251,6 +251,23 @@ public interface File extends Node {
             return getBlobStore().get(getBlobId());
         }
 
+        @Override
+        public void setBlobIdAndSize(Long id) {
+            try {
+                Long size = getBlobStore().get(id).size();
+                setFileSize(size);
+
+            } catch (NoSuchBlobException e) {
+                setFileSize(0L);
+
+            } catch (IOException e) {
+                // clear the fileSize so it can be populated when getFileSize is called
+                asVertex().setProperty("fileSize", null);
+            }
+            asVertex().setProperty("blobId", id);
+        }
+
+
         /**
          * Tries to return the fileSize attribute of the file vertex first. If this fails,
          * then goes to the blob to get the file's size. If getting the size from the blob
@@ -330,7 +347,7 @@ public interface File extends Node {
         public void put(Writable writable) throws IOException {
             try (BlobTx tx = getBlobStore().begin()) {
                 Blob blob = tx.put(writable);
-                setBlobId(blob.id());
+                setBlobIdAndSize(blob.id());
                 tx.commit();
             }
         }
@@ -346,7 +363,7 @@ public interface File extends Node {
                 } catch (NoSuchAlgorithmException e) {
                     throw new InvalidChecksumException("Ingest failed. Checksum not found in the meta xml file");
                 }
-                setBlobId(blob.id());
+                setBlobIdAndSize(blob.id());
                 tx.commit();
             }
         }
@@ -355,7 +372,7 @@ public interface File extends Node {
         public void putLegacyDoss(Path dossPath) throws IOException {
             try (LocalBlobStore.Tx tx = (LocalBlobStore.Tx) ((LocalBlobStore) getBlobStore()).begin()) {
                 Long blobId = tx.putLegacy(dossPath);
-                setBlobId(blobId);
+                setBlobIdAndSize(blobId);
                 tx.commit();
             }
         }

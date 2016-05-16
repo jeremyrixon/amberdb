@@ -1,50 +1,34 @@
 package amberdb.model;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import amberdb.AbstractDatabaseIntegrationTest;
 import com.google.common.collect.Iterables;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import amberdb.AmberSession;
 import amberdb.TestUtils;
 import amberdb.enums.CopyRole;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 
-public class CopyTest {
+public class CopyTest extends AbstractDatabaseIntegrationTest {
     
     @ClassRule
     public static TemporaryFolder folder = new TemporaryFolder();    
     
-    private AmberSession amberDb;
-    
-    @Before
-    public void startup() {
-        amberDb = new AmberSession();           
-    }
-    
-    @After
-    public void teardown() throws IOException {
-        if (amberDb != null) {
-            amberDb.close();
-        }       
-    }
-
     @Test
     public void shouldCreateAnImageFileWhenMimeTypeStartsWithImage() throws Exception {                     
-        Work work = amberDb.addWork();
+        Work work = amberSession.addWork();
         work.addPage(TestUtils.newDummyFile(folder, "nla.aus-vn12345-1.tiff"), "image/tiff").setOrder(1);
 
         File file = work.getPage(1).getCopies().iterator().next().getFile();        
@@ -53,7 +37,7 @@ public class CopyTest {
     
     @Test
     public void shouldCreateAFile() throws Exception {                     
-        Work work = amberDb.addWork();
+        Work work = amberSession.addWork();
         work.addPage(TestUtils.newDummyFile(folder, "nla.aus-vn12345-1.xml"), "text/html").setOrder(1);
 
         File file = work.getPage(1).getCopies().iterator().next().getFile();        
@@ -63,7 +47,7 @@ public class CopyTest {
 
     @Test
     public void testGetSetAllOtherNumbers() throws IOException {
-        Copy copy = amberDb.addWork().addCopy();
+        Copy copy = amberSession.addWork().addCopy();
         Map<String, String> otherNumbers = copy.getAllOtherNumbers();
         assertEquals(0, otherNumbers.size());
         otherNumbers.put("Voyager", "voyagerNumber");
@@ -82,7 +66,7 @@ public class CopyTest {
     
     @Test
     public void testGetSetAlias() throws IOException {
-        Copy copy = amberDb.addWork().addCopy();
+        Copy copy = amberSession.addWork().addCopy();
         List<String> aliases = copy.getAlias();
         assertEquals(0, aliases.size());
         assertFalse(aliases.contains("testingc"));
@@ -104,9 +88,9 @@ public class CopyTest {
 
     @Test
     public void testGetFiles() throws IOException {
-        Copy copy = amberDb.addWork().addCopy();
-        long sessId = amberDb.suspend();
-        amberDb.recover(sessId);
+        Copy copy = amberSession.addWork().addCopy();
+        long sessId = amberSession.suspend();
+        amberSession.recover(sessId);
         assertEquals(null, copy.getImageFile());
         ImageFile imageFile = copy.addImageFile();
         assertEquals(null, copy.getSoundFile());
@@ -131,14 +115,14 @@ public class CopyTest {
     public void testDateProperties() throws IOException, ParseException {
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
         Date date = dateFormat.parse("12/12/1987");
-        Copy copy = amberDb.addWork().addCopy();
+        Copy copy = amberSession.addWork().addCopy();
         copy.setDateCreated(date);
         assertEquals(date, copy.getDateCreated());
     }
 
     @Test
     public void testIntegerProperties() throws IOException {
-        Copy copy = amberDb.addWork().addCopy();
+        Copy copy = amberSession.addWork().addCopy();
         ImageFile imageFile = copy.addImageFile();
         imageFile.setImageLength(null);
         assertEquals(null, imageFile.getImageLength());
@@ -148,7 +132,7 @@ public class CopyTest {
     
     @Test
     public void testToEnsureDCMLegacyDataFieldsExist() throws IOException {
-        Copy copy = amberDb.addWork().addCopy();
+        Copy copy = amberSession.addWork().addCopy();
         
         Date date = new Date();
         
@@ -174,7 +158,7 @@ public class CopyTest {
     
     @Test
     public void testGetDerivedCopiesWithCopyRole() {
-        Work work = amberDb.addWork();
+        Work work = amberSession.addWork();
         Copy sourceCopy = work.addCopy();
         sourceCopy.setCopyRole(CopyRole.ORIGINAL_COPY.code());
         Copy accessCopy1 = work.addCopy();
@@ -215,7 +199,7 @@ public class CopyTest {
         String RECORDSOURCE_UPDATED = "VUFIND";
         
         // Create the Work
-        Work work = amberDb.addWork();        
+        Work work = amberSession.addWork();
         work.setTitle("cat");
         
         // Create the Copy
@@ -233,7 +217,7 @@ public class CopyTest {
         
         Long objectId = work.getId();
         
-        amberDb.commit();        
+        amberSession.commit();
         
         work = null;
         copy = null;
@@ -241,8 +225,8 @@ public class CopyTest {
         
         // Retrieve Work / Copy / ImageFile 
         // and make changes to ImageFile
-        //amber = amberDbService.get();
-        Work workB = amberDb.findWork(objectId);
+        //amber = amberSessionService.get();
+        Work workB = amberSession.findWork(objectId);
         assertNotNull(workB);        
         Copy copyB = workB.getCopy(CopyRole.ACCESS_COPY);        
         assertNotNull(copyB);
@@ -262,14 +246,14 @@ public class CopyTest {
         assertEquals(RECORDSOURCE_UPDATED, copyB.getRecordSource());
         assertEquals(DEVICE_UPDATED, imageFileB.getDevice());
         
-        amberDb.commit();        
+        amberSession.commit();
         
         workB = null;
         copyB = null;
         imageFileB = null;
         
         // Retrieve Work / Copy / ImageFile                 
-        Work workC = amberDb.findWork(objectId);
+        Work workC = amberSession.findWork(objectId);
         assertNotNull(workC);        
         Copy copyC = workC.getCopy(CopyRole.ACCESS_COPY);        
         assertNotNull(copyC);
@@ -283,7 +267,7 @@ public class CopyTest {
 
     @Test
     public void copyHasMultipleAccessCopies() {
-        Work work = amberDb.addWork();
+        Work work = amberSession.addWork();
         Copy mCopy = work.addCopy();
         mCopy.setCopyRole(CopyRole.MASTER_COPY.code());
         Copy d1Copy = work.addCopy();
@@ -299,7 +283,7 @@ public class CopyTest {
 
     @Test
     public void copyCanRemoveSourceCopyRelationship() {
-        Work work = amberDb.addWork();
+        Work work = amberSession.addWork();
         Copy mCopy = work.addCopy();
         mCopy.setCopyRole(CopyRole.MASTER_COPY.code());
         Long mCopyId = mCopy.getId();
@@ -311,12 +295,12 @@ public class CopyTest {
         d1Copy.removeSourceCopy(mCopy);
         assertThat(!mCopy.equals(d1Copy.getSourceCopy()), is(true));
         assertThat(d1Copy.getSourceCopy() == null, is(true));
-        assertThat(mCopy.equals(amberDb.findModelObjectById(mCopyId, Copy.class)), is(true));
+        assertThat(mCopy.equals(amberSession.findModelObjectById(mCopyId, Copy.class)), is(true));
     }
 
     @Test
     public void copyHasSingleComaster() {
-        Work work = amberDb.addWork();
+        Work work = amberSession.addWork();
         Copy mCopy = work.addCopy();
         mCopy.setCopyRole(CopyRole.MASTER_COPY.code());
         Copy d1Copy = work.addCopy();
@@ -331,7 +315,7 @@ public class CopyTest {
     
     @Test
     public void testGetSoundFile() {
-        Work work = amberDb.addWork();
+        Work work = amberSession.addWork();
         Copy copy = work.addCopy();
         copy.setCopyRole(CopyRole.LISTENING_1_COPY.code());
         File f = copy.addFile();
@@ -345,7 +329,7 @@ public class CopyTest {
     @Test
     public void testGetOrderedCopies() {
         Long[] cpIds = new Long[11];
-        Work work = amberDb.addWork();
+        Work work = amberSession.addWork();
         Copy o = work.addCopy();
         cpIds[0] = o.getId();
         o.setCopyRole(CopyRole.ORIGINAL_COPY.code());
