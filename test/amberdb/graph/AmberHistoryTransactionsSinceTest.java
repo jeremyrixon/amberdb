@@ -168,10 +168,10 @@ public class AmberHistoryTransactionsSinceTest {
             p.setTitle("page " + (i+1));
             
             c1.setCopyRole(CopyRole.ACCESS_COPY.code());
-            f1.setBlobId(i);
+            f1.setBlobIdAndSize(i);
 
             c2.setCopyRole(CopyRole.OCR_JSON_COPY.code());
-            f2.setBlobId(i+100);
+            f2.setBlobIdAndSize(i+100);
         }
         aGraph.commit("test", "commit book");
 

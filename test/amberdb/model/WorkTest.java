@@ -5,12 +5,11 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 import java.util.*;
 
+import amberdb.AbstractDatabaseIntegrationTest;
 import org.apache.commons.collections.IteratorUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
 
@@ -27,7 +26,7 @@ import amberdb.enums.SubType;
 
 import static org.hamcrest.CoreMatchers.*;
 
-public class WorkTest {
+public class WorkTest extends AbstractDatabaseIntegrationTest {
 
     private Work workCollection;
     private Work bookBlinkyBill;
@@ -40,12 +39,9 @@ public class WorkTest {
     
     private Work journalNLAOH;
 
-    private AmberSession db;
-    
     @Before
     public void setup() throws IOException, InstantiationException {
-        db = new AmberSession();
-        setTestDataInH2(db);
+        setTestDataInH2(amberSession);
     }
 
     @Test
@@ -135,8 +131,8 @@ public class WorkTest {
     
     @Test
     public void testGetSetParentEdges() throws IOException {          
-            Work work = db.addWork();
-            Work parentWork = db.addWork();
+            Work work = amberSession.addWork();
+            Work parentWork = amberSession.addWork();
             parentWork.addChild(work);
             assertTrue(null == parentWork.getParentEdge());
             assertEquals(parentWork, work.getParentEdge().getSource());            
@@ -224,15 +220,15 @@ public class WorkTest {
         Work work = bookBlinkyBill;
         long workVertexId = work.getId();
 
-        db.deleteWork(work);
+        amberSession.deleteWork(work);
 
         /* expects a NoSuchObjectException */
-        db.findWork(workVertexId);
+        amberSession.findWork(workVertexId);
     }
     
     @Test
     public void testRepresentWork() {
-        Work newWork = db.addWork();
+        Work newWork = amberSession.addWork();
         Copy representativeCopy = workFrontCover.getCopy(CopyRole.MASTER_COPY);
         newWork.addRepresentation(representativeCopy);
         Iterable<Work> representedWorks = representativeCopy.getRepresentedWorks();
@@ -250,7 +246,7 @@ public class WorkTest {
     @Test
     public void testEmptyIterableNotNull() {
         
-        Work work = db.addWork();
+        Work work = amberSession.addWork();
         Copy c = work.addCopy();
 
         // test if problem with empty iterable
@@ -261,33 +257,33 @@ public class WorkTest {
     
     @Test
     public void testGetWorksRepresentedByCopiesOf() {
-        Work newWork = db.addWork();
+        Work newWork = amberSession.addWork();
         Copy representativeCopy = workFrontCover.getCopy(CopyRole.MASTER_COPY);
         newWork.addRepresentation(representativeCopy);
-        Map<Long, Long> reps = db.getWorksRepresentedByCopiesOf(workFrontCover);
+        Map<Long, Long> reps = amberSession.getWorksRepresentedByCopiesOf(workFrontCover);
         assertEquals((Long) reps.get(newWork.getId()), (Long) representativeCopy.getId());
     }
     
     @Test(expected = NoSuchObjectException.class)
     public void testDeleteWorkShouldNotDeleteCopyFromOtherWork() {
         // create new work and assign its representative copy
-        Work newWork = db.addWork();
+        Work newWork = amberSession.addWork();
         String newWorkId = newWork.getObjId();
         String workFrontCoverId = workFrontCover.getObjId();
         Copy representativeCopy = workFrontCover.getCopy(CopyRole.MASTER_COPY);
         newWork.addRepresentation(representativeCopy);
         
         // delete new work
-        db.deleteWork(newWork);
-        db.commit();
+        amberSession.deleteWork(newWork);
+        amberSession.commit();
         
-        // verify the representative copy still exist in db
-        Work foundWorkFrontCover = db.findWork(workFrontCoverId);
+        // verify the representative copy still exist in amberSession
+        Work foundWorkFrontCover = amberSession.findWork(workFrontCoverId);
         Copy afterDeleteCopy = foundWorkFrontCover.getCopy(CopyRole.MASTER_COPY);
         assertEquals(representativeCopy, afterDeleteCopy);
         
         // verify the new work is deleted through NoSuchObjectException thrown
-        Work afterDeleteNewWork = db.findWork(newWorkId);
+        Work afterDeleteNewWork = amberSession.findWork(newWorkId);
     }
     
     @Test(expected = NoSuchObjectException.class)
@@ -310,8 +306,8 @@ public class WorkTest {
             assertEquals(copy.getId(), copy.asVertex().getId());
         }
         
-        db.deletePage(page);
-        db.findWork(workVertexId);
+        amberSession.deletePage(page);
+        amberSession.findWork(workVertexId);
     }
     
 
@@ -320,7 +316,7 @@ public class WorkTest {
         
         List<Work> pages = new ArrayList<>();
         
-        Work book = db.addWork();
+        Work book = amberSession.addWork();
         for (int i = 0; i < 20; i++) {
             Page page = book.addPage();
             page.setTitle("page " + i);
@@ -347,9 +343,9 @@ public class WorkTest {
 
     @Test
     public void testAddDeliveryWork() {
-        Work work = db.addWork();
+        Work work = amberSession.addWork();
 
-        Work deliveryWork = db.addWork();
+        Work deliveryWork = amberSession.addWork();
         work.addDeliveryWork(deliveryWork);
 
         Collection<Work> list = IteratorUtils.toList(work.getDeliveryWorks().iterator());
@@ -359,9 +355,9 @@ public class WorkTest {
 
     @Test
     public void testRemoveDeliveryWork() {
-        Work work = db.addWork();
+        Work work = amberSession.addWork();
 
-        Work deliveryWork = db.addWork();
+        Work deliveryWork = amberSession.addWork();
         work.addDeliveryWork(deliveryWork);
 
         Collection<Work> list = IteratorUtils.toList(work.getDeliveryWorks().iterator());
@@ -375,9 +371,9 @@ public class WorkTest {
 
     @Test
     public void testRetrieveDeliveryWorkInterview() {
-        Work work = db.addWork();
+        Work work = amberSession.addWork();
 
-        Work deliveryWork = db.addWork();
+        Work deliveryWork = amberSession.addWork();
         deliveryWork.setDeliveryWorkParent(work);
         work.addDeliveryWork(deliveryWork);
 
@@ -471,7 +467,7 @@ public class WorkTest {
     
     @Test
     public void testToEnsureDCMLegacyDataFieldsExist() throws IOException {
-        Work work = db.addWork();
+        Work work = amberSession.addWork();
         
         Date date = new Date();
         
@@ -501,7 +497,7 @@ public class WorkTest {
     
     @Test
     public void testGetSetConstraint() throws IOException {
-        Work work = db.addWork();
+        Work work = amberSession.addWork();
         Set<String> constraints = new LinkedHashSet<>();
         assertEquals(0, work.getConstraint().size());
         assertFalse(constraints.contains("testingc"));
@@ -523,12 +519,12 @@ public class WorkTest {
     
     @Test
     public void testSetOrder() {
-        Work work = db.addWork();
+        Work work = amberSession.addWork();
         work.setOrder(0);  // should not throw a NullPointerException
         
-        Work child1 = db.addWork();
+        Work child1 = amberSession.addWork();
         work.addChild(child1);
-        Work child2 = db.addWork();
+        Work child2 = amberSession.addWork();
         work.addChild(child2);
         
         child2.setOrder(0);
@@ -541,7 +537,7 @@ public class WorkTest {
 
     @Test
     public void hasCopyRoleList(){
-        Work work = db.addWork();
+        Work work = amberSession.addWork();
         Copy copy1 = work.addCopy();
         copy1.setCopyRole(CopyRole.ACCESS_COPY.code());
         assertTrue(work.hasCopyRole(Arrays.asList(CopyRole.MASTER_COPY, CopyRole.ACCESS_COPY)));
@@ -550,7 +546,7 @@ public class WorkTest {
 
     @Test
     public void getFirstExistingCopy(){
-        Work work = db.addWork();
+        Work work = amberSession.addWork();
         Copy masterCopy = work.addCopy();
         masterCopy.setCopyRole(CopyRole.MASTER_COPY.code());
         Copy copy = work.getFirstExistingCopy(CopyRole.ACCESS_COPY, CopyRole.MASTER_COPY);
@@ -559,14 +555,14 @@ public class WorkTest {
 
     @Test
     public void getFirstExistingCopyWorkHasNoCopy(){
-        Work work = db.addWork();
+        Work work = amberSession.addWork();
         Copy copy = work.getFirstExistingCopy(CopyRole.ACCESS_COPY, CopyRole.MASTER_COPY);
         assertThat (copy, is(nullValue()));
     }
 
     @Test
     public void getFirstExistingNoCopy(){
-        Work work = db.addWork();
+        Work work = amberSession.addWork();
         Copy masterCopy = work.addCopy();
         masterCopy.setCopyRole(CopyRole.MASTER_COPY.code());
         Copy copy = work.getFirstExistingCopy(null);
@@ -575,7 +571,7 @@ public class WorkTest {
 
     @Test
     public void getFirstExistingCopyNoMatchingCopy(){
-        Work work = db.addWork();
+        Work work = amberSession.addWork();
         Copy masterCopy = work.addCopy();
         masterCopy.setCopyRole(CopyRole.MASTER_COPY.code());
         Copy copy = work.getFirstExistingCopy(CopyRole.ACCESS_COPY, CopyRole.ORIGINAL_COPY);
@@ -584,7 +580,7 @@ public class WorkTest {
     
     @Test
     public void removeCopies(){
-        Work work = db.addWork();
+        Work work = amberSession.addWork();
         Copy masterCopy = work.addCopy();
         masterCopy.setCopyRole(CopyRole.MASTER_COPY.code());
         Copy accessCopy1 = work.addCopy();
@@ -597,9 +593,4 @@ public class WorkTest {
         assertThat (copies.get(0).getCopyRole(), is(CopyRole.ORIGINAL_COPY.code()));
     }
     
-    @After
-    public void teardown() throws IOException {
-        if (db != null)
-            db.close();
-    }
 }
