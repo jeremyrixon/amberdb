@@ -304,7 +304,9 @@ public class AmberSessionTest {
         w1.setAlias(Arrays.asList("wally", "beta", "delta", "epsilon", "gamma"));
         w2.setAlias(Arrays.asList("beta", "delta", "epsilon", "gamma", "wally"));
         w3.setAlias(Arrays.asList("beta", "delta", "epsilon", "gamma"));
+        w3.setStandardId(Arrays.asList("1445-2197 (ISSN)"));
         w4.setAlias(Arrays.asList("beta", "delta", "wally", "epsilon", "gamma"));
+        w4.setStandardId(Arrays.asList("1445-2197 (ISSN)"));
 
         sess.commit();
 
@@ -314,6 +316,7 @@ public class AmberSessionTest {
 
         w5.setAlias(Arrays.asList("wally", "beta", "delta", "epsilon", "gamma"));
         w6.setAlias(Arrays.asList("beta", "delta", "epsilon", "gamma"));
+        w6.setStandardId(Arrays.asList("1445-2197 (ISSN)"));
 
         List<Work> works = sess.findModelByValueInJsonList("alias", "wally", Work.class);
 
@@ -321,6 +324,8 @@ public class AmberSessionTest {
         for (Work w : works) {
             assertTrue(w.getAlias().contains("wally"));
         }
+        
+        assertEquals(3, sess.findModelByValueInJsonList("standardId", "1445-2197 (ISSN)", Work.class).size());
     }
 
     @Test
