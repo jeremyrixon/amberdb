@@ -1037,7 +1037,7 @@ public abstract class LookupsSchema {
 
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
             + "('commercialStatus', 'Commercial', 'Commercial'),"
-            + "('commercialStatus', 'Non-commercial', 'Non-commercial')")
+            + "('commercialStatus', 'NonCommerc', 'Non-commercial')")
     public abstract void seedCommercialStatusList();
 
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"

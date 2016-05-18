@@ -295,6 +295,12 @@ public abstract class Lookups extends Tools {
     }
     
     public synchronized void migrate() {
+    	
+    	ListLu commercialStatusLu = findLookup("commercialStatus", "Non-commercial");
+    	if (commercialStatusLu != null) {
+    		updateLookup(commercialStatusLu.id, commercialStatusLu.getValue(), "Noncommerc");
+    	}
+    	
         ListLu mapSubUnitTypeSheet = findLookup("subUnitType", "Sheet");
         if (mapSubUnitTypeSheet == null) {
             addLookupData("subUnitType", "Sheet", "Sheet");
