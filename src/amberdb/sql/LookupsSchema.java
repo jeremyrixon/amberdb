@@ -1037,15 +1037,15 @@ public abstract class LookupsSchema {
 
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
             + "('commercialStatus', 'Commercial', 'Commercial'),"
-            + "('commercialStatus', 'Non-commercial', 'Non-commercial')")
+            + "('commercialStatus', 'NonCommerc', 'Non-commercial')")
     public abstract void seedCommercialStatusList();
 
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
-            + "('depositMethod', 'OnlineLegal', 'Online legal deposit'),"
-            + "('depositMethod', 'OnlineGovernment', 'Online government deposit'),"
-            + "('depositMethod', 'OnlineVoluntary', 'Online voluntary deposit'),"
-            + "('depositMethod', 'OfflineVoluntary', 'Offline voluntary deposit')")
-    public abstract void seedDepositMethodList();
+            + "('depositType', 'OnlineLegal', 'Online legal deposit'),"
+            + "('depositType', 'OnlineGovernment', 'Online government deposit'),"
+            + "('depositType', 'OnlineVoluntary', 'Online voluntary deposit'),"
+            + "('depositType', 'OfflineVoluntary', 'Offline voluntary deposit')")
+    public abstract void seedDepositTypeList();
     
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
             + "('copyType', 'p', 'Physical'),"
@@ -1160,7 +1160,7 @@ public abstract class LookupsSchema {
         seedToolTypesLookups();
         seedToolCategoriesLookups();
         seedMaterialTypesLookups();
-        seedDepositMethodList();
+        seedDepositTypeList();
         seedManipulationLookups();
     }
     

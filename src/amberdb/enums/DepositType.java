@@ -3,7 +3,7 @@ package amberdb.enums;
 import java.util.ArrayList;
 import java.util.List;
 
-public enum DepositMethod {
+public enum DepositType {
 	ONLINELEGALDEPOSIT("Online legal deposit"),
 	ONLINEGOVERNMENTDEPOSIT("Online government deposit"),
 	ONLINEVOLUNTARYDEPOSIT("Online voluntary deposit"),
@@ -12,7 +12,7 @@ public enum DepositMethod {
     
     private String code;
     
-    private DepositMethod(String code) {
+    private DepositType(String code) {
         this.code = code;
     }
     
@@ -20,9 +20,9 @@ public enum DepositMethod {
         return code;
     }
     
-    public static DepositMethod fromString(String code) {
+    public static DepositType fromString(String code) {
         if (code != null) {
-            for (DepositMethod dm : DepositMethod.values()) {
+            for (DepositType dm : DepositType.values()) {
                 if (code.equalsIgnoreCase(dm.code)) {
                     return dm;
                 }
@@ -33,7 +33,7 @@ public enum DepositMethod {
     
     public static List<String> list() {
         List<String> list = new ArrayList<String>();
-        for (DepositMethod dm  : DepositMethod.values()) {
+        for (DepositType dm  : DepositType.values()) {
             list.add(dm.code);
         }
         return list;

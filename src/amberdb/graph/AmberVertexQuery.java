@@ -191,6 +191,10 @@ public class AmberVertexQuery extends AmberQueryBase {
     
     
     public List<Vertex> executeJsonValSearch(String name, String value) {
+        // quote any characters that could cause issues with the regex matching - assumes we are performing an exact match on value
+        for (String quote : Arrays.asList(".", "(", ")", "[", "]", "{", "}")) {
+            value = value.replace(quote, "\\" + quote);
+        }
 
         List<Vertex> vertices;
         try (Handle h = graph.dbi().open()) {
