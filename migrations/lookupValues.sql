@@ -736,6 +736,7 @@ insert into list (name, value) values
 
 insert into list (name, value) values
 ('subUnitType','Additional Material'),
+('subUnitType','Article'),
 ('subUnitType','Attachment'),
 ('subUnitType','Bibliography'),
 ('subUnitType','Biography'),

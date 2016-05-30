@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public enum SubUnitType {
+    ARTICLE("Article"),
     BOOK("Book"), 
     BOX("Box"), 
     CLASS("Class"),
