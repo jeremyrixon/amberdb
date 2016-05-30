@@ -3,6 +3,7 @@ package amberdb.sql;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import org.h2.jdbcx.JdbcConnectionPool;
@@ -108,6 +109,10 @@ public class AmberLookupsTest {
                                             "Indigenous - female only", "Indigenous - male only",
                                             "Offensive content"};
         assertArrayEquals(expectedSensitiveReason, actuals);
+        
+        values = lookups.findActiveLookupsFor("subUnitType");
+        actuals = populateArray(values);
+        assertTrue("sub unit type should contain article", Arrays.asList(actuals).contains("Article"));
     }
     
     private String[] populateArray(List<ListLu> values) {
