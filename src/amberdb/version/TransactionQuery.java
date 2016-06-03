@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.ResultIterator;
 
 
 public class TransactionQuery {
@@ -62,19 +63,33 @@ public class TransactionQuery {
 
     private Map<TId, Map<String, Object>> getPropertyMaps(Handle h, String idTable) {
         
-        List<TProperty> propList = h.createQuery(
+        ResultIterator<TProperty> iter = h.createQuery(
                 "SELECT p.id, p.txn_start, p.txn_end, p.name, p.type, p.value "
                 + "FROM property p, " + idTable + " " 
                 + "WHERE p.id = " + idTable + ".id")
-                .map(new TPropertyMapper()).list();
+                .map(new TPropertyMapper()).iterator();
 
         Map<TId, Map<String, Object>> propertyMaps = new HashMap<>();
-        for (TProperty prop : propList) {
+        Map<String, String> internedStrings = new HashMap<>();
+        
+        while (iter.hasNext()) {
+        	TProperty prop = iter.next();
             TId id = prop.getId();
             if (propertyMaps.get(id) == null) {
                 propertyMaps.put(id, new HashMap<String, Object>());
             }
-            propertyMaps.get(id).put(prop.getName(), prop.getValue());
+            Object value = prop.getValue();
+            if (value instanceof String) {
+            	String s = (String) value;
+            	String interned = internedStrings.get(s);
+            	if (interned == null) {
+            		internedStrings.put(s, s);
+            		value = s;
+            	} else {
+            		value = interned;
+            	}
+            }
+            propertyMaps.get(id).put(prop.getName().intern(), value);
         }
         return propertyMaps;
     }
@@ -84,15 +99,16 @@ public class TransactionQuery {
 
         List<VersionedVertex> gotVertices = new ArrayList<>(); 
         
-        List<TVertex> vertices = h.createQuery(
+        ResultIterator<TVertex> vertexIter = h.createQuery(
                 "SELECT v.id, v.txn_start, v.txn_end "
                 + "FROM vertex v, " + tableId + " "
                 + "WHERE v.id = " + tableId + ".id")
-                .map(new TVertexMapper()).list();
+                .map(new TVertexMapper()).iterator();
 
         // add them to the graph
         Map<Long, Set<TVertex>> vertexSets = new HashMap<>();
-        for (TVertex vertex : vertices) {
+        while (vertexIter.hasNext()) {
+        	TVertex vertex = vertexIter.next();
             Long versId = vertex.getId().id;
             if (vertexSets.get(versId) == null) 
                 vertexSets.put(versId, new HashSet<TVertex>()); 
@@ -113,15 +129,18 @@ public class TransactionQuery {
     
     private void getEdges(Handle h , VersionedGraph graph, Map<TId, Map<String, Object>> propMaps, String tableId) {
         
-        List<TEdge> edges = h.createQuery(
+         ResultIterator<TEdge> iter = h.createQuery(
                 "SELECT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order "
                 + "FROM edge e, " + tableId + " "
                 + "WHERE e.id = " + tableId + ".id ")
-                .map(new TEdgeMapper()).list();
+                .map(new TEdgeMapper()).iterator();
         
         // add them to the graph
         Map<Long, Set<TEdge>> edgeSets = new HashMap<>();
-        for (TEdge edge : edges) {
+        
+        while(iter.hasNext()) {
+        	TEdge edge = iter.next();
+        	
             if (edge == null) { // if either vertex doesn't exist 
                 continue;
             }
