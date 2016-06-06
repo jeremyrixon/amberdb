@@ -63,100 +63,102 @@ public class TransactionQuery {
 
     private Map<TId, Map<String, Object>> getPropertyMaps(Handle h, String idTable) {
         
-        ResultIterator<TProperty> iter = h.createQuery(
+        try (ResultIterator<TProperty> iter = h.createQuery(
                 "SELECT p.id, p.txn_start, p.txn_end, p.name, p.type, p.value "
                 + "FROM property p, " + idTable + " " 
                 + "WHERE p.id = " + idTable + ".id")
-                .map(new TPropertyMapper()).iterator();
+                .map(new TPropertyMapper()).iterator()) {
 
-        Map<TId, Map<String, Object>> propertyMaps = new HashMap<>();
-        Map<String, String> internedStrings = new HashMap<>();
-        
-        while (iter.hasNext()) {
-        	TProperty prop = iter.next();
-            TId id = prop.getId();
-            if (propertyMaps.get(id) == null) {
-                propertyMaps.put(id, new HashMap<String, Object>());
-            }
-            Object value = prop.getValue();
-            if (value instanceof String) {
-            	String s = (String) value;
-            	String interned = internedStrings.get(s);
-            	if (interned == null) {
-            		internedStrings.put(s, s);
-            		value = s;
-            	} else {
-            		value = interned;
-            	}
-            }
-            propertyMaps.get(id).put(prop.getName().intern(), value);
+	        Map<TId, Map<String, Object>> propertyMaps = new HashMap<>();
+	        Map<String, String> internedStrings = new HashMap<>();
+	        
+	        while (iter.hasNext()) {
+	        	TProperty prop = iter.next();
+	            TId id = prop.getId();
+	            if (propertyMaps.get(id) == null) {
+	                propertyMaps.put(id, new HashMap<String, Object>());
+	            }
+	            Object value = prop.getValue();
+	            if (value instanceof String) {
+	            	String s = (String) value;
+	            	String interned = internedStrings.get(s);
+	            	if (interned == null) {
+	            		internedStrings.put(s, s);
+	            		value = s;
+	            	} else {
+	            		value = interned;
+	            	}
+	            }
+	            propertyMaps.get(id).put(prop.getName().intern(), value);
+	        }
+	        
+	        return propertyMaps;
         }
-        return propertyMaps;
     }
 
     
     private List<VersionedVertex> getVertices(Handle h , VersionedGraph graph, Map<TId, Map<String, Object>> propMaps, String tableId) {
 
-        List<VersionedVertex> gotVertices = new ArrayList<>(); 
-        
-        ResultIterator<TVertex> vertexIter = h.createQuery(
-                "SELECT v.id, v.txn_start, v.txn_end "
-                + "FROM vertex v, " + tableId + " "
-                + "WHERE v.id = " + tableId + ".id")
-                .map(new TVertexMapper()).iterator();
+    	String query =  "SELECT v.id, v.txn_start, v.txn_end "
+                      + "FROM vertex v, " + tableId + " "
+                      + "WHERE v.id = " + tableId + ".id";
+    	try (ResultIterator<TVertex> vertexIter = h.createQuery(query).map(new TVertexMapper()).iterator()) {
 
-        // add them to the graph
-        Map<Long, Set<TVertex>> vertexSets = new HashMap<>();
-        while (vertexIter.hasNext()) {
-        	TVertex vertex = vertexIter.next();
-            Long versId = vertex.getId().id;
-            if (vertexSets.get(versId) == null) 
-                vertexSets.put(versId, new HashSet<TVertex>()); 
-            vertexSets.get(versId).add(vertex); 
-            Map<String, Object> props = propMaps.get(vertex.getId());
-            if (props != null) {
-                vertex.replaceProperties(props);
-            }
-        }
-        for (Set<TVertex> vSet : vertexSets.values()) {
-            VersionedVertex v = new VersionedVertex(vSet, graph);
-            graph.addVertexToGraph(v);
-            gotVertices.add(v);
-        }
-        return gotVertices;
+	        List<VersionedVertex> gotVertices = new ArrayList<>(); 
+	        
+	        // add them to the graph
+	        Map<Long, Set<TVertex>> vertexSets = new HashMap<>();
+	        while (vertexIter.hasNext()) {
+	        	TVertex vertex = vertexIter.next();
+	            Long versId = vertex.getId().id;
+	            if (vertexSets.get(versId) == null) 
+	                vertexSets.put(versId, new HashSet<TVertex>()); 
+	            vertexSets.get(versId).add(vertex); 
+	            Map<String, Object> props = propMaps.get(vertex.getId());
+	            if (props != null) {
+	                vertex.replaceProperties(props);
+	            }
+	        }
+	        for (Set<TVertex> vSet : vertexSets.values()) {
+	            VersionedVertex v = new VersionedVertex(vSet, graph);
+	            graph.addVertexToGraph(v);
+	            gotVertices.add(v);
+	        }
+	        return gotVertices;
+    	}
     }
     
     
     private void getEdges(Handle h , VersionedGraph graph, Map<TId, Map<String, Object>> propMaps, String tableId) {
+    	String query = "SELECT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order "
+    			     + "FROM edge e, " + tableId + " "
+                     + "WHERE e.id = " + tableId + ".id ";
         
-         ResultIterator<TEdge> iter = h.createQuery(
-                "SELECT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order "
-                + "FROM edge e, " + tableId + " "
-                + "WHERE e.id = " + tableId + ".id ")
-                .map(new TEdgeMapper()).iterator();
+         try (ResultIterator<TEdge> iter = h.createQuery(query).map(new TEdgeMapper()).iterator()) {
         
-        // add them to the graph
-        Map<Long, Set<TEdge>> edgeSets = new HashMap<>();
-        
-        while(iter.hasNext()) {
-        	TEdge edge = iter.next();
-        	
-            if (edge == null) { // if either vertex doesn't exist 
-                continue;
-            }
-            Long versId = edge.getId().id;
-            if (edgeSets.get(versId) == null) 
-                edgeSets.put(versId, new HashSet<TEdge>()); 
-            edgeSets.get(versId).add(edge);
-            Map<String, Object> props = propMaps.get(edge.getId());
-            if (props != null) {
-                edge.replaceProperties(props);
-            }
-        }
-        for (Set<TEdge> eSet : edgeSets.values()) {
-            VersionedEdge e = new VersionedEdge(eSet, graph);
-            graph.addEdgeToGraph(e);
-        }
+	        // add them to the graph
+	        Map<Long, Set<TEdge>> edgeSets = new HashMap<>();
+	        
+	        while(iter.hasNext()) {
+	        	TEdge edge = iter.next();
+	        	
+	            if (edge == null) { // if either vertex doesn't exist 
+	                continue;
+	            }
+	            Long versId = edge.getId().id;
+	            if (edgeSets.get(versId) == null) 
+	                edgeSets.put(versId, new HashSet<TEdge>()); 
+	            edgeSets.get(versId).add(edge);
+	            Map<String, Object> props = propMaps.get(edge.getId());
+	            if (props != null) {
+	                edge.replaceProperties(props);
+	            }
+	        }
+	        for (Set<TEdge> eSet : edgeSets.values()) {
+	            VersionedEdge e = new VersionedEdge(eSet, graph);
+	            graph.addEdgeToGraph(e);
+	        }
+         }
     }
 
 
