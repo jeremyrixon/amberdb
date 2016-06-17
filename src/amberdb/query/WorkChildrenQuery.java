@@ -1,6 +1,7 @@
 package amberdb.query;
 
 import amberdb.AmberSession;
+import amberdb.PIUtil;
 import amberdb.enums.BibLevel;
 import amberdb.enums.CopyRole;
 import amberdb.enums.SubType;
@@ -13,6 +14,8 @@ import amberdb.model.Work;
 import java.util.*;
 
 import amberdb.model.sort.WorkComparator;
+import amberdb.util.WorkUtils;
+
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
@@ -27,6 +30,7 @@ import com.tinkerpop.blueprints.Vertex;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
 import org.skife.jdbi.v2.util.LongMapper;
+import org.skife.jdbi.v2.util.StringMapper;
 
 public class WorkChildrenQuery extends AmberQueryBase {
 
@@ -389,4 +393,19 @@ public class WorkChildrenQuery extends AmberQueryBase {
         }
         return 0;
     }
+    
+    public List<String> getChildPIs(String workId) {
+        try (Handle h = graph.dbi().open()) {
+        	List<Long> objIds = h.createQuery("select v_out from edge where v_in = :workId and label = 'isPartOf' and txn_end = 0")
+        		.bind("workId", PIUtil.parse(workId))
+        		.map(LongMapper.FIRST)
+        		.list();
+        	List<String> strings = new ArrayList<>(objIds.size());
+        	for (Long objId: objIds) {
+        		strings.add(PIUtil.format(objId));
+        	}
+        	return strings;
+        }
+    }
+
 }
