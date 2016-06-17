@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.TransactionIsolationLevel;
 import org.skife.jdbi.v2.Update;
 
 import com.tinkerpop.blueprints.Vertex;
@@ -199,6 +200,7 @@ public class AmberVertexQuery extends AmberQueryBase {
         List<Vertex> vertices;
         try (Handle h = graph.dbi().open()) {
             h.begin();
+            h.setTransactionIsolation(TransactionIsolationLevel.READ_COMMITTED);
             h.execute("DROP " + graph.tempTableDrop + " TABLE IF EXISTS vp; CREATE TEMPORARY TABLE vp (id BIGINT) " + graph.tempTableEngine + ";");
             Update q = h.createStatement(
                     "INSERT INTO vp (id) \n"
