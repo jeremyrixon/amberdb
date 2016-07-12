@@ -8,7 +8,8 @@ public enum SortField {
     ISSUE_DATE ("issueDate", "Issue Date"), 
     DIGITAL_STATUS ("digitalStatus", "Capture status"),
     SUBUNIT_TYPE ("subUnitType", "Sub unit type"),
-    ACCESS_CONDITIONS ("accessConditions", "Public availability");
+    ACCESS_CONDITIONS ("accessConditions", "Public availability"),
+    HOLDING_NUMBER ("holdingNumber", "Holding number");
 
     private SortField(String fieldName, String displayName) {
         this.fieldName = fieldName;
