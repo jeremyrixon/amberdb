@@ -75,7 +75,7 @@
                 <version>2.4.2</version>
                 <configuration>
                     <excludes>
-                        <exclude>amberdb/TestUtils.java</exclude>
+                        <exclude>amberdb/v1/TestUtils.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
