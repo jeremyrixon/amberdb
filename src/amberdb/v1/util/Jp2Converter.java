@@ -40,7 +40,7 @@ import com.drew.metadata.exif.ExifIFD0Directory;
  *         features to the image header of a baseline JP2 file.  You might like to upgrade
  *         the application to write files using the `jpx_target' object, rather than
  *         `jp2_target'.
- * Currently amberdb.v1.v1 and banjo don't support jpx. Adding support for jpx will take place at a later time.
+ * Currently amberdb and banjo don't support jpx. Adding support for jpx will take place at a later time.
  * For the mean time, we'll just use imagemagick convert to convert it to jp2.
 */
 

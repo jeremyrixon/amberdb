@@ -9,10 +9,10 @@ import java.util.Arrays;
  */
 public class Main {
     static void printError(Throwable e) {
-        if (System.getProperty("amberdb.v1.v1.trace") != null) {
+        if (System.getProperty("amberdb.trace") != null) {
             e.printStackTrace();
         } else {
-            err.println("amberdb.v1.v1: " + e.getLocalizedMessage());
+            err.println("amberdb: " + e.getLocalizedMessage());
             Throwable cause = e.getCause();
             while (cause != null) {
                 err.println("caused by " + cause);

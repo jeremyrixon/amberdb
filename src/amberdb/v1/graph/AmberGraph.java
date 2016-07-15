@@ -502,7 +502,7 @@ public class AmberGraph extends BaseGraph
     
     @Override
     public void commit() {
-        commit("amberdb.v1.v1", "commit");
+        commit("amberdb", "commit");
     }
 
     
@@ -946,7 +946,7 @@ public class AmberGraph extends BaseGraph
 
 
     public void commitBig() {
-        commitBig("amberdb.v1.v1", "commit");
+        commitBig("amberdb", "commit");
     }
 
 

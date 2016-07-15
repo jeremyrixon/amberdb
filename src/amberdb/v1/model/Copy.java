@@ -378,7 +378,7 @@ public interface Copy extends Node {
             Path stage = null;
             try {
                 // create a temporary file processing location for deriving the EPub file
-                stage = Files.createTempDirectory("amberdb.v1.v1-derivative");
+                stage = Files.createTempDirectory("amberdb-derivative");
 
                 // assume this Copy is a master copy and access the amber file
                 Long blobId = (this.getFile() == null)? null: this.getFile().getBlobId();
@@ -450,7 +450,7 @@ public interface Copy extends Node {
             Path stage = null;
             try {
                 // create a temporary file processing location for deriving the jpeg2000 from the master/comaster
-                stage = Files.createTempDirectory("amberdb.v1.v1-derivative");
+                stage = Files.createTempDirectory("amberdb-derivative");
 
                 // assume this Copy is a master copy and access the amber file
                 Long imgBlobId = (this.getFile() == null)? null: this.getFile().getBlobId();
@@ -539,7 +539,7 @@ public interface Copy extends Node {
             Path stage = null;
             try {
                 // create a temporary file processing location for generating pdf
-                stage = Files.createTempDirectory("amberdb.v1.v1-derivative");
+                stage = Files.createTempDirectory("amberdb-derivative");
 
                 // assume this Copy is a FINDING_AID_COPY
                 Long blobId = this.getFile().getBlobId();

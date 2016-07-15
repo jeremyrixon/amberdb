@@ -280,7 +280,7 @@ public abstract class Lookups extends Tools {
                                              @Bind("name") String name);
     
     public synchronized void seedInitialLookups() throws IOException {
-        List<Path> lookupPaths = getLookupFilePaths("amberdb.v1.v1.lookups.", ".file");
+        List<Path> lookupPaths = getLookupFilePaths("amberdb.lookups.", ".file");
         for (Path lookupPath : lookupPaths) {
             Map<String,List<String>> lookupData = parseLookupData(lookupPath);
             if (!lookupData.isEmpty()) {

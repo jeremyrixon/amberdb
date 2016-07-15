@@ -17,7 +17,7 @@ public class CmdHelp extends Command {
     }
 
     void listCommands() {
-        out.println("usage: amberdb.v1.v1 <command> [<args>]");
+        out.println("usage: amberdb <command> [<args>]");
         out.println("");
         out.println("Available commands:");
         for (Command command : Command.list()) {

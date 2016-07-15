@@ -8,7 +8,7 @@ import org.skife.jdbi.v2.util.LongMapper;
 import java.util.List;
 
 /**
- * @see amberdb.v1.v1.query.PropertyQueryAssemblerTest
+ * @see amberdb.v1.query.PropertyQueryAssemblerTest
  *
  * Assemble a SQL using work properties (name/value pair).
  */
