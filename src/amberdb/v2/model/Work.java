@@ -123,7 +123,7 @@ public class Work extends Node {
     private String south;
     private String east;
     private String west;
-    
+
     public Work(int id, int txn_start, int txn_end,
                 Date dcmDateTimeCreated, Date dcmDateTimeUpdated, String dcmRecordUpdater, String dcmWorkPid,
                 String dcmAltPi, String dcmRecordCreator, Boolean displayTitlePage, String title, String addtionalTitle,
