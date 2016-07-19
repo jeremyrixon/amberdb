@@ -1,18 +1,15 @@
 package amberdb.v2.model;
 
-import amberdb.v2.model.mapper.IPTCMapper;
-import amberdb.v2.model.mapper.MapWith;
+import javax.persistence.Column;
+import javax.persistence.Entity;
 
-@MapWith(IPTCMapper.class)
+@Entity
 public class IPTC extends Node {
-    private String province;
-    private String city;
 
-    public IPTC(int id, int txn_start, int txn_end, String province, String city) {
-        super(id, txn_start, txn_end);
-        this.province = province;
-        this.city = city;
-    }
+    @Column
+    private String province;
+    @Column
+    private String city;
 
     public String getProvince() {
         return province;

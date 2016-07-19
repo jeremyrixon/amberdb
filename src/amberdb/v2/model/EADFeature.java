@@ -1,23 +1,19 @@
 package amberdb.v2.model;
 
-import amberdb.v2.model.mapper.EADFeatureMapper;
-import amberdb.v2.model.mapper.MapWith;
+import javax.persistence.Column;
+import javax.persistence.Entity;
 
-@MapWith(EADFeatureMapper.class)
+@Entity
 public class EADFeature extends Node {
 
+    @Column
     private String records;
+    @Column
     private String featureType;
+    @Column
     private String fields;
+    @Column
     private String featureId;
-
-    public EADFeature(int id, int txn_start, int txn_end, String records, String featureType, String fields, String featureId) {
-        super(id, txn_start, txn_end);
-        this.records = records;
-        this.featureType = featureType;
-        this.fields = fields;
-        this.featureId = featureId;
-    }
 
     public String getRecords() {
         return records;

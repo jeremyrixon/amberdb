@@ -1,75 +1,66 @@
 package amberdb.v2.model;
 
 
-import amberdb.v2.model.mapper.MapWith;
-import amberdb.v2.model.mapper.SoundFileMapper;
+import javax.persistence.Column;
+import javax.persistence.Entity;
 
-@MapWith(SoundFileMapper.class)
+@Entity
 public class SoundFile extends Node {
 
+    @Column
     private String fileName;
+    @Column
     private String software;
+    @Column
     private String thickness;
+    @Column
     private String channel;
+    @Column
     private String bitrate;
+    @Column
     private String mimeType;
+    @Column
     private String durationType;
+    @Column
     private String speed;
+    @Column
     private String duration;
+    @Column
     private String toolId;
+    @Column
     private String checksum;
+    @Column
     private String soundField;
+    @Column
     private String fileContainer;
+    @Column
     private String brand;
+    @Column
     private String surface;
+    @Column
     private String equalisation;
+    @Column
     private String encoding;
+    @Column
     private String codec;
+    @Column
     private int fileSize;
+    @Column
     private String reelSize;
+    @Column
     private String carrierCapacity;
+    @Column
     private String bitDepth;
+    @Column
     private int blobId;
+    @Column
     private String checksumType;
+    @Column
     private String samplingRate;
+    @Column
     private String compression;
+    @Column
     private String fileFormat;
-
-    public SoundFile(int id, int txn_start, int txn_end, String fileName, String software, String thickness,
-                     String channel, String bitrate, String mimeType, String durationType, String speed,
-                     String duration, String toolId, String checksum, String soundField, String fileContainer,
-                     String brand, String surface, String equalisation, String encoding, String codec, int fileSize,
-                     String reelSize, String carrierCapacity, String bitDepth, int blobId, String checksumType,
-                     String samplingRate, String compression, String fileFormat) {
-        super(id, txn_start, txn_end);
-        this.fileName = fileName;
-        this.software = software;
-        this.thickness = thickness;
-        this.channel = channel;
-        this.bitrate = bitrate;
-        this.mimeType = mimeType;
-        this.durationType = durationType;
-        this.speed = speed;
-        this.duration = duration;
-        this.toolId = toolId;
-        this.checksum = checksum;
-        this.soundField = soundField;
-        this.fileContainer = fileContainer;
-        this.brand = brand;
-        this.surface = surface;
-        this.equalisation = equalisation;
-        this.encoding = encoding;
-        this.codec = codec;
-        this.fileSize = fileSize;
-        this.reelSize = reelSize;
-        this.carrierCapacity = carrierCapacity;
-        this.bitDepth = bitDepth;
-        this.blobId = blobId;
-        this.checksumType = checksumType;
-        this.samplingRate = samplingRate;
-        this.compression = compression;
-        this.fileFormat = fileFormat;
-    }
 
     public String getFileName() {
         return fileName;

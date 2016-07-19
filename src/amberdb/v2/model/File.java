@@ -1,78 +1,68 @@
 package amberdb.v2.model;
 
-import amberdb.v2.model.mapper.FileMapper;
-import amberdb.v2.model.mapper.MapWith;
-
+import javax.persistence.Column;
+import javax.persistence.Entity;
 import java.util.Date;
 
-@MapWith(FileMapper.class)
+@Entity
 public class File extends Node {
 
+    @Column
     private String extent;
+    @Column
     private String fileName;
+    @Column
     private String localSystemNumber;
+    @Column
     private String software;
+    @Column
     private String encodingLevel;
+    @Column
     private String standardId;
+    @Column
     private String language;
+    @Column
     private String mimeType;
+    @Column
     private String title;
+    @Column
     private String holdingId;
+    @Column
     private Boolean australianContent;
+    @Column
     private String contributor;
+    @Column
     private String checksum;
+    @Column
     private String recordSource;
+    @Column
     private String coverage;
+    @Column
     private String bibId;
+    @Column
     private String creator;
+    @Column
     private Date checksumGenerationDate;
+    @Column
     private String coordinates;
+    @Column
     private String encoding;
+    @Column
     private String holdingNumber;
+    @Column
     private int fileSize;
+    @Column
     private int blobId;
+    @Column
     private String checksumType;
+    @Column
     private String publisher;
+    @Column
     private String compression;
+    @Column
     private String device;
+    @Column
     private String fileFormat;
-
-    public File(int id, int txn_start, int txn_end, String extent, String fileName, String localSystemNumber,
-                String software, String encodingLevel, String standardId, String language, String mimeType,
-                String title, String holdingId, Boolean australianContent, String contributor, String checksum,
-                String recordSource, String coverage, String bibId, String creator, Date checksumGenerationDate,
-                String coordinates, String encoding, String holdingNumber, int fileSize, int blobId,
-                String checksumType, String publisher, String compression, String device, String fileFormat) {
-        super(id, txn_start, txn_end);
-        this.extent = extent;
-        this.fileName = fileName;
-        this.localSystemNumber = localSystemNumber;
-        this.software = software;
-        this.encodingLevel = encodingLevel;
-        this.standardId = standardId;
-        this.language = language;
-        this.mimeType = mimeType;
-        this.title = title;
-        this.holdingId = holdingId;
-        this.australianContent = australianContent;
-        this.contributor = contributor;
-        this.checksum = checksum;
-        this.recordSource = recordSource;
-        this.coverage = coverage;
-        this.bibId = bibId;
-        this.creator = creator;
-        this.checksumGenerationDate = checksumGenerationDate;
-        this.coordinates = coordinates;
-        this.encoding = encoding;
-        this.holdingNumber = holdingNumber;
-        this.fileSize = fileSize;
-        this.blobId = blobId;
-        this.checksumType = checksumType;
-        this.publisher = publisher;
-        this.compression = compression;
-        this.device = device;
-        this.fileFormat = fileFormat;
-    }
 
     public String getExtent() {
         return extent;
