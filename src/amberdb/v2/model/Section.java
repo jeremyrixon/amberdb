@@ -13,7 +13,7 @@ public class Section extends Node {
     private String accessConditions;
     @Column
     private Boolean allowOnsiteAccess;
-    @Column
+    @Column(name="abstract")
     private String abstractText;
     @Column
     private String advertising;
