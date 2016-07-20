@@ -800,6 +800,7 @@ public abstract class LookupsSchema {
       + "('bookJournalLevel', 'Issue'),"
       + "('bookJournalLevel', 'Volume'),"
       + "('subUnitType','Additional Material'),"
+      + "('subUnitType','Article'),"
       + "('subUnitType','Attachment'),"
       + "('subUnitType','Bibliography'),"
       + "('subUnitType','Biography'),"

@@ -306,6 +306,12 @@ public abstract class Lookups extends Tools {
             addLookupData("subUnitType", "Sheet", "Sheet");
         }
         
+        final String article = "Article";
+        ListLu articleSubUnitTypeSheet = findLookup("subUnitType", article);
+        if (articleSubUnitTypeSheet == null) {
+            addLookupData("subUnitType", article, article);
+        }
+        
         List<ListLu> entries = findActiveLookupsFor("copyStatus");
         if (entries.isEmpty()) {
             addLookupData("copyStatus", "None", "None");

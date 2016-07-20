@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public enum DepositType {
-	ONLINELEGALDEPOSIT("Online legal deposit"),
-	ONLINEGOVERNMENTDEPOSIT("Online government deposit"),
-	ONLINEVOLUNTARYDEPOSIT("Online voluntary deposit"),
-	OFFLINEVOLUNTARYDEPOSIT("Offline voluntary deposit");
+	OnlineLegal("Online legal deposit"),
+	OnlineGovernment("Online government deposit"),
+	OnlineVoluntary("Online voluntary deposit"),
+	OfflineVoluntary("Offline voluntary deposit");
 	
     
     private String code;

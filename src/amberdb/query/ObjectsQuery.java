@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.Query;
+import org.skife.jdbi.v2.ResultIterator;
 import org.skife.jdbi.v2.Update;
 
 import amberdb.graph.AmberGraph;
@@ -207,19 +208,23 @@ public class ObjectsQuery extends AmberQueryBase {
                             ") AS vertices_with_transition;"
                             );
 
-            for (Map<String, Object> row : q.list()) {
-                Long id = (Long)row.get("id");
-                String transition = (String)row.get("transition");
-                
-                if (request.hasFilterPredicate()) {
-                    vGraph.clear();
-                    VersionedVertex vv = vGraph.getVertex(id);
-                    if (vv != null && request.getFilterPredicate().apply(vv)) {
-                        modifiedObjects.put(id, transition);
-                    } 
-                } else {
-                    modifiedObjects.put(id, transition);
-                }
+            
+            try (ResultIterator<Map<String, Object>> iter = q.iterator()) {
+            	while(iter.hasNext()) {
+            		Map<String, Object> row = iter.next();
+	                Long id = (Long)row.get("id");
+	                String transition = ((String)row.get("transition")).intern();
+	                
+	                if (request.hasFilterPredicate()) {
+	                    vGraph.clear();
+	                    VersionedVertex vv = vGraph.getVertex(id);
+	                    if (vv != null && request.getFilterPredicate().apply(vv)) {
+	                        modifiedObjects.put(id, transition);
+	                    } 
+	                } else {
+	                    modifiedObjects.put(id, transition);
+	                }
+            	}
             }
 
             boolean hasMore = (q.list().size() >= request.getTake());
