@@ -11,35 +11,35 @@ import javax.persistence.Entity;
 public class Node {
 
     @Column
-    private int id = 0;
+    private long id = 0;
 
     @Column
-    private int txn_start;
+    private long txn_start;
 
     @Column
-    private int txn_end;
+    private long txn_end;
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
-    public int getTxn_start() {
+    public long getTxn_start() {
         return txn_start;
     }
 
-    public void setTxn_start(int txn_start) {
+    public void setTxn_start(long txn_start) {
         this.txn_start = txn_start;
     }
 
-    public int getTxn_end() {
+    public long getTxn_end() {
         return txn_end;
     }
 
-    public void setTxn_end(int txn_end) {
+    public void setTxn_end(long txn_end) {
         this.txn_end = txn_end;
     }
 }
