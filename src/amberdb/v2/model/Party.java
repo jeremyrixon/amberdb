@@ -1,24 +1,24 @@
 package amberdb.v2.model;
 
 
-import amberdb.v2.model.mapper.MapWith;
-import amberdb.v2.model.mapper.PartyMapper;
+import amberdb.v2.model.mapper.AmberDbMapperFactory;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
-@MapWith(PartyMapper.class)
+import javax.persistence.Column;
+import javax.persistence.Entity;
+
+@Entity
+@RegisterMapperFactory(AmberDbMapperFactory.class)
 public class Party extends Node {
 
+    @Column
     private String name;
+    @Column
     private Boolean suppressed;
+    @Column
     private String orgUrl;
+    @Column
     private String logoUrl;
-
-    public Party(int id, int txn_start, int txn_end, String name, Boolean suppressed, String orgUrl, String logoUrl) {
-        super(id, txn_start, txn_end);
-        this.name = name;
-        this.suppressed = suppressed;
-        this.orgUrl = orgUrl;
-        this.logoUrl = logoUrl;
-    }
 
     public String getName() {
         return name;

@@ -1,123 +1,112 @@
 package amberdb.v2.model;
 
-import amberdb.v2.model.mapper.ImageFileMapper;
-import amberdb.v2.model.mapper.MapWith;
+import amberdb.v2.model.mapper.AmberDbMapperFactory;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
 import java.util.Date;
 
-@MapWith(ImageFileMapper.class)
+@Entity
+@RegisterMapperFactory(AmberDbMapperFactory.class)
 public class ImageFile extends Node {
-    private String extent;
-    private String fileName;
-    private String localSystemNumber;
-    private String software;
-    private String encodingLevel;
-    private String language;
-    private String mimeType;
-    private String resolution;
-    private String manufacturerSerialNumber;
-    private String holdingId;
-    private String resolutionUnit;
-    private int imageWidth;
-    private String manufacturerMake;
-    private String manufacturerModelName;
-    private String encoding;
-    private String deviceSerialNumber;
-    private int fileSize;
-    private String bitDepth;
-    private String publisher;
-    private String compression;
-    private String device;
-    private int imageLength;
-    private String colourSpace;
-    private String standardId;
-    private String title;
-    private Boolean australianContent;
-    private String contributor;
-    private String checksum;
-    private String recordSource;
-    private String bibId;
-    private String coverage;
-    private String orientation;
-    private String creator;
-    private String colourProfile;
-    private Date checksumGenerationDate;
-    private String applicationDateCreated;
-    private String coordinates;
-    private String creatorStatement;
-    private String fileFormatVersion;
-    private String dateDigitised;
-    private String holdingNumber;
-    private String application;
-    private String series;
-    private int blobId;
-    private String softwareSerialNumber;
-    private String checksumType;
-    private String location;
-    private String fileFormat;
 
-    public ImageFile(int id, int txn_start, int txn_end, String extent, String fileName, String localSystemNumber,
-                     String software, String encodingLevel, String language, String mimeType, String resolution,
-                     String manufacturerSerialNumber, String holdingId, String resolutionUnit, int imageWidth,
-                     String manufacturerMake, String manufacturerModelName, String encoding, String deviceSerialNumber,
-                     int fileSize, String bitDepth, String publisher, String compression, String device,
-                     int imageLength, String colourSpace, String standardId, String title, Boolean australianContent,
-                     String contributor, String checksum, String recordSource, String bibId, String coverage,
-                     String orientation, String creator, String colourProfile, Date checksumGenerationDate,
-                     String applicationDateCreated, String coordinates, String creatorStatement,
-                     String fileFormatVersion, String dateDigitised, String holdingNumber, String application,
-                     String series, int blobId, String softwareSerialNumber, String checksumType, String location,
-                     String fileFormat) {
-        super(id, txn_start, txn_end);
-        this.extent = extent;
-        this.fileName = fileName;
-        this.localSystemNumber = localSystemNumber;
-        this.software = software;
-        this.encodingLevel = encodingLevel;
-        this.language = language;
-        this.mimeType = mimeType;
-        this.resolution = resolution;
-        this.manufacturerSerialNumber = manufacturerSerialNumber;
-        this.holdingId = holdingId;
-        this.resolutionUnit = resolutionUnit;
-        this.imageWidth = imageWidth;
-        this.manufacturerMake = manufacturerMake;
-        this.manufacturerModelName = manufacturerModelName;
-        this.encoding = encoding;
-        this.deviceSerialNumber = deviceSerialNumber;
-        this.fileSize = fileSize;
-        this.bitDepth = bitDepth;
-        this.publisher = publisher;
-        this.compression = compression;
-        this.device = device;
-        this.imageLength = imageLength;
-        this.colourSpace = colourSpace;
-        this.standardId = standardId;
-        this.title = title;
-        this.australianContent = australianContent;
-        this.contributor = contributor;
-        this.checksum = checksum;
-        this.recordSource = recordSource;
-        this.bibId = bibId;
-        this.coverage = coverage;
-        this.orientation = orientation;
-        this.creator = creator;
-        this.colourProfile = colourProfile;
-        this.checksumGenerationDate = checksumGenerationDate;
-        this.applicationDateCreated = applicationDateCreated;
-        this.coordinates = coordinates;
-        this.creatorStatement = creatorStatement;
-        this.fileFormatVersion = fileFormatVersion;
-        this.dateDigitised = dateDigitised;
-        this.holdingNumber = holdingNumber;
-        this.application = application;
-        this.series = series;
-        this.blobId = blobId;
-        this.softwareSerialNumber = softwareSerialNumber;
-        this.checksumType = checksumType;
-        this.location = location;
-        this.fileFormat = fileFormat;
-    }
+    @Column
+    private String extent;
+    @Column
+    private String fileName;
+    @Column
+    private String localSystemNumber;
+    @Column
+    private String software;
+    @Column
+    private String encodingLevel;
+    @Column
+    private String language;
+    @Column
+    private String mimeType;
+    @Column
+    private String resolution;
+    @Column
+    private String manufacturerSerialNumber;
+    @Column
+    private String holdingId;
+    @Column
+    private String resolutionUnit;
+    @Column
+    private int imageWidth;
+    @Column
+    private String manufacturerMake;
+    @Column
+    private String manufacturerModelName;
+    @Column
+    private String encoding;
+    @Column
+    private String deviceSerialNumber;
+    @Column
+    private int fileSize;
+    @Column
+    private String bitDepth;
+    @Column
+    private String publisher;
+    @Column
+    private String compression;
+    @Column
+    private String device;
+    @Column
+    private int imageLength;
+    @Column
+    private String colourSpace;
+    @Column
+    private String standardId;
+    @Column
+    private String title;
+    @Column
+    private Boolean australianContent;
+    @Column
+    private String contributor;
+    @Column
+    private String checksum;
+    @Column
+    private String recordSource;
+    @Column
+    private String bibId;
+    @Column
+    private String coverage;
+    @Column
+    private String orientation;
+    @Column
+    private String creator;
+    @Column
+    private String colourProfile;
+    @Column
+    private Date checksumGenerationDate;
+    @Column
+    private String applicationDateCreated;
+    @Column
+    private String coordinates;
+    @Column
+    private String creatorStatement;
+    @Column
+    private String fileFormatVersion;
+    @Column
+    private String dateDigitised;
+    @Column
+    private String holdingNumber;
+    @Column
+    private String application;
+    @Column
+    private String series;
+    @Column
+    private int blobId;
+    @Column
+    private String softwareSerialNumber;
+    @Column
+    private String checksumType;
+    @Column
+    private String location;
+    @Column
+    private String fileFormat;
 
     public String getExtent() {
         return extent;

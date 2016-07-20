@@ -1,211 +1,190 @@
 package amberdb.v2.model;
 
-import amberdb.v2.model.mapper.EADWorkMapper;
-import amberdb.v2.model.mapper.MapWith;
+import amberdb.v2.model.mapper.AmberDbMapperFactory;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
 import java.util.Date;
 
-@MapWith(EADWorkMapper.class)
+@Entity
+@RegisterMapperFactory(AmberDbMapperFactory.class)
 public class EADWork extends Node {
 
+    @Column
     private String extent;
+    @Column
     private Date dcmDateTimeUpdated;
+    @Column
     private String localSystemNumber;
+    @Column
     private String occupation;
+    @Column
     private Boolean materialFromMultipleSources;
+    @Column
     private String encodingLevel;
+    @Column
     private Date endDate;
+    @Column
     private Boolean displayTitlePage;
+    @Column
     private String subject;
+    @Column
     private Boolean sendToIlms;
+    @Column
     private Boolean allowOnsiteAccess;
+    @Column
     private String language;
+    @Column
     private String sensitiveMaterial;
+    @Column
     private String repository;
+    @Column
     private String holdingId;
+    @Column
     private String arrangement;
+    @Column
     private String dcmAltPi;
+    @Column
     private String folderNumber;
+    @Column
     private String collectionNumber;
+    @Column
     private String west;
+    @Column
     private String totalDuration;
+    @Column
     private Boolean workCreatedDuringMigration;
+    @Column
     private String relatedMaterial;
+    @Column
     private Date dcmDateTimeCreated;
+    @Column
     private String findingAidNote;
+    @Column
     private String collection;
+    @Column
     private String dcmWorkPid;
+    @Column
     private String otherTitle;
+    @Column
     private String classification;
+    @Column
     private String commentsInternal;
+    @Column
     private String immutable;
+    @Column
     private String folder;
+    @Column
     private String copyrightPolicy;
+    @Column
     private String nextStep;
+    @Column
     private String publisher;
+    @Column
     private String subType;
+    @Column
     private String copyingPublishing;
+    @Column
     private String scaleEtc;
+    @Column
     private Date startDate;
+    @Column
     private String tempHolding;
+    @Column
     private String dcmRecordUpdater;
+    @Column
     private String access;
+    @Column
     private Boolean allowHighResdownload;
+    @Column
     private String south;
+    @Column
     private Boolean isMissingPage;
+    @Column
     private String restrictionsOnAccess;
+    @Column
     private String north;
+    @Column
     private String scopeContent;
+    @Column
     private String representativeId;
+    @Column
     private String standardId;
+    @Column
     private String accessConditions;
+    @Column
     private String title;
+    @Column
     private String internalAccessConditions;
+    @Column
     private String eadUpdateReviewRequired;
+    @Column
     private String subUnitNo;
+    @Column
     private Date expiryDate;
+    @Column
     private Boolean australianContent;
+    @Column
     private Date digitalStatusDate;
+    @Column
     private String east;
+    @Column
     private String bibliography;
+    @Column
     private String contributor;
+    @Column
     private String provenance;
+    @Column
     private Boolean moreIlmsDetailsRequired;
+    @Column
     private String subUnitType;
+    @Column
     private String rights;
+    @Column
     private String uniformTitle;
+    @Column
     private String rdsAcknowledgementType;
+    @Column
     private String alias;
+    @Column
     private String recordSource;
+    @Column
     private String dateRangeInAS;
+    @Column
     private String coverage;
+    @Column
     private String bibId;
+    @Column
     private String summary;
+    @Column
     private String creator;
+    @Column
     private String preferredCitation;
+    @Column
     private String coordinates;
+    @Column
     private String creatorStatement;
+    @Column
     private String folderType;
+    @Column
     private String bibLevel;
+    @Column
     private String carrier;
+    @Column
     private String holdingNumber;
+    @Column
     private String form;
+    @Column
     private String series;
+    @Column
     private String rdsAcknowledgementReceiver;
+    @Column
     private String constraint1;
+    @Column
     private String digitalStatus;
+    @Column
     private String dcmRecordCreator;
-
-    public EADWork(int id, int txn_start, int txn_end, String extent, Date dcmDateTimeUpdated, String localSystemNumber,
-                   String occupation, Boolean materialFromMultipleSources, String encodingLevel, Date endDate,
-                   Boolean displayTitlePage, String subject, Boolean sendToIlms, Boolean allowOnsiteAccess,
-                   String language, String sensitiveMaterial, String repository, String holdingId, String arrangement,
-                   String dcmAltPi, String folderNumber, String collectionNumber, String west, String totalDuration,
-                   Boolean workCreatedDuringMigration, String relatedMaterial, Date dcmDateTimeCreated,
-                   String findingAidNote, String collection, String dcmWorkPid, String otherTitle,
-                   String classification, String commentsInternal, String immutable, String folder,
-                   String copyrightPolicy, String nextStep, String publisher, String subType, String copyingPublishing,
-                   String scaleEtc, Date startDate, String tempHolding, String dcmRecordUpdater, String access,
-                   Boolean allowHighResdownload, String south, Boolean isMissingPage, String restrictionsOnAccess,
-                   String north, String scopeContent, String representativeId, String standardId,
-                   String accessConditions, String title, String internalAccessConditions,
-                   String eadUpdateReviewRequired, String subUnitNo, Date expiryDate, Boolean australianContent,
-                   Date digitalStatusDate, String east, String bibliography, String contributor, String provenance,
-                   Boolean moreIlmsDetailsRequired, String subUnitType, String rights, String uniformTitle,
-                   String rdsAcknowledgementType, String alias, String recordSource, String dateRangeInAS,
-                   String coverage, String bibId, String summary, String creator, String preferredCitation,
-                   String coordinates, String creatorStatement, String folderType, String bibLevel, String carrier,
-                   String holdingNumber, String form, String series, String rdsAcknowledgementReceiver,
-                   String constraint1, String digitalStatus, String dcmRecordCreator) {
-        super(id, txn_start, txn_end);
-        this.extent = extent;
-        this.dcmDateTimeUpdated = dcmDateTimeUpdated;
-        this.localSystemNumber = localSystemNumber;
-        this.occupation = occupation;
-        this.materialFromMultipleSources = materialFromMultipleSources;
-        this.encodingLevel = encodingLevel;
-        this.endDate = endDate;
-        this.displayTitlePage = displayTitlePage;
-        this.subject = subject;
-        this.sendToIlms = sendToIlms;
-        this.allowOnsiteAccess = allowOnsiteAccess;
-        this.language = language;
-        this.sensitiveMaterial = sensitiveMaterial;
-        this.repository = repository;
-        this.holdingId = holdingId;
-        this.arrangement = arrangement;
-        this.dcmAltPi = dcmAltPi;
-        this.folderNumber = folderNumber;
-        this.collectionNumber = collectionNumber;
-        this.west = west;
-        this.totalDuration = totalDuration;
-        this.workCreatedDuringMigration = workCreatedDuringMigration;
-        this.relatedMaterial = relatedMaterial;
-        this.dcmDateTimeCreated = dcmDateTimeCreated;
-        this.findingAidNote = findingAidNote;
-        this.collection = collection;
-        this.dcmWorkPid = dcmWorkPid;
-        this.otherTitle = otherTitle;
-        this.classification = classification;
-        this.commentsInternal = commentsInternal;
-        this.immutable = immutable;
-        this.folder = folder;
-        this.copyrightPolicy = copyrightPolicy;
-        this.nextStep = nextStep;
-        this.publisher = publisher;
-        this.subType = subType;
-        this.copyingPublishing = copyingPublishing;
-        this.scaleEtc = scaleEtc;
-        this.startDate = startDate;
-        this.tempHolding = tempHolding;
-        this.dcmRecordUpdater = dcmRecordUpdater;
-        this.access = access;
-        this.allowHighResdownload = allowHighResdownload;
-        this.south = south;
-        this.isMissingPage = isMissingPage;
-        this.restrictionsOnAccess = restrictionsOnAccess;
-        this.north = north;
-        this.scopeContent = scopeContent;
-        this.representativeId = representativeId;
-        this.standardId = standardId;
-        this.accessConditions = accessConditions;
-        this.title = title;
-        this.internalAccessConditions = internalAccessConditions;
-        this.eadUpdateReviewRequired = eadUpdateReviewRequired;
-        this.subUnitNo = subUnitNo;
-        this.expiryDate = expiryDate;
-        this.australianContent = australianContent;
-        this.digitalStatusDate = digitalStatusDate;
-        this.east = east;
-        this.bibliography = bibliography;
-        this.contributor = contributor;
-        this.provenance = provenance;
-        this.moreIlmsDetailsRequired = moreIlmsDetailsRequired;
-        this.subUnitType = subUnitType;
-        this.rights = rights;
-        this.uniformTitle = uniformTitle;
-        this.rdsAcknowledgementType = rdsAcknowledgementType;
-        this.alias = alias;
-        this.recordSource = recordSource;
-        this.dateRangeInAS = dateRangeInAS;
-        this.coverage = coverage;
-        this.bibId = bibId;
-        this.summary = summary;
-        this.creator = creator;
-        this.preferredCitation = preferredCitation;
-        this.coordinates = coordinates;
-        this.creatorStatement = creatorStatement;
-        this.folderType = folderType;
-        this.bibLevel = bibLevel;
-        this.carrier = carrier;
-        this.holdingNumber = holdingNumber;
-        this.form = form;
-        this.series = series;
-        this.rdsAcknowledgementReceiver = rdsAcknowledgementReceiver;
-        this.constraint1 = constraint1;
-        this.digitalStatus = digitalStatus;
-        this.dcmRecordCreator = dcmRecordCreator;
-    }
 
     public String getExtent() {
         return extent;

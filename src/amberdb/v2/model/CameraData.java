@@ -1,104 +1,71 @@
 package amberdb.v2.model;
 
-import amberdb.v2.model.mapper.CameraDataMapper;
-import amberdb.v2.model.mapper.MapWith;
+import amberdb.v2.model.mapper.AmberDbMapperFactory;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
-@MapWith(CameraDataMapper.class)
+import javax.persistence.Column;
+import javax.persistence.Entity;
+
+@Entity
+@RegisterMapperFactory(AmberDbMapperFactory.class)
 public class CameraData extends Node {
 
+    @Column
     private String extent;
-
+    @Column
     private String localSystemNumber;
-
+    @Column
     private String encodingLevel;
-
+    @Column
     private String standardId;
-
+    @Column
     private String language;
-
+    @Column
     private String title;
-
+    @Column
     private String otherTitle;
-
+    @Column
     private String holdingId;
-
+    @Column
     private String holdingNumber;
-
+    @Column
     private Boolean australianContent;
-
+    @Column
     private String contributor;
-
+    @Column
     private String publisher;
-
+    @Column
     private String recordSource;
-
+    @Column
     private String coverage;
-
+    @Column
     private String bibId;
-
+    @Column
     private String creator;
-
+    @Column
     private String coordinates;
-
+    @Column
     private String scaleEtc;
-
+    @Column
     private String exposureTime;
-
+    @Column
     private String exposureFNumber;
-
+    @Column
     private String exposureMode;
-
+    @Column
     private String exposureProgram;
-
+    @Column
     private String isoSpeedRating;
-
+    @Column
     private String focalLength;
-
+    @Column
     private String lens;
-
+    @Column
     private String meteringMode;
-
+    @Column
     private String whiteBalance;
-
+    @Column
     private String fileSource;
-
-    public CameraData(int id, int txn_start, int txn_end, String extent, String localSystemNumber, String encodingLevel,
-                      String standardId, String language, String title, String otherTitle, String holdingId,
-                      String holdingNumber, Boolean australianContent, String contributor, String publisher,
-                      String recordSource, String coverage, String bibId, String creator, String coordinates,
-                      String scaleEtc, String exposureTime, String exposureFNumber, String exposureMode,
-                      String exposureProgram, String isoSpeedRating, String focalLength, String lens, String meteringMode,
-                      String whiteBalance, String fileSource) {
-        super(id, txn_start, txn_end);
-        this.extent = extent;
-        this.localSystemNumber = localSystemNumber;
-        this.encodingLevel = encodingLevel;
-        this.standardId = standardId;
-        this.language = language;
-        this.title = title;
-        this.otherTitle = otherTitle;
-        this.holdingId = holdingId;
-        this.holdingNumber = holdingNumber;
-        this.australianContent = australianContent;
-        this.contributor = contributor;
-        this.publisher = publisher;
-        this.recordSource = recordSource;
-        this.coverage = coverage;
-        this.bibId = bibId;
-        this.creator = creator;
-        this.coordinates = coordinates;
-        this.scaleEtc = scaleEtc;
-        this.exposureTime = exposureTime;
-        this.exposureFNumber = exposureFNumber;
-        this.exposureMode = exposureMode;
-        this.exposureProgram = exposureProgram;
-        this.isoSpeedRating = isoSpeedRating;
-        this.focalLength = focalLength;
-        this.lens = lens;
-        this.meteringMode = meteringMode;
-        this.whiteBalance = whiteBalance;
-        this.fileSource = fileSource;
-    }
 
     public String getExtent() {
         return extent;

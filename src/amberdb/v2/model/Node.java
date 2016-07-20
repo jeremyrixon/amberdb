@@ -1,22 +1,23 @@
 package amberdb.v2.model;
 
+import amberdb.v2.model.mapper.AmberDbMapperFactory;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+
+@Entity
+@RegisterMapperFactory(AmberDbMapperFactory.class)
 public class Node {
 
+    @Column
     private int id = 0;
 
+    @Column
     private int txn_start;
 
+    @Column
     private int txn_end;
-
-    public Node(final int id) {
-        this.id = id;
-    }
-
-    public Node(final int id, final int txn_start, final int txn_end) {
-        this(id);
-        this.txn_start = txn_start;
-        this.txn_end = txn_end;
-    }
 
     public int getId() {
         return id;

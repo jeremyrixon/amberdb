@@ -1,274 +1,246 @@
 package amberdb.v2.model;
 
-import amberdb.v2.model.mapper.MapWith;
-import amberdb.v2.model.mapper.WorkMapper;
+import amberdb.v2.model.mapper.AmberDbMapperFactory;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
 import java.util.Date;
 
-@MapWith(WorkMapper.class)
+@Entity
+@RegisterMapperFactory(AmberDbMapperFactory.class)
 public class Work extends Node {
 
+    @Column
     private Date dcmDateTimeCreated;
+    @Column
     private Date dcmDateTimeUpdated;
+    @Column
     private String dcmRecordUpdater;
+    @Column
     private String dcmWorkPid;
+    @Column
     private String dcmAltPi;
+    @Column
     private String dcmRecordCreator;
+    @Column
     private Boolean displayTitlePage;
+    @Column
     private String title;
+    @Column
     private String addtionalTitle;
+    @Column
     private String otherTitle;
+    @Column
     private String uniformTitle;
+    @Column
     private String alias;
+    @Column
     private String author;
+    @Column
     private String publisher;
+    @Column
     private String contributor;
+    @Column
     private String additionalContributor;
+    @Column
     private String localSystemNumber;
+    @Column
     private String localSystemNo;
+    @Column
     private String classification;
+    @Column
     private String collection;
+    @Column
     private String extent;
+    @Column
     private String subType;
+    @Column
     private String subUnitNo;
+    @Column
     private String subUnitType;
+    @Column
     private String occupation;
+    @Column
     private Date startDate;
+    @Column
     private Date endDate;
+    @Column
     private Date expiryDate;
+    @Column
     private Date digitalStatusDate;
+    @Column
     private String acquisitionStatus;
+    @Column
     private String acquisitionCategory;
+    @Column
     private String publicationCategory;
+    @Column
     private String reorderType;
+    @Column
     private String immutable;
+    @Column
     private String copyrightPolicy;
+    @Column
     private String hasRepresentation;
+    @Column
     private String totalDuration;
+    @Column
     private String scaleEtc;
+    @Column
     private String firstPart;
+    @Column
     private String commentsInternal;
+    @Column
     private String commentsExternal;
+    @Column
     private String restrictionType;
+    @Column
     private Date ilmsSentDateTime;
+    @Column
     private Boolean moreIlmsDetailsRequired;
+    @Column
     private Boolean sendToIlms;
+    @Column
     private Date sendToIlmsDateTime;
+    @Column
     private String tilePosition;
+    @Column
     private Boolean allowHighResdownload;
+    @Column
     private String accessConditions;
+    @Column
     private String internalAccessConditions;
+    @Column
     private String EADUpdateReviewRequired;
+    @Column
     private Boolean australianContent;
+    @Column
     private String rights;
+    @Column
     private String genre;
+    @Column
     private String deliveryUrl;
+    @Column
     private String imageServerUrl;
+    @Column
     private String recordSource;
+    @Column
     private String sheetCreationDate;
+    @Column
     private String sheetName;
+    @Column
     private String creator;
+    @Column
     private String creatorStatement;
+    @Column
     private String additionalCreator;
+    @Column
     private String folderType;
+    @Column
     private String folderNumber;
+    @Column
     private String eventNote;
+    @Column
     private String notes;
+    @Column
     private String publicNotes;
+    @Column
     private String findingAidNote;
+    @Column
     private Boolean interactiveIndexAvailable;
+    @Column
     private String startChild;
+    @Column
     private String bibLevel;
+    @Column
     private String standardId;
+    @Column
     private String representativeId;
+    @Column
     private String holdingId;
+    @Column
     private String holdingNumber;
+    @Column
     private String tempHolding;
+    @Column
     private String sortIndex;
+    @Column
     private Boolean isMissingPage;
+    @Column
     private String series;
+    @Column
     private String edition;
+    @Column
     private String reorder;
+    @Column
     private String additionalSeries;
+    @Column
     private String constraint1;
+    @Column
     private String parentConstraint;
+    @Column
     private String catalogueUrl;
+    @Column
     private String encodingLevel;
+    @Column
     private Boolean materialFromMultipleSources;
+    @Column
     private String subject;
+    @Column
     private String vendorId;
+    @Column
     private Boolean allowOnsiteAccess;
+    @Column
     private String language;
+    @Column
     private String sensitiveMaterial;
+    @Column
     private String html;
+    @Column
     private String preservicaId;
+    @Column
     private String redocworksReason;
+    @Column
     private Boolean workCreatedDuringMigration;
+    @Column
     private String nextStep;
+    @Column
     private int ingestJobId;
+    @Column
     private String rdsAcknowledgementType;
+    @Column
     private String rdsAcknowledgementReceiver;
+    @Column
     private Date issueDate;
+    @Column
     private String bibId;
+    @Column
     private String coverage;
+    @Column
     private String summary;
+    @Column
     private String sensitiveReason;
+    @Column
     private String carrier;
+    @Column
     private String form;
+    @Column
     private String digitalStatus;
+    @Column
     private String sprightlyUrl;
+    @Column
     private String depositType;
+    @Column
     private String coordinates;
+    @Column
     private String north;
+    @Column
     private String south;
+    @Column
     private String east;
+    @Column
     private String west;
-
-    public Work(int id, int txn_start, int txn_end,
-                Date dcmDateTimeCreated, Date dcmDateTimeUpdated, String dcmRecordUpdater, String dcmWorkPid,
-                String dcmAltPi, String dcmRecordCreator, Boolean displayTitlePage, String title, String addtionalTitle,
-                String otherTitle, String uniformTitle, String alias, String author, String publisher, String contributor,
-                String additionalContributor, String localSystemNumber, String localSystemNo, String classification,
-                String collection, String extent, String subType, String subUnitNo, String subUnitType, String occupation,
-                Date startDate, Date endDate, Date expiryDate, Date digitalStatusDate, String acquisitionStatus,
-                String acquisitionCategory, String publicationCategory, String reorderType, String immutable,
-                String copyrightPolicy, String hasRepresentation, String totalDuration, String scaleEtc, String firstPart,
-                String commentsInternal, String commentsExternal, String restrictionType, Date ilmsSentDateTime,
-                Boolean moreIlmsDetailsRequired, Boolean sendToIlms, Date sendToIlmsDateTime, String tilePosition,
-                Boolean allowHighResdownload, String accessConditions, String internalAccessConditions,
-                String EADUpdateReviewRequired, Boolean australianContent, String rights, String genre,
-                String deliveryUrl, String imageServerUrl, String recordSource, String sheetCreationDate,
-                String sheetName, String creator, String creatorStatement, String additionalCreator, String folderType,
-                String folderNumber, String eventNote, String notes, String publicNotes, String findingAidNote,
-                Boolean interactiveIndexAvailable, String startChild, String bibLevel, String standardId,
-                String representativeId, String holdingId, String holdingNumber, String tempHolding, String sortIndex,
-                Boolean isMissingPage, String series, String edition, String reorder, String additionalSeries,
-                String constraint1, String parentConstraint, String catalogueUrl, String encodingLevel,
-                Boolean materialFromMultipleSources, String subject, String vendorId, Boolean allowOnsiteAccess,
-                String language, String sensitiveMaterial, String html, String preservicaId, String redocworksReason,
-                Boolean workCreatedDuringMigration, String nextStep, int ingestJobId, String rdsAcknowledgementType,
-                String rdsAcknowledgementReceiver, Date issueDate, String bibId, String coverage, String summary,
-                String sensitiveReason, String carrier, String form, String digitalStatus, String sprightlyUrl,
-                String depositType, String coordinates, String north, String south, String east, String west) {
-
-        super(id, txn_start, txn_end);
-        this.dcmDateTimeCreated = dcmDateTimeCreated;
-        this.dcmDateTimeUpdated = dcmDateTimeUpdated;
-        this.dcmRecordUpdater = dcmRecordUpdater;
-        this.dcmWorkPid = dcmWorkPid;
-        this.dcmAltPi = dcmAltPi;
-        this.dcmRecordCreator = dcmRecordCreator;
-        this.displayTitlePage = displayTitlePage;
-        this.title = title;
-        this.addtionalTitle = addtionalTitle;
-        this.otherTitle = otherTitle;
-        this.uniformTitle = uniformTitle;
-        this.alias = alias;
-        this.author = author;
-        this.publisher = publisher;
-        this.contributor = contributor;
-        this.additionalContributor = additionalContributor;
-        this.localSystemNumber = localSystemNumber;
-        this.localSystemNo = localSystemNo;
-        this.classification = classification;
-        this.collection = collection;
-        this.extent = extent;
-        this.subType = subType;
-        this.subUnitNo = subUnitNo;
-        this.subUnitType = subUnitType;
-        this.occupation = occupation;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.expiryDate = expiryDate;
-        this.digitalStatusDate = digitalStatusDate;
-        this.acquisitionStatus = acquisitionStatus;
-        this.acquisitionCategory = acquisitionCategory;
-        this.publicationCategory = publicationCategory;
-        this.reorderType = reorderType;
-        this.immutable = immutable;
-        this.copyrightPolicy = copyrightPolicy;
-        this.hasRepresentation = hasRepresentation;
-        this.totalDuration = totalDuration;
-        this.scaleEtc = scaleEtc;
-        this.firstPart = firstPart;
-        this.commentsInternal = commentsInternal;
-        this.commentsExternal = commentsExternal;
-        this.restrictionType = restrictionType;
-        this.ilmsSentDateTime = ilmsSentDateTime;
-        this.moreIlmsDetailsRequired = moreIlmsDetailsRequired;
-        this.sendToIlms = sendToIlms;
-        this.sendToIlmsDateTime = sendToIlmsDateTime;
-        this.tilePosition = tilePosition;
-        this.allowHighResdownload = allowHighResdownload;
-        this.accessConditions = accessConditions;
-        this.internalAccessConditions = internalAccessConditions;
-        this.EADUpdateReviewRequired = EADUpdateReviewRequired;
-        this.australianContent = australianContent;
-        this.rights = rights;
-        this.genre = genre;
-        this.deliveryUrl = deliveryUrl;
-        this.imageServerUrl = imageServerUrl;
-        this.recordSource = recordSource;
-        this.sheetCreationDate = sheetCreationDate;
-        this.sheetName = sheetName;
-        this.creator = creator;
-        this.creatorStatement = creatorStatement;
-        this.additionalCreator = additionalCreator;
-        this.folderType = folderType;
-        this.folderNumber = folderNumber;
-        this.eventNote = eventNote;
-        this.notes = notes;
-        this.publicNotes = publicNotes;
-        this.findingAidNote = findingAidNote;
-        this.interactiveIndexAvailable = interactiveIndexAvailable;
-        this.startChild = startChild;
-        this.bibLevel = bibLevel;
-        this.standardId = standardId;
-        this.representativeId = representativeId;
-        this.holdingId = holdingId;
-        this.holdingNumber = holdingNumber;
-        this.tempHolding = tempHolding;
-        this.sortIndex = sortIndex;
-        this.isMissingPage = isMissingPage;
-        this.series = series;
-        this.edition = edition;
-        this.reorder = reorder;
-        this.additionalSeries = additionalSeries;
-        this.constraint1 = constraint1;
-        this.parentConstraint = parentConstraint;
-        this.catalogueUrl = catalogueUrl;
-        this.encodingLevel = encodingLevel;
-        this.materialFromMultipleSources = materialFromMultipleSources;
-        this.subject = subject;
-        this.vendorId = vendorId;
-        this.allowOnsiteAccess = allowOnsiteAccess;
-        this.language = language;
-        this.sensitiveMaterial = sensitiveMaterial;
-        this.html = html;
-        this.preservicaId = preservicaId;
-        this.redocworksReason = redocworksReason;
-        this.workCreatedDuringMigration = workCreatedDuringMigration;
-        this.nextStep = nextStep;
-        this.ingestJobId = ingestJobId;
-        this.rdsAcknowledgementType = rdsAcknowledgementType;
-        this.rdsAcknowledgementReceiver = rdsAcknowledgementReceiver;
-        this.issueDate = issueDate;
-        this.bibId = bibId;
-        this.coverage = coverage;
-        this.summary = summary;
-        this.sensitiveReason = sensitiveReason;
-        this.carrier = carrier;
-        this.form = form;
-        this.digitalStatus = digitalStatus;
-        this.sprightlyUrl = sprightlyUrl;
-        this.depositType = depositType;
-        this.coordinates = coordinates;
-        this.north = north;
-        this.south = south;
-        this.east = east;
-        this.west = west;
-
-    }
 
     public Date getDcmDateTimeCreated() {
         return dcmDateTimeCreated;

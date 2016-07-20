@@ -1,17 +1,17 @@
 package amberdb.v2.model;
 
-import amberdb.v2.model.mapper.MapWith;
-import amberdb.v2.model.mapper.TagMapper;
+import amberdb.v2.model.mapper.AmberDbMapperFactory;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
-@MapWith(TagMapper.class)
+import javax.persistence.Column;
+import javax.persistence.Entity;
+
+@Entity
+@RegisterMapperFactory(AmberDbMapperFactory.class)
 public class Tag extends Node {
 
+    @Column
     private String name;
-
-    public Tag(int id, int txn_start, int txn_end, String name) {
-        super(id, txn_start, txn_end);
-        this.name = name;
-    }
 
     public String getName() {
         return name;

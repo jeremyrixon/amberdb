@@ -1,221 +1,201 @@
 package amberdb.v2.model;
 
-import amberdb.v2.model.mapper.MapWith;
-import amberdb.v2.model.mapper.PageMapper;
+import amberdb.v2.model.mapper.AmberDbMapperFactory;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
 import java.util.Date;
 
-@MapWith(PageMapper.class)
+@Entity
+@RegisterMapperFactory(AmberDbMapperFactory.class)
 public class Page extends Node {
 
+    @Column
     private Date dcmDateTimeUpdated;
-    private String extent;
-    private String notes;
-    private String localSystemNumber;
-    private String occupation;
-    private String encodingLevel;
-    private Boolean materialFromMultipleSources;
-    private Boolean displayTitlePage;
-    private Date endDate;
-    private String subject;
-    private Boolean sendToIlms;
-    private String vendorId;
-    private Boolean allowOnsiteAccess;
-    private String language;
-    private String sensitiveMaterial;
-    private String repository;
-    private String holdingId;
-    private String dcmAltPi;
-    private String west;
-    private Boolean workCreatedDuringMigration;
-    private Date dcmDateTimeCreated;
-    private String commentsExternal;
-    private String firstPart;
-    private String findingAidNote;
-    private String collection;
-    private String dcmWorkPid;
-    private String otherTitle;
-    private String classification;
-    private String localSystemno;
-    private String commentsInternal;
-    private String acquisitionStatus;
-    private String immutable;
-    private String restrictionType;
-    private String copyrightPolicy;
-    private Date ilmsSentDateTime;
-    private String publisher;
-    private String nextStep;
-    private String subType;
-    private String scaleEtc;
-    private Date startDate;
-    private String tempHolding;
-    private String dcmRecordUpdater;
-    private String tilePosition;
-    private String sortIndex;
-    private Boolean allowHighResdownload;
-    private String south;
-    private String restrictionsOnAccess;
-    private Boolean isMissingPage;
-    private String north;
-    private String standardId;
-    private String representativeId;
-    private String scopeContent;
-    private String accessConditions;
-    private String edition;
-    private String alternativeTitle;
-    private String title;
-    private String acquisitionCategory;
-    private String internalAccessConditions;
-    private String eadUpdateReviewRequired;
-    private String subUnitNo;
-    private Date expiryDate;
-    private Boolean australianContent;
-    private Date digitalStatusDate;
-    private String east;
-    private String contributor;
-    private Boolean moreIlmsDetailsRequired;
-    private String subUnitType;
-    private String uniformTitle;
-    private String rights;
-    private String alias;
-    private String rdsAcknowledgementType;
-    private Date issueDate;
-    private String recordSource;
-    private String bibId;
-    private String coverage;
-    private String summary;
-    private String creator;
-    private String sensitiveReason;
-    private String coordinates;
-    private String creatorStatement;
-    private Boolean interactiveIndexAvailable;
-    private String bibLevel;
-    private String carrier;
-    private String holdingNumber;
-    private String form;
-    private String series;
-    private String rdsAcknowledgementReceiver;
-    private String constraint1;
-    private String digitalStatus;
-    private String dcmRecordCreator;
-    private String depositType;
-    private String parentConstraint;
 
-    public Page(int id, int txn_start, int txn_end, Date dcmDateTimeUpdated, String extent, String notes,
-                String localSystemNumber, String occupation, String encodingLevel, Boolean materialFromMultipleSources,
-                Boolean displayTitlePage, Date endDate, String subject, Boolean sendToIlms, String vendorId,
-                Boolean allowOnsiteAccess, String language, String sensitiveMaterial, String repository,
-                String holdingId, String dcmAltPi, String west, Boolean workCreatedDuringMigration,
-                Date dcmDateTimeCreated, String commentsExternal, String firstPart, String findingAidNote,
-                String collection, String dcmWorkPid, String otherTitle, String classification, String localSystemno,
-                String commentsInternal, String acquisitionStatus, String immutable, String restrictionType,
-                String copyrightPolicy, Date ilmsSentDateTime, String publisher, String nextStep, String subType,
-                String scaleEtc, Date startDate, String tempHolding, String dcmRecordUpdater, String tilePosition,
-                String sortIndex, Boolean allowHighResdownload, String south, String restrictionsOnAccess,
-                Boolean isMissingPage, String north, String standardId, String representativeId, String scopeContent,
-                String accessConditions, String edition, String alternativeTitle, String title, String acquisitionCategory,
-                String internalAccessConditions, String eadUpdateReviewRequired, String subUnitNo, Date expiryDate,
-                Boolean australianContent, Date digitalStatusDate, String east, String contributor,
-                Boolean moreIlmsDetailsRequired, String subUnitType, String uniformTitle, String rights, String alias,
-                String rdsAcknowledgementType, Date issueDate, String recordSource, String bibId, String coverage,
-                String summary, String creator, String sensitiveReason, String coordinates, String creatorStatement,
-                Boolean interactiveIndexAvailable, String bibLevel, String carrier, String holdingNumber, String form,
-                String series, String rdsAcknowledgementReceiver, String constraint1, String digitalStatus,
-                String dcmRecordCreator, String depositType, String parentConstraint) {
-        super(id, txn_start, txn_end);
-        this.dcmDateTimeUpdated = dcmDateTimeUpdated;
-        this.extent = extent;
-        this.notes = notes;
-        this.localSystemNumber = localSystemNumber;
-        this.occupation = occupation;
-        this.encodingLevel = encodingLevel;
-        this.materialFromMultipleSources = materialFromMultipleSources;
-        this.displayTitlePage = displayTitlePage;
-        this.endDate = endDate;
-        this.subject = subject;
-        this.sendToIlms = sendToIlms;
-        this.vendorId = vendorId;
-        this.allowOnsiteAccess = allowOnsiteAccess;
-        this.language = language;
-        this.sensitiveMaterial = sensitiveMaterial;
-        this.repository = repository;
-        this.holdingId = holdingId;
-        this.dcmAltPi = dcmAltPi;
-        this.west = west;
-        this.workCreatedDuringMigration = workCreatedDuringMigration;
-        this.dcmDateTimeCreated = dcmDateTimeCreated;
-        this.commentsExternal = commentsExternal;
-        this.firstPart = firstPart;
-        this.findingAidNote = findingAidNote;
-        this.collection = collection;
-        this.dcmWorkPid = dcmWorkPid;
-        this.otherTitle = otherTitle;
-        this.classification = classification;
-        this.localSystemno = localSystemno;
-        this.commentsInternal = commentsInternal;
-        this.acquisitionStatus = acquisitionStatus;
-        this.immutable = immutable;
-        this.restrictionType = restrictionType;
-        this.copyrightPolicy = copyrightPolicy;
-        this.ilmsSentDateTime = ilmsSentDateTime;
-        this.publisher = publisher;
-        this.nextStep = nextStep;
-        this.subType = subType;
-        this.scaleEtc = scaleEtc;
-        this.startDate = startDate;
-        this.tempHolding = tempHolding;
-        this.dcmRecordUpdater = dcmRecordUpdater;
-        this.tilePosition = tilePosition;
-        this.sortIndex = sortIndex;
-        this.allowHighResdownload = allowHighResdownload;
-        this.south = south;
-        this.restrictionsOnAccess = restrictionsOnAccess;
-        this.isMissingPage = isMissingPage;
-        this.north = north;
-        this.standardId = standardId;
-        this.representativeId = representativeId;
-        this.scopeContent = scopeContent;
-        this.accessConditions = accessConditions;
-        this.edition = edition;
-        this.alternativeTitle = alternativeTitle;
-        this.title = title;
-        this.acquisitionCategory = acquisitionCategory;
-        this.internalAccessConditions = internalAccessConditions;
-        this.eadUpdateReviewRequired = eadUpdateReviewRequired;
-        this.subUnitNo = subUnitNo;
-        this.expiryDate = expiryDate;
-        this.australianContent = australianContent;
-        this.digitalStatusDate = digitalStatusDate;
-        this.east = east;
-        this.contributor = contributor;
-        this.moreIlmsDetailsRequired = moreIlmsDetailsRequired;
-        this.subUnitType = subUnitType;
-        this.uniformTitle = uniformTitle;
-        this.rights = rights;
-        this.alias = alias;
-        this.rdsAcknowledgementType = rdsAcknowledgementType;
-        this.issueDate = issueDate;
-        this.recordSource = recordSource;
-        this.bibId = bibId;
-        this.coverage = coverage;
-        this.summary = summary;
-        this.creator = creator;
-        this.sensitiveReason = sensitiveReason;
-        this.coordinates = coordinates;
-        this.creatorStatement = creatorStatement;
-        this.interactiveIndexAvailable = interactiveIndexAvailable;
-        this.bibLevel = bibLevel;
-        this.carrier = carrier;
-        this.holdingNumber = holdingNumber;
-        this.form = form;
-        this.series = series;
-        this.rdsAcknowledgementReceiver = rdsAcknowledgementReceiver;
-        this.constraint1 = constraint1;
-        this.digitalStatus = digitalStatus;
-        this.dcmRecordCreator = dcmRecordCreator;
-        this.depositType = depositType;
-        this.parentConstraint = parentConstraint;
-    }
+    @Column
+    private String extent;
+    @Column
+    private String notes;
+    @Column
+    private String localSystemNumber;
+    @Column
+    private String occupation;
+    @Column
+    private String encodingLevel;
+    @Column
+    private Boolean materialFromMultipleSources;
+    @Column
+    private Boolean displayTitlePage;
+    @Column
+    private Date endDate;
+    @Column
+    private String subject;
+    @Column
+    private Boolean sendToIlms;
+    @Column
+    private String vendorId;
+    @Column
+    private Boolean allowOnsiteAccess;
+    @Column
+    private String language;
+    @Column
+    private String sensitiveMaterial;
+    @Column
+    private String repository;
+    @Column
+    private String holdingId;
+    @Column
+    private String dcmAltPi;
+    @Column
+    private String west;
+    @Column
+    private Boolean workCreatedDuringMigration;
+    @Column
+    private Date dcmDateTimeCreated;
+    @Column
+    private String commentsExternal;
+    @Column
+    private String firstPart;
+    @Column
+    private String findingAidNote;
+    @Column
+    private String collection;
+    @Column
+    private String dcmWorkPid;
+    @Column
+    private String otherTitle;
+    @Column
+    private String classification;
+    @Column
+    private String localSystemno;
+    @Column
+    private String commentsInternal;
+    @Column
+    private String acquisitionStatus;
+    @Column
+    private String immutable;
+    @Column
+    private String restrictionType;
+    @Column
+    private String copyrightPolicy;
+    @Column
+    private Date ilmsSentDateTime;
+    @Column
+    private String publisher;
+    @Column
+    private String nextStep;
+    @Column
+    private String subType;
+    @Column
+    private String scaleEtc;
+    @Column
+    private Date startDate;
+    @Column
+    private String tempHolding;
+    @Column
+    private String dcmRecordUpdater;
+    @Column
+    private String tilePosition;
+    @Column
+    private String sortIndex;
+    @Column
+    private Boolean allowHighResdownload;
+    @Column
+    private String south;
+    @Column
+    private String restrictionsOnAccess;
+    @Column
+    private Boolean isMissingPage;
+    @Column
+    private String north;
+    @Column
+    private String standardId;
+    @Column
+    private String representativeId;
+    @Column
+    private String scopeContent;
+    @Column
+    private String accessConditions;
+    @Column
+    private String edition;
+    @Column
+    private String alternativeTitle;
+    @Column
+    private String title;
+    @Column
+    private String acquisitionCategory;
+    @Column
+    private String internalAccessConditions;
+    @Column
+    private String eadUpdateReviewRequired;
+    @Column
+    private String subUnitNo;
+    @Column
+    private Date expiryDate;
+    @Column
+    private Boolean australianContent;
+    @Column
+    private Date digitalStatusDate;
+    @Column
+    private String east;
+    @Column
+    private String contributor;
+    @Column
+    private Boolean moreIlmsDetailsRequired;
+    @Column
+    private String subUnitType;
+    @Column
+    private String uniformTitle;
+    @Column
+    private String rights;
+    @Column
+    private String alias;
+    @Column
+    private String rdsAcknowledgementType;
+    @Column
+    private Date issueDate;
+    @Column
+    private String recordSource;
+    @Column
+    private String bibId;
+    @Column
+    private String coverage;
+    @Column
+    private String summary;
+    @Column
+    private String creator;
+    @Column
+    private String sensitiveReason;
+    @Column
+    private String coordinates;
+    @Column
+    private String creatorStatement;
+    @Column
+    private Boolean interactiveIndexAvailable;
+    @Column
+    private String bibLevel;
+    @Column
+    private String carrier;
+    @Column
+    private String holdingNumber;
+    @Column
+    private String form;
+    @Column
+    private String series;
+    @Column
+    private String rdsAcknowledgementReceiver;
+    @Column
+    private String constraint1;
+    @Column
+    private String digitalStatus;
+    @Column
+    private String dcmRecordCreator;
+    @Column
+    private String depositType;
+    @Column
+    private String parentConstraint;
 
     public Date getDcmDateTimeUpdated() {
         return dcmDateTimeUpdated;

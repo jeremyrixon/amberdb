@@ -1,103 +1,94 @@
 package amberdb.v2.model;
 
-import amberdb.v2.model.mapper.CopyMapper;
-import amberdb.v2.model.mapper.MapWith;
+import amberdb.v2.model.mapper.AmberDbMapperFactory;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
 import java.util.Date;
 
-@MapWith(CopyMapper.class)
+@Entity
+@RegisterMapperFactory(AmberDbMapperFactory.class)
 public class Copy extends Node {
 
+    @Column
     private Date dcmDateTimeUpdated;
+    @Column
     private String extent;
+    @Column
     private String dcmRecordUpdater;
+    @Column
     private String localSystemNumber;
+    @Column
     private String encodingLevel;
+    @Column
     private String standardId;
+    @Column
     private String language;
+    @Column
     private String title;
+    @Column
     private String holdingId;
+    @Column
     private String internalAccessConditions;
+    @Column
     private Boolean australianContent;
+    @Column
     private Date dateCreated;
+    @Column
     private String contributor;
+    @Column
     private String timedStatus;
+    @Column
     private String copyType;
+    @Column
     private String alias;
+    @Column
     private String copyStatus;
+    @Column
     private String copyRole;
+    @Column
     private String manipulation;
+    @Column
     private String recordSource;
+    @Column
     private String algorithm;
+    @Column
     private String bibId;
+    @Column
     private String creator;
+    @Column
     private String otherNumbers;
+    @Column
     private Date dcmDateTimeCreated;
+    @Column
     private String materialType;
+    @Column
     private String commentsExternal;
+    @Column
     private String coordinates;
+    @Column
     private String creatorStatement;
+    @Column
     private String classification;
+    @Column
     private String currentVersion;
+    @Column
     private String commentsInternal;
+    @Column
     private String bestCopy;
+    @Column
     private String carrier;
+    @Column
     private String holdingNumber;
+    @Column
     private String series;
+    @Column
     private String publisher;
+    @Column
     private String dcmRecordCreator;
+    @Column
     private String dcmCopyPid;
-
-    public Copy(int id, int txn_start, int txn_end, Date dcmDateTimeUpdated, String extent, String dcmRecordUpdater,
-                String localSystemNumber, String encodingLevel, String standardId, String language, String title,
-                String holdingId, String internalAccessConditions, Boolean australianContent, Date dateCreated,
-                String contributor, String timedStatus, String copyType, String alias, String copyStatus,
-                String copyRole, String manipulation, String recordSource, String algorithm, String bibId,
-                String creator, String otherNumbers, Date dcmDateTimeCreated, String materialType,
-                String commentsExternal, String coordinates, String creatorStatement, String classification,
-                String currentVersion, String commentsInternal, String bestCopy, String carrier, String holdingNumber,
-                String series, String publisher, String dcmRecordCreator, String dcmCopyPid) {
-        super(id, txn_start, txn_end);
-        this.dcmDateTimeUpdated = dcmDateTimeUpdated;
-        this.extent = extent;
-        this.dcmRecordUpdater = dcmRecordUpdater;
-        this.localSystemNumber = localSystemNumber;
-        this.encodingLevel = encodingLevel;
-        this.standardId = standardId;
-        this.language = language;
-        this.title = title;
-        this.holdingId = holdingId;
-        this.internalAccessConditions = internalAccessConditions;
-        this.australianContent = australianContent;
-        this.dateCreated = dateCreated;
-        this.contributor = contributor;
-        this.timedStatus = timedStatus;
-        this.copyType = copyType;
-        this.alias = alias;
-        this.copyStatus = copyStatus;
-        this.copyRole = copyRole;
-        this.manipulation = manipulation;
-        this.recordSource = recordSource;
-        this.algorithm = algorithm;
-        this.bibId = bibId;
-        this.creator = creator;
-        this.otherNumbers = otherNumbers;
-        this.dcmDateTimeCreated = dcmDateTimeCreated;
-        this.materialType = materialType;
-        this.commentsExternal = commentsExternal;
-        this.coordinates = coordinates;
-        this.creatorStatement = creatorStatement;
-        this.classification = classification;
-        this.currentVersion = currentVersion;
-        this.commentsInternal = commentsInternal;
-        this.bestCopy = bestCopy;
-        this.carrier = carrier;
-        this.holdingNumber = holdingNumber;
-        this.series = series;
-        this.publisher = publisher;
-        this.dcmRecordCreator = dcmRecordCreator;
-        this.dcmCopyPid = dcmCopyPid;
-    }
 
     public String getManipulation() {
         return manipulation;

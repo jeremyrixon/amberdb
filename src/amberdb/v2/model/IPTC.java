@@ -1,18 +1,19 @@
 package amberdb.v2.model;
 
-import amberdb.v2.model.mapper.IPTCMapper;
-import amberdb.v2.model.mapper.MapWith;
+import amberdb.v2.model.mapper.AmberDbMapperFactory;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
-@MapWith(IPTCMapper.class)
+import javax.persistence.Column;
+import javax.persistence.Entity;
+
+@Entity
+@RegisterMapperFactory(AmberDbMapperFactory.class)
 public class IPTC extends Node {
-    private String province;
-    private String city;
 
-    public IPTC(int id, int txn_start, int txn_end, String province, String city) {
-        super(id, txn_start, txn_end);
-        this.province = province;
-        this.city = city;
-    }
+    @Column
+    private String province;
+    @Column
+    private String city;
 
     public String getProvince() {
         return province;

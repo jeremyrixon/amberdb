@@ -1,54 +1,50 @@
 package amberdb.v2.model;
 
-import amberdb.v2.model.mapper.MapWith;
-import amberdb.v2.model.mapper.SectionMapper;
+import amberdb.v2.model.mapper.AmberDbMapperFactory;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
 import java.util.Date;
 
-@MapWith(SectionMapper.class)
+@Entity
+@RegisterMapperFactory(AmberDbMapperFactory.class)
 public class Section extends Node {
-    private String creator;
-    private String accessConditions;
-    private Boolean allowOnsiteAccess;
-    private String abstractText;
-    private String advertising;
-    private String title;
-    private String printedPageNumber;
-    private String captions;
-    private String internalAccessConditions;
-    private String subUnitNo;
-    private Date expiryDate;
-    private String bibLevel;
-    private Boolean illustrated;
-    private String copyrightPolicy;
-    private String metsId;
-    private String subType;
-    private String constraint1;
 
-    public Section(int id, int txn_start, int txn_end, String creator, String accessConditions,
-                   Boolean allowOnsiteAccess, String abstractText, String advertising, String title,
-                   String printedPageNumber, String captions, String internalAccessConditions, String subUnitNo,
-                   Date expiryDate, String bibLevel, Boolean illustrated, String copyrightPolicy, String metsId,
-                   String subType, String constraint1) {
-        super(id, txn_start, txn_end);
-        this.creator = creator;
-        this.accessConditions = accessConditions;
-        this.allowOnsiteAccess = allowOnsiteAccess;
-        this.abstractText = abstractText;
-        this.advertising = advertising;
-        this.title = title;
-        this.printedPageNumber = printedPageNumber;
-        this.captions = captions;
-        this.internalAccessConditions = internalAccessConditions;
-        this.subUnitNo = subUnitNo;
-        this.expiryDate = expiryDate;
-        this.bibLevel = bibLevel;
-        this.illustrated = illustrated;
-        this.copyrightPolicy = copyrightPolicy;
-        this.metsId = metsId;
-        this.subType = subType;
-        this.constraint1 = constraint1;
-    }
+    @Column
+    private String creator;
+    @Column
+    private String accessConditions;
+    @Column
+    private Boolean allowOnsiteAccess;
+    @Column(name="abstract")
+    private String abstractText;
+    @Column
+    private String advertising;
+    @Column
+    private String title;
+    @Column
+    private String printedPageNumber;
+    @Column
+    private String captions;
+    @Column
+    private String internalAccessConditions;
+    @Column
+    private String subUnitNo;
+    @Column
+    private Date expiryDate;
+    @Column
+    private String bibLevel;
+    @Column
+    private Boolean illustrated;
+    @Column
+    private String copyrightPolicy;
+    @Column
+    private String metsId;
+    @Column
+    private String subType;
+    @Column
+    private String constraint1;
 
     public String getCreator() {
         return creator;

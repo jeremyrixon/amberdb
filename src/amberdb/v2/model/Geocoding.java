@@ -1,26 +1,25 @@
 package amberdb.v2.model;
 
 
-import amberdb.v2.model.mapper.GeocodingMapper;
-import amberdb.v2.model.mapper.MapWith;
+import amberdb.v2.model.mapper.AmberDbMapperFactory;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
 import java.util.Date;
 
-@MapWith(GeocodingMapper.class)
+@Entity
+@RegisterMapperFactory(AmberDbMapperFactory.class)
 public class Geocoding extends Node {
 
+    @Column
     private String mapDatum;
+    @Column
     private String latitude;
+    @Column
     private Date timestamp;
+    @Column
     private String longitude;
-
-    public Geocoding(int id, int txn_start, int txn_end, String mapDatum, String latitude, Date timestamp, String longitude) {
-        super(id, txn_start, txn_end);
-        this.mapDatum = mapDatum;
-        this.latitude = latitude;
-        this.timestamp = timestamp;
-        this.longitude = longitude;
-    }
 
     public String getMapDatum() {
         return mapDatum;
