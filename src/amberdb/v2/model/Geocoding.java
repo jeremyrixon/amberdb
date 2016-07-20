@@ -1,11 +1,15 @@
 package amberdb.v2.model;
 
 
+import amberdb.v2.model.mapper.AmberDbMapperFactory;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import java.util.Date;
 
 @Entity
+@RegisterMapperFactory(AmberDbMapperFactory.class)
 public class Geocoding extends Node {
 
     @Column

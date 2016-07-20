@@ -1,26 +1,19 @@
 package amberdb.v2.model.mapper;
 
-import com.google.common.base.CaseFormat;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Uses annotations and reflection to map ResultSet to POJO.
@@ -30,6 +23,8 @@ import java.util.Map;
 public class AmberDbResultSetMapper<T> implements ResultSetMapper<T> {
 
     private final Class<T> type;
+
+    private static final Logger log = LoggerFactory.getLogger(AmberDbResultSetMapper.class);
 
     public AmberDbResultSetMapper(Class<T> type) {
         this.type = type;
@@ -43,6 +38,7 @@ public class AmberDbResultSetMapper<T> implements ResultSetMapper<T> {
             if (rs != null) {
                 if (type.isAnnotationPresent(Entity.class)) {
                     ResultSetMetaData md = rs.getMetaData();
+                    // Models inherit from Node, which has the ID, transaction start and end properties
                     Field[] fields = type.getSuperclass().getDeclaredFields();
                     ArrayUtils.addAll(fields, type.getDeclaredFields());
 
@@ -67,12 +63,8 @@ public class AmberDbResultSetMapper<T> implements ResultSetMapper<T> {
                 }
             }
 
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
+        } catch (InstantiationException | InvocationTargetException | IllegalAccessException e) {
+            log.error("Bean of type {} could not be mapped.", type);
         }
 
         return bean;
