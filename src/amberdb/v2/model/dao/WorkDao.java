@@ -184,7 +184,7 @@ public abstract class WorkDao implements CrudDao<Work> {
 
     @Override
     @SqlQuery("select * from work_history where id = :id")
-    public abstract Work getHistory(@Bind("id") Long id);
+    public abstract List<Work> getHistory(@Bind("id") Long id);
 
     @Override
     @SqlUpdate("insert into work_history (" +
