@@ -5,6 +5,8 @@ import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Transient;
+
 import java.util.Date;
 
 @Entity
@@ -650,7 +652,7 @@ public class Work extends Node {
         this.EADUpdateReviewRequired = EADUpdateReviewRequired;
     }
 
-    public Boolean getAustralianContent() {
+    public Boolean isAustralianContent() {
         return australianContent;
     }
 
@@ -1161,4 +1163,10 @@ public class Work extends Node {
     public void setWest(String west) {
         this.west = west;
     }
+    
+    @Transient
+    public EADWork asEADWork() {
+    	return this instanceof EADWork ? (EADWork) this : null;
+    }
+
 }
