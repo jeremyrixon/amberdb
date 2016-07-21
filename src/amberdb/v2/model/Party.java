@@ -9,7 +9,7 @@ import javax.persistence.Entity;
 
 @Entity
 @RegisterMapperFactory(AmberDbMapperFactory.class)
-public class Party extends Node {
+public class Party extends AmberModel {
 
     @Column
     private String name;

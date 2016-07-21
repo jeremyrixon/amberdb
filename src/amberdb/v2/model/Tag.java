@@ -8,7 +8,7 @@ import javax.persistence.Entity;
 
 @Entity
 @RegisterMapperFactory(AmberDbMapperFactory.class)
-public class Tag extends Node {
+public class Tag extends AmberModel {
 
     @Column
     private String name;

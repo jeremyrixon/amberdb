@@ -9,7 +9,7 @@ import java.util.Date;
 
 @Entity
 @RegisterMapperFactory(AmberDbMapperFactory.class)
-public class ImageFile extends Node {
+public class ImageFile extends AmberModel {
 
     @Column
     private String extent;

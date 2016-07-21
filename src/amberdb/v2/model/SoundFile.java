@@ -9,7 +9,7 @@ import javax.persistence.Entity;
 
 @Entity
 @RegisterMapperFactory(AmberDbMapperFactory.class)
-public class SoundFile extends Node {
+public class SoundFile extends AmberModel {
 
     @Column
     private String fileName;
