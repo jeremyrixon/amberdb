@@ -38,7 +38,7 @@ public class AmberDbResultSetMapper<T> implements ResultSetMapper<T> {
             if (rs != null) {
                 if (type.isAnnotationPresent(Entity.class)) {
                     ResultSetMetaData md = rs.getMetaData();
-                    // Models inherit from Node, which has the ID, transaction start and end properties
+                    // Models inherit from AmberModel, which has the ID, transaction start and end properties
                     Field[] fields = type.getSuperclass().getDeclaredFields();
                     ArrayUtils.addAll(fields, type.getDeclaredFields());
 
