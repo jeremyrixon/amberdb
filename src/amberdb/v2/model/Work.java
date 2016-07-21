@@ -9,7 +9,7 @@ import java.util.Date;
 
 @Entity
 @RegisterMapperFactory(AmberDbMapperFactory.class)
-public class Work extends Node {
+public class Work extends AmberModel {
 
     @Column
     private Date dcmDateTimeCreated;

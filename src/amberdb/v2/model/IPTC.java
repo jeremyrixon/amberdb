@@ -8,7 +8,7 @@ import javax.persistence.Entity;
 
 @Entity
 @RegisterMapperFactory(AmberDbMapperFactory.class)
-public class IPTC extends Node {
+public class IPTC extends AmberModel {
 
     @Column
     private String province;

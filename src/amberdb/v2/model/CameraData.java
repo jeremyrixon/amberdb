@@ -8,7 +8,7 @@ import javax.persistence.Entity;
 
 @Entity
 @RegisterMapperFactory(AmberDbMapperFactory.class)
-public class CameraData extends Node {
+public class CameraData extends AmberModel {
 
     @Column
     private String extent;

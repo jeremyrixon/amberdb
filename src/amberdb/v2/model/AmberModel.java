@@ -8,18 +8,18 @@ import javax.persistence.Entity;
 
 @Entity
 @RegisterMapperFactory(AmberDbMapperFactory.class)
-public class Node {
+public class AmberModel {
 
     @Column
-    private int id = 0;
+    private long id = 0;
 
     @Column
-    private int txn_start;
+    private long txn_start;
 
     @Column
-    private int txn_end;
+    private long txn_end;
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
@@ -27,7 +27,7 @@ public class Node {
         this.id = id;
     }
 
-    public int getTxn_start() {
+    public long getTxn_start() {
         return txn_start;
     }
 
@@ -35,7 +35,7 @@ public class Node {
         this.txn_start = txn_start;
     }
 
-    public int getTxn_end() {
+    public long getTxn_end() {
         return txn_end;
     }
 
