@@ -14,7 +14,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import amberdb.AbstractDatabaseIntegrationTest;
-import amberdb.TestUtils;
+import amberdb.AmberDbTestUtils;
 import amberdb.enums.CopyRole;
 
 import static org.hamcrest.core.Is.is;
@@ -28,7 +28,7 @@ public class CopyTest extends AbstractDatabaseIntegrationTest {
     @Test
     public void shouldCreateAnImageFileWhenMimeTypeStartsWithImage() throws Exception {                     
         Work work = amberSession.addWork();
-        work.addPage(TestUtils.newDummyFile(folder, "nla.aus-vn12345-1.tiff"), "image/tiff").setOrder(1);
+        work.addPage(AmberDbTestUtils.newDummyFile(folder, "nla.aus-vn12345-1.tiff"), "image/tiff").setOrder(1);
 
         File file = work.getPage(1).getCopies().iterator().next().getFile();
         assertTrue(file instanceof ImageFile);
@@ -37,7 +37,7 @@ public class CopyTest extends AbstractDatabaseIntegrationTest {
     @Test
     public void shouldCreateAFile() throws Exception {                     
         Work work = amberSession.addWork();
-        work.addPage(TestUtils.newDummyFile(folder, "nla.aus-vn12345-1.xml"), "text/html").setOrder(1);
+        work.addPage(AmberDbTestUtils.newDummyFile(folder, "nla.aus-vn12345-1.xml"), "text/html").setOrder(1);
 
         File file = work.getPage(1).getCopies().iterator().next().getFile();        
         assertFalse(file instanceof ImageFile);
