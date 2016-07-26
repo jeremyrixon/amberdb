@@ -12,61 +12,61 @@ import java.util.Date;
 public class File extends AmberModel {
 
     @Column
-    private String extent;
+    protected String extent;
     @Column
-    private String fileName;
+    protected String fileName;
     @Column
-    private String localSystemNumber;
+    protected String localSystemNumber;
     @Column
-    private String software;
+    protected String software;
     @Column
-    private String encodingLevel;
+    protected String encodingLevel;
     @Column
-    private String standardId;
+    protected String standardId;
     @Column
-    private String language;
+    protected String language;
     @Column
-    private String mimeType;
+    protected String mimeType;
     @Column
-    private String title;
+    protected String title;
     @Column
-    private String holdingId;
+    protected String holdingId;
     @Column
-    private Boolean australianContent;
+    protected Boolean australianContent;
     @Column
-    private String contributor;
+    protected String contributor;
     @Column
-    private String checksum;
+    protected String checksum;
     @Column
-    private String recordSource;
+    protected String recordSource;
     @Column
-    private String coverage;
+    protected String coverage;
     @Column
-    private String bibId;
+    protected String bibId;
     @Column
-    private String creator;
+    protected String creator;
     @Column
-    private Date checksumGenerationDate;
+    protected Date checksumGenerationDate;
     @Column
-    private String coordinates;
+    protected String coordinates;
     @Column
-    private String encoding;
+    protected String encoding;
     @Column
-    private String holdingNumber;
+    protected String holdingNumber;
     @Column
-    private int fileSize;
+    protected int fileSize;
     @Column
-    private int blobId;
+    protected Long blobId;
     @Column
-    private String checksumType;
+    protected String checksumType;
     @Column
-    private String publisher;
+    protected String publisher;
     @Column
-    private String compression;
+    protected String compression;
     @Column
-    private String device;
+    protected String device;
     @Column
-    private String fileFormat;
+    protected String fileFormat;
 
     public String getExtent() {
         return extent;
@@ -244,11 +244,11 @@ public class File extends AmberModel {
         this.fileSize = fileSize;
     }
 
-    public int getBlobId() {
+    public Long getBlobId() {
         return blobId;
     }
 
-    public void setBlobId(int blobId) {
+    public void setBlobId(Long blobId) {
         this.blobId = blobId;
     }
 

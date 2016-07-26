@@ -11,13 +11,13 @@ import javax.persistence.Entity;
 public class AmberModel {
 
     @Column
-    private long id = 0;
+    protected long id = 0;
 
     @Column
-    private long txn_start;
+    protected long txn_start;
 
     @Column
-    private long txn_end;
+    protected long txn_end;
 
     public long getId() {
         return id;

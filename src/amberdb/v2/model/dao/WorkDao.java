@@ -355,7 +355,13 @@ public abstract class WorkDao implements CrudDao<Work> {
     @SqlUpdate("delete from work where id = :id")
     public abstract void deleteHistory(@Bind("id") Long id);
 
-    @SqlUpdate("select * from work where accessConditions = 'Unrestricted'")
-    public abstract List<Work> unrestrictedWorks();
+    @SqlQuery("")
+    public abstract Work getParent(@Bind("id") Long id);
+
+    @SqlQuery("")
+    public abstract Work getDeliveryWorkParent(@Bind("id") Long id);
+
+    @SqlQuery("")
+    public abstract List<Work> getDeliveryWorks(@Bind("id") Long id);
 }
 

@@ -48,15 +48,15 @@ public class IngestTest {
 
         // Note: banjo upload files step does not interact with amberDb at all.
         List<Path> list = new ArrayList<Path>();
-        list.add(TestUtils.newDummyFile(folder, "a.tiff"));
-        list.add(TestUtils.newDummyFile(folder, "b.tiff"));
+        list.add(AmberDbTestUtils.newDummyFile(folder, "a.tiff"));
+        list.add(AmberDbTestUtils.newDummyFile(folder, "b.tiff"));
 
-        list.add(TestUtils.newDummyFile(folder, "nla.aus-vn12345-1.tiff"));
-        list.add(TestUtils.newDummyFile(folder, "nla.aus-vn12345-2.tiff"));
-        list.add(TestUtils.newDummyFile(folder, "nla.aus-vn12345.xml"));
+        list.add(AmberDbTestUtils.newDummyFile(folder, "nla.aus-vn12345-1.tiff"));
+        list.add(AmberDbTestUtils.newDummyFile(folder, "nla.aus-vn12345-2.tiff"));
+        list.add(AmberDbTestUtils.newDummyFile(folder, "nla.aus-vn12345.xml"));
 
-        list.add(TestUtils.newDummyFile(folder, "nla.aus-vn643643-1.tiff"));
-        list.add(TestUtils.newDummyFile(folder, "nla.aus-vn643643-2.tiff"));
+        list.add(AmberDbTestUtils.newDummyFile(folder, "nla.aus-vn643643-1.tiff"));
+        list.add(AmberDbTestUtils.newDummyFile(folder, "nla.aus-vn643643-2.tiff"));
 
         job.files = list;
         return job;

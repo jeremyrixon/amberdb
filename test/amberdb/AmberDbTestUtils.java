@@ -6,7 +6,7 @@ import java.nio.file.Path;
 
 import org.junit.rules.TemporaryFolder;
 
-public class TestUtils {
+public class AmberDbTestUtils {
     
     public static Path newDummyFile(TemporaryFolder folder, String name) throws IOException {
         Path path = folder.newFile(name).toPath();

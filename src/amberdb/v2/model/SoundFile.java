@@ -9,7 +9,7 @@ import javax.persistence.Entity;
 
 @Entity
 @RegisterMapperFactory(AmberDbMapperFactory.class)
-public class SoundFile extends AmberModel {
+public class SoundFile extends File {
 
     @Column
     private String fileName;
@@ -55,8 +55,6 @@ public class SoundFile extends AmberModel {
     private String carrierCapacity;
     @Column
     private String bitDepth;
-    @Column
-    private int blobId;
     @Column
     private String checksumType;
     @Column
@@ -240,14 +238,6 @@ public class SoundFile extends AmberModel {
 
     public void setBitDepth(String bitDepth) {
         this.bitDepth = bitDepth;
-    }
-
-    public int getBlobId() {
-        return blobId;
-    }
-
-    public void setBlobId(int blobId) {
-        this.blobId = blobId;
     }
 
     public String getChecksumType() {

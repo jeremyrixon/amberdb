@@ -10,7 +10,7 @@ import java.util.Date;
 
 @Entity
 @RegisterMapperFactory(AmberDbMapperFactory.class)
-public class Geocoding extends AmberModel {
+public class Geocoding extends Description {
 
     @Column
     private String mapDatum;
