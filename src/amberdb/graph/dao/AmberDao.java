@@ -5,7 +5,10 @@ import java.util.List;
 
 import amberdb.graph.AmberProperty;
 import amberdb.graph.TransactionMapper;
+import amberdb.v2.model.Work;
+
 import org.skife.jdbi.v2.sqlobject.Bind;
+import org.skife.jdbi.v2.sqlobject.BindBean;
 import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
@@ -467,5 +470,10 @@ public interface AmberDao extends Transactional<AmberDao> {
             "WHERE s_id = @sessId;\n")
     void clearSession(
             @Bind("sessId") Long sessId);
+
+
+    @SqlBatch("INSERT INTO work (id, txn_start, txn_end, extent, dcmDateTimeUpdated, localSystemNumber, occupation, endDate, displayTitlePage, holdingId, hasRepresentation, totalDuration, dcmDateTimeCreated, firstPart, additionalTitle, dcmWorkPid, classification, commentsInternal, restrictionType, ilmsSentDateTime, subType, scaleEtc, startDate, dcmRecordUpdater, tilePosition, allowHighResdownload, south, restrictionsOnAccess, preservicaType, north, accessConditions, internalAccessConditions, eadUpdateReviewRequired, australianContent, moreIlmsDetailsRequired, rights, genre, deliveryUrl, recordSource, sheetCreationDate, creator, sheetName, coordinates, creatorStatement, additionalCreator, folderType, eventNote, interactiveIndexAvailable, startChild, bibLevel, holdingNumber, publicNotes, series, constraint1, notes, catalogueUrl, encodingLevel, materialFromMultipleSources, subject, sendToIlms, vendorId, allowOnsiteAccess, language, sensitiveMaterial, dcmAltPi, folderNumber, west, html, preservicaId, redocworksReason, workCreatedDuringMigration, author, commentsExternal, findingAidNote, collection, otherTitle, imageServerUrl, localSystemNo, acquisitionStatus, reorderType, immutable, copyrightPolicy, nextStep, publisher, additionalSeries, tempHolding, sortIndex, isMissingPage, standardId, representativeId, edition, reorder, title, acquisitionCategory, subUnitNo, expiryDate, digitalStatusDate, east, contributor, publicationCategory, ingestJobId, subUnitType, uniformTitle, alias, rdsAcknowledgementType, issueDate, bibId, coverage, summary, additionalContributor, sendToIlmsDateTime, sensitiveReason, carrier, form, rdsAcknowledgementReceiver, digitalStatus, dcmRecordCreator, sprightlyUrl, depositType, parentConstraint) "
+            + "VALUES (:id, :txn_start, :txn_end, :extent, :dcmDateTimeUpdated, :localSystemNumber, :occupation, :endDate, :displayTitlePage, :holdingId, :hasRepresentation, :totalDuration, :dcmDateTimeCreated, :firstPart, :additionalTitle, :dcmWorkPid, :classification, :commentsInternal, :restrictionType, :ilmsSentDateTime, :subType, :scaleEtc, :startDate, :dcmRecordUpdater, :tilePosition, :allowHighResdownload, :south, :restrictionsOnAccess, :preservicaType, :north, :accessConditions, :internalAccessConditions, :eadUpdateReviewRequired, :australianContent, :moreIlmsDetailsRequired, :rights, :genre, :deliveryUrl, :recordSource, :sheetCreationDate, :creator, :sheetName, :coordinates, :creatorStatement, :additionalCreator, :folderType, :eventNote, :interactiveIndexAvailable, :startChild, :bibLevel, :holdingNumber, :publicNotes, :series, :constraint1, :notes, :catalogueUrl, :encodingLevel, :materialFromMultipleSources, :subject, :sendToIlms, :vendorId, :allowOnsiteAccess, :language, :sensitiveMaterial, :dcmAltPi, :folderNumber, :west, :html, :preservicaId, :redocworksReason, :workCreatedDuringMigration, :author, :commentsExternal, :findingAidNote, :collection, :otherTitle, :imageServerUrl, :localSystemNo, :acquisitionStatus, :reorderType, :immutable, :copyrightPolicy, :nextStep, :publisher, :additionalSeries, :tempHolding, :sortIndex, :isMissingPage, :standardId, :representativeId, :edition, :reorder, :title, :acquisitionCategory, :subUnitNo, :expiryDate, :digitalStatusDate, :east, :contributor, :publicationCategory, :ingestJobId, :subUnitType, :uniformTitle, :alias, :rdsAcknowledgementType, :issueDate, :bibId, :coverage, :summary, :additionalContributor, :sendToIlmsDateTime, :sensitiveReason, :carrier, :form, :rdsAcknowledgementReceiver, :digitalStatus, :dcmRecordCreator, :sprightlyUrl, :depositType, :parentConstraint)")
+	void createWorks(@BindBean List<Work> work);
 }
 
