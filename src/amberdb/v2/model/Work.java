@@ -36,7 +36,7 @@ public class Work extends AmberModel {
     @Column
     protected String title;
     @Column
-    protected String addtionalTitle;
+    protected String additionalTitle;
     @Column
     protected String otherTitle;
     @Column
@@ -120,7 +120,7 @@ public class Work extends AmberModel {
     @Column
     protected String internalAccessConditions;
     @Column
-    protected String EADUpdateReviewRequired;
+    protected String eadUpdateReviewRequired;
     @Column
     protected Boolean australianContent;
     @Column
@@ -249,6 +249,10 @@ public class Work extends AmberModel {
     protected String east;
     @Column
     protected String west;
+    @Column
+    protected String restrictionsOnAccess;
+    @Column
+    protected String preservicaType;
 
     public Date getDcmDateTimeCreated() {
         return dcmDateTimeCreated;
@@ -314,12 +318,12 @@ public class Work extends AmberModel {
         this.title = title;
     }
 
-    public String getAddtionalTitle() {
-        return addtionalTitle;
+    public String getAdditionalTitle() {
+        return additionalTitle;
     }
 
-    public void setAddtionalTitle(String addtionalTitle) {
-        this.addtionalTitle = addtionalTitle;
+    public void setAdditionalTitle(String additionalTitle) {
+        this.additionalTitle = additionalTitle;
     }
 
     public String getOtherTitle() {
@@ -650,15 +654,15 @@ public class Work extends AmberModel {
         this.internalAccessConditions = internalAccessConditions;
     }
 
-    public String getEADUpdateReviewRequired() {
-        return EADUpdateReviewRequired;
+    public String getEadUpdateReviewRequired() {
+        return eadUpdateReviewRequired;
     }
 
-    public void setEADUpdateReviewRequired(String EADUpdateReviewRequired) {
-        this.EADUpdateReviewRequired = EADUpdateReviewRequired;
+    public void setEadUpdateReviewRequired(String eadUpdateReviewRequired) {
+        this.eadUpdateReviewRequired = eadUpdateReviewRequired;
     }
 
-    public Boolean isAustralianContent() {
+    public Boolean getAustralianContent() {
         return australianContent;
     }
 
@@ -866,11 +870,11 @@ public class Work extends AmberModel {
         this.sortIndex = sortIndex;
     }
 
-    public Boolean getMissingPage() {
+    public Boolean getIsMissingPage() {
         return isMissingPage;
     }
 
-    public void setMissingPage(Boolean missingPage) {
+    public void setIsMissingPage(Boolean missingPage) {
         isMissingPage = missingPage;
     }
 
@@ -1170,7 +1174,23 @@ public class Work extends AmberModel {
         this.west = west;
     }
 
-    @Transient
+    public String getRestrictionsOnAccess() {
+		return restrictionsOnAccess;
+	}
+
+	public void setRestrictionsOnAccess(String restrictionsOnAccess) {
+		this.restrictionsOnAccess = restrictionsOnAccess;
+	}
+
+	public String getPreservicaType() {
+		return preservicaType;
+	}
+
+	public void setPreservicaType(String preservicaType) {
+		this.preservicaType = preservicaType;
+	}
+
+	@Transient
     public EADWork asEADWork() {
     	return this instanceof EADWork ? (EADWork) this : null;
     }

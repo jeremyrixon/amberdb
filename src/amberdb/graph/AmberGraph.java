@@ -27,6 +27,8 @@ import com.tinkerpop.blueprints.Vertex;
 
 import amberdb.graph.dao.AmberDao;
 import amberdb.graph.dao.AmberDaoMySql;
+import amberdb.util.WorkUtils;
+import amberdb.v2.model.Work;
 
 
 public class AmberGraph extends BaseGraph 
@@ -276,8 +278,13 @@ public class AmberGraph extends BaseGraph
             log.debug("batches -- vertices:{} edges:{} properties:{}",
                     v.id.size(), e.id.size(), p.id.size());
             
+            
+            
             dao.begin();
             
+            dao.createWorks(getNewWorks());
+            dao.deleteWorks(getDeletedWorks());
+            dao.updateWorks(getModifiedWorks());
             dao.suspendEdges(sessId, e.id, e.txnStart, e.txnEnd, e.vertexOut,
                     e.vertexIn, e.label, e.order, e.state);
             dao.suspendVertices(sessId, v.id, v.txnStart, v.txnEnd, v.state);
@@ -292,7 +299,38 @@ public class AmberGraph extends BaseGraph
     }
 
     
-    private void batchSuspendEdges(AmberEdgeBatch edges, AmberPropertyBatch properties) {
+	private List<Work> getNewWorks() {
+		List<Work> works = new ArrayList<>();
+		for (Vertex v : newVertices) {
+			if ("Work".equals(v.getProperty("type"))) {
+				works.add(WorkUtils.convert((AmberVertex) v));
+			}
+		}
+		return works;
+	}
+
+	private List<Work> getDeletedWorks() {
+		List<Work> works = new ArrayList<>();
+		for (Vertex v : removedVertices.values()) {
+			if ("Work".equals(v.getProperty("type"))) {
+				works.add(WorkUtils.convert((AmberVertex) v));
+			}
+		}
+		return works;
+	}
+
+	private List<Work> getModifiedWorks() {
+		List<Work> works = new ArrayList<>();
+		for (Vertex v : modifiedVertices) {
+			if ("Work".equals(v.getProperty("type"))) {
+				works.add(WorkUtils.convert((AmberVertex) v));
+			}
+		}
+		return works;
+	}
+	
+	
+	private void batchSuspendEdges(AmberEdgeBatch edges, AmberPropertyBatch properties) {
         
         log.debug("suspending edges -- deleted:{} new:{} modified:{}",
                 removedEdges.size(), newEdges.size(), modifiedEdges.size());
