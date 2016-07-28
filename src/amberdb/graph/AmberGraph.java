@@ -283,6 +283,8 @@ public class AmberGraph extends BaseGraph
             dao.begin();
             
             dao.createWorks(getNewWorks());
+            dao.deleteWorks(getDeletedWorks());
+            dao.updateWorks(getModifiedWorks());
             dao.suspendEdges(sessId, e.id, e.txnStart, e.txnEnd, e.vertexOut,
                     e.vertexIn, e.label, e.order, e.state);
             dao.suspendVertices(sessId, v.id, v.txnStart, v.txnEnd, v.state);
@@ -304,10 +306,30 @@ public class AmberGraph extends BaseGraph
 				works.add(WorkUtils.convert((AmberVertex) v));
 			}
 		}
-
 		return works;
 	}
 
+	private List<Work> getDeletedWorks() {
+		List<Work> works = new ArrayList<>();
+		for (Vertex v : removedVertices.values()) {
+			if ("Work".equals(v.getProperty("type"))) {
+				works.add(WorkUtils.convert((AmberVertex) v));
+			}
+		}
+		return works;
+	}
+
+	private List<Work> getModifiedWorks() {
+		List<Work> works = new ArrayList<>();
+		for (Vertex v : modifiedVertices) {
+			if ("Work".equals(v.getProperty("type"))) {
+				works.add(WorkUtils.convert((AmberVertex) v));
+			}
+		}
+		return works;
+	}
+	
+	
 	private void batchSuspendEdges(AmberEdgeBatch edges, AmberPropertyBatch properties) {
         
         log.debug("suspending edges -- deleted:{} new:{} modified:{}",
