@@ -2,6 +2,7 @@ package amberdb.v2.model;
 
 
 import amberdb.v2.model.mapper.AmberDbMapperFactory;
+import amberdb.v2.util.DurationUtils;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
 import javax.persistence.Column;
@@ -270,5 +271,9 @@ public class SoundFile extends File {
 
     public void setFileFormat(String fileFormat) {
         this.fileFormat = fileFormat;
+    }
+
+    public Float getDurationAsSeconds() {
+        return DurationUtils.convertDurationToSeconds(getDuration());
     }
 }

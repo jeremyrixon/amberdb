@@ -1,17 +1,15 @@
-package amberdb.graph;
+package amberdb.v2.util;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import amberdb.graph.DataType;
+
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Date;
 
 
 public class AmberProperty {
+
     
     private long id;
     private String name; 

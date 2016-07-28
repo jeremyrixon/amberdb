@@ -424,7 +424,7 @@ public class Copy extends AmberModel {
         return null;
     }
 
-    // TODO - use FileDao to get file
+    // TODO - use ImageFileDao to get file
     public File getFile() {
         return null;
     }

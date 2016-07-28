@@ -1,5 +1,6 @@
 package amberdb.v2.model;
 
+import amberdb.v2.PIUtil;
 import amberdb.v2.model.mapper.AmberDbMapperFactory;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
@@ -41,5 +42,9 @@ public class AmberModel {
 
     public void setTxn_end(long txn_end) {
         this.txn_end = txn_end;
+    }
+
+    public String getObjId() {
+        return PIUtil.format(this.getId());
     }
 }

@@ -1,6 +1,7 @@
 package amberdb.v2.model.dao;
 
 import amberdb.v2.model.Work;
+import amberdb.v2.relation.model.WorkDeliveryWork;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.BindBean;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
@@ -358,10 +359,13 @@ public abstract class WorkDao implements CrudDao<Work> {
     @SqlQuery("")
     public abstract Work getParent(@Bind("id") Long id);
 
-    @SqlQuery("")
-    public abstract Work getDeliveryWorkParent(@Bind("id") Long id);
+    @SqlQuery("select * from work_deliverywork where deliverywork_id = :id")
+    public abstract WorkDeliveryWork getDeliveryWorkParent(@Bind("id") Long id);
 
-    @SqlQuery("")
-    public abstract List<Work> getDeliveryWorks(@Bind("id") Long id);
+    @SqlQuery("select * from work_deliverywork where work_id = :id")
+    public abstract List<WorkDeliveryWork> getDeliveryWorks(@Bind("id") Long id);
+
+    @SqlQuery("select * from work_deliverywork where deliverywork_id = :id")
+    public abstract WorkDeliveryWork getDeliveryWork(@Bind("id") Long id);
 }
 

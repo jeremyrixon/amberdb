@@ -1175,13 +1175,14 @@ public class Work extends AmberModel {
     	return this instanceof EADWork ? (EADWork) this : null;
     }
 
-    public String getObjId() {
-        return PIUtil.format(this.getId());
-    }
-
     public List<Work> getPartsOf(String type) {
         List<Work> works = new ArrayList<>();
         // TODO - implement this
         return works;
+    }
+
+    // TODO - how does this work with separate Copy and Work tables?
+    public String getType() {
+        return "Work";
     }
 }

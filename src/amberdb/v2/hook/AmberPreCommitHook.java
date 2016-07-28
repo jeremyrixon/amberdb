@@ -1,13 +1,12 @@
-package amberdb.graph;
+package amberdb.v2.hook;
 
+import amberdb.v2.AmberSession;
 import amberdb.v2.model.*;
 import com.google.common.collect.ImmutableList;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.frames.FramedGraph;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
-
-import amberdb.AmberSession;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,26 +35,13 @@ public abstract class AmberPreCommitHook<T> {
 
     public abstract Class getExpectedNodeType();
 
-    public void hook(List<Vertex> addedVertices,
-                     List<Vertex> modifiedVertices,
-                     List<Vertex> deletedVertices,
-                     List addedEdges,
-                     List modifiedEdges,
-                     List deletedEdges,
+    public void hook(List<T> added,
+                     List<T> modified,
+                     List<T> deleted,
                      AmberSession amberSession) {
 
-        List<T> addedNodes = retrieveVerticesOfCorrectTypeForThisHook(addedVertices, amberSession.getGraph());
-        List<T> modifiedNodes = retrieveVerticesOfCorrectTypeForThisHook(modifiedVertices, amberSession.getGraph());
-        List<T> removedNodes = retrieveVerticesOfCorrectTypeForThisHook(deletedVertices, amberSession.getGraph());
-
-        if (getExpectedNodeType() == Edge.class) {
-            if (shouldHook(addedEdges, modifiedEdges, deletedEdges)) {
-                runHook(addedEdges, modifiedEdges, deletedEdges, amberSession);
-            }
-        } else {
-            if (shouldHook(addedNodes, modifiedNodes, removedNodes)) {
-                runHook(addedNodes, modifiedNodes, removedNodes, amberSession);
-            }
+        if (shouldHook(added, modified, deleted)) {
+            runHook(added, modified, deleted, amberSession);
         }
     }
 

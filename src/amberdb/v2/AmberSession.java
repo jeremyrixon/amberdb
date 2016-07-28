@@ -1,13 +1,10 @@
 package amberdb.v2;
 
-import amberdb.NoSuchObjectException;
-import amberdb.PIUtil;
-import amberdb.graph.AmberPreCommitHook;
 import amberdb.sql.Lookups;
-import amberdb.v2.model.Copy;
-import amberdb.v2.model.File;
-import amberdb.v2.model.Page;
-import amberdb.v2.model.Work;
+import amberdb.v2.hook.AmberPreCommitHook;
+import amberdb.v2.model.*;
+import amberdb.v2.model.dao.*;
+import amberdb.v2.model.mapper.AmberDbMapperFactory;
 import doss.BlobStore;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
@@ -21,8 +18,16 @@ public class AmberSession implements AutoCloseable {
 
     private final BlobStore blobStore;
     private DBI dbi;
+    private WorkDao workDao;
+    private CopyDao copyDao;
+    private ParentChildDao parentChildDao;
+    private FileDao fileDao;
+    private ImageFileDao imageFileDao;
+    private SoundFileDao soundFileDao;
+    private MovingImageFileDao movingImageFileDao;
+    private SectionDao sectionDao;
     private final TempDirectory tempDir;
-    private List<AmberPreCommitHook> preCommitHooks = new ArrayList<>();
+    private List<AmberPreCommitHook<? extends AmberModel>> preCommitHooks = new ArrayList<>();
 
     /**
      * Constructs an in-memory AmberDb for testing with. Also creates a BlobStore in a temp dir
@@ -72,7 +77,7 @@ public class AmberSession implements AutoCloseable {
         this.blobStore = blobStore;
     }
 
-    public AmberSession(DataSource dataSource, BlobStore blobStore, Long sessionId, List<AmberPreCommitHook> preCommitHooks) {
+    public AmberSession(DataSource dataSource, BlobStore blobStore, Long sessionId, List<AmberPreCommitHook<? extends AmberModel>> preCommitHooks) {
         init(dataSource, sessionId);
 
         this.preCommitHooks = preCommitHooks;
@@ -85,6 +90,16 @@ public class AmberSession implements AutoCloseable {
     private void init(DataSource dataSource, Long sessionId) {
         // Lookups dbi
         dbi = new DBI(dataSource);
+        dbi.registerMapper(new AmberDbMapperFactory());
+
+        workDao = dbi.onDemand(WorkDao.class);
+        copyDao = dbi.onDemand(CopyDao.class);
+        parentChildDao = dbi.onDemand(ParentChildDao.class);
+        fileDao = dbi.onDemand(FileDao.class);
+        imageFileDao = dbi.onDemand(ImageFileDao.class);
+        soundFileDao = dbi.onDemand(SoundFileDao.class);
+        movingImageFileDao = dbi.onDemand(MovingImageFileDao.class);
+        sectionDao = dbi.onDemand(SectionDao.class);
     }
 
     @Override
@@ -161,7 +176,7 @@ public class AmberSession implements AutoCloseable {
      * Finds a work by id.
      */
     public Work findWork(long objectId) {
-        return findModelObjectById(objectId, Work.class);
+        return workDao.get(objectId);
     }
 
     /**
@@ -264,7 +279,7 @@ public class AmberSession implements AutoCloseable {
      * @param copy The copy to be deleted
      */
     public void deleteCopy(final Copy copy) {
-        // TODO use FileDao to get files to delete
+        // TODO use ImageFileDao to get files to delete
 //        for (File file : copy.getFiles()) {
 //            deleteFile(file);
 //        }
@@ -284,7 +299,7 @@ public class AmberSession implements AutoCloseable {
 //        }
 
         // delete file
-        // TODO - use the FileDao to delete work
+        // TODO - use the ImageFileDao to delete work
     }
 
     /**
@@ -302,4 +317,36 @@ public class AmberSession implements AutoCloseable {
     }
 
     // TODO - Add other convenience methods...blah blah blah...
+
+    public WorkDao getWorkDao() {
+        return workDao;
+    }
+
+    public CopyDao getCopyDao() {
+        return copyDao;
+    }
+
+    public ParentChildDao getParentChildDao() {
+        return parentChildDao;
+    }
+
+    public FileDao getFileDao() {
+        return fileDao;
+    }
+
+    public ImageFileDao getImageFileDao() {
+        return imageFileDao;
+    }
+
+    public SoundFileDao getSoundFileDao() {
+        return soundFileDao;
+    }
+
+    public MovingImageFileDao getMovingImageFileDao() {
+        return movingImageFileDao;
+    }
+
+    public SectionDao getSectionDao() {
+        return sectionDao;
+    }
 }
