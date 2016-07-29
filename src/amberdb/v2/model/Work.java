@@ -1,5 +1,7 @@
 package amberdb.v2.model;
 
+import amberdb.v2.PIUtil;
+import amberdb.v2.model.dao.WorkDao;
 import amberdb.v2.model.mapper.AmberDbMapperFactory;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
@@ -7,246 +9,250 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Transient;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @RegisterMapperFactory(AmberDbMapperFactory.class)
 public class Work extends AmberModel {
 
+    protected WorkDao workDao;
+
     @Column
-    private Date dcmDateTimeCreated;
+    protected Date dcmDateTimeCreated;
     @Column
-    private Date dcmDateTimeUpdated;
+    protected Date dcmDateTimeUpdated;
     @Column
-    private String dcmRecordUpdater;
+    protected String dcmRecordUpdater;
     @Column
-    private String dcmWorkPid;
+    protected String dcmWorkPid;
     @Column
-    private String dcmAltPi;
+    protected String dcmAltPi;
     @Column
-    private String dcmRecordCreator;
+    protected String dcmRecordCreator;
     @Column
-    private Boolean displayTitlePage;
+    protected Boolean displayTitlePage;
     @Column
-    private String title;
+    protected String title;
     @Column
-    private String additionalTitle;
+    protected String additionalTitle;
     @Column
-    private String otherTitle;
+    protected String otherTitle;
     @Column
-    private String uniformTitle;
+    protected String uniformTitle;
     @Column
-    private String alias;
+    protected String alias;
     @Column
-    private String author;
+    protected String author;
     @Column
-    private String publisher;
+    protected String publisher;
     @Column
-    private String contributor;
+    protected String contributor;
     @Column
-    private String additionalContributor;
+    protected String additionalContributor;
     @Column
-    private String localSystemNumber;
+    protected String localSystemNumber;
     @Column
-    private String localSystemNo;
+    protected String localSystemNo;
     @Column
-    private String classification;
+    protected String classification;
     @Column
-    private String collection;
+    protected String collection;
     @Column
-    private String extent;
+    protected String extent;
     @Column
-    private String subType;
+    protected String subType;
     @Column
-    private String subUnitNo;
+    protected String subUnitNo;
     @Column
-    private String subUnitType;
+    protected String subUnitType;
     @Column
-    private String occupation;
+    protected String occupation;
     @Column
-    private Date startDate;
+    protected Date startDate;
     @Column
-    private Date endDate;
+    protected Date endDate;
     @Column
-    private Date expiryDate;
+    protected Date expiryDate;
     @Column
-    private Date digitalStatusDate;
+    protected Date digitalStatusDate;
     @Column
-    private String acquisitionStatus;
+    protected String acquisitionStatus;
     @Column
-    private String acquisitionCategory;
+    protected String acquisitionCategory;
     @Column
-    private String publicationCategory;
+    protected String publicationCategory;
     @Column
-    private String reorderType;
+    protected String reorderType;
     @Column
-    private String immutable;
+    protected String immutable;
     @Column
-    private String copyrightPolicy;
+    protected String copyrightPolicy;
     @Column
-    private String hasRepresentation;
+    protected String hasRepresentation;
     @Column
-    private String totalDuration;
+    protected String totalDuration;
     @Column
-    private String scaleEtc;
+    protected String scaleEtc;
     @Column
-    private String firstPart;
+    protected String firstPart;
     @Column
-    private String commentsInternal;
+    protected String commentsInternal;
     @Column
-    private String commentsExternal;
+    protected String commentsExternal;
     @Column
-    private String restrictionType;
+    protected String restrictionType;
     @Column
-    private Date ilmsSentDateTime;
+    protected Date ilmsSentDateTime;
     @Column
-    private Boolean moreIlmsDetailsRequired;
+    protected Boolean moreIlmsDetailsRequired;
     @Column
-    private Boolean sendToIlms;
+    protected Boolean sendToIlms;
     @Column
-    private Date sendToIlmsDateTime;
+    protected Date sendToIlmsDateTime;
     @Column
-    private String tilePosition;
+    protected String tilePosition;
     @Column
-    private Boolean allowHighResdownload;
+    protected Boolean allowHighResdownload;
     @Column
-    private String accessConditions;
+    protected String accessConditions;
     @Column
-    private String internalAccessConditions;
+    protected String internalAccessConditions;
     @Column
-    private String eadUpdateReviewRequired;
+    protected String eadUpdateReviewRequired;
     @Column
-    private Boolean australianContent;
+    protected Boolean australianContent;
     @Column
-    private String rights;
+    protected String rights;
     @Column
-    private String genre;
+    protected String genre;
     @Column
-    private String deliveryUrl;
+    protected String deliveryUrl;
     @Column
-    private String imageServerUrl;
+    protected String imageServerUrl;
     @Column
-    private String recordSource;
+    protected String recordSource;
     @Column
-    private String sheetCreationDate;
+    protected String sheetCreationDate;
     @Column
-    private String sheetName;
+    protected String sheetName;
     @Column
-    private String creator;
+    protected String creator;
     @Column
-    private String creatorStatement;
+    protected String creatorStatement;
     @Column
-    private String additionalCreator;
+    protected String additionalCreator;
     @Column
-    private String folderType;
+    protected String folderType;
     @Column
-    private String folderNumber;
+    protected String folderNumber;
     @Column
-    private String eventNote;
+    protected String eventNote;
     @Column
-    private String notes;
+    protected String notes;
     @Column
-    private String publicNotes;
+    protected String publicNotes;
     @Column
-    private String findingAidNote;
+    protected String findingAidNote;
     @Column
-    private Boolean interactiveIndexAvailable;
+    protected Boolean interactiveIndexAvailable;
     @Column
-    private String startChild;
+    protected String startChild;
     @Column
-    private String bibLevel;
+    protected String bibLevel;
     @Column
-    private String standardId;
+    protected String standardId;
     @Column
-    private String representativeId;
+    protected String representativeId;
     @Column
-    private String holdingId;
+    protected String holdingId;
     @Column
-    private String holdingNumber;
+    protected String holdingNumber;
     @Column
-    private String tempHolding;
+    protected String tempHolding;
     @Column
-    private String sortIndex;
+    protected String sortIndex;
     @Column
-    private Boolean isMissingPage;
+    protected Boolean isMissingPage;
     @Column
-    private String series;
+    protected String series;
     @Column
-    private String edition;
+    protected String edition;
     @Column
-    private String reorder;
+    protected String reorder;
     @Column
-    private String additionalSeries;
+    protected String additionalSeries;
     @Column
-    private String constraint1;
+    protected String constraint1;
     @Column
-    private String parentConstraint;
+    protected String parentConstraint;
     @Column
-    private String catalogueUrl;
+    protected String catalogueUrl;
     @Column
-    private String encodingLevel;
+    protected String encodingLevel;
     @Column
-    private Boolean materialFromMultipleSources;
+    protected Boolean materialFromMultipleSources;
     @Column
-    private String subject;
+    protected String subject;
     @Column
-    private String vendorId;
+    protected String vendorId;
     @Column
-    private Boolean allowOnsiteAccess;
+    protected Boolean allowOnsiteAccess;
     @Column
-    private String language;
+    protected String language;
     @Column
-    private String sensitiveMaterial;
+    protected String sensitiveMaterial;
     @Column
-    private String html;
+    protected String html;
     @Column
-    private String preservicaId;
+    protected String preservicaId;
     @Column
-    private String redocworksReason;
+    protected String redocworksReason;
     @Column
-    private Boolean workCreatedDuringMigration;
+    protected Boolean workCreatedDuringMigration;
     @Column
-    private String nextStep;
+    protected String nextStep;
     @Column
-    private int ingestJobId;
+    protected Long ingestJobId;
     @Column
-    private String rdsAcknowledgementType;
+    protected String rdsAcknowledgementType;
     @Column
-    private String rdsAcknowledgementReceiver;
+    protected String rdsAcknowledgementReceiver;
     @Column
-    private Date issueDate;
+    protected Date issueDate;
     @Column
-    private String bibId;
+    protected String bibId;
     @Column
-    private String coverage;
+    protected String coverage;
     @Column
-    private String summary;
+    protected String summary;
     @Column
-    private String sensitiveReason;
+    protected String sensitiveReason;
     @Column
-    private String carrier;
+    protected String carrier;
     @Column
-    private String form;
+    protected String form;
     @Column
-    private String digitalStatus;
+    protected String digitalStatus;
     @Column
-    private String sprightlyUrl;
+    protected String sprightlyUrl;
     @Column
-    private String depositType;
+    protected String depositType;
     @Column
-    private String coordinates;
+    protected String coordinates;
     @Column
-    private String north;
+    protected String north;
     @Column
-    private String south;
+    protected String south;
     @Column
-    private String east;
+    protected String east;
     @Column
-    private String west;
+    protected String west;
     @Column
-    private String restrictionsOnAccess;
+    protected String restrictionsOnAccess;
     @Column
-    private String preservicaType;
+    protected String preservicaType;
 
     public Date getDcmDateTimeCreated() {
         return dcmDateTimeCreated;
@@ -1024,11 +1030,11 @@ public class Work extends AmberModel {
         this.nextStep = nextStep;
     }
 
-    public int getIngestJobId() {
+    public Long getIngestJobId() {
         return ingestJobId;
     }
 
-    public void setIngestJobId(int ingestJobId) {
+    public void setIngestJobId(Long ingestJobId) {
         this.ingestJobId = ingestJobId;
     }
 
@@ -1167,8 +1173,8 @@ public class Work extends AmberModel {
     public void setWest(String west) {
         this.west = west;
     }
-    
-	public String getRestrictionsOnAccess() {
+
+    public String getRestrictionsOnAccess() {
 		return restrictionsOnAccess;
 	}
 
@@ -1189,5 +1195,14 @@ public class Work extends AmberModel {
     	return this instanceof EADWork ? (EADWork) this : null;
     }
 
+    public List<Work> getPartsOf(String type) {
+        List<Work> works = new ArrayList<>();
+        // TODO - implement this
+        return works;
+    }
 
+    // TODO - how does this work with separate Copy and Work tables?
+    public String getType() {
+        return "Work";
+    }
 }

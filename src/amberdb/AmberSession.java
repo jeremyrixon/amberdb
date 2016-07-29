@@ -240,7 +240,7 @@ public class AmberSession implements AutoCloseable {
      * Finds a work by id or alias.
      */
     public Work findWork(String idOrAlias) {
-        // @todo aliases
+        // TODO ALIASES!!
         try {
             return findWork(Long.parseLong(idOrAlias));
         } catch (NumberFormatException e) {

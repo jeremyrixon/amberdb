@@ -39,7 +39,11 @@ public class AmberDbResultSetMapper<T> implements ResultSetMapper<T> {
                 if (type.isAnnotationPresent(Entity.class)) {
                     ResultSetMetaData md = rs.getMetaData();
                     // Models inherit from AmberModel, which has the ID, transaction start and end properties
-                    Field[] fields = type.getSuperclass().getDeclaredFields();
+                    // but also have to take into account models inheriting from other models.
+                    // eg. Section => Work => AmberModel.
+                    // Adjust for level of inheritance when needed.
+                    Field[] fields = type.getSuperclass().getSuperclass().getDeclaredFields();
+                    ArrayUtils.addAll(fields, type.getSuperclass().getDeclaredFields());
                     ArrayUtils.addAll(fields, type.getDeclaredFields());
 
                     while (rs.next()) {

@@ -1,5 +1,6 @@
 package amberdb.v2.model;
 
+import amberdb.v2.PIUtil;
 import amberdb.v2.model.mapper.AmberDbMapperFactory;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
@@ -11,13 +12,13 @@ import javax.persistence.Entity;
 public class AmberModel {
 
     @Column
-    private long id = 0;
+    protected long id = 0;
 
     @Column
-    private long txn_start;
+    protected long txn_start;
 
     @Column
-    private long txn_end;
+    protected long txn_end;
 
     public long getId() {
         return id;
@@ -41,5 +42,9 @@ public class AmberModel {
 
     public void setTxn_end(long txn_end) {
         this.txn_end = txn_end;
+    }
+
+    public String getObjId() {
+        return PIUtil.format(this.getId());
     }
 }

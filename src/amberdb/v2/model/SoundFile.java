@@ -2,6 +2,7 @@ package amberdb.v2.model;
 
 
 import amberdb.v2.model.mapper.AmberDbMapperFactory;
+import amberdb.v2.util.DurationUtils;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
 import javax.persistence.Column;
@@ -9,7 +10,7 @@ import javax.persistence.Entity;
 
 @Entity
 @RegisterMapperFactory(AmberDbMapperFactory.class)
-public class SoundFile extends AmberModel {
+public class SoundFile extends File {
 
     @Column
     private String fileName;
@@ -55,8 +56,6 @@ public class SoundFile extends AmberModel {
     private String carrierCapacity;
     @Column
     private String bitDepth;
-    @Column
-    private int blobId;
     @Column
     private String checksumType;
     @Column
@@ -242,14 +241,6 @@ public class SoundFile extends AmberModel {
         this.bitDepth = bitDepth;
     }
 
-    public int getBlobId() {
-        return blobId;
-    }
-
-    public void setBlobId(int blobId) {
-        this.blobId = blobId;
-    }
-
     public String getChecksumType() {
         return checksumType;
     }
@@ -280,5 +271,9 @@ public class SoundFile extends AmberModel {
 
     public void setFileFormat(String fileFormat) {
         this.fileFormat = fileFormat;
+    }
+
+    public Float getDurationAsSeconds() {
+        return DurationUtils.convertDurationToSeconds(getDuration());
     }
 }

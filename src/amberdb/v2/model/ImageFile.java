@@ -9,7 +9,7 @@ import java.util.Date;
 
 @Entity
 @RegisterMapperFactory(AmberDbMapperFactory.class)
-public class ImageFile extends AmberModel {
+public class ImageFile extends File {
 
     @Column
     private String extent;
@@ -97,8 +97,6 @@ public class ImageFile extends AmberModel {
     private String application;
     @Column
     private String series;
-    @Column
-    private int blobId;
     @Column
     private String softwareSerialNumber;
     @Column
@@ -450,14 +448,6 @@ public class ImageFile extends AmberModel {
 
     public void setSeries(String series) {
         this.series = series;
-    }
-
-    public int getBlobId() {
-        return blobId;
-    }
-
-    public void setBlobId(int blobId) {
-        this.blobId = blobId;
     }
 
     public String getSoftwareSerialNumber() {
