@@ -38,7 +38,4 @@ public abstract class SectionDao implements CrudDao<Section> {
     @Override
     @SqlUpdate("delete from section_history where id = :id")
     public abstract void deleteHistory(@Bind("id") Long id);
-
-    @SqlQuery("select * from work_section where work_id = :id and subType = :type")
-    public abstract List<WorkSection> getSectionByWorkId(@Bind("id") Long id, @Bind("type") String subType);
 }

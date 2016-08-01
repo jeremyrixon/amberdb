@@ -12,28 +12,26 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class CopyQuery {
+public class WorkCopyQuery extends AmberQueryBase {
 
-    private AmberSession session;
-
-    public CopyQuery(AmberSession session) {
-        this.session = session;
+    public WorkCopyQuery(AmberSession session) {
+        super(session);
     }
 
     public boolean workHasImageAccessCopy(Long workId) {
-        WorkCopy workCopy = session.getCopyDao().getCopyByWorkIdAndRole(workId, CopyRole.ACCESS_COPY.code());
+        WorkCopy workCopy = session.getWorkCopyDao().getCopyByWorkIdAndRole(workId, CopyRole.ACCESS_COPY.code());
 
         return workCopy == null ? false : true;
     }
 
     public Copy getCopy(Long workId, CopyRole role) {
-        WorkCopy workCopy = session.getCopyDao().getCopyByWorkIdAndRole(workId, role.code());
+        WorkCopy workCopy = session.getWorkCopyDao().getCopyByWorkIdAndRole(workId, role.code());
 
         return session.getCopyDao().get(workCopy.getCopyId());
     }
 
     public Work getWork(Long copyId) {
-        WorkCopy workCopyDetails = session.getCopyDao().getWorkByCopyId(copyId);
+        WorkCopy workCopyDetails = session.getWorkCopyDao().getWorkByCopyId(copyId);
         String type = workCopyDetails.getWorkType();
         Long workId = workCopyDetails.getWorkId();
 
@@ -55,7 +53,7 @@ public class CopyQuery {
     public List<Copy> getOrderedCopies(Long workId) {
         List<Copy> result = new ArrayList();
 
-        List<WorkCopy> copyList = session.getCopyDao().getOrderedCopyIds(workId);
+        List<WorkCopy> copyList = session.getWorkCopyDao().getOrderedCopyIds(workId);
         for (WorkCopy wc : copyList) {
             Copy copy = session.getCopyDao().get(wc.getCopyId());
             if (copy != null) {
@@ -70,7 +68,7 @@ public class CopyQuery {
         List<CopyRole> result = new ArrayList();
 
         for (Long id : workIds) {
-            List<WorkCopy> rel = session.getCopyDao().getCopiesByWorkId(id);
+            List<WorkCopy> rel = session.getWorkCopyDao().getCopiesByWorkId(id);
 
             if (rel != null) {
                 for (WorkCopy r : rel) {

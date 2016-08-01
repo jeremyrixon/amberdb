@@ -1,23 +1,20 @@
 package amberdb.v2.relation;
 
 import amberdb.v2.AmberSession;
-import amberdb.v2.model.Section;
 import amberdb.v2.model.Work;
 import amberdb.v2.relation.model.WorkSection;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SectionQuery {
-
-    private AmberSession session;
+public class SectionQuery extends AmberQueryBase {
 
     public SectionQuery(AmberSession session) {
-        this.session = session;
+        super(session);
     }
 
     public List<Work> getPartsOf(Long workId, String subType) {
-        List<WorkSection> rel = session.getSectionDao().getSectionByWorkId(workId, subType);
+        List<WorkSection> rel = session.getWorkSectionDao().getSectionByWorkId(workId, subType);
         List<Work> result = new ArrayList();
 
         if (rel != null) {

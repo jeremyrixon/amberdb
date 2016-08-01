@@ -7,16 +7,14 @@ import amberdb.v2.relation.model.WorkDeliveryWork;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DeliveryWorkQuery {
-
-    private AmberSession session;
+public class DeliveryWorkQuery extends AmberQueryBase {
 
     public DeliveryWorkQuery(AmberSession session) {
-        this.session = session;
+        super(session);
     }
 
     public Work getDeliveryWorkParent(Long deliveryWorkId) {
-        WorkDeliveryWork rel = session.getWorkDao().getDeliveryWorkParent(deliveryWorkId);
+        WorkDeliveryWork rel = session.getDeliveryWorkDao().getDeliveryWorkParent(deliveryWorkId);
 
         if (rel != null) {
             return session.getWorkDao().get(rel.getWorkId());
@@ -33,7 +31,7 @@ public class DeliveryWorkQuery {
     }
 
     public List<Work> getDeliveryWorks(Long workId) {
-        List<WorkDeliveryWork> rel = session.getWorkDao().getDeliveryWorks(workId);
+        List<WorkDeliveryWork> rel = session.getDeliveryWorkDao().getDeliveryWorks(workId);
         List<Work> deliveryWorks = new ArrayList();
 
         if (rel != null) {
@@ -49,6 +47,6 @@ public class DeliveryWorkQuery {
     }
 
     public boolean isDeliveryWork(Long deliveryWorkId) {
-        return session.getWorkDao().getDeliveryWork(deliveryWorkId) == null ? false : true;
+        return session.getDeliveryWorkDao().getDeliveryWork(deliveryWorkId) == null ? false : true;
     }
 }

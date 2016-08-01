@@ -356,16 +356,7 @@ public abstract class WorkDao implements CrudDao<Work> {
     @SqlUpdate("delete from work where id = :id")
     public abstract void deleteHistory(@Bind("id") Long id);
 
-    @SqlQuery("")
-    public abstract Work getParent(@Bind("id") Long id);
-
-    @SqlQuery("select * from work_deliverywork where deliverywork_id = :id")
-    public abstract WorkDeliveryWork getDeliveryWorkParent(@Bind("id") Long id);
-
-    @SqlQuery("select * from work_deliverywork where work_id = :id")
-    public abstract List<WorkDeliveryWork> getDeliveryWorks(@Bind("id") Long id);
-
-    @SqlQuery("select * from work_deliverywork where deliverywork_id = :id")
-    public abstract WorkDeliveryWork getDeliveryWork(@Bind("id") Long id);
+    @SqlQuery("select * from work_alias where work_id = :id")
+    public abstract List<String> getAlias(@Bind("id") Long id);
 }
 

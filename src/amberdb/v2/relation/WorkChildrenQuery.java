@@ -1,29 +1,23 @@
 package amberdb.v2.relation;
 
-import amberdb.v2.enums.BibLevel;
 import amberdb.v2.AmberSession;
+import amberdb.v2.enums.BibLevel;
 import amberdb.v2.enums.CopyRole;
 import amberdb.v2.model.Work;
 import amberdb.v2.relation.model.ParentChild;
 import amberdb.v2.relation.model.WorkCopy;
 import amberdb.v2.util.AmberProperty;
 import amberdb.v2.util.QueryUtil;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.skife.jdbi.v2.Handle;
-import org.skife.jdbi.v2.Query;
-import org.skife.jdbi.v2.util.LongMapper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class WorkChildrenQuery {
+public class WorkChildrenQuery extends AmberQueryBase {
 
     private AmberSession session;
 
@@ -48,7 +42,7 @@ public class WorkChildrenQuery {
     }
 
     public WorkChildrenQuery(AmberSession session) {
-        this.session = session;
+        super(session);
     }
 
     public List<Work> getChildren(Long workId) {
@@ -57,6 +51,23 @@ public class WorkChildrenQuery {
 
         if (rel != null) {
             for (ParentChild r : rel) {
+                result.add(session.getWorkDao().get(r.getChildId()));
+            }
+        }
+
+        return result;
+    }
+
+    public Work getFirstChild(Long workId) {
+        return getChildRange(workId, 0, 1).get(0);
+    }
+
+    public List<Work> getChildRange(Long workId, int start, int num){
+        List<ParentChild> rel = session.getParentChildDao().getChildren(workId, start, num);
+        List<Work> result = new ArrayList();
+
+        if (rel != null) {
+            for (ParentChild r :rel) {
                 result.add(session.getWorkDao().get(r.getChildId()));
             }
         }
@@ -98,7 +109,7 @@ public class WorkChildrenQuery {
 
         if (rel != null) {
             for (ParentChild r : rel) {
-                List<WorkCopy> wcRel = session.getCopyDao().getCopiesByWorkId(r.getChildId());
+                List<WorkCopy> wcRel = session.getWorkCopyDao().getCopiesByWorkId(r.getChildId());
                 if (wcRel != null) {
                     for (WorkCopy wc : wcRel) {
                         result.add(CopyRole.fromString(wc.getCopyRole()));

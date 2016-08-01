@@ -5,6 +5,8 @@ import amberdb.v2.hook.AmberPreCommitHook;
 import amberdb.v2.model.*;
 import amberdb.v2.model.dao.*;
 import amberdb.v2.model.mapper.AmberDbMapperFactory;
+import amberdb.v2.relation.WorkAcknowledgementQuery;
+import amberdb.v2.relation.dao.*;
 import doss.BlobStore;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
@@ -18,14 +20,6 @@ public class AmberSession implements AutoCloseable {
 
     private final BlobStore blobStore;
     private DBI dbi;
-    private WorkDao workDao;
-    private CopyDao copyDao;
-    private ParentChildDao parentChildDao;
-    private FileDao fileDao;
-    private ImageFileDao imageFileDao;
-    private SoundFileDao soundFileDao;
-    private MovingImageFileDao movingImageFileDao;
-    private SectionDao sectionDao;
     private final TempDirectory tempDir;
     private List<AmberPreCommitHook<? extends AmberModel>> preCommitHooks = new ArrayList<>();
 
@@ -91,15 +85,6 @@ public class AmberSession implements AutoCloseable {
         // Lookups dbi
         dbi = new DBI(dataSource);
         dbi.registerMapper(new AmberDbMapperFactory());
-
-        workDao = dbi.onDemand(WorkDao.class);
-        copyDao = dbi.onDemand(CopyDao.class);
-        parentChildDao = dbi.onDemand(ParentChildDao.class);
-        fileDao = dbi.onDemand(FileDao.class);
-        imageFileDao = dbi.onDemand(ImageFileDao.class);
-        soundFileDao = dbi.onDemand(SoundFileDao.class);
-        movingImageFileDao = dbi.onDemand(MovingImageFileDao.class);
-        sectionDao = dbi.onDemand(SectionDao.class);
     }
 
     @Override
@@ -176,7 +161,7 @@ public class AmberSession implements AutoCloseable {
      * Finds a work by id.
      */
     public Work findWork(long objectId) {
-        return workDao.get(objectId);
+        return getWorkDao().get(objectId);
     }
 
     /**
@@ -319,34 +304,50 @@ public class AmberSession implements AutoCloseable {
     // TODO - Add other convenience methods...blah blah blah...
 
     public WorkDao getWorkDao() {
-        return workDao;
+        return dbi.onDemand(WorkDao.class);
     }
 
     public CopyDao getCopyDao() {
-        return copyDao;
+        return dbi.onDemand(CopyDao.class);
     }
 
     public ParentChildDao getParentChildDao() {
-        return parentChildDao;
+        return dbi.onDemand(ParentChildDao.class);
     }
 
     public FileDao getFileDao() {
-        return fileDao;
+        return dbi.onDemand(FileDao.class);
     }
 
     public ImageFileDao getImageFileDao() {
-        return imageFileDao;
+        return dbi.onDemand(ImageFileDao.class);
     }
 
     public SoundFileDao getSoundFileDao() {
-        return soundFileDao;
+        return dbi.onDemand(SoundFileDao.class);
     }
 
     public MovingImageFileDao getMovingImageFileDao() {
-        return movingImageFileDao;
+        return dbi.onDemand(MovingImageFileDao.class);
     }
 
     public SectionDao getSectionDao() {
-        return sectionDao;
+        return dbi.onDemand(SectionDao.class);
+    }
+
+    public WorkCopyDao getWorkCopyDao() { return dbi.onDemand(WorkCopyDao.class); }
+
+    public DeliveryWorkDao getDeliveryWorkDao() { return dbi.onDemand(DeliveryWorkDao.class); }
+
+    public CopyFileDao getCopyFileDao() { return dbi.onDemand(CopyFileDao.class); }
+
+    public WorkSectionDao getWorkSectionDao() { return dbi.onDemand(WorkSectionDao.class); }
+
+    public AcknowledgementDao getAcknowledgementDao() { return dbi.onDemand(AcknowledgementDao.class); }
+
+    public WorkAcknowledgementDao getWorkAcknowledgementDao() { return dbi.onDemand(WorkAcknowledgementDao.class); }
+
+    public RepresentativeWorkDao getRepresentativeWorkDao() {
+        return dbi.onDemand(RepresentativeWorkDao.class);
     }
 }

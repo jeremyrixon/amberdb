@@ -8,14 +8,13 @@ import javax.persistence.Entity;
 
 @Entity
 @RegisterMapperFactory(AmberDbMapperFactory.class)
-public class WorkSection {
-
+public class WorkAcknowledgement {
     @Column(name="work_id")
     private Long workId;
-    @Column(name="section_id")
-    private Long sectionId;
-    @Column(name="subtype")
-    private String subType;
+    @Column(name="acknowledgement_id")
+    private Long acknowledgementId;
+    @Column
+    private Double weighting;
 
     public Long getWorkId() {
         return workId;
@@ -25,19 +24,19 @@ public class WorkSection {
         this.workId = workId;
     }
 
-    public Long getSectionId() {
-        return sectionId;
+    public Long getAcknowledgementId() {
+        return acknowledgementId;
     }
 
-    public void setSectionId(Long sectionId) {
-        this.sectionId = sectionId;
+    public void setAcknowledgementId(Long acknowledgementId) {
+        this.acknowledgementId = acknowledgementId;
     }
 
-    public String getSubType() {
-        return subType;
+    public Double getWeighting() {
+        return weighting;
     }
 
-    public void setSubType(String subType) {
-        this.subType = subType;
+    public void setWeighting(Double weighting) {
+        this.weighting = weighting;
     }
 }

@@ -253,6 +253,8 @@ public class Work extends AmberModel {
     protected String restrictionsOnAccess;
     @Column
     protected String preservicaType;
+    @Column
+    protected Long representativeImageWork;
 
     public Date getDcmDateTimeCreated() {
         return dcmDateTimeCreated;
@@ -1204,5 +1206,13 @@ public class Work extends AmberModel {
     // TODO - how does this work with separate Copy and Work tables?
     public String getType() {
         return "Work";
+    }
+
+    public Long getRepresentativeImageWork() {
+        return representativeImageWork;
+    }
+
+    public void setRepresentativeImageWork(Long representativeImageWork) {
+        this.representativeImageWork = representativeImageWork;
     }
 }

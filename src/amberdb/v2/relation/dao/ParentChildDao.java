@@ -1,4 +1,4 @@
-package amberdb.v2.model.dao;
+package amberdb.v2.relation.dao;
 
 import amberdb.v2.model.Work;
 import amberdb.v2.relation.model.ParentChild;
@@ -12,7 +12,11 @@ public abstract class ParentChildDao {
     @SqlQuery("select * from work where id = (select parent_id from parent_child where child_id = :id")
     public abstract Work getParent(@Bind("id") Long id);
 
+    @SqlQuery("select * from work where id = :id")
     public abstract List<ParentChild> getChildren(@Bind("id") Long id);
+
+    @SqlQuery("select * from work where id = :id limit :start, :num")
+    public abstract List<ParentChild> getChildren(@Bind("id") Long id, @Bind("start") int start, @Bind("num") int num);
 
     @SqlQuery("select count(child_id) from parent_child where work_id = :id")
     public abstract Integer getTotalChildCount(@Bind("id") Long workId);
