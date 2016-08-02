@@ -41,7 +41,6 @@ public class AmberQueryTest {
     @After
     public void teardown() {}
 
-    @Ignore
     @Test
     public void testQueryGeneration() throws Exception {
 

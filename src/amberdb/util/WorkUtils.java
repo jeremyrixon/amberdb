@@ -2,10 +2,14 @@ package amberdb.util;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Date;
 
 import javax.persistence.Column;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.commons.beanutils.Converter;
+import org.apache.commons.beanutils.converters.DateConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +40,8 @@ public class WorkUtils {
         for (Field f : fields) {
             if (f.isAnnotationPresent(Column.class)) {
                 try {
+                    Converter converter = new DateConverter(null);
+                    ConvertUtils.register(converter, Date.class);
 					BeanUtils.setProperty(work, f.getName(), v.getProperty(f.getName()));
 				} catch (IllegalAccessException | InvocationTargetException e) {
 					log.warn("Error setting work field: " + f.getName(), e);

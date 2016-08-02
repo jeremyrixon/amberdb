@@ -154,7 +154,6 @@ public class IngestTest {
         db.rollback();
     }
 
-    @Ignore
     @Test
     public void testSerializeToJson() throws JsonGenerationException, JsonMappingException,
             IOException {

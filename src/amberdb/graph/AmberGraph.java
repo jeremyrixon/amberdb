@@ -27,7 +27,7 @@ import com.tinkerpop.blueprints.Vertex;
 
 import amberdb.graph.dao.AmberDao;
 import amberdb.graph.dao.AmberDaoMySql;
-import amberdb.util.WorkUtils;
+import amberdb.v2.util.WorkUtils;
 import amberdb.v2.model.Work;
 
 

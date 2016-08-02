@@ -14,18 +14,18 @@ import java.util.List;
 
 public abstract class AmberPreCommitHook<T> {
     public static List<String> WORK_TYPES = ImmutableList.<String>builder().add(
-            Work.class.getAnnotation(TypeValue.class).value(),
-            EADWork.class.getAnnotation(TypeValue.class).value(),
-            Section.class.getAnnotation(TypeValue.class).value()
+            Work.class.getTypeName(),
+            EADWork.class.getTypeName(),
+            Section.class.getTypeName()
     ).build();
 
     public static List<String> COPY_TYPES= ImmutableList.<String>builder().add(
-            Copy.class.getAnnotation(TypeValue.class).value()
+            Copy.class.getTypeName()
     ).build();
 
 
     public static List<String> SOUND_FILE_TYPES= ImmutableList.<String>builder().add(
-            SoundFile.class.getAnnotation(TypeValue.class).value()
+            SoundFile.class.getTypeName()
     ).build();
 
     public abstract boolean shouldHook(List<T> added, List<T> modified, List<T> deleted);
