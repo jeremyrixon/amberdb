@@ -238,6 +238,1912 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "ON sess_property(s_id, id)")
     void createSessionPropertyIdStateIndex();
 
+    @SqlUpdate(
+        "CREATE TABLE cameradata" +
+        "(" +
+        "    id BIGINT(20)," +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    extent TEXT, " +
+        "    exposureTime VARCHAR(17), " +
+        "    localSystemNumber VARCHAR(39), " +
+        "    encodingLevel VARCHAR(47), " +
+        "    whiteBalance VARCHAR(18), " +
+        "    standardId TEXT, " +
+        "    language VARCHAR(35), " +
+        "    lens VARCHAR(27), " +
+        "    title TEXT, " +
+        "    focalLenth VARCHAR(8), " +
+        "    holdingId VARCHAR(7), " +
+        "    australianContent TINYINT(1), " +
+        "    contributor TEXT, " +
+        "    isoSpeedRating VARCHAR(5), " +
+        "    recordSource VARCHAR(8), " +
+        "    coverage TEXT, " +
+        "    bibId VARCHAR(9), " +
+        "    meteringMode VARCHAR(23), " +
+        "    creator TEXT, " +
+        "    coordinates TEXT, " +
+        "    fileSource VARCHAR(26), " +
+        "    otherTitle TEXT, " +
+        "    holdingNumber TEXT, " +
+        "    exposureProgram VARCHAR(19), " +
+        "    exposureFNumber VARCHAR(5), " +
+        "    publisher TEXT, " +
+        "    scaleEtc TEXT, " +
+        "    exposureMode VARCHAR(15), " +
+        "    focalLength VARCHAR(8) " +
+        "); " +
+        "CREATE INDEX cameradata_id ON cameradata (id); " +
+        "CREATE TABLE cameradata_history " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    extent TEXT, " +
+        "    exposureTime VARCHAR(17), " +
+        "    localSystemNumber VARCHAR(39), " +
+        "    encodingLevel VARCHAR(47), " +
+        "    whiteBalance VARCHAR(18), " +
+        "    standardId TEXT, " +
+        "    language VARCHAR(35), " +
+        "    lens VARCHAR(27), " +
+        "    title TEXT, " +
+        "    focalLenth VARCHAR(8), " +
+        "    holdingId VARCHAR(7), " +
+        "    australianContent TINYINT(1), " +
+        "    contributor TEXT, " +
+        "    isoSpeedRating VARCHAR(5), " +
+        "    recordSource VARCHAR(8), " +
+        "    coverage TEXT, " +
+        "    bibId VARCHAR(9), " +
+        "    meteringMode VARCHAR(23), " +
+        "    creator TEXT, " +
+        "    coordinates TEXT, " +
+        "    fileSource VARCHAR(26), " +
+        "    otherTitle TEXT, " +
+        "    holdingNumber TEXT, " +
+        "    exposureProgram VARCHAR(19), " +
+        "    exposureFNumber VARCHAR(5), " +
+        "    publisher TEXT, " +
+        "    scaleEtc TEXT, " +
+        "    exposureMode VARCHAR(15), " +
+        "    focalLength VARCHAR(8) " +
+        "); " +
+        "CREATE INDEX cameradata_history_id ON cameradata_history (id); " +
+        "CREATE INDEX cameradata_history_txn_id ON cameradata_history (id, txn_start, txn_end); " +
+        "CREATE TABLE copy " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    dcmDateTimeUpdated DATETIME, " +
+        "    extent TEXT, " +
+        "    dcmRecordUpdater VARCHAR(26), " +
+        "    localSystemNumber VARCHAR(39), " +
+        "    encodingLevel VARCHAR(47), " +
+        "    standardId TEXT, " +
+        "    language VARCHAR(35), " +
+        "    title TEXT, " +
+        "    holdingId VARCHAR(7), " +
+        "    internalAccessConditions VARCHAR(10), " +
+        "    australianContent TINYINT(1), " +
+        "    dateCreated DATETIME, " +
+        "    contributor TEXT, " +
+        "    timedStatus VARCHAR(9), " +
+        "    copyType VARCHAR(9), " +
+        "    alias TEXT, " +
+        "    copyStatus VARCHAR(4), " +
+        "    copyRole VARCHAR(3), " +
+        "    manipulation TEXT, " +
+        "    recordSource VARCHAR(8), " +
+        "    algorithm VARCHAR(8), " +
+        "    bibId VARCHAR(9), " +
+        "    creator TEXT, " +
+        "    otherNumbers VARCHAR(2), " +
+        "    dcmDateTimeCreated DATETIME, " +
+        "    materialType VARCHAR(12), " +
+        "    commentsExternal TEXT, " +
+        "    coordinates TEXT, " +
+        "    creatorStatement TEXT, " +
+        "    classification TEXT, " +
+        "    currentVersion VARCHAR(3), " +
+        "    commentsInternal TEXT, " +
+        "    bestCopy VARCHAR(1), " +
+        "    carrier VARCHAR(17), " +
+        "    holdingNumber TEXT, " +
+        "    series TEXT, " +
+        "    publisher TEXT, " +
+        "    dcmRecordCreator VARCHAR(14), " +
+        "    dcmCopyPid VARCHAR(37) " +
+        "); " +
+        "CREATE INDEX copy_id ON copy (id); " +
+        "CREATE TABLE copy_desc " +
+        "( " +
+        "    id BIGINT(20) PRIMARY KEY NOT NULL, " +
+        "    copy_id BIGINT(20), " +
+        "    created_at DATETIME, " +
+        "    created_by VARCHAR(200), " +
+        "    updated_at DATETIME, " +
+        "    updated_by VARCHAR(200), " +
+        "    exposure_program TEXT, " +
+        "    exposure_time TEXT, " +
+        "    focal_lenth TEXT, " +
+        "    iso_speed_rating TEXT, " +
+        "    lens TEXT, " +
+        "    metering_mode TEXT, " +
+        "    type TEXT, " +
+        "    exposure_mode TEXT, " +
+        "    white_balance TEXT, " +
+        "    exposure_fnumber TEXT, " +
+        "    file_source TEXT, " +
+        "    focal_length TEXT, " +
+        "    bib_id TEXT, " +
+        "    coordinates TEXT, " +
+        "    coverage TEXT, " +
+        "    encoding_level TEXT, " +
+        "    extent TEXT, " +
+        "    holding_id TEXT, " +
+        "    holding_number TEXT, " +
+        "    language TEXT, " +
+        "    local_system_number TEXT, " +
+        "    other_title TEXT, " +
+        "    publisher TEXT, " +
+        "    record_source TEXT, " +
+        "    scale_etc TEXT, " +
+        "    standard_id TEXT, " +
+        "    title TEXT " +
+        "); " +
+        "CREATE TABLE copy_history " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    dcmDateTimeUpdated DATETIME, " +
+        "    extent TEXT, " +
+        "    dcmRecordUpdater VARCHAR(26), " +
+        "    localSystemNumber VARCHAR(39), " +
+        "    encodingLevel VARCHAR(47), " +
+        "    standardId TEXT, " +
+        "    language VARCHAR(35), " +
+        "    title TEXT, " +
+        "    holdingId VARCHAR(7), " +
+        "    internalAccessConditions VARCHAR(10), " +
+        "    australianContent TINYINT(1), " +
+        "    dateCreated DATETIME, " +
+        "    contributor TEXT, " +
+        "    timedStatus VARCHAR(9), " +
+        "    copyType VARCHAR(9), " +
+        "    alias TEXT, " +
+        "    copyStatus VARCHAR(4), " +
+        "    copyRole VARCHAR(3), " +
+        "    manipulation TEXT, " +
+        "    recordSource VARCHAR(8), " +
+        "    algorithm VARCHAR(8), " +
+        "    bibId VARCHAR(9), " +
+        "    creator TEXT, " +
+        "    otherNumbers VARCHAR(2), " +
+        "    dcmDateTimeCreated DATETIME, " +
+        "    materialType VARCHAR(12), " +
+        "    commentsExternal TEXT, " +
+        "    coordinates TEXT, " +
+        "    creatorStatement TEXT, " +
+        "    classification TEXT, " +
+        "    currentVersion VARCHAR(3), " +
+        "    commentsInternal TEXT, " +
+        "    bestCopy VARCHAR(1), " +
+        "    carrier VARCHAR(17), " +
+        "    holdingNumber TEXT, " +
+        "    series TEXT, " +
+        "    publisher TEXT, " +
+        "    dcmRecordCreator VARCHAR(14), " +
+        "    dcmCopyPid VARCHAR(37) " +
+        "); " +
+        "CREATE INDEX copy_history_id ON copy_history (id); " +
+        "CREATE INDEX copy_history_txn_id ON copy_history (id, txn_start, txn_end); " +
+        "CREATE TABLE dup_edge_to_be_removed " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    v_out BIGINT(20), " +
+        "    v_in BIGINT(20), " +
+        "    label VARCHAR(100), " +
+        "    edge_order BIGINT(20) " +
+        "); " +
+        "CREATE TABLE dup_property_to_be_removed " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE TABLE dup_vertex_to_be_removed " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20) " +
+        "); " +
+        "CREATE TABLE durations " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    copy_id BIGINT(20), " +
+        "    role CHAR(5), " +
+        "    duration_secs BIGINT(20), " +
+        "    carrier VARCHAR(200) " +
+        "); " +
+        "CREATE TABLE eadfeature " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    records TEXT, " +
+        "    featureType VARCHAR(15), " +
+        "    fields VARCHAR(19), " +
+        "    featureId VARCHAR(39) " +
+        "); " +
+        "CREATE INDEX eadfeature_id ON eadfeature (id); " +
+        "CREATE TABLE eadfeature_history " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    records TEXT, " +
+        "    featureType VARCHAR(15), " +
+        "    fields VARCHAR(19), " +
+        "    featureId VARCHAR(39) " +
+        "); " +
+        "CREATE INDEX eadfeature_history_id ON eadfeature_history (id); " +
+        "CREATE INDEX eadfeature_history_txn_id ON eadfeature_history (id, txn_start, txn_end); " +
+        "CREATE TABLE eadwork " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    extent TEXT, " +
+        "    dcmDateTimeUpdated DATETIME, " +
+        "    localSystemNumber VARCHAR(39), " +
+        "    occupation TEXT, " +
+        "    materialFromMultipleSources TINYINT(1), " +
+        "    encodingLevel VARCHAR(47), " +
+        "    endDate DATETIME, " +
+        "    displayTitlePage TINYINT(1), " +
+        "    subject TEXT, " +
+        "    sendToIlms TINYINT(1), " +
+        "    allowOnsiteAccess TINYINT(1), " +
+        "    language VARCHAR(35), " +
+        "    sensitiveMaterial VARCHAR(3), " +
+        "    repository VARCHAR(30), " +
+        "    holdingId VARCHAR(7), " +
+        "    arrangement TEXT, " +
+        "    dcmAltPi VARCHAR(52), " +
+        "    folderNumber TEXT, " +
+        "    collectionNumber VARCHAR(49), " +
+        "    west VARCHAR(1), " +
+        "    totalDuration VARCHAR(10), " +
+        "    workCreatedDuringMigration TINYINT(1), " +
+        "    relatedMaterial TEXT, " +
+        "    dcmDateTimeCreated DATETIME, " +
+        "    findingAidNote TEXT, " +
+        "    collection VARCHAR(7), " +
+        "    dcmWorkPid VARCHAR(31), " +
+        "    otherTitle TEXT, " +
+        "    classification TEXT, " +
+        "    commentsInternal TEXT, " +
+        "    immutable VARCHAR(12), " +
+        "    folder TEXT, " +
+        "    copyrightPolicy VARCHAR(31), " +
+        "    nextStep VARCHAR(4), " +
+        "    publisher TEXT, " +
+        "    subType VARCHAR(7), " +
+        "    copyingPublishing TEXT, " +
+        "    scaleEtc TEXT, " +
+        "    startDate DATETIME, " +
+        "    tempHolding VARCHAR(2), " +
+        "    dcmRecordUpdater VARCHAR(26), " +
+        "    access TEXT, " +
+        "    allowHighResdownload TINYINT(1), " +
+        "    south VARCHAR(1), " +
+        "    isMissingPage TINYINT(1), " +
+        "    restrictionsOnAccess TEXT, " +
+        "    north VARCHAR(1), " +
+        "    scopeContent TEXT, " +
+        "    representativeId VARCHAR(26), " +
+        "    standardId TEXT, " +
+        "    accessConditions VARCHAR(13), " +
+        "    title TEXT, " +
+        "    internalAccessConditions VARCHAR(10), " +
+        "    eadUpdateReviewRequired VARCHAR(1), " +
+        "    subUnitNo TEXT, " +
+        "    expiryDate DATETIME, " +
+        "    australianContent TINYINT(1), " +
+        "    digitalStatusDate DATETIME, " +
+        "    east VARCHAR(1), " +
+        "    bibliography TEXT, " +
+        "    contributor TEXT, " +
+        "    provenance TEXT, " +
+        "    moreIlmsDetailsRequired TINYINT(1), " +
+        "    subUnitType VARCHAR(23), " +
+        "    rights TEXT, " +
+        "    uniformTitle TEXT, " +
+        "    rdsAcknowledgementType VARCHAR(7), " +
+        "    alias TEXT, " +
+        "    recordSource VARCHAR(8), " +
+        "    dateRangeInAS VARCHAR(9), " +
+        "    coverage TEXT, " +
+        "    bibId VARCHAR(9), " +
+        "    summary TEXT, " +
+        "    creator TEXT, " +
+        "    preferredCitation TEXT, " +
+        "    coordinates TEXT, " +
+        "    creatorStatement TEXT, " +
+        "    folderType VARCHAR(31), " +
+        "    bibLevel VARCHAR(9), " +
+        "    carrier VARCHAR(17), " +
+        "    holdingNumber TEXT, " +
+        "    form VARCHAR(19), " +
+        "    series TEXT, " +
+        "    rdsAcknowledgementReceiver TEXT, " +
+        "    constraint1 TEXT, " +
+        "    digitalStatus VARCHAR(18), " +
+        "    dcmRecordCreator VARCHAR(14) " +
+        "); " +
+        "CREATE INDEX eadwork_id ON eadwork (id); " +
+        "CREATE TABLE eadwork_history " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    extent TEXT, " +
+        "    dcmDateTimeUpdated DATETIME, " +
+        "    localSystemNumber VARCHAR(39), " +
+        "    occupation TEXT, " +
+        "    materialFromMultipleSources TINYINT(1), " +
+        "    encodingLevel VARCHAR(47), " +
+        "    endDate DATETIME, " +
+        "    displayTitlePage TINYINT(1), " +
+        "    subject TEXT, " +
+        "    sendToIlms TINYINT(1), " +
+        "    allowOnsiteAccess TINYINT(1), " +
+        "    language VARCHAR(35), " +
+        "    sensitiveMaterial VARCHAR(3), " +
+        "    repository VARCHAR(30), " +
+        "    holdingId VARCHAR(7), " +
+        "    arrangement TEXT, " +
+        "    dcmAltPi VARCHAR(52), " +
+        "    folderNumber TEXT, " +
+        "    collectionNumber VARCHAR(49), " +
+        "    west VARCHAR(1), " +
+        "    totalDuration VARCHAR(10), " +
+        "    workCreatedDuringMigration TINYINT(1), " +
+        "    relatedMaterial TEXT, " +
+        "    dcmDateTimeCreated DATETIME, " +
+        "    findingAidNote TEXT, " +
+        "    collection VARCHAR(7), " +
+        "    dcmWorkPid VARCHAR(31), " +
+        "    otherTitle TEXT, " +
+        "    classification TEXT, " +
+        "    commentsInternal TEXT, " +
+        "    immutable VARCHAR(12), " +
+        "    folder TEXT, " +
+        "    copyrightPolicy VARCHAR(31), " +
+        "    nextStep VARCHAR(4), " +
+        "    publisher TEXT, " +
+        "    subType VARCHAR(7), " +
+        "    copyingPublishing TEXT, " +
+        "    scaleEtc TEXT, " +
+        "    startDate DATETIME, " +
+        "    tempHolding VARCHAR(2), " +
+        "    dcmRecordUpdater VARCHAR(26), " +
+        "    access TEXT, " +
+        "    allowHighResdownload TINYINT(1), " +
+        "    south VARCHAR(1), " +
+        "    isMissingPage TINYINT(1), " +
+        "    restrictionsOnAccess TEXT, " +
+        "    north VARCHAR(1), " +
+        "    scopeContent TEXT, " +
+        "    representativeId VARCHAR(26), " +
+        "    standardId TEXT, " +
+        "    accessConditions VARCHAR(13), " +
+        "    title TEXT, " +
+        "    internalAccessConditions VARCHAR(10), " +
+        "    eadUpdateReviewRequired VARCHAR(1), " +
+        "    subUnitNo TEXT, " +
+        "    expiryDate DATETIME, " +
+        "    australianContent TINYINT(1), " +
+        "    digitalStatusDate DATETIME, " +
+        "    east VARCHAR(1), " +
+        "    bibliography TEXT, " +
+        "    contributor TEXT, " +
+        "    provenance TEXT, " +
+        "    moreIlmsDetailsRequired TINYINT(1), " +
+        "    subUnitType VARCHAR(23), " +
+        "    rights TEXT, " +
+        "    uniformTitle TEXT, " +
+        "    rdsAcknowledgementType VARCHAR(7), " +
+        "    alias TEXT, " +
+        "    recordSource VARCHAR(8), " +
+        "    dateRangeInAS VARCHAR(9), " +
+        "    coverage TEXT, " +
+        "    bibId VARCHAR(9), " +
+        "    summary TEXT, " +
+        "    creator TEXT, " +
+        "    preferredCitation TEXT, " +
+        "    coordinates TEXT, " +
+        "    creatorStatement TEXT, " +
+        "    folderType VARCHAR(31), " +
+        "    bibLevel VARCHAR(9), " +
+        "    carrier VARCHAR(17), " +
+        "    holdingNumber TEXT, " +
+        "    form VARCHAR(19), " +
+        "    series TEXT, " +
+        "    rdsAcknowledgementReceiver TEXT, " +
+        "    constraint1 TEXT, " +
+        "    digitalStatus VARCHAR(18), " +
+        "    dcmRecordCreator VARCHAR(14) " +
+        "); " +
+        "CREATE INDEX eadwork_history_id ON eadwork_history (id); " +
+        "CREATE INDEX eadwork_history_txn_id ON eadwork_history (id, txn_start, txn_end); " +
+        "CREATE TABLE file " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    extent TEXT, " +
+        "    fileName TEXT, " +
+        "    localSystemNumber VARCHAR(39), " +
+        "    software VARCHAR(33), " +
+        "    encodingLevel VARCHAR(47), " +
+        "    standardId TEXT, " +
+        "    language VARCHAR(35), " +
+        "    mimeType TEXT, " +
+        "    title TEXT, " +
+        "    holdingId VARCHAR(7), " +
+        "    australianContent TINYINT(1), " +
+        "    contributor TEXT, " +
+        "    checksum VARCHAR(40), " +
+        "    recordSource VARCHAR(8), " +
+        "    coverage TEXT, " +
+        "    bibId VARCHAR(9), " +
+        "    creator TEXT, " +
+        "    checksumGenerationDate DATETIME, " +
+        "    coordinates TEXT, " +
+        "    encoding VARCHAR(10), " +
+        "    holdingNumber TEXT, " +
+        "    fileSize BIGINT(20), " +
+        "    blobId BIGINT(20), " +
+        "    checksumType VARCHAR(4), " +
+        "    publisher TEXT, " +
+        "    compression VARCHAR(9), " +
+        "    device VARCHAR(44), " +
+        "    fileFormat VARCHAR(20) " +
+        "); " +
+        "CREATE INDEX file_id ON file (id); " +
+        "CREATE TABLE file_history " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    extent TEXT, " +
+        "    fileName TEXT, " +
+        "    localSystemNumber VARCHAR(39), " +
+        "    software VARCHAR(33), " +
+        "    encodingLevel VARCHAR(47), " +
+        "    standardId TEXT, " +
+        "    language VARCHAR(35), " +
+        "    mimeType TEXT, " +
+        "    title TEXT, " +
+        "    holdingId VARCHAR(7), " +
+        "    australianContent TINYINT(1), " +
+        "    contributor TEXT, " +
+        "    checksum VARCHAR(40), " +
+        "    recordSource VARCHAR(8), " +
+        "    coverage TEXT, " +
+        "    bibId VARCHAR(9), " +
+        "    creator TEXT, " +
+        "    checksumGenerationDate DATETIME, " +
+        "    coordinates TEXT, " +
+        "    encoding VARCHAR(10), " +
+        "    holdingNumber TEXT, " +
+        "    fileSize BIGINT(20), " +
+        "    blobId BIGINT(20), " +
+        "    checksumType VARCHAR(4), " +
+        "    publisher TEXT, " +
+        "    compression VARCHAR(9), " +
+        "    device VARCHAR(44), " +
+        "    fileFormat VARCHAR(20) " +
+        "); " +
+        "CREATE INDEX file_history_id ON file_history (id); " +
+        "CREATE INDEX file_history_txn_id ON file_history (id, txn_start, txn_end); " +
+        "CREATE TABLE imagefile " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    extent TEXT, " +
+        "    fileName TEXT, " +
+        "    localSystemNumber VARCHAR(39), " +
+        "    software VARCHAR(33), " +
+        "    encodingLevel VARCHAR(47), " +
+        "    language VARCHAR(35), " +
+        "    mimeType TEXT, " +
+        "    resolution VARCHAR(37), " +
+        "    manufacturerSerialNumber VARCHAR(12), " +
+        "    holdingId VARCHAR(7), " +
+        "    resolutionUnit VARCHAR(4), " +
+        "    imageWidth INT(11), " +
+        "    manufacturerMake VARCHAR(27), " +
+        "    manufacturerModelName VARCHAR(41), " +
+        "    encoding VARCHAR(10), " +
+        "    deviceSerialNumber VARCHAR(20), " +
+        "    fileSize BIGINT(20), " +
+        "    bitDepth VARCHAR(8), " +
+        "    publisher TEXT, " +
+        "    compression VARCHAR(9), " +
+        "    device VARCHAR(44), " +
+        "    imageLength INT(11), " +
+        "    colourSpace VARCHAR(15), " +
+        "    standardId TEXT, " +
+        "    title TEXT, " +
+        "    australianContent TINYINT(1), " +
+        "    contributor TEXT, " +
+        "    checksum VARCHAR(40), " +
+        "    recordSource VARCHAR(8), " +
+        "    bibId VARCHAR(9), " +
+        "    coverage TEXT, " +
+        "    orientation VARCHAR(36), " +
+        "    creator TEXT, " +
+        "    colourProfile VARCHAR(9), " +
+        "    checksumGenerationDate DATETIME, " +
+        "    applicationDateCreated VARCHAR(19), " +
+        "    coordinates TEXT, " +
+        "    creatorStatement TEXT, " +
+        "    fileFormatVersion VARCHAR(3), " +
+        "    dateDigitised VARCHAR(19), " +
+        "    holdingNumber TEXT, " +
+        "    application TEXT, " +
+        "    series TEXT, " +
+        "    blobId BIGINT(20), " +
+        "    softwareSerialNumber VARCHAR(10), " +
+        "    checksumType VARCHAR(4), " +
+        "    location TEXT, " +
+        "    fileFormat VARCHAR(20) " +
+        "); " +
+        "CREATE INDEX imagefile_id ON imagefile (id); " +
+        "CREATE TABLE imagefile_history " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    extent TEXT, " +
+        "    fileName TEXT, " +
+        "    localSystemNumber VARCHAR(39), " +
+        "    software VARCHAR(33), " +
+        "    encodingLevel VARCHAR(47), " +
+        "    language VARCHAR(35), " +
+        "    mimeType TEXT, " +
+        "    resolution VARCHAR(37), " +
+        "    manufacturerSerialNumber VARCHAR(12), " +
+        "    holdingId VARCHAR(7), " +
+        "    resolutionUnit VARCHAR(4), " +
+        "    imageWidth INT(11), " +
+        "    manufacturerMake VARCHAR(27), " +
+        "    manufacturerModelName VARCHAR(41), " +
+        "    encoding VARCHAR(10), " +
+        "    deviceSerialNumber VARCHAR(20), " +
+        "    fileSize BIGINT(20), " +
+        "    bitDepth VARCHAR(8), " +
+        "    publisher TEXT, " +
+        "    compression VARCHAR(9), " +
+        "    device VARCHAR(44), " +
+        "    imageLength INT(11), " +
+        "    colourSpace VARCHAR(15), " +
+        "    standardId TEXT, " +
+        "    title TEXT, " +
+        "    australianContent TINYINT(1), " +
+        "    contributor TEXT, " +
+        "    checksum VARCHAR(40), " +
+        "    recordSource VARCHAR(8), " +
+        "    bibId VARCHAR(9), " +
+        "    coverage TEXT, " +
+        "    orientation VARCHAR(36), " +
+        "    creator TEXT, " +
+        "    colourProfile VARCHAR(9), " +
+        "    checksumGenerationDate DATETIME, " +
+        "    applicationDateCreated VARCHAR(19), " +
+        "    coordinates TEXT, " +
+        "    creatorStatement TEXT, " +
+        "    fileFormatVersion VARCHAR(3), " +
+        "    dateDigitised VARCHAR(19), " +
+        "    holdingNumber TEXT, " +
+        "    application TEXT, " +
+        "    series TEXT, " +
+        "    blobId BIGINT(20), " +
+        "    softwareSerialNumber VARCHAR(10), " +
+        "    checksumType VARCHAR(4), " +
+        "    location TEXT, " +
+        "    fileFormat VARCHAR(20) " +
+        "); " +
+        "CREATE INDEX imagefile_history_id ON imagefile_history (id); " +
+        "CREATE INDEX imagefile_history_txn_id ON imagefile_history (id, txn_start, txn_end); " +
+        "CREATE TABLE indexed_txns " +
+        "( " +
+        "    txn BIGINT(11) " +
+        "); " +
+        "CREATE INDEX indexed_txns_idx ON indexed_txns (txn); " +
+        "CREATE TABLE list " +
+        "( " +
+        "    name VARCHAR(100), " +
+        "    value VARCHAR(100), " +
+        "    deleted VARCHAR(1) " +
+        "); " +
+        "CREATE TABLE page " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    dcmDateTimeUpdated DATETIME, " +
+        "    extent TEXT, " +
+        "    notes VARCHAR(30), " +
+        "    localSystemNumber VARCHAR(39), " +
+        "    occupation TEXT, " +
+        "    encodingLevel VARCHAR(47), " +
+        "    materialFromMultipleSources TINYINT(1), " +
+        "    displayTitlePage TINYINT(1), " +
+        "    endDate DATETIME, " +
+        "    subject TEXT, " +
+        "    sendToIlms TINYINT(1), " +
+        "    vendorId VARCHAR(7), " +
+        "    allowOnsiteAccess TINYINT(1), " +
+        "    language VARCHAR(35), " +
+        "    sensitiveMaterial VARCHAR(3), " +
+        "    repository VARCHAR(30), " +
+        "    holdingId VARCHAR(7), " +
+        "    dcmAltPi VARCHAR(52), " +
+        "    west VARCHAR(1), " +
+        "    workCreatedDuringMigration TINYINT(1), " +
+        "    dcmDateTimeCreated DATETIME, " +
+        "    commentsExternal TEXT, " +
+        "    firstPart VARCHAR(27), " +
+        "    findingAidNote TEXT, " +
+        "    collection VARCHAR(7), " +
+        "    dcmWorkPid VARCHAR(31), " +
+        "    otherTitle TEXT, " +
+        "    classification TEXT, " +
+        "    localSystemno VARCHAR(7), " +
+        "    commentsInternal TEXT, " +
+        "    acquisitionStatus VARCHAR(7), " +
+        "    immutable VARCHAR(12), " +
+        "    restrictionType VARCHAR(0), " +
+        "    copyrightPolicy VARCHAR(31), " +
+        "    ilmsSentDateTime DATETIME, " +
+        "    publisher TEXT, " +
+        "    nextStep VARCHAR(4), " +
+        "    subType VARCHAR(7), " +
+        "    scaleEtc TEXT, " +
+        "    startDate DATETIME, " +
+        "    tempHolding VARCHAR(2), " +
+        "    dcmRecordUpdater VARCHAR(26), " +
+        "    tilePosition TEXT, " +
+        "    sortIndex VARCHAR(28), " +
+        "    allowHighResdownload TINYINT(1), " +
+        "    south VARCHAR(1), " +
+        "    restrictionsOnAccess TEXT, " +
+        "    isMissingPage TINYINT(1), " +
+        "    north VARCHAR(1), " +
+        "    standardId TEXT, " +
+        "    representativeId VARCHAR(26), " +
+        "    scopeContent TEXT, " +
+        "    accessConditions VARCHAR(13), " +
+        "    edition TEXT, " +
+        "    alternativeTitle VARCHAR(20), " +
+        "    title TEXT, " +
+        "    acquisitionCategory VARCHAR(19), " +
+        "    internalAccessConditions VARCHAR(10), " +
+        "    eadUpdateReviewRequired VARCHAR(1), " +
+        "    subUnitNo TEXT, " +
+        "    expiryDate DATETIME, " +
+        "    australianContent TINYINT(1), " +
+        "    digitalStatusDate DATETIME, " +
+        "    east VARCHAR(1), " +
+        "    contributor TEXT, " +
+        "    moreIlmsDetailsRequired TINYINT(1), " +
+        "    subUnitType VARCHAR(23), " +
+        "    uniformTitle TEXT, " +
+        "    rights TEXT, " +
+        "    alias TEXT, " +
+        "    rdsAcknowledgementType VARCHAR(7), " +
+        "    issueDate DATETIME, " +
+        "    recordSource VARCHAR(8), " +
+        "    bibId VARCHAR(16), " +
+        "    coverage TEXT, " +
+        "    summary TEXT, " +
+        "    creator TEXT, " +
+        "    sensitiveReason TEXT, " +
+        "    coordinates TEXT, " +
+        "    creatorStatement TEXT, " +
+        "    interactiveIndexAvailable TINYINT(1), " +
+        "    bibLevel VARCHAR(9), " +
+        "    carrier VARCHAR(17), " +
+        "    holdingNumber TEXT, " +
+        "    form VARCHAR(19), " +
+        "    series TEXT, " +
+        "    rdsAcknowledgementReceiver TEXT, " +
+        "    constraint1 TEXT, " +
+        "    digitalStatus VARCHAR(18), " +
+        "    dcmRecordCreator VARCHAR(14), " +
+        "    depositType TEXT, " +
+        "    parentConstraint VARCHAR(35) " +
+        "); " +
+        "CREATE INDEX page_id ON page (id); " +
+        "CREATE TABLE page_history " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    dcmDateTimeUpdated DATETIME, " +
+        "    extent TEXT, " +
+        "    notes VARCHAR(30), " +
+        "    localSystemNumber VARCHAR(39), " +
+        "    occupation TEXT, " +
+        "    encodingLevel VARCHAR(47), " +
+        "    materialFromMultipleSources TINYINT(1), " +
+        "    displayTitlePage TINYINT(1), " +
+        "    endDate DATETIME, " +
+        "    subject TEXT, " +
+        "    sendToIlms TINYINT(1), " +
+        "    vendorId VARCHAR(7), " +
+        "    allowOnsiteAccess TINYINT(1), " +
+        "    language VARCHAR(35), " +
+        "    sensitiveMaterial VARCHAR(3), " +
+        "    repository VARCHAR(30), " +
+        "    holdingId VARCHAR(7), " +
+        "    dcmAltPi VARCHAR(52), " +
+        "    west VARCHAR(1), " +
+        "    workCreatedDuringMigration TINYINT(1), " +
+        "    dcmDateTimeCreated DATETIME, " +
+        "    commentsExternal TEXT, " +
+        "    firstPart VARCHAR(27), " +
+        "    findingAidNote TEXT, " +
+        "    collection VARCHAR(7), " +
+        "    dcmWorkPid VARCHAR(31), " +
+        "    otherTitle TEXT, " +
+        "    classification TEXT, " +
+        "    localSystemno VARCHAR(7), " +
+        "    commentsInternal TEXT, " +
+        "    acquisitionStatus VARCHAR(7), " +
+        "    immutable VARCHAR(12), " +
+        "    restrictionType VARCHAR(0), " +
+        "    copyrightPolicy VARCHAR(31), " +
+        "    ilmsSentDateTime DATETIME, " +
+        "    publisher TEXT, " +
+        "    nextStep VARCHAR(4), " +
+        "    subType VARCHAR(7), " +
+        "    scaleEtc TEXT, " +
+        "    startDate DATETIME, " +
+        "    tempHolding VARCHAR(2), " +
+        "    dcmRecordUpdater VARCHAR(26), " +
+        "    tilePosition TEXT, " +
+        "    sortIndex VARCHAR(28), " +
+        "    allowHighResdownload TINYINT(1), " +
+        "    south VARCHAR(1), " +
+        "    restrictionsOnAccess TEXT, " +
+        "    isMissingPage TINYINT(1), " +
+        "    north VARCHAR(1), " +
+        "    standardId TEXT, " +
+        "    representativeId VARCHAR(26), " +
+        "    scopeContent TEXT, " +
+        "    accessConditions VARCHAR(13), " +
+        "    edition TEXT, " +
+        "    alternativeTitle VARCHAR(20), " +
+        "    title TEXT, " +
+        "    acquisitionCategory VARCHAR(19), " +
+        "    internalAccessConditions VARCHAR(10), " +
+        "    eadUpdateReviewRequired VARCHAR(1), " +
+        "    subUnitNo TEXT, " +
+        "    expiryDate DATETIME, " +
+        "    australianContent TINYINT(1), " +
+        "    digitalStatusDate DATETIME, " +
+        "    east VARCHAR(1), " +
+        "    contributor TEXT, " +
+        "    moreIlmsDetailsRequired TINYINT(1), " +
+        "    subUnitType VARCHAR(23), " +
+        "    uniformTitle TEXT, " +
+        "    rights TEXT, " +
+        "    alias TEXT, " +
+        "    rdsAcknowledgementType VARCHAR(7), " +
+        "    issueDate DATETIME, " +
+        "    recordSource VARCHAR(8), " +
+        "    bibId VARCHAR(16), " +
+        "    coverage TEXT, " +
+        "    summary TEXT, " +
+        "    creator TEXT, " +
+        "    sensitiveReason TEXT, " +
+        "    coordinates TEXT, " +
+        "    creatorStatement TEXT, " +
+        "    interactiveIndexAvailable TINYINT(1), " +
+        "    bibLevel VARCHAR(9), " +
+        "    carrier VARCHAR(17), " +
+        "    holdingNumber TEXT, " +
+        "    form VARCHAR(19), " +
+        "    series TEXT, " +
+        "    rdsAcknowledgementReceiver TEXT, " +
+        "    constraint1 TEXT, " +
+        "    digitalStatus VARCHAR(18), " +
+        "    dcmRecordCreator VARCHAR(14), " +
+        "    depositType TEXT, " +
+        "    parentConstraint VARCHAR(35) " +
+        "); " +
+        "CREATE INDEX page_history_id ON page_history (id); " +
+        "CREATE INDEX page_history_txn_id ON page_history (id, txn_start, txn_end); " +
+        "CREATE TABLE party_history " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    name VARCHAR(47), " +
+        "    suppressed TINYINT(1), " +
+        "    orgUrl TEXT, " +
+        "    logoUrl VARCHAR(17) " +
+        "); " +
+        "CREATE INDEX party_history_id ON party_history (id); " +
+        "CREATE INDEX party_history_txn_id ON party_history (id, txn_start, txn_end); " +
+        "CREATE TABLE property_all_cameradata " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE TABLE property_all_cameradata_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_cameradata_txns " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_copy " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE TABLE property_all_copy_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_copy_txns " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_eadfeature " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE TABLE property_all_eadfeature_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_eadfeature_txns " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_eadwork " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE TABLE property_all_eadwork_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_eadwork_txns " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_file " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE TABLE property_all_file_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_file_txns " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_geocoding " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE TABLE property_all_geocoding_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_geocoding_txns " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_imagefile " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE TABLE property_all_imagefile_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_imagefile_txns " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_iptc " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE TABLE property_all_iptc_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_iptc_txns " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_page " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE TABLE property_all_page_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_page_txns " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_party " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE TABLE property_all_party_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_party_txns " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_section " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE TABLE property_all_section_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_section_txns " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_soundfile " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE TABLE property_all_soundfile_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_soundfile_txns " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_tag " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE TABLE property_all_tag_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_tag_txns " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_work " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE TABLE property_all_work_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_all_work_txns " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_current_cameradata " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE INDEX property_current_cameradata_type ON property_current_cameradata (name); " +
+        "CREATE TABLE property_current_cameradata_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_current_copy " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE INDEX property_current_copy_type ON property_current_copy (name); " +
+        "CREATE TABLE property_current_copy_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_current_eadfeature " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE INDEX property_current_eadfeature_type ON property_current_eadfeature (name); " +
+        "CREATE TABLE property_current_eadfeature_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_current_eadwork " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE INDEX property_current_eadwork_type ON property_current_eadwork (name); " +
+        "CREATE TABLE property_current_eadwork_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_current_file " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE INDEX property_current_file_type ON property_current_file (name); " +
+        "CREATE TABLE property_current_file_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_current_geocoding " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE INDEX property_current_geocoding_type ON property_current_geocoding (name); " +
+        "CREATE TABLE property_current_geocoding_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_current_imagefile " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE INDEX property_current_imagefile_type ON property_current_imagefile (name); " +
+        "CREATE TABLE property_current_imagefile_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_current_iptc " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE INDEX property_current_iptc_type ON property_current_iptc (name); " +
+        "CREATE TABLE property_current_iptc_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_current_page " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE INDEX property_current_page_type ON property_current_page (name); " +
+        "CREATE TABLE property_current_page_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_current_party " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE INDEX property_current_party_type ON property_current_party (name); " +
+        "CREATE TABLE property_current_party_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_current_section " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE INDEX property_current_section_type ON property_current_section (name); " +
+        "CREATE TABLE property_current_section_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_current_soundfile " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE INDEX property_current_soundfile_type ON property_current_soundfile (name); " +
+        "CREATE TABLE property_current_soundfile_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_current_tag " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE INDEX property_current_tag_type ON property_current_tag (name); " +
+        "CREATE TABLE property_current_tag_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE property_current_work " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE INDEX property_current_work_type ON property_current_work (name); " +
+        "CREATE TABLE property_current_work_ids " +
+        "( " +
+        "    id BIGINT(20) " +
+        "); " +
+        "CREATE TABLE restrictions_on_access " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    value TEXT " +
+        "); " +
+        "CREATE TABLE section " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    creator TEXT, " +
+        "    accessConditions VARCHAR(13), " +
+        "    allowOnsiteAccess TINYINT(1), " +
+        "    abstract TEXT, " +
+        "    advertising TINYINT(1), " +
+        "    title TEXT, " +
+        "    printedPageNumber VARCHAR(14), " +
+        "    captions VARCHAR(255), " +
+        "    internalAccessConditions VARCHAR(10), " +
+        "    subUnitNo TEXT, " +
+        "    expiryDate DATETIME, " +
+        "    bibLevel VARCHAR(9), " +
+        "    illustrated TINYINT(1), " +
+        "    copyrightPolicy VARCHAR(31), " +
+        "    metsId VARCHAR(8), " +
+        "    subType VARCHAR(7), " +
+        "    constraint1 TEXT " +
+        "); " +
+        "CREATE INDEX section_id ON section (id); " +
+        "CREATE TABLE section_history " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    creator TEXT, " +
+        "    accessConditions VARCHAR(13), " +
+        "    allowOnsiteAccess TINYINT(1), " +
+        "    abstract TEXT, " +
+        "    advertising TINYINT(1), " +
+        "    title TEXT, " +
+        "    printedPageNumber VARCHAR(14), " +
+        "    captions VARCHAR(255), " +
+        "    internalAccessConditions VARCHAR(10), " +
+        "    subUnitNo TEXT, " +
+        "    expiryDate DATETIME, " +
+        "    bibLevel VARCHAR(9), " +
+        "    illustrated TINYINT(1), " +
+        "    copyrightPolicy VARCHAR(31), " +
+        "    metsId VARCHAR(8), " +
+        "    subType VARCHAR(7), " +
+        "    constraint1 TEXT " +
+        "); " +
+        "CREATE INDEX section_history_id ON section_history (id); " +
+        "CREATE INDEX section_history_txn_id ON section_history (id, txn_start, txn_end); " +
+        "CREATE TABLE series " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    value TEXT " +
+        "); " +
+        "CREATE TABLE soundfile " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    fileName TEXT, " +
+        "    software VARCHAR(33), " +
+        "    thickness VARCHAR(11), " +
+        "    channel VARCHAR(3), " +
+        "    bitrate VARCHAR(3), " +
+        "    mimeType TEXT, " +
+        "    durationType VARCHAR(7), " +
+        "    speed VARCHAR(10), " +
+        "    duration VARCHAR(12), " +
+        "    toolId VARCHAR(13), " +
+        "    checksum VARCHAR(40), " +
+        "    soundField VARCHAR(9), " +
+        "    fileContainer VARCHAR(3), " +
+        "    brand VARCHAR(27), " +
+        "    surface VARCHAR(20), " +
+        "    equalisation VARCHAR(4), " +
+        "    encoding VARCHAR(10), " +
+        "    codec VARCHAR(4), " +
+        "    fileSize BIGINT(20), " +
+        "    reelSize VARCHAR(12), " +
+        "    carrierCapacity VARCHAR(7), " +
+        "    bitDepth VARCHAR(8), " +
+        "    blobId BIGINT(20), " +
+        "    checksumType VARCHAR(4), " +
+        "    samplingRate VARCHAR(5), " +
+        "    compression VARCHAR(9), " +
+        "    fileFormat VARCHAR(20) " +
+        "); " +
+        "CREATE INDEX soundfile_id ON soundfile (id); " +
+        "CREATE TABLE soundfile_history " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    fileName TEXT, " +
+        "    software VARCHAR(33), " +
+        "    thickness VARCHAR(11), " +
+        "    channel VARCHAR(3), " +
+        "    bitrate VARCHAR(3), " +
+        "    mimeType TEXT, " +
+        "    durationType VARCHAR(7), " +
+        "    speed VARCHAR(10), " +
+        "    duration VARCHAR(12), " +
+        "    toolId VARCHAR(13), " +
+        "    checksum VARCHAR(40), " +
+        "    soundField VARCHAR(9), " +
+        "    fileContainer VARCHAR(3), " +
+        "    brand VARCHAR(27), " +
+        "    surface VARCHAR(20), " +
+        "    equalisation VARCHAR(4), " +
+        "    encoding VARCHAR(10), " +
+        "    codec VARCHAR(4), " +
+        "    fileSize BIGINT(20), " +
+        "    reelSize VARCHAR(12), " +
+        "    carrierCapacity VARCHAR(7), " +
+        "    bitDepth VARCHAR(8), " +
+        "    blobId BIGINT(20), " +
+        "    checksumType VARCHAR(4), " +
+        "    samplingRate VARCHAR(5), " +
+        "    compression VARCHAR(9), " +
+        "    fileFormat VARCHAR(20) " +
+        "); " +
+        "CREATE INDEX soundfile_history_id ON soundfile_history (id); " +
+        "CREATE INDEX soundfile_history_txn_id ON soundfile_history (id, txn_start, txn_end); " +
+        "CREATE TABLE stage_edge " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_new BIGINT(20), " +
+        "    v_out BIGINT(20), " +
+        "    v_in BIGINT(20), " +
+        "    label VARCHAR(100), " +
+        "    edge_order BIGINT(20), " +
+        "    state CHAR(3) " +
+        "); " +
+        "CREATE INDEX stage_edge_combined_state_new_idx ON stage_edge (txn_new, state); " +
+        "CREATE INDEX stage_edge_id_idx ON stage_edge (id); " +
+        "CREATE INDEX stage_edge_stage_idx ON stage_edge (state); " +
+        "CREATE INDEX stage_edge_txn_new_idx ON stage_edge (txn_new); " +
+        "CREATE TABLE stage_property " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_new BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE TABLE stage_vertex " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_new BIGINT(20), " +
+        "    state CHAR(3) " +
+        "); " +
+        "CREATE INDEX stage_vertex_combined_state_new_idx ON stage_vertex (txn_new, state); " +
+        "CREATE INDEX stage_vertex_combined_txn_new_state_idx ON stage_vertex (txn_new, state); " +
+        "CREATE TABLE tag " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    name VARCHAR(47) " +
+        "); " +
+        "CREATE INDEX tag_id ON tag (id); " +
+        "CREATE TABLE tag_history " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    name VARCHAR(47) " +
+        "); " +
+        "CREATE INDEX tag_history_id ON tag_history (id); " +
+        "CREATE INDEX tag_history_txn_id ON tag_history (id, txn_start, txn_end); " +
+        "CREATE TABLE work " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    extent TEXT, " +
+        "    dcmDateTimeUpdated DATETIME, " +
+        "    localSystemNumber VARCHAR(39), " +
+        "    occupation TEXT, " +
+        "    endDate DATETIME, " +
+        "    displayTitlePage TINYINT(1), " +
+        "    holdingId VARCHAR(7), " +
+        "    hasRepresentation VARCHAR(1), " +
+        "    totalDuration VARCHAR(10), " +
+        "    dcmDateTimeCreated DATETIME, " +
+        "    firstPart VARCHAR(27), " +
+        "    additionalTitle TEXT, " +
+        "    dcmWorkPid VARCHAR(31), " +
+        "    classification TEXT, " +
+        "    commentsInternal TEXT, " +
+        "    restrictionType VARCHAR(0), " +
+        "    ilmsSentDateTime DATETIME, " +
+        "    subType VARCHAR(7), " +
+        "    scaleEtc TEXT, " +
+        "    startDate DATETIME, " +
+        "    dcmRecordUpdater VARCHAR(26), " +
+        "    tilePosition TEXT, " +
+        "    allowHighResdownload TINYINT(1), " +
+        "    south VARCHAR(1), " +
+        "    restrictionsOnAccess TEXT, " +
+        "    preservicaType TEXT, " +
+        "    north VARCHAR(1), " +
+        "    accessConditions VARCHAR(13), " +
+        "    internalAccessConditions VARCHAR(10), " +
+        "    eadUpdateReviewRequired VARCHAR(1), " +
+        "    australianContent TINYINT(1), " +
+        "    moreIlmsDetailsRequired TINYINT(1), " +
+        "    rights TEXT, " +
+        "    genre VARCHAR(11), " +
+        "    deliveryUrl VARCHAR(25), " +
+        "    recordSource VARCHAR(8), " +
+        "    sheetCreationDate TEXT, " +
+        "    creator TEXT, " +
+        "    sheetName TEXT, " +
+        "    coordinates TEXT, " +
+        "    creatorStatement TEXT, " +
+        "    additionalCreator TEXT, " +
+        "    folderType VARCHAR(31), " +
+        "    eventNote TEXT, " +
+        "    interactiveIndexAvailable TINYINT(1), " +
+        "    startChild VARCHAR(17), " +
+        "    bibLevel VARCHAR(9), " +
+        "    holdingNumber TEXT, " +
+        "    publicNotes TEXT, " +
+        "    series TEXT, " +
+        "    constraint1 TEXT, " +
+        "    notes VARCHAR(30), " +
+        "    catalogueUrl VARCHAR(35), " +
+        "    encodingLevel VARCHAR(47), " +
+        "    materialFromMultipleSources TINYINT(1), " +
+        "    subject TEXT, " +
+        "    sendToIlms TINYINT(1), " +
+        "    vendorId VARCHAR(7), " +
+        "    allowOnsiteAccess TINYINT(1), " +
+        "    language VARCHAR(35), " +
+        "    sensitiveMaterial VARCHAR(3), " +
+        "    dcmAltPi VARCHAR(52), " +
+        "    folderNumber VARCHAR(50), " +
+        "    west VARCHAR(1), " +
+        "    html TEXT, " +
+        "    preservicaId TEXT, " +
+        "    redocworksReason VARCHAR(20), " +
+        "    workCreatedDuringMigration TINYINT(1), " +
+        "    author TEXT, " +
+        "    commentsExternal TEXT, " +
+        "    findingAidNote TEXT, " +
+        "    collection VARCHAR(7), " +
+        "    otherTitle TEXT, " +
+        "    imageServerUrl VARCHAR(48), " +
+        "    localSystemno VARCHAR(7), " +
+        "    acquisitionStatus VARCHAR(7), " +
+        "    reorderType VARCHAR(8), " +
+        "    immutable VARCHAR(12), " +
+        "    copyrightPolicy VARCHAR(31), " +
+        "    nextStep VARCHAR(4), " +
+        "    publisher TEXT, " +
+        "    additionalSeries TEXT, " +
+        "    tempHolding VARCHAR(2), " +
+        "    sortIndex VARCHAR(28), " +
+        "    isMissingPage TINYINT(1), " +
+        "    standardId TEXT, " +
+        "    representativeId VARCHAR(26), " +
+        "    edition TEXT, " +
+        "    reorder VARCHAR(1), " +
+        "    title TEXT, " +
+        "    acquisitionCategory VARCHAR(19), " +
+        "    subUnitNo TEXT, " +
+        "    expiryDate DATETIME, " +
+        "    digitalStatusDate DATETIME, " +
+        "    east VARCHAR(1), " +
+        "    contributor TEXT, " +
+        "    publicationCategory VARCHAR(11), " +
+        "    ingestJobId BIGINT(20), " +
+        "    subUnitType VARCHAR(23), " +
+        "    uniformTitle TEXT, " +
+        "    alias TEXT, " +
+        "    rdsAcknowledgementType VARCHAR(7), " +
+        "    issueDate DATETIME, " +
+        "    bibId VARCHAR(9), " +
+        "    coverage TEXT, " +
+        "    summary TEXT, " +
+        "    additionalContributor TEXT, " +
+        "    sendToIlmsDateTime VARCHAR(10), " +
+        "    sensitiveReason TEXT, " +
+        "    carrier VARCHAR(17), " +
+        "    form VARCHAR(19), " +
+        "    rdsAcknowledgementReceiver TEXT, " +
+        "    digitalStatus VARCHAR(18), " +
+        "    dcmRecordCreator VARCHAR(14), " +
+        "    sprightlyUrl VARCHAR(39), " +
+        "    depositType TEXT, " +
+        "    parentConstraint VARCHAR(35), " +
+        "    additionalSeriesStatement TEXT " +
+        "); " +
+        "CREATE INDEX work_id ON work (id); " +
+        "CREATE TABLE work_902502_backup " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    type CHAR(3), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE TABLE work_desc " +
+        "( " +
+        "    id BIGINT(20) PRIMARY KEY NOT NULL, " +
+        "    work_id BIGINT(20), " +
+        "    created_at DATETIME, " +
+        "    created_by VARCHAR(200), " +
+        "    updated_at DATETIME, " +
+        "    updated_by VARCHAR(200), " +
+        "    feature_id TEXT, " +
+        "    feature_type TEXT, " +
+        "    fields TEXT, " +
+        "    records TEXT, " +
+        "    type TEXT, " +
+        "    latitude TEXT, " +
+        "    longitude TEXT, " +
+        "    map_datum TEXT, " +
+        "    timestamp DATETIME, " +
+        "    city TEXT, " +
+        "    province TEXT " +
+        "); " +
+        "CREATE TABLE work_history " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    extent TEXT, " +
+        "    dcmDateTimeUpdated DATETIME, " +
+        "    localSystemNumber VARCHAR(39), " +
+        "    occupation TEXT, " +
+        "    endDate DATETIME, " +
+        "    displayTitlePage TINYINT(1), " +
+        "    holdingId VARCHAR(7), " +
+        "    hasRepresentation VARCHAR(1), " +
+        "    totalDuration VARCHAR(10), " +
+        "    dcmDateTimeCreated DATETIME, " +
+        "    firstPart VARCHAR(27), " +
+        "    additionalTitle TEXT, " +
+        "    dcmWorkPid VARCHAR(31), " +
+        "    classification TEXT, " +
+        "    commentsInternal TEXT, " +
+        "    restrictionType VARCHAR(0), " +
+        "    ilmsSentDateTime DATETIME, " +
+        "    subType VARCHAR(7), " +
+        "    scaleEtc TEXT, " +
+        "    startDate DATETIME, " +
+        "    dcmRecordUpdater VARCHAR(26), " +
+        "    tilePosition TEXT, " +
+        "    allowHighResdownload TINYINT(1), " +
+        "    south VARCHAR(1), " +
+        "    restrictionsOnAccess TEXT, " +
+        "    preservicaType TEXT, " +
+        "    north VARCHAR(1), " +
+        "    accessConditions VARCHAR(13), " +
+        "    internalAccessConditions VARCHAR(10), " +
+        "    eadUpdateReviewRequired VARCHAR(1), " +
+        "    australianContent TINYINT(1), " +
+        "    moreIlmsDetailsRequired TINYINT(1), " +
+        "    rights TEXT, " +
+        "    genre VARCHAR(11), " +
+        "    deliveryUrl VARCHAR(25), " +
+        "    recordSource VARCHAR(8), " +
+        "    sheetCreationDate TEXT, " +
+        "    creator TEXT, " +
+        "    sheetName TEXT, " +
+        "    coordinates TEXT, " +
+        "    creatorStatement TEXT, " +
+        "    additionalCreator TEXT, " +
+        "    folderType VARCHAR(31), " +
+        "    eventNote TEXT, " +
+        "    interactiveIndexAvailable TINYINT(1), " +
+        "    startChild VARCHAR(17), " +
+        "    bibLevel VARCHAR(9), " +
+        "    holdingNumber TEXT, " +
+        "    publicNotes TEXT, " +
+        "    series TEXT, " +
+        "    constraint1 TEXT, " +
+        "    notes VARCHAR(30), " +
+        "    catalogueUrl VARCHAR(35), " +
+        "    encodingLevel VARCHAR(47), " +
+        "    materialFromMultipleSources TINYINT(1), " +
+        "    subject TEXT, " +
+        "    sendToIlms TINYINT(1), " +
+        "    vendorId VARCHAR(7), " +
+        "    allowOnsiteAccess TINYINT(1), " +
+        "    language VARCHAR(35), " +
+        "    sensitiveMaterial VARCHAR(3), " +
+        "    dcmAltPi VARCHAR(52), " +
+        "    folderNumber VARCHAR(50), " +
+        "    west VARCHAR(1), " +
+        "    html TEXT, " +
+        "    preservicaId TEXT, " +
+        "    redocworksReason VARCHAR(20), " +
+        "    workCreatedDuringMigration TINYINT(1), " +
+        "    author TEXT, " +
+        "    commentsExternal TEXT, " +
+        "    findingAidNote TEXT, " +
+        "    collection VARCHAR(7), " +
+        "    otherTitle TEXT, " +
+        "    imageServerUrl VARCHAR(48), " +
+        "    localSystemno VARCHAR(7), " +
+        "    acquisitionStatus VARCHAR(7), " +
+        "    reorderType VARCHAR(8), " +
+        "    immutable VARCHAR(12), " +
+        "    copyrightPolicy VARCHAR(31), " +
+        "    nextStep VARCHAR(4), " +
+        "    publisher TEXT, " +
+        "    additionalSeries TEXT, " +
+        "    tempHolding VARCHAR(2), " +
+        "    sortIndex VARCHAR(28), " +
+        "    isMissingPage TINYINT(1), " +
+        "    standardId TEXT, " +
+        "    representativeId VARCHAR(26), " +
+        "    edition TEXT, " +
+        "    reorder VARCHAR(1), " +
+        "    title TEXT, " +
+        "    acquisitionCategory VARCHAR(19), " +
+        "    subUnitNo TEXT, " +
+        "    expiryDate DATETIME, " +
+        "    digitalStatusDate DATETIME, " +
+        "    east VARCHAR(1), " +
+        "    contributor TEXT, " +
+        "    publicationCategory VARCHAR(11), " +
+        "    ingestJobId BIGINT(20), " +
+        "    subUnitType VARCHAR(23), " +
+        "    uniformTitle TEXT, " +
+        "    alias TEXT, " +
+        "    rdsAcknowledgementType VARCHAR(7), " +
+        "    issueDate DATETIME, " +
+        "    bibId VARCHAR(32), " +
+        "    coverage TEXT, " +
+        "    summary TEXT, " +
+        "    additionalContributor TEXT, " +
+        "    sendToIlmsDateTime VARCHAR(10), " +
+        "    sensitiveReason TEXT, " +
+        "    carrier VARCHAR(17), " +
+        "    form VARCHAR(19), " +
+        "    rdsAcknowledgementReceiver TEXT, " +
+        "    digitalStatus VARCHAR(18), " +
+        "    dcmRecordCreator VARCHAR(14), " +
+        "    sprightlyUrl VARCHAR(39), " +
+        "    depositType TEXT, " +
+        "    parentConstraint VARCHAR(35) " +
+        "); " +
+        "CREATE INDEX work_history_id ON work_history (id); " +
+        "CREATE INDEX work_history_txn_id ON work_history (id, txn_start, txn_end); " +
+        "CREATE TABLE work_copy " +
+        "( " +
+        "    work_id BIGINT(20) NOT NULL, " +
+        "    copy_id BIGINT(20) NOT NULL, " +
+        "    edge_order INT(11) NOT NULL, " +
+        "    work_type VARCHAR(20) NOT NULL, " +
+        "    copy_role VARCHAR(3) NOT NULL " +
+        "); " +
+        "CREATE INDEX wc_copy_id_index ON work_copy (copy_id); " +
+        "CREATE INDEX wc_edge_order_index ON work_copy (edge_order); " +
+        "CREATE INDEX wc_work_id_index ON work_copy (work_id); " +
+        "CREATE INDEX wc_work_id_type_index ON work_copy (work_id, work_type); " +
+        "CREATE TABLE copy_file " +
+        "( " +
+        "    copy_id BIGINT(20) NOT NULL, " +
+        "    file_id BIGINT(20) NOT NULL, " +
+        "    file_type VARCHAR(20) NOT NULL " +
+        "); " +
+        "CREATE INDEX cf_copy_id_file_type_index ON copy_file (copy_id, file_type); " +
+        "CREATE INDEX cf_copy_id_index ON copy_file (copy_id); " +
+        "CREATE INDEX cf_file_id_type_index ON copy_file (file_id, file_type); " +
+        "CREATE TABLE work_deliverywork " +
+        "( " +
+        "    work_id BIGINT(20) NOT NULL, " +
+        "    deliverywork_id BIGINT(20) NOT NULL, " +
+        "    edge_order INT(11) NOT NULL " +
+        "); " +
+        "CREATE INDEX wd_deliverywork_id_work_id_index ON work_deliverywork (deliverywork_id, work_id); " +
+        "CREATE INDEX wd_work_id_edge_order_index ON work_deliverywork (work_id, edge_order); " +
+        "CREATE INDEX wd_work_id_index ON work_deliverywork (work_id); " +
+        "CREATE TABLE work_section " +
+        "( " +
+        "    work_id BIGINT(20) NOT NULL, " +
+        "    section_id BIGINT(20) NOT NULL, " +
+        "    subtype VARCHAR(10) NOT NULL " +
+        "); " +
+        "CREATE INDEX ws_section_id_index ON work_section (section_id); " +
+        "CREATE INDEX ws_work_id_index ON work_section (work_id); " +
+        "CREATE INDEX ws_work_id_subtype_index ON work_section (work_id, subtype); " +
+        "CREATE TABLE parent_child " +
+        "( " +
+        "    parent_id BIGINT(20) NOT NULL, " +
+        "    child_id BIGINT(20) NOT NULL, " +
+        "    child_biblevel VARCHAR(10) NOT NULL, " +
+        "    child_subtype VARCHAR(10) NOT NULL " +
+        "); " +
+        "CREATE INDEX pc_child_id_biblevel_subtype ON parent_child (child_id, child_biblevel, child_subtype); " +
+        "CREATE INDEX pc_child_id_index ON parent_child (child_id); " +
+        "CREATE INDEX pc_parent_id_child_biblevel_subtype ON parent_child (parent_id, child_biblevel, child_subtype); " +
+        "CREATE INDEX pc_parent_id_index ON parent_child (parent_id); " +
+        "CREATE TABLE work_alias " +
+        "( " +
+        "    work_id BIGINT(20) NOT NULL, " +
+        "    alias VARCHAR(100) NOT NULL " +
+        "); " +
+        "CREATE INDEX wa_alias_work_id_index ON work_alias (alias, work_id); " +
+        "CREATE INDEX wa_work_id_index ON work_alias (work_id); " +
+        "CREATE TABLE party " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    name VARCHAR(47), " +
+        "    suppressed TINYINT(1), " +
+        "    orgUrl TEXT, " +
+        "    logoUrl VARCHAR(17) " +
+        "); " +
+        "CREATE TABLE temp_ack " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE TABLE temp_ack_history " +
+        "( " +
+        "    id BIGINT(20), " +
+        "    txn_start BIGINT(20), " +
+        "    txn_end BIGINT(20), " +
+        "    name VARCHAR(100), " +
+        "    value BLOB " +
+        "); " +
+        "CREATE TABLE acknowledgement_history " +
+        "( " +
+        "    id BIGINT(20) NOT NULL, " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    ack_type VARCHAR(100) DEFAULT '' NOT NULL, " +
+        "    kind_of_support VARCHAR(100) DEFAULT '' NOT NULL, " +
+        "    weighting DECIMAL(5,2) DEFAULT '0.00' NOT NULL, " +
+        "    url_to_original TEXT, " +
+        "    date DATETIME " +
+        "); " +
+        "CREATE INDEX ack_history_id_index ON acknowledgement_history (id); " +
+        "CREATE INDEX ack_history_id_weighting_index ON acknowledgement_history (id, weighting); " +
+        "CREATE TABLE acknowledgement " +
+        "( " +
+        "    id BIGINT(20) NOT NULL, " +
+        "    txn_start BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    txn_end BIGINT(20) DEFAULT '0' NOT NULL, " +
+        "    ack_type VARCHAR(100) DEFAULT '' NOT NULL, " +
+        "    kind_of_support VARCHAR(100) DEFAULT '' NOT NULL, " +
+        "    weighting DECIMAL(5,2) DEFAULT '0.00' NOT NULL, " +
+        "    url_to_original TEXT, " +
+        "    date DATETIME " +
+        "); " +
+        "CREATE INDEX ack_id_index ON acknowledgement (id); " +
+        "CREATE INDEX ack_id_weighting_index ON acknowledgement (id, weighting); " +
+        "CREATE TABLE acknowledgement_party " +
+        "( " +
+        "    acknowledgement_id BIGINT(20) NOT NULL, " +
+        "    party_id BIGINT(20) " +
+        "); " +
+        "CREATE INDEX ap_acknowledgement_id_index ON acknowledgement_party (acknowledgement_id); " +
+        "CREATE INDEX ap_party_id_index ON acknowledgement_party (party_id); " +
+        "CREATE TABLE work_acknowledgement " +
+        "( " +
+        "    work_id BIGINT(20), " +
+        "    acknowledgement_id BIGINT(20) NOT NULL, " +
+        "    weighting DECIMAL(5,2) DEFAULT '0.00' NOT NULL " +
+        "); " +
+        "CREATE INDEX wack_ack_id_index ON work_acknowledgement (acknowledgement_id); " +
+        "CREATE INDEX wack_ack_id_weighting_index ON work_acknowledgement (acknowledgement_id, weighting); " +
+        "CREATE INDEX wack_work_id_index ON work_acknowledgement (work_id); " +
+        "CREATE TABLE representative_work " +
+        "( " +
+        "    copy_id BIGINT(20), " +
+        "    work_id BIGINT(20), " +
+        "    edge_order INT(11), " +
+        "    work_type VARCHAR(20) " +
+        "); " +
+        "CREATE INDEX rw_copy_id_index ON representative_work (copy_id); " +
+        "CREATE INDEX rw_copy_id_order ON representative_work (copy_id, edge_order); " +
+        "CREATE INDEX rw_work_id_type_index ON representative_work (work_id, work_type);")
+    void createV2Tables();
 
     @SqlQuery(
             "SELECT (COUNT(table_name) >= 8) "
@@ -391,33 +2297,33 @@ public interface AmberDao extends Transactional<AmberDao> {
             @Bind("txnId") Long txnId);
 
 
-    @SqlUpdate("SET @txn = :txnId;\n"
+    @SqlUpdate("SET @txn = :txnId; "
 
             // edges
             + "INSERT INTO edge (id, txn_start, txn_end, v_out, v_in, label, edge_order) "
             + "SELECT id, s_id, 0, v_out, v_in, label, edge_order "
             + "FROM sess_edge "
             + "WHERE s_id = @txn "
-            + "AND state = 'NEW';\n"
+            + "AND state = 'NEW'; "
 
             + "INSERT INTO edge (id, txn_start, txn_end, v_out, v_in, label, edge_order) "
             + "SELECT id, s_id, 0, v_out, v_in, label, edge_order "
             + "FROM sess_edge "
             + "WHERE s_id = @txn "
-            + "AND state = 'MOD';\n"
+            + "AND state = 'MOD'; "
 
             // vertices
             + "INSERT INTO vertex (id, txn_start, txn_end) "
             + "SELECT id, s_id, 0 "
             + "FROM sess_vertex "
             + "WHERE s_id = @txn "
-            + "AND state = 'NEW';\n"
+            + "AND state = 'NEW'; "
 
             + "INSERT INTO vertex (id, txn_start, txn_end) "
             + "SELECT id, s_id, 0 "
             + "FROM sess_vertex "
             + "WHERE s_id = @txn "
-            + "AND state = 'MOD';\n"
+            + "AND state = 'MOD'; "
 
             // properties
             + "INSERT INTO property (id, txn_start, txn_end, name, type, value) "
@@ -458,16 +2364,16 @@ public interface AmberDao extends Transactional<AmberDao> {
     void close();
 
 
-    @SqlUpdate("SET @sessId = :sessId;\n" +
+    @SqlUpdate("SET @sessId = :sessId; " +
 
             "DELETE FROM sess_vertex " +
-            "WHERE s_id = @sessId;\n" +
+            "WHERE s_id = @sessId; " +
 
             "DELETE FROM sess_edge " +
-            "WHERE s_id = @sessId;\n" +
+            "WHERE s_id = @sessId; " +
 
             "DELETE FROM sess_property " +
-            "WHERE s_id = @sessId;\n")
+            "WHERE s_id = @sessId; ")
     void clearSession(
             @Bind("sessId") Long sessId);
 
