@@ -5,7 +5,7 @@ import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 
 
-public interface AmberDaoMySql extends AmberDao {
+public abstract class AmberDaoMySql extends AmberDao {
 
 
     @SqlUpdate("SET @txn = :txnId;\n"
@@ -56,7 +56,24 @@ public interface AmberDaoMySql extends AmberDao {
             + "AND e.v_out = sv.id "
             + "AND sv.state = 'DEL' "
             + "AND sv.s_id = @txn;\n")
-    void endElements(
+    public abstract void endElements(
+          @Bind("txnId") Long txnId);
+    
+    @SqlUpdate("SET @txn = :txnId;\n"
+            + "UPDATE work_history w, sess_vertex s "
+            + "SET w.txn_end = @txn "
+            + "WHERE w.txn_end = 0 "
+            + "AND w.id = s.id "
+            + "AND s.s_id = @txn "
+            + "AND s.state <> 'AMB';\n"
+            
+			+ "DELETE w "
+			+ "FROM work w, sess_vertex s "
+			+ "WHERE w.txn_end = 0 "
+			+ "AND w.id = s.id "
+			+ "AND s.s_id = @txn "
+			+ "AND s.state = 'DEL';\n")
+    public abstract void endWorks(
           @Bind("txnId") Long txnId);
 }
 

@@ -1,12 +1,18 @@
 package amberdb.graph.dao;
 
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import amberdb.graph.AmberProperty;
-import amberdb.graph.TransactionMapper;
-import amberdb.v2.model.Work;
-
+import org.apache.commons.lang.StringUtils;
+import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.PreparedBatch;
+import org.skife.jdbi.v2.PreparedBatchPart;
+import org.skife.jdbi.v2.Update;
+import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.BindBean;
 import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
@@ -14,13 +20,20 @@ import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.SqlBatch;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
+import org.skife.jdbi.v2.sqlobject.mixins.GetHandle;
 import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
 
+import amberdb.graph.AmberEdge;
+import amberdb.graph.AmberProperty;
 import amberdb.graph.AmberTransaction;
+import amberdb.graph.AmberVertex;
+import amberdb.graph.AmberVertex;
+import amberdb.graph.BaseElement;
 import amberdb.graph.PropertyMapper;
+import amberdb.graph.TransactionMapper;
 
 
-public interface AmberDao extends Transactional<AmberDao> {
+public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 
     /*
      * DB creation operations (DDL)
@@ -34,7 +47,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "id         BIGINT, "
             + "txn_start  BIGINT DEFAULT 0 NOT NULL, "
             + "txn_end    BIGINT DEFAULT 0 NOT NULL)")
-    void createVertexTable();
+    public abstract void createVertexTable();
 
 
     @SqlUpdate(
@@ -46,7 +59,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "v_in       BIGINT, "
             + "label      VARCHAR(100), "
             + "edge_order BIGINT)")
-    void createEdgeTable();
+    public abstract void createEdgeTable();
 
 
     @SqlUpdate(
@@ -57,7 +70,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "name      VARCHAR(100), "
             + "type      CHAR(3), "
             + "value     BLOB)")
-    void createPropertyTable();
+    public abstract void createPropertyTable();
 
 
     /*
@@ -70,7 +83,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "txn_start  BIGINT DEFAULT 0 NOT NULL, "
             + "txn_end    BIGINT DEFAULT 0 NOT NULL, "
             + "state      CHAR(3))")
-    void createSessionVertexTable();
+    public abstract void createSessionVertexTable();
 
 
     @SqlUpdate(
@@ -84,7 +97,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "label      VARCHAR(100), "
             + "edge_order BIGINT, "
             + "state      CHAR(3))")
-    void createSessionEdgeTable();
+    public abstract void createSessionEdgeTable();
 
 
     @SqlUpdate(
@@ -94,13 +107,13 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "name      VARCHAR(100), "
             + "type      CHAR(3), "
             + "value     BLOB)")
-    void createSessionPropertyTable();
+    public abstract void createSessionPropertyTable();
 
 
     @SqlUpdate(
             "CREATE TABLE IF NOT EXISTS id_generator ("
             + "id BIGINT PRIMARY KEY AUTO_INCREMENT)")
-    void createIdGeneratorTable();
+    public abstract void createIdGeneratorTable();
 
 
     @SqlUpdate(
@@ -109,7 +122,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "time      BIGINT, "
             + "user      VARCHAR(100), "
             + "operation TEXT)")
-    void createTransactionTable();
+    public abstract void createTransactionTable();
 
 
     /*
@@ -118,73 +131,73 @@ public interface AmberDao extends Transactional<AmberDao> {
     @SqlUpdate(
             "CREATE UNIQUE INDEX unique_vert "
             + "ON vertex(id, txn_start)")
-    void createVertexIndex();
+    public abstract void createVertexIndex();
 
 
     @SqlUpdate(
             "CREATE UNIQUE INDEX unique_edge "
             + "ON edge(id, txn_start)")
-    void createEdgeIndex();
+    public abstract void createEdgeIndex();
 
 
     @SqlUpdate(
             "CREATE UNIQUE INDEX unique_prop "
             + "ON property(id, txn_start, name)")
-    void createPropertyIndex();
+    public abstract void createPropertyIndex();
 
 
     @SqlUpdate(
             "CREATE INDEX vert_txn_end_idx "
             + "ON vertex(txn_end)")
-    void createVertexTxnEndIndex();
+    public abstract void createVertexTxnEndIndex();
 
 
     @SqlUpdate(
             "CREATE INDEX edge_txn_end_idx "
             + "ON edge(txn_end)")
-    void createEdgeTxnEndIndex();
+    public abstract void createEdgeTxnEndIndex();
 
 
     @SqlUpdate(
             "CREATE INDEX prop_name_idx "
             + "ON property(name)")
-    void createPropertyNameIndex();
+    public abstract  void createPropertyNameIndex();
 
 
     @SqlUpdate(
             "CREATE INDEX property_value_idx "
             + "ON property(value(512))")
-    void createPropertyValueIndex();
+    public abstract void createPropertyValueIndex();
 
 
     @SqlUpdate(
             "CREATE INDEX property_name_val_idx "
             + "ON property(name, value(512))")
-    void createPropertyNameValueIndex();
+    public abstract void createPropertyNameValueIndex();
 
 
     @SqlUpdate(
             "CREATE INDEX prop_txn_end_idx "
             + "ON property(txn_end)")
-    void createPropertyTxnEndIndex();
+    public abstract void createPropertyTxnEndIndex();
 
 
     @SqlUpdate(
             "CREATE INDEX edge_label_idx "
             + "ON edge(label)")
-    void createEdgeLabelIndex();
+    public abstract void createEdgeLabelIndex();
 
 
     @SqlUpdate(
             "CREATE INDEX edge_in_idx "
             + "ON edge(v_in)")
-    void createEdgeInVertexIndex();
+    public abstract void createEdgeInVertexIndex();
 
 
     @SqlUpdate(
             "CREATE INDEX edge_out_idx "
             + "ON edge(v_out)")
-    void createEdgeOutVertexIndex();
+    public abstract void createEdgeOutVertexIndex();
 
 	/*
 	 * Put all the columns we need for traversal into one index to save index
@@ -194,49 +207,49 @@ public interface AmberDao extends Transactional<AmberDao> {
 	@SqlUpdate(
 			"CREATE INDEX edge_in_traversal_idx "
 			+ "ON edge(txn_end, v_in, label, edge_order, v_out)")
-	void createEdgeInTraversalIndex();
+	public abstract void createEdgeInTraversalIndex();
 
 
 	@SqlUpdate(
 			"CREATE INDEX edge_out_traversal_idx "
 			+ "ON edge(txn_end, v_out, label, edge_order, v_in)")
-	void createEdgeOutTraversalIndex();
+	public abstract void createEdgeOutTraversalIndex();
 
 
     @SqlUpdate(
             "CREATE INDEX sess_edge_idx "
             + "ON sess_edge(s_id)")
-    void createSessionEdgeIndex();
+    public abstract void createSessionEdgeIndex();
 
 
     @SqlUpdate(
             "CREATE INDEX sess_vertex_idx "
             + "ON sess_vertex(s_id)")
-    void createSessionVertexIndex();
+    public abstract void createSessionVertexIndex();
 
 
     @SqlUpdate(
             "CREATE INDEX sess_property_idx "
             + "ON sess_property(s_id)")
-    void createSessionPropertyIndex();
+    public abstract void createSessionPropertyIndex();
 
 
     @SqlUpdate(
             "CREATE INDEX sess_edge_sis_idx "
             + "ON sess_edge(s_id, id, state)")
-    void createSessionEdgeIdStateIndex();
+    public abstract void createSessionEdgeIdStateIndex();
 
 
     @SqlUpdate(
             "CREATE INDEX sess_vertex_sis_idx "
             + "ON sess_vertex(s_id, id, state)")
-    void createSessionVertexIdStateIndex();
+    public abstract void createSessionVertexIdStateIndex();
 
 
     @SqlUpdate(
             "CREATE INDEX sess_property_sis_idx "
             + "ON sess_property(s_id, id)")
-    void createSessionPropertyIdStateIndex();
+    public abstract void createSessionPropertyIdStateIndex();
 
     @SqlUpdate(
         "CREATE TABLE cameradata" +
@@ -2143,7 +2156,7 @@ public interface AmberDao extends Transactional<AmberDao> {
         "CREATE INDEX rw_copy_id_index ON representative_work (copy_id); " +
         "CREATE INDEX rw_copy_id_order ON representative_work (copy_id, edge_order); " +
         "CREATE INDEX rw_work_id_type_index ON representative_work (work_id, work_type);")
-    void createV2Tables();
+    public abstract void createV2Tables();
 
     @SqlQuery(
             "SELECT (COUNT(table_name) >= 8) "
@@ -2152,7 +2165,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "  'VERTEX', 'EDGE', 'PROPERTY', "
             + "  'SESS_VERTEX', 'SESS_EDGE', 'SESS_PROPERTY', "
             + "  'ID_GENERATOR', 'TRANSACTION')")
-    boolean schemaTablesExist();
+	public abstract boolean schemaTablesExist();
 
 
     /*
@@ -2161,13 +2174,13 @@ public interface AmberDao extends Transactional<AmberDao> {
     @GetGeneratedKeys
     @SqlUpdate("INSERT INTO id_generator () "
             + "VALUES ()")
-    long newId();
+    public abstract long newId();
 
 
     @SqlUpdate("DELETE "
             + "FROM id_generator "
             + "WHERE id < :id")
-    void garbageCollectIds(
+    public abstract void garbageCollectIds(
             @Bind("id") long id);
 
 
@@ -2176,7 +2189,7 @@ public interface AmberDao extends Transactional<AmberDao> {
      */
     @SqlBatch("INSERT INTO sess_edge (s_id, id, txn_start, txn_end, v_out, v_in, label, edge_order, state) "
             + "VALUES (:sessId, :id, :txnStart, :txnEnd, :outId, :inId, :label, :edgeOrder, :state)")
-    void suspendEdges(
+    public abstract void suspendEdges(
             @Bind("sessId")    Long          sessId,
             @Bind("id")        List<Long>    id,
             @Bind("txnStart")  List<Long>    txnStart,
@@ -2190,7 +2203,7 @@ public interface AmberDao extends Transactional<AmberDao> {
 
     @SqlBatch("INSERT INTO sess_vertex (s_id, id, txn_start, txn_end, state) "
             + "VALUES (:sessId, :id, :txnStart, :txnEnd, :state)")
-    void suspendVertices(
+    public abstract void suspendVertices(
             @Bind("sessId")    Long         sessId,
             @Bind("id")        List<Long>   id,
             @Bind("txnStart")  List<Long>   txnStart,
@@ -2200,7 +2213,7 @@ public interface AmberDao extends Transactional<AmberDao> {
 
     @SqlBatch("INSERT INTO sess_property (s_id, id, name, type, value) "
             + "VALUES (:sessId, :id, :name, :type, :value)")
-    void suspendProperties(
+    public abstract  void suspendProperties(
             @Bind("sessId")    Long         sessId,
             @Bind("id")        List<Long>   id,
             @Bind("name")      List<String> name,
@@ -2212,7 +2225,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "FROM sess_property "
             + "WHERE s_id = :sessId")
     @Mapper(PropertyMapper.class)
-    List<AmberProperty> resumeProperties(@Bind("sessId") Long sessId);
+    public abstract  List<AmberProperty> resumeProperties(@Bind("sessId") Long sessId);
 
 
     /* Transaction operations */
@@ -2222,7 +2235,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "FROM transaction "
             + "WHERE id = :id")
     @Mapper(TransactionMapper.class)
-    AmberTransaction getTransaction(@Bind("id") Long id);
+    public abstract AmberTransaction getTransaction(@Bind("id") Long id);
 
 
     @SqlQuery("(SELECT DISTINCT t.id, t.time, t.user, t.operation "
@@ -2236,7 +2249,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "AND t.id = v.txn_end) "
             + "ORDER BY id")
     @Mapper(TransactionMapper.class)
-    List<AmberTransaction> getTransactionsByVertexId(@Bind("id") Long id);
+    public abstract List<AmberTransaction> getTransactionsByVertexId(@Bind("id") Long id);
 
 
     @SqlQuery("(SELECT DISTINCT t.id, t.time, t.user, t.operation "
@@ -2250,7 +2263,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "AND t.id = e.txn_end) "
             + "ORDER BY id")
     @Mapper(TransactionMapper.class)
-    List<AmberTransaction> getTransactionsByEdgeId(@Bind("id") Long id);
+    public abstract List<AmberTransaction> getTransactionsByEdgeId(@Bind("id") Long id);
 
 
     @SqlQuery("SELECT id, time, user, operation "
@@ -2261,7 +2274,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "  WHERE v.id = :id "
             + "  AND t.id = v.txn_start)")
     @Mapper(TransactionMapper.class)
-    AmberTransaction getFirstTransactionForVertexId(@Bind("id") Long id);
+    public abstract AmberTransaction getFirstTransactionForVertexId(@Bind("id") Long id);
 
 
     @SqlQuery("SELECT id, time, user, operation "
@@ -2272,7 +2285,7 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "  WHERE e.id = :id "
             + "  AND t.id = e.txn_start)")
     @Mapper(TransactionMapper.class)
-    AmberTransaction getFirstTransactionForEdgeId(@Bind("id") Long id);
+    public abstract AmberTransaction getFirstTransactionForEdgeId(@Bind("id") Long id);
 
 
     /* Note: resume edge and vertex implemented in AmberGraph */
@@ -2284,7 +2297,7 @@ public interface AmberDao extends Transactional<AmberDao> {
     @SqlUpdate(
             "INSERT INTO transaction (id, time, user, operation)" +
             "VALUES (:id, :time, :user, :operation)")
-    void insertTransaction(
+    public abstract void insertTransaction(
             @Bind("id") long id,
             @Bind("time") long time,
             @Bind("user") String user,
@@ -2293,7 +2306,7 @@ public interface AmberDao extends Transactional<AmberDao> {
 
     // The following query intentionally left blank. It's implemented in the db specific AmberDao sub classes (h2 or MySql)
     @SqlUpdate("")
-    void endElements(
+    public abstract void endElements(
             @Bind("txnId") Long txnId);
 
 
@@ -2357,11 +2370,11 @@ public interface AmberDao extends Transactional<AmberDao> {
             + "AND e.s_id = @txn "
             + "AND e.id = p.id "
             + "AND e.state = 'MOD'; ")
-    void startElements(
+    public abstract void startElements(
             @Bind("txnId") Long txnId);
 
 
-    void close();
+    public abstract void close();
 
 
     @SqlUpdate("SET @sessId = :sessId; " +
@@ -2374,20 +2387,112 @@ public interface AmberDao extends Transactional<AmberDao> {
 
             "DELETE FROM sess_property " +
             "WHERE s_id = @sessId; ")
-    void clearSession(
+    public abstract void clearSession(
             @Bind("sessId") Long sessId);
 
+	public void suspendIntoFlatVertexTable(Long sessId, String state, String table, Set<AmberVertex> set) {
+		Set<String> fields = getFields(set);
+		String sql = String.format("INSERT INTO %s (s_id, state, id, txn_start, txn_end, %s) values (:s_id, :state, :id, :txn_start, :txn_end, %s)",
+				table,
+				StringUtils.join(fields, ','),
+				StringUtils.join(format(fields, ":%s"), ','));
 
-    @SqlBatch("INSERT INTO work (id, txn_start, txn_end, extent, dcmDateTimeUpdated, localSystemNumber, occupation, endDate, displayTitlePage, holdingId, hasRepresentation, totalDuration, dcmDateTimeCreated, firstPart, additionalTitle, dcmWorkPid, classification, commentsInternal, restrictionType, ilmsSentDateTime, subType, scaleEtc, startDate, dcmRecordUpdater, tilePosition, allowHighResdownload, south, restrictionsOnAccess, preservicaType, north, accessConditions, internalAccessConditions, eadUpdateReviewRequired, australianContent, moreIlmsDetailsRequired, rights, genre, deliveryUrl, recordSource, sheetCreationDate, creator, sheetName, coordinates, creatorStatement, additionalCreator, folderType, eventNote, interactiveIndexAvailable, startChild, bibLevel, holdingNumber, publicNotes, series, constraint1, notes, catalogueUrl, encodingLevel, materialFromMultipleSources, subject, sendToIlms, vendorId, allowOnsiteAccess, language, sensitiveMaterial, dcmAltPi, folderNumber, west, html, preservicaId, redocworksReason, workCreatedDuringMigration, author, commentsExternal, findingAidNote, collection, otherTitle, imageServerUrl, localSystemNo, acquisitionStatus, reorderType, immutable, copyrightPolicy, nextStep, publisher, additionalSeries, tempHolding, sortIndex, isMissingPage, standardId, representativeId, edition, reorder, title, acquisitionCategory, subUnitNo, expiryDate, digitalStatusDate, east, contributor, publicationCategory, ingestJobId, subUnitType, uniformTitle, alias, rdsAcknowledgementType, issueDate, bibId, coverage, summary, additionalContributor, sendToIlmsDateTime, sensitiveReason, carrier, form, rdsAcknowledgementReceiver, digitalStatus, dcmRecordCreator, sprightlyUrl, depositType, parentConstraint) "
-            + "VALUES (:id, :txn_start, :txn_end, :extent, :dcmDateTimeUpdated, :localSystemNumber, :occupation, :endDate, :displayTitlePage, :holdingId, :hasRepresentation, :totalDuration, :dcmDateTimeCreated, :firstPart, :additionalTitle, :dcmWorkPid, :classification, :commentsInternal, :restrictionType, :ilmsSentDateTime, :subType, :scaleEtc, :startDate, :dcmRecordUpdater, :tilePosition, :allowHighResdownload, :south, :restrictionsOnAccess, :preservicaType, :north, :accessConditions, :internalAccessConditions, :eadUpdateReviewRequired, :australianContent, :moreIlmsDetailsRequired, :rights, :genre, :deliveryUrl, :recordSource, :sheetCreationDate, :creator, :sheetName, :coordinates, :creatorStatement, :additionalCreator, :folderType, :eventNote, :interactiveIndexAvailable, :startChild, :bibLevel, :holdingNumber, :publicNotes, :series, :constraint1, :notes, :catalogueUrl, :encodingLevel, :materialFromMultipleSources, :subject, :sendToIlms, :vendorId, :allowOnsiteAccess, :language, :sensitiveMaterial, :dcmAltPi, :folderNumber, :west, :html, :preservicaId, :redocworksReason, :workCreatedDuringMigration, :author, :commentsExternal, :findingAidNote, :collection, :otherTitle, :imageServerUrl, :localSystemNo, :acquisitionStatus, :reorderType, :immutable, :copyrightPolicy, :nextStep, :publisher, :additionalSeries, :tempHolding, :sortIndex, :isMissingPage, :standardId, :representativeId, :edition, :reorder, :title, :acquisitionCategory, :subUnitNo, :expiryDate, :digitalStatusDate, :east, :contributor, :publicationCategory, :ingestJobId, :subUnitType, :uniformTitle, :alias, :rdsAcknowledgementType, :issueDate, :bibId, :coverage, :summary, :additionalContributor, :sendToIlmsDateTime, :sensitiveReason, :carrier, :form, :rdsAcknowledgementReceiver, :digitalStatus, :dcmRecordCreator, :sprightlyUrl, :depositType, :parentConstraint)")
-	void createWorks(@BindBean List<Work> work);
+		Handle h = getHandle();
+		PreparedBatch preparedBatch = h.prepareBatch(sql);
+		for (AmberVertex v: set) {
+			PreparedBatchPart preparedBatchPart = preparedBatch.add();
+			preparedBatchPart.bind("s_id",       sessId);
+			preparedBatchPart.bind("state",      state);
+			preparedBatchPart.bind("id",         v.getId());
+			preparedBatchPart.bind("txn_start",  v.getTxnStart());
+			preparedBatchPart.bind("txn_end",    v.getTxnEnd());
+			if (!"DEL".equals(state)) {
+				for (String field: fields) {
+					preparedBatchPart.bind(field,    v.getProperty(field));
+				}
+			}
+		}
+		preparedBatch.execute();
+		
+	}
 
-    @SqlBatch("DELETE FROM work WHERE id = :id")
-    void deleteWorks(@BindBean List<Work> work);
+	public void suspendIntoFlatEdgeTable(Long sessId, String state, String table, Set<AmberEdge> set) {
+		Set<String> fields = getFields(set);
+		String sql = String.format("INSERT INTO %s (s_id, state, id, txn_start, txn_end, %s) values (:s_id, :state, :id, :txn_start, :txn_end, %s)",
+				table,
+				StringUtils.join(fields, ','),
+				StringUtils.join(format(fields, ":%s"), ','));
 
-    @SqlBatch("UPDATE work set  txn_start = :txn_start, txn_end = :txn_end, extent = :extent, dcmDateTimeUpdated = :dcmDateTimeUpdated, localSystemNumber = :localSystemNumber, occupation = :occupation, endDate = :endDate, displayTitlePage = :displayTitlePage, holdingId = :holdingId, hasRepresentation = :hasRepresentation, totalDuration = :totalDuration, dcmDateTimeCreated = :dcmDateTimeCreated, firstPart = :firstPart, additionalTitle = :additionalTitle, dcmWorkPid = :dcmWorkPid, classification = :classification, commentsInternal = :commentsInternal, restrictionType = :restrictionType, ilmsSentDateTime = :ilmsSentDateTime, subType = :subType, scaleEtc = :scaleEtc, startDate = :startDate, dcmRecordUpdater = :dcmRecordUpdater, tilePosition = :tilePosition, allowHighResdownload = :allowHighResdownload, south = :south, restrictionsOnAccess = :restrictionsOnAccess, preservicaType = :preservicaType, north = :north, accessConditions = :accessConditions, internalAccessConditions = :internalAccessConditions, eadUpdateReviewRequired = :eadUpdateReviewRequired, australianContent = :australianContent, moreIlmsDetailsRequired = :moreIlmsDetailsRequired, rights = :rights, genre = :genre, deliveryUrl = :deliveryUrl, recordSource = :recordSource, sheetCreationDate = :sheetCreationDate, creator = :creator, sheetName = :sheetName, coordinates = :coordinates, creatorStatement = :creatorStatement, additionalCreator = :additionalCreator, folderType = :folderType, eventNote = :eventNote, interactiveIndexAvailable = :interactiveIndexAvailable, startChild = :startChild, bibLevel = :bibLevel, holdingNumber = :holdingNumber, publicNotes = :publicNotes, series = :series, constraint1 = :constraint1, notes = :notes, catalogueUrl = :catalogueUrl, encodingLevel = :encodingLevel, materialFromMultipleSources = :materialFromMultipleSources, subject = :subject, sendToIlms = :sendToIlms, vendorId = :vendorId, allowOnsiteAccess = :allowOnsiteAccess, language = :language, sensitiveMaterial = :sensitiveMaterial, dcmAltPi = :dcmAltPi, folderNumber = :folderNumber, west = :west, html = :html, preservicaId = :preservicaId, redocworksReason = :redocworksReason, workCreatedDuringMigration = :workCreatedDuringMigration, author = :author, commentsExternal = :commentsExternal, findingAidNote = :findingAidNote, collection = :collection, otherTitle = :otherTitle, imageServerUrl = :imageServerUrl, localSystemNo = :localSystemNo, acquisitionStatus = :acquisitionStatus, reorderType = :reorderType, immutable = :immutable, copyrightPolicy = :copyrightPolicy, nextStep = :nextStep, publisher = :publisher, additionalSeries = :additionalSeries, tempHolding = :tempHolding, sortIndex = :sortIndex, isMissingPage = :isMissingPage, standardId = :standardId, representativeId = :representativeId, edition = :edition, reorder = :reorder, title = :title, acquisitionCategory = :acquisitionCategory, subUnitNo = :subUnitNo, expiryDate = :expiryDate, digitalStatusDate = :digitalStatusDate, east = :east, contributor = :contributor, publicationCategory = :publicationCategory, ingestJobId = :ingestJobId, subUnitType = :subUnitType, uniformTitle = :uniformTitle, alias = :alias, rdsAcknowledgementType = :rdsAcknowledgementType, issueDate = :issueDate, bibId = :bibId, coverage = :coverage, summary = :summary, additionalContributor = :additionalContributor, sendToIlmsDateTime = :sendToIlmsDateTime, sensitiveReason = :sensitiveReason, carrier = :carrier, form = :form, rdsAcknowledgementReceiver = :rdsAcknowledgementReceiver, digitalStatus = :digitalStatus, dcmRecordCreator = :dcmRecordCreator, sprightlyUrl = :sprightlyUrl, depositType = :depositType, parentConstraint = :parentConstraint " +
-    		  "WHERE id = :id")
-	void updateWorks(@BindBean List<Work> work);
+		Handle h = getHandle();
+		PreparedBatch preparedBatch = h.prepareBatch(sql);
+		for (AmberEdge v: set) {
+			PreparedBatchPart preparedBatchPart = preparedBatch.add();
+			preparedBatchPart.bind("s_id",       sessId);
+			preparedBatchPart.bind("state",      state);
+			preparedBatchPart.bind("id",         v.getId());
+			preparedBatchPart.bind("txn_start",  v.getTxnStart());
+			preparedBatchPart.bind("txn_end",    v.getTxnEnd());
+			if (!"DEL".equals(state)) {
+				for (String field: fields) {
+					preparedBatchPart.bind(field,    v.getProperty(field));
+				}
+			}
+		}
+		preparedBatch.execute();
+		
+	}
 
+	private List<String> format(Collection<String> strings, String format) {
+		List<String> r = new ArrayList<>(strings.size());
+		for (String s: strings) {
+			r.add(String.format(format, s));
+		}
+		return r;
+	}
+
+	private Set<String> getFields(Set<? extends BaseElement> set) {
+		Set<String> allFields = new HashSet<>();
+		for (BaseElement element: set) {
+			Set<String> fields = element.getPropertyKeys();
+			fields.remove("type");
+			allFields.addAll(fields);
+		}
+		return allFields;
+	}
+
+
+    // The following query intentionally left blank. It's implemented in the db specific AmberDao sub classes (h2 or MySql)
+    @SqlUpdate("")
+    public abstract void endWorks(
+            @Bind("txnId") Long txnId);
+    
+
+    @SqlUpdate("SET @txn = :txnId;\n"
+            + "INSERT INTO work_history (id, txn_start, txn_end, extent, dcmDateTimeUpdated, localSystemNumber, occupation, endDate, displayTitlePage, holdingId, hasRepresentation, totalDuration, dcmDateTimeCreated, firstPart, additionalTitle, dcmWorkPid, classification, commentsInternal, restrictionType, ilmsSentDateTime, subType, scaleEtc, startDate, dcmRecordUpdater, tilePosition, allowHighResdownload, south, restrictionsOnAccess, preservicaType, north, accessConditions, internalAccessConditions, eadUpdateReviewRequired, australianContent, moreIlmsDetailsRequired, rights, genre, deliveryUrl, recordSource, sheetCreationDate, creator, sheetName, coordinates, creatorStatement, additionalCreator, folderType, eventNote, interactiveIndexAvailable, startChild, bibLevel, holdingNumber, publicNotes, series, constraint1, notes, catalogueUrl, encodingLevel, materialFromMultipleSources, subject, sendToIlms, vendorId, allowOnsiteAccess, language, sensitiveMaterial, dcmAltPi, folderNumber, west, html, preservicaId, redocworksReason, workCreatedDuringMigration, author, commentsExternal, findingAidNote, collection, otherTitle, imageServerUrl, localSystemNo, acquisitionStatus, reorderType, immutable, copyrightPolicy, nextStep, publisher, additionalSeries, tempHolding, sortIndex, isMissingPage, standardId, representativeId, edition, reorder, title, acquisitionCategory, subUnitNo, expiryDate, digitalStatusDate, east, contributor, publicationCategory, ingestJobId, subUnitType, uniformTitle, alias, rdsAcknowledgementType, issueDate, bibId, coverage, summary, additionalContributor, sendToIlmsDateTime, sensitiveReason, carrier, form, rdsAcknowledgementReceiver, digitalStatus, dcmRecordCreator, sprightlyUrl, depositType, parentConstraint) "
+            + "SELECT id, s_id, 0, extent, dcmDateTimeUpdated, localSystemNumber, occupation, endDate, displayTitlePage, holdingId, hasRepresentation, totalDuration, dcmDateTimeCreated, firstPart, additionalTitle, dcmWorkPid, classification, commentsInternal, restrictionType, ilmsSentDateTime, subType, scaleEtc, startDate, dcmRecordUpdater, tilePosition, allowHighResdownload, south, restrictionsOnAccess, preservicaType, north, accessConditions, internalAccessConditions, eadUpdateReviewRequired, australianContent, moreIlmsDetailsRequired, rights, genre, deliveryUrl, recordSource, sheetCreationDate, creator, sheetName, coordinates, creatorStatement, additionalCreator, folderType, eventNote, interactiveIndexAvailable, startChild, bibLevel, holdingNumber, publicNotes, series, constraint1, notes, catalogueUrl, encodingLevel, materialFromMultipleSources, subject, sendToIlms, vendorId, allowOnsiteAccess, language, sensitiveMaterial, dcmAltPi, folderNumber, west, html, preservicaId, redocworksReason, workCreatedDuringMigration, author, commentsExternal, findingAidNote, collection, otherTitle, imageServerUrl, localSystemNo, acquisitionStatus, reorderType, immutable, copyrightPolicy, nextStep, publisher, additionalSeries, tempHolding, sortIndex, isMissingPage, standardId, representativeId, edition, reorder, title, acquisitionCategory, subUnitNo, expiryDate, digitalStatusDate, east, contributor, publicationCategory, ingestJobId, subUnitType, uniformTitle, alias, rdsAcknowledgementType, issueDate, bibId, coverage, summary, additionalContributor, sendToIlmsDateTime, sensitiveReason, carrier, form, rdsAcknowledgementReceiver, digitalStatus, dcmRecordCreator, sprightlyUrl, depositType, parentConstraint "
+            + "FROM sess_work "
+            + "WHERE s_id = @txn "
+            + "AND state = 'NEW';\n"
+
+            + "INSERT INTO work_history (id, txn_start, txn_end, extent, dcmDateTimeUpdated, localSystemNumber, occupation, endDate, displayTitlePage, holdingId, hasRepresentation, totalDuration, dcmDateTimeCreated, firstPart, additionalTitle, dcmWorkPid, classification, commentsInternal, restrictionType, ilmsSentDateTime, subType, scaleEtc, startDate, dcmRecordUpdater, tilePosition, allowHighResdownload, south, restrictionsOnAccess, preservicaType, north, accessConditions, internalAccessConditions, eadUpdateReviewRequired, australianContent, moreIlmsDetailsRequired, rights, genre, deliveryUrl, recordSource, sheetCreationDate, creator, sheetName, coordinates, creatorStatement, additionalCreator, folderType, eventNote, interactiveIndexAvailable, startChild, bibLevel, holdingNumber, publicNotes, series, constraint1, notes, catalogueUrl, encodingLevel, materialFromMultipleSources, subject, sendToIlms, vendorId, allowOnsiteAccess, language, sensitiveMaterial, dcmAltPi, folderNumber, west, html, preservicaId, redocworksReason, workCreatedDuringMigration, author, commentsExternal, findingAidNote, collection, otherTitle, imageServerUrl, localSystemNo, acquisitionStatus, reorderType, immutable, copyrightPolicy, nextStep, publisher, additionalSeries, tempHolding, sortIndex, isMissingPage, standardId, representativeId, edition, reorder, title, acquisitionCategory, subUnitNo, expiryDate, digitalStatusDate, east, contributor, publicationCategory, ingestJobId, subUnitType, uniformTitle, alias, rdsAcknowledgementType, issueDate, bibId, coverage, summary, additionalContributor, sendToIlmsDateTime, sensitiveReason, carrier, form, rdsAcknowledgementReceiver, digitalStatus, dcmRecordCreator, sprightlyUrl, depositType, parentConstraint) "
+            + "SELECT id, s_id, 0, extent, dcmDateTimeUpdated, localSystemNumber, occupation, endDate, displayTitlePage, holdingId, hasRepresentation, totalDuration, dcmDateTimeCreated, firstPart, additionalTitle, dcmWorkPid, classification, commentsInternal, restrictionType, ilmsSentDateTime, subType, scaleEtc, startDate, dcmRecordUpdater, tilePosition, allowHighResdownload, south, restrictionsOnAccess, preservicaType, north, accessConditions, internalAccessConditions, eadUpdateReviewRequired, australianContent, moreIlmsDetailsRequired, rights, genre, deliveryUrl, recordSource, sheetCreationDate, creator, sheetName, coordinates, creatorStatement, additionalCreator, folderType, eventNote, interactiveIndexAvailable, startChild, bibLevel, holdingNumber, publicNotes, series, constraint1, notes, catalogueUrl, encodingLevel, materialFromMultipleSources, subject, sendToIlms, vendorId, allowOnsiteAccess, language, sensitiveMaterial, dcmAltPi, folderNumber, west, html, preservicaId, redocworksReason, workCreatedDuringMigration, author, commentsExternal, findingAidNote, collection, otherTitle, imageServerUrl, localSystemNo, acquisitionStatus, reorderType, immutable, copyrightPolicy, nextStep, publisher, additionalSeries, tempHolding, sortIndex, isMissingPage, standardId, representativeId, edition, reorder, title, acquisitionCategory, subUnitNo, expiryDate, digitalStatusDate, east, contributor, publicationCategory, ingestJobId, subUnitType, uniformTitle, alias, rdsAcknowledgementType, issueDate, bibId, coverage, summary, additionalContributor, sendToIlmsDateTime, sensitiveReason, carrier, form, rdsAcknowledgementReceiver, digitalStatus, dcmRecordCreator, sprightlyUrl, depositType, parentConstraint "
+            + "FROM sess_work "
+            + "WHERE s_id = @txn "
+            + "AND state = 'MOD';\n"
+            
+            + "INSERT INTO work (id, txn_start, txn_end, extent, dcmDateTimeUpdated, localSystemNumber, occupation, endDate, displayTitlePage, holdingId, hasRepresentation, totalDuration, dcmDateTimeCreated, firstPart, additionalTitle, dcmWorkPid, classification, commentsInternal, restrictionType, ilmsSentDateTime, subType, scaleEtc, startDate, dcmRecordUpdater, tilePosition, allowHighResdownload, south, restrictionsOnAccess, preservicaType, north, accessConditions, internalAccessConditions, eadUpdateReviewRequired, australianContent, moreIlmsDetailsRequired, rights, genre, deliveryUrl, recordSource, sheetCreationDate, creator, sheetName, coordinates, creatorStatement, additionalCreator, folderType, eventNote, interactiveIndexAvailable, startChild, bibLevel, holdingNumber, publicNotes, series, constraint1, notes, catalogueUrl, encodingLevel, materialFromMultipleSources, subject, sendToIlms, vendorId, allowOnsiteAccess, language, sensitiveMaterial, dcmAltPi, folderNumber, west, html, preservicaId, redocworksReason, workCreatedDuringMigration, author, commentsExternal, findingAidNote, collection, otherTitle, imageServerUrl, localSystemNo, acquisitionStatus, reorderType, immutable, copyrightPolicy, nextStep, publisher, additionalSeries, tempHolding, sortIndex, isMissingPage, standardId, representativeId, edition, reorder, title, acquisitionCategory, subUnitNo, expiryDate, digitalStatusDate, east, contributor, publicationCategory, ingestJobId, subUnitType, uniformTitle, alias, rdsAcknowledgementType, issueDate, bibId, coverage, summary, additionalContributor, sendToIlmsDateTime, sensitiveReason, carrier, form, rdsAcknowledgementReceiver, digitalStatus, dcmRecordCreator, sprightlyUrl, depositType, parentConstraint) "
+            + "SELECT id, s_id, 0, extent, dcmDateTimeUpdated, localSystemNumber, occupation, endDate, displayTitlePage, holdingId, hasRepresentation, totalDuration, dcmDateTimeCreated, firstPart, additionalTitle, dcmWorkPid, classification, commentsInternal, restrictionType, ilmsSentDateTime, subType, scaleEtc, startDate, dcmRecordUpdater, tilePosition, allowHighResdownload, south, restrictionsOnAccess, preservicaType, north, accessConditions, internalAccessConditions, eadUpdateReviewRequired, australianContent, moreIlmsDetailsRequired, rights, genre, deliveryUrl, recordSource, sheetCreationDate, creator, sheetName, coordinates, creatorStatement, additionalCreator, folderType, eventNote, interactiveIndexAvailable, startChild, bibLevel, holdingNumber, publicNotes, series, constraint1, notes, catalogueUrl, encodingLevel, materialFromMultipleSources, subject, sendToIlms, vendorId, allowOnsiteAccess, language, sensitiveMaterial, dcmAltPi, folderNumber, west, html, preservicaId, redocworksReason, workCreatedDuringMigration, author, commentsExternal, findingAidNote, collection, otherTitle, imageServerUrl, localSystemNo, acquisitionStatus, reorderType, immutable, copyrightPolicy, nextStep, publisher, additionalSeries, tempHolding, sortIndex, isMissingPage, standardId, representativeId, edition, reorder, title, acquisitionCategory, subUnitNo, expiryDate, digitalStatusDate, east, contributor, publicationCategory, ingestJobId, subUnitType, uniformTitle, alias, rdsAcknowledgementType, issueDate, bibId, coverage, summary, additionalContributor, sendToIlmsDateTime, sensitiveReason, carrier, form, rdsAcknowledgementReceiver, digitalStatus, dcmRecordCreator, sprightlyUrl, depositType, parentConstraint "
+            + "FROM sess_work "
+            + "WHERE s_id = @txn "
+            + "AND state = 'NEW';\n"
+
+            + "UPDATE work w, sess_work sw SET w.txn_start = sw.txn_start, w.txn_end = sw.txn_end, w.extent = sw.extent, w.dcmDateTimeUpdated = sw.dcmDateTimeUpdated, w.localSystemNumber = sw.localSystemNumber, w.occupation = sw.occupation, w.endDate = sw.endDate, w.displayTitlePage = sw.displayTitlePage, w.holdingId = sw.holdingId, w.hasRepresentation = sw.hasRepresentation, w.totalDuration = sw.totalDuration, w.dcmDateTimeCreated = sw.dcmDateTimeCreated, w.firstPart = sw.firstPart, w.additionalTitle = sw.additionalTitle, w.dcmWorkPid = sw.dcmWorkPid, w.classification = sw.classification, w.commentsInternal = sw.commentsInternal, w.restrictionType = sw.restrictionType, w.ilmsSentDateTime = sw.ilmsSentDateTime, w.subType = sw.subType, w.scaleEtc = sw.scaleEtc, w.startDate = sw.startDate, w.dcmRecordUpdater = sw.dcmRecordUpdater, w.tilePosition = sw.tilePosition, w.allowHighResdownload = sw.allowHighResdownload, w.south = sw.south, w.restrictionsOnAccess = sw.restrictionsOnAccess, w.preservicaType = sw.preservicaType, w.north = sw.north, w.accessConditions = sw.accessConditions, w.internalAccessConditions = sw.internalAccessConditions, w.eadUpdateReviewRequired = sw.eadUpdateReviewRequired, w.australianContent = sw.australianContent, w.moreIlmsDetailsRequired = sw.moreIlmsDetailsRequired, w.rights = sw.rights, w.genre = sw.genre, w.deliveryUrl = sw.deliveryUrl, w.recordSource = sw.recordSource, w.sheetCreationDate = sw.sheetCreationDate, w.creator = sw.creator, w.sheetName = sw.sheetName, w.coordinates = sw.coordinates, w.creatorStatement = sw.creatorStatement, w.additionalCreator = sw.additionalCreator, w.folderType = sw.folderType, w.eventNote = sw.eventNote, w.interactiveIndexAvailable = sw.interactiveIndexAvailable, w.startChild = sw.startChild, w.bibLevel = sw.bibLevel, w.holdingNumber = sw.holdingNumber, w.publicNotes = sw.publicNotes, w.series = sw.series, w.constraint1 = sw.constraint1, w.notes = sw.notes, w.catalogueUrl = sw.catalogueUrl, w.encodingLevel = sw.encodingLevel, w.materialFromMultipleSources = sw.materialFromMultipleSources, w.subject = sw.subject, w.sendToIlms = sw.sendToIlms, w.vendorId = sw.vendorId, w.allowOnsiteAccess = sw.allowOnsiteAccess, w.language = sw.language, w.sensitiveMaterial = sw.sensitiveMaterial, w.dcmAltPi = sw.dcmAltPi, w.folderNumber = sw.folderNumber, w.west = sw.west, w.html = sw.html, w.preservicaId = sw.preservicaId, w.redocworksReason = sw.redocworksReason, w.workCreatedDuringMigration = sw.workCreatedDuringMigration, w.author = sw.author, w.commentsExternal = sw.commentsExternal, w.findingAidNote = sw.findingAidNote, w.collection = sw.collection, w.otherTitle = sw.otherTitle, w.imageServerUrl = sw.imageServerUrl, w.localSystemNo = sw.localSystemNo, w.acquisitionStatus = sw.acquisitionStatus, w.reorderType = sw.reorderType, w.immutable = sw.immutable, w.copyrightPolicy = sw.copyrightPolicy, w.nextStep = sw.nextStep, w.publisher = sw.publisher, w.additionalSeries = sw.additionalSeries, w.tempHolding = sw.tempHolding, w.sortIndex = sw.sortIndex, w.isMissingPage = sw.isMissingPage, w.standardId = sw.standardId, w.representativeId = sw.representativeId, w.edition = sw.edition, w.reorder = sw.reorder, w.title = sw.title, w.acquisitionCategory = sw.acquisitionCategory, w.subUnitNo = sw.subUnitNo, w.expiryDate = sw.expiryDate, w.digitalStatusDate = sw.digitalStatusDate, w.east = sw.east, w.contributor = sw.contributor, w.publicationCategory = sw.publicationCategory, w.ingestJobId = sw.ingestJobId, w.subUnitType = sw.subUnitType, w.uniformTitle = sw.uniformTitle, w.alias = sw.alias, w.rdsAcknowledgementType = sw.rdsAcknowledgementType, w.issueDate = sw.issueDate, w.bibId = sw.bibId, w.coverage = sw.coverage, w.summary = sw.summary, w.additionalContributor = sw.additionalContributor, w.sendToIlmsDateTime = sw.sendToIlmsDateTime, w.sensitiveReason = sw.sensitiveReason, w.carrier = sw.carrier, w.form = sw.form, w.rdsAcknowledgementReceiver = sw.rdsAcknowledgementReceiver, w.digitalStatus = sw.digitalStatus, w.dcmRecordCreator = sw.dcmRecordCreator, w.sprightlyUrl = sw.sprightlyUrl, w.depositType = sw.depositType, w.parentConstraint = sw.parentConstraint "
+    		+ "WHERE w.id = sw.id "
+            + "AND s_id = @txn "
+            + "AND state = 'MOD';\n")
+
+    public abstract void startWorks(
+            @Bind("txnId") Long txnId);
+	
 }
 

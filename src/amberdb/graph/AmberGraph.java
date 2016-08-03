@@ -3,19 +3,26 @@ package amberdb.graph;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.*;
-
-import amberdb.graph.dao.AmberDaoH2;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.lang.StringUtils;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.Transaction;
 import org.skife.jdbi.v2.TransactionStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -26,9 +33,9 @@ import com.tinkerpop.blueprints.TransactionalGraph;
 import com.tinkerpop.blueprints.Vertex;
 
 import amberdb.graph.dao.AmberDao;
+import amberdb.graph.dao.AmberDaoH2;
 import amberdb.graph.dao.AmberDaoMySql;
-import amberdb.v2.util.WorkUtils;
-import amberdb.v2.model.Work;
+import doss.net.DossService.verify_result;
 
 
 public class AmberGraph extends BaseGraph 
@@ -169,7 +176,6 @@ public class AmberGraph extends BaseGraph
 
         dao.createIdGeneratorTable();
         dao.createTransactionTable();
-        dao.createV2Tables();
        
         newId(); // seed generator with id > 0
     }
@@ -280,16 +286,26 @@ public class AmberGraph extends BaseGraph
                     v.id.size(), e.id.size(), p.id.size());
             
             
+            Map<String, Set<AmberVertex>> newVerticesByType      = getVerticesByType(newVertices);
+            Map<String, Set<AmberVertex>> modifiedVerticesByType = getVerticesByType(modifiedVertices);
+            Map<String, Set<AmberVertex>> removedVerticesByType  = getVerticesByType(removedVertices.values());
+            Map<String, Set<AmberEdge>>   newEdgesByType         = getEdgesByType(newEdges);
+            Map<String, Set<AmberEdge>>   modifiedEdgesByType    = getEdgesByType(modifiedEdges);
+            Map<String, Set<AmberEdge>>   removedEdgesByType     = getEdgesByType(removedEdges.values());
             
             dao.begin();
             
-            dao.createWorks(getNewWorks());
-            dao.deleteWorks(getDeletedWorks());
-            dao.updateWorks(getModifiedWorks());
             dao.suspendEdges(sessId, e.id, e.txnStart, e.txnEnd, e.vertexOut,
                     e.vertexIn, e.label, e.order, e.state);
             dao.suspendVertices(sessId, v.id, v.txnStart, v.txnEnd, v.state);
             dao.suspendProperties(sessId, p.id, p.name, p.type, p.value);
+
+            suspendIntoFlatVertexTables(sessId, newVerticesByType,      "NEW");
+            suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, "MOD");
+            suspendIntoFlatVertexTables(sessId, removedVerticesByType , "DEL");
+            suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         "NEW");
+            suspendIntoFlatEdgeTables(  sessId, modifiedEdgesByType,    "MOD");
+            suspendIntoFlatEdgeTables(  sessId, removedEdgesByType ,    "DEL");
             
             dao.commit();
         }
@@ -300,35 +316,22 @@ public class AmberGraph extends BaseGraph
     }
 
     
-	private List<Work> getNewWorks() {
-		List<Work> works = new ArrayList<>();
-		for (Vertex v : newVertices) {
-			if ("Work".equals(v.getProperty("type"))) {
-				works.add(WorkUtils.convert((AmberVertex) v));
-			}
+	private Map<String, Set<AmberVertex>> getVerticesByType(Collection<Vertex> vertices) {
+		Map<String, Set<AmberVertex>> verticesByType = new HashMap<>();
+		for (Vertex vertex : vertices) {
+			addVertex(verticesByType, (AmberVertex) vertex);
 		}
-		return works;
+		return verticesByType;
+	}
+	
+	private Map<String, Set<AmberEdge>> getEdgesByType(Collection<Edge> edges) {
+		Map<String, Set<AmberEdge>> edgesByType = new HashMap<>();
+		for (Edge edge : edges) {
+			addEdge(edgesByType, (AmberEdge) edge);
+		}
+		return edgesByType;
 	}
 
-	private List<Work> getDeletedWorks() {
-		List<Work> works = new ArrayList<>();
-		for (Vertex v : removedVertices.values()) {
-			if ("Work".equals(v.getProperty("type"))) {
-				works.add(WorkUtils.convert((AmberVertex) v));
-			}
-		}
-		return works;
-	}
-
-	private List<Work> getModifiedWorks() {
-		List<Work> works = new ArrayList<>();
-		for (Vertex v : modifiedVertices) {
-			if ("Work".equals(v.getProperty("type"))) {
-				works.add(WorkUtils.convert((AmberVertex) v));
-			}
-		}
-		return works;
-	}
 	
 	
 	private void batchSuspendEdges(AmberEdgeBatch edges, AmberPropertyBatch properties) {
@@ -813,9 +816,11 @@ public class AmberGraph extends BaseGraph
                 // Additionally, end edges orphaned by this procedure.
                 log.debug("ending elements");
                 dao.endElements(txnId);
+                dao.endWorks(txnId);
                 // start new elements for new and modified transaction elements
                 log.debug("starting elements");
                 dao.startElements(txnId);
+                dao.startWorks(txnId);
                 // Refactor note: need to check when adding (modding?) edges that both ends exist
                 dao.insertTransaction(txnId, new Date().getTime(), user, operation);
                 dao.commit();
@@ -825,6 +830,7 @@ public class AmberGraph extends BaseGraph
                 if (tryCount < retries) {
                     log.warn("AmberDb commit failed: Reason: {}\n" +
                             "Retry after {} milliseconds", e.getMessage(), backoff);
+                    dao.rollback();
                     tryCount++;
                     try {
                         Thread.sleep(backoff);
@@ -832,6 +838,7 @@ public class AmberGraph extends BaseGraph
                         log.error("Backoff delay failed :", ie); // noted
                     }
                     backoff = backoff *2;
+                    dao.begin();
                 } else {
                     log.error("AmberDb commit failed after {} retries: Reason:", retries, e);
                     throw e;
@@ -856,21 +863,32 @@ public class AmberGraph extends BaseGraph
         AmberVertexBatch vertices = new AmberVertexBatch();
         AmberPropertyBatch properties = new AmberPropertyBatch();
 
+        Map<String, Set<AmberVertex>> removedVerticesByType = new HashMap<>();
+        Map<String, Set<AmberVertex>> newVerticesByType      = new HashMap<>();
+        Map<String, Set<AmberVertex>> modifiedVerticesByType = new HashMap<>();
+
         log.debug("suspending verts -- deleted:{} new:{} modified:{} ", 
                 removedVertices.size(), newVertices.size(), modifiedVertices.size());
 
         int batchLimit = 0;
+
         for (Vertex v : removedVertices.values()) {
             modifiedVertices.remove(v);
             if (newVertices.remove(v)) continue;
             vertices.add(new AmberVertexWithState((AmberVertex) v, "DEL"));
+            addVertex(removedVerticesByType, (AmberVertex) v);
 
             batchLimit++;
             if (batchLimit >= COMMIT_BATCH_SIZE) {
                 log.debug("Batched vertex marshalling");
+                
                 dao.suspendVertices(sessId, vertices.id, vertices.txnStart, vertices.txnEnd, vertices.state);
+                
+                suspendIntoFlatVertexTables(sessId, removedVerticesByType , "DEL");
+                
                 vertices.clear();
                 batchLimit = 0;
+                removedVerticesByType.clear();
             }
         }
 
@@ -880,30 +898,50 @@ public class AmberGraph extends BaseGraph
                 modifiedVertices.remove(v); // a modified new vertex is just a new vertex
                 vertices.add(new AmberVertexWithState(av, "NEW"));
                 properties.add((Long) av.getId(), av.getProperties());
+                addVertex(newVerticesByType, av);
             } else if (modifiedVertices.contains(v)) {
                 vertices.add(new AmberVertexWithState(av, "MOD"));
                 properties.add((Long) av.getId(), av.getProperties());
+                addVertex(modifiedVerticesByType, av);
             }
             batchLimit++;
             batchLimit += (av.getProperties() == null) ? 0 : av.getProperties().size();
             if (batchLimit >= COMMIT_BATCH_SIZE) {
                 log.debug("Batched vertex marshalling");
+
                 dao.suspendVertices(sessId, vertices.id, vertices.txnStart, vertices.txnEnd, vertices.state);
                 dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
+
+                suspendIntoFlatVertexTables(sessId, newVerticesByType,      "NEW");
+                suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, "MOD");
+                
                 vertices.clear();
                 properties.clear();
                 batchLimit = 0;
+                newVerticesByType.clear();
+                modifiedVerticesByType.clear();
             }
         }
+        
         dao.suspendVertices(sessId, vertices.id, vertices.txnStart, vertices.txnEnd, vertices.state);
         dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
+        
+        suspendIntoFlatVertexTables(sessId, newVerticesByType,      "NEW");
+        suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, "MOD");
+        suspendIntoFlatVertexTables(sessId, removedVerticesByType , "DEL");
+
     }
 
 
-    private void bigSuspendEdges(Long sessId) {
+
+	private void bigSuspendEdges(Long sessId) {
 
         AmberEdgeBatch edges = new AmberEdgeBatch();
         AmberPropertyBatch properties = new AmberPropertyBatch();
+
+        Map<String, Set<AmberEdge>>   newEdgesByType         = getEdgesByType(newEdges);
+        Map<String, Set<AmberEdge>>   modifiedEdgesByType    = getEdgesByType(modifiedEdges);
+        Map<String, Set<AmberEdge>>   removedEdgesByType     = getEdgesByType(removedEdges.values());
 
         log.debug("suspending edges -- deleted:{} new:{} modified:{}", 
                 removedEdges.size(), newEdges.size(), modifiedEdges.size());
@@ -913,14 +951,19 @@ public class AmberGraph extends BaseGraph
             modifiedEdges.remove(e);
             if (newEdges.remove(e)) continue;
             edges.add(new AmberEdgeWithState((AmberEdge) e, "DEL"));
+            addEdge(removedEdgesByType, (AmberEdge) e);
 
             batchLimit++;
             if (batchLimit >= COMMIT_BATCH_SIZE) {
                 log.debug("Batched edge marshalling");
                 dao.suspendEdges(sessId, edges.id, edges.txnStart, edges.txnEnd, 
                         edges.vertexOut, edges.vertexIn, edges.label, edges.order, edges.state);
+                
+                suspendIntoFlatEdgeTables(  sessId, removedEdgesByType ,    "DEL");
+
                 edges.clear();
                 batchLimit = 0;
+                removedEdgesByType.clear();
             }
         }
 
@@ -930,25 +973,38 @@ public class AmberGraph extends BaseGraph
                 modifiedEdges.remove(e); // a modified new edge is just a new edge
                 edges.add(new AmberEdgeWithState(ae, "NEW"));
                 properties.add((Long) ae.getId(), ae.getProperties());
+                addEdge(newEdgesByType, (AmberEdge) e);
             } else if (modifiedEdges.contains(e)) {
                 edges.add(new AmberEdgeWithState(ae, "MOD"));
                 properties.add((Long) ae.getId(), ae.getProperties());
+                addEdge(modifiedEdgesByType, (AmberEdge) e);
             }
             batchLimit++;
             batchLimit += (ae.getProperties() == null) ? 0 : ae.getProperties().size();
             if (batchLimit >= COMMIT_BATCH_SIZE) {
                 log.debug("Batched edge marshalling");
+
                 dao.suspendEdges(sessId, edges.id, edges.txnStart, edges.txnEnd, 
                         edges.vertexOut, edges.vertexIn, edges.label, edges.order, edges.state);
                 dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
+                suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         "NEW");
+                suspendIntoFlatEdgeTables(  sessId, modifiedEdgesByType,    "MOD");
+
                 edges.clear();
                 properties.clear();
                 batchLimit = 0;
+                newEdgesByType.clear();
+                modifiedEdgesByType.clear();
+
             }
         }
         dao.suspendEdges(sessId, edges.id, edges.txnStart, edges.txnEnd, 
                 edges.vertexOut, edges.vertexIn, edges.label, edges.order, edges.state);
         dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
+
+        suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         "NEW");
+        suspendIntoFlatEdgeTables(  sessId, modifiedEdgesByType,    "MOD");
+        suspendIntoFlatEdgeTables(  sessId, removedEdgesByType ,    "DEL");
     }
 
 
@@ -1038,7 +1094,7 @@ public class AmberGraph extends BaseGraph
             return edges;
         }
     }
-
+    
     public List<Vertex> getRemovedVertices() {
         return new ArrayList(removedVertices.values());
     }
@@ -1062,5 +1118,43 @@ public class AmberGraph extends BaseGraph
     public List<Edge> getModifiedEdges() {
         return new ArrayList(modifiedEdges);
     }
+
+    
+	private void addVertex(Map<String, Set<AmberVertex>> verticesByType, AmberVertex v) {
+		final String type = v.getProperty("type");
+		if (StringUtils.isNotBlank(type)) {
+			Set<AmberVertex> set = verticesByType.get(type);
+			if (set == null) {
+				set = new HashSet<>();
+				verticesByType.put(type, set);
+			}
+			set.add(v);
+		}
+	}
+
+	private void addEdge(Map<String, Set<AmberEdge>> edgesByType, AmberEdge e) {
+		final String type = e.getProperty("type");
+		if (StringUtils.isNotBlank(type)) {
+			Set<AmberEdge> set = edgesByType.get(type);
+			if (set == null) {
+				set = new HashSet<>();
+				edgesByType.put(type, set);
+			}
+			set.add(e);
+		}
+	}
+	
+	private void suspendIntoFlatVertexTables(Long sessId, Map<String, Set<AmberVertex>> verticesByType, String operation) {
+        for (Entry<String, Set<AmberVertex>> entry: verticesByType.entrySet()) {
+        	dao.suspendIntoFlatVertexTable(sessId, operation, "sess_" + entry.getKey(), entry.getValue());
+        }
+	}
+
+	private void suspendIntoFlatEdgeTables(Long sessId, Map<String, Set<AmberEdge>> edgesByType, String operation) {
+        for (Entry<String, Set<AmberEdge>> entry: edgesByType.entrySet()) {
+        	dao.suspendIntoFlatEdgeTable(sessId, operation, "sess_" + entry.getKey(), entry.getValue());
+        }
+	}
+
 }
 
