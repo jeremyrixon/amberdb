@@ -786,7 +786,7 @@ public class AmberGraph extends BaseGraph
                 try {
                     dao.rollback();
                 } catch (Exception rollbackException) {
-                    log.error("Rollback failed: {}", rollbackException);
+                    log.warn("Rollback failed: {}", rollbackException);
                 }
                 if (tryCount < retries) {
                     log.warn("AmberDb commit failed: Reason: {}\n" +
