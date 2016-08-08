@@ -132,4 +132,15 @@ public class AmberEdge extends BaseEdge implements Comparable {
 		return txnEnd;
 	}
 
+	public Long getInId() {
+		return inId;
+	}
+
+	public Long getOutId() {
+		return outId;
+	}
+
+	public Integer getOrder() {
+		return order;
+	}
 }

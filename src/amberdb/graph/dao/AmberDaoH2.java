@@ -71,24 +71,77 @@ public abstract class AmberDaoH2 extends AmberDao {
     public abstract void endElements(
             @Bind("txnId") Long txnId);
     
-    @SqlUpdate("SET @txn = :txnId;\n"
-            + "UPDATE work_history w "
-            + "SET txn_end = @txn "
-            + "WHERE w.txn_end = 0 "
-            + "AND w.id IN ("
-            + "  SELECT id "
-            + "  FROM sess_work "
-            + "  WHERE s_id = @txn "
-            + "  AND state <> 'AMB');\n"
-            
-    		+ "DELETE FROM work w "
-            + "WHERE w.txn_end = 0 "
-            + "AND w.id IN ("
-            + "  SELECT id "
-            + "  FROM sess_work "
-            + "  WHERE s_id = @txn "
-            + "  AND state = 'DEL');\n")
-    public abstract void endWorks(
-            @Bind("txnId") Long txnId);
+    
+    @SqlUpdate("SET @txn = :txnId;"
+    		 + "UPDATE work_history h "
+    		 + "SET txn_end = @txn "
+    		 + "WHERE h.txn_end = 0 "
+    		 + "AND h.id IN (SELECT id FROM sess_work WHERE s_id = @txn AND STATE <> 'AMB');"
+    		 + " "
+    		 + "DELETE FROM work c "
+    		 + "WHERE c.txn_end = 0 "
+    		 + "AND c.id IN (SELECT id FROM sess_work WHERE s_id = @txn AND STATE = 'DEL');")
+    		public abstract void endWorks(
+    		@Bind("txnId") Long txnId);
+
+    		@SqlUpdate("SET @txn = :txnId;"
+    		 + "UPDATE file_history h "
+    		 + "SET txn_end = @txn "
+    		 + "WHERE h.txn_end = 0 "
+    		 + "AND h.id IN (SELECT id FROM sess_file WHERE s_id = @txn AND STATE <> 'AMB');"
+    		 + " "
+    		 + "DELETE FROM file c "
+    		 + "WHERE c.txn_end = 0 "
+    		 + "AND c.id IN (SELECT id FROM sess_file WHERE s_id = @txn AND STATE = 'DEL');")
+    		public abstract void endFiles(
+    		@Bind("txnId") Long txnId);
+
+    		@SqlUpdate("SET @txn = :txnId;"
+    		 + "UPDATE description_history h "
+    		 + "SET txn_end = @txn "
+    		 + "WHERE h.txn_end = 0 "
+    		 + "AND h.id IN (SELECT id FROM sess_description WHERE s_id = @txn AND STATE <> 'AMB');"
+    		 + " "
+    		 + "DELETE FROM description c "
+    		 + "WHERE c.txn_end = 0 "
+    		 + "AND c.id IN (SELECT id FROM sess_description WHERE s_id = @txn AND STATE = 'DEL');")
+    		public abstract void endDescriptions(
+    		@Bind("txnId") Long txnId);
+
+    		@SqlUpdate("SET @txn = :txnId;"
+    		 + "UPDATE party_history h "
+    		 + "SET txn_end = @txn "
+    		 + "WHERE h.txn_end = 0 "
+    		 + "AND h.id IN (SELECT id FROM sess_party WHERE s_id = @txn AND STATE <> 'AMB');"
+    		 + " "
+    		 + "DELETE FROM party c "
+    		 + "WHERE c.txn_end = 0 "
+    		 + "AND c.id IN (SELECT id FROM sess_party WHERE s_id = @txn AND STATE = 'DEL');")
+    		public abstract void endPartys(
+    		@Bind("txnId") Long txnId);
+
+    		@SqlUpdate("SET @txn = :txnId;"
+    		 + "UPDATE tag_history h "
+    		 + "SET txn_end = @txn "
+    		 + "WHERE h.txn_end = 0 "
+    		 + "AND h.id IN (SELECT id FROM sess_tag WHERE s_id = @txn AND STATE <> 'AMB');"
+    		 + " "
+    		 + "DELETE FROM tag c "
+    		 + "WHERE c.txn_end = 0 "
+    		 + "AND c.id IN (SELECT id FROM sess_tag WHERE s_id = @txn AND STATE = 'DEL');")
+    		public abstract void endTags(
+    		@Bind("txnId") Long txnId);
+
+    		@SqlUpdate("SET @txn = :txnId;"
+    				 + "UPDATE flatedge_history h "
+    				 + "SET txn_end = @txn "
+    				 + "WHERE h.txn_end = 0 "
+    				 + "AND h.id IN (SELECT id FROM sess_flatedge WHERE s_id = @txn AND STATE <> 'AMB');"
+    				 + " "
+    				 + "DELETE FROM flatedge c "
+    				 + "WHERE c.txn_end = 0 "
+    				 + "AND c.id IN (SELECT id FROM sess_flatedge WHERE s_id = @txn AND STATE = 'DEL');")
+    				public abstract void endFlatedges(
+    				@Bind("txnId") Long txnId);   
 }
 
