@@ -7,8 +7,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class Work extends AmberModel {
-
+public class Work extends Node {
     @Column(name="abstract")
     protected String abstractText;
     @Column

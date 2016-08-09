@@ -5,21 +5,23 @@ import amberdb.PIUtil;
 import amberdb.graph.AmberTransaction;
 import amberdb.graph.dao.AmberDao;
 import amberdb.repository.JdbiHelper;
+import amberdb.repository.dao.DescriptionRelationshipDao;
+import amberdb.repository.dao.EdgeDao;
+import amberdb.repository.dao.TagRelationshipDao;
 import amberdb.repository.dao.WorkDao;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tinkerpop.blueprints.Direction;
 
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.lang.reflect.Field;
+import java.util.*;
 
 @MappedSuperclass
-public class AmberModel {
+public class Node {
     @Column
     protected long id = 0;
     @Column(name="txn_start")
@@ -52,11 +54,17 @@ public class AmberModel {
     protected JdbiHelper jdbiHelper;
     protected AmberDao amberDao;
     protected WorkDao workDao;
+    protected DescriptionRelationshipDao descRelationshipDao;
+    protected TagRelationshipDao tagRelationshipDao;
+    protected EdgeDao edgeDao;
 
-    public AmberModel() {
+    public Node() {
         jdbiHelper = new JdbiHelper();
         amberDao = jdbiHelper.getDbi().onDemand(AmberDao.class);
         workDao = jdbiHelper.getDbi().onDemand(WorkDao.class);
+        descRelationshipDao = jdbiHelper.getDbi().onDemand(DescriptionRelationshipDao.class);
+        tagRelationshipDao = jdbiHelper.getDbi().onDemand(TagRelationshipDao.class);
+        edgeDao = jdbiHelper.getDbi().onDemand(EdgeDao.class);
     }
 
     public long getId() {
@@ -131,6 +139,14 @@ public class AmberModel {
         this.type = type;
     }
 
+    public String getJsonAlias() {
+        return jsonAlias;
+    }
+
+    public void setJsonAlias(String jsonAlias) {
+        this.jsonAlias = jsonAlias;
+    }
+
     public String getRecordSource() {
         return recordSource;
     }
@@ -163,24 +179,46 @@ public class AmberModel {
         this.commentsExternal = commentsExternal;
     }
 
-    public String getObjId() {
-        return PIUtil.format(getId());
-    }
-
-    public String getJsonAlias() {
-        return jsonAlias;
-    }
-
-    public void setJsonAlias(String jsonAlias) {
-        this.jsonAlias = jsonAlias;
-    }
-
     public AmberTransaction getFirstTransaction() {
         return amberDao.getFirstTransaction(this.getId(), this.getType());
     }
 
     public AmberTransaction getLastTransaction() {
         return amberDao.getLastTransaction(this.getId(), this.getType());
+    }
+
+    public String getObjId() {
+        return PIUtil.format(getId());
+    }
+
+    public Iterable<Description> getDescriptions() {
+        return descRelationshipDao.getDescriptions(this.getId());
+    }
+
+    public Description getDescription(String fmt) {
+        Iterable<Description> descriptions = this.getDescriptions();
+        if (descriptions != null) {
+            Iterator<Description> it = descriptions.iterator();
+            while (it.hasNext()) {
+                Description next = it.next();
+                if (next.getType() != null && next.getType().equals(fmt)) {
+                    return next;
+                }
+            }
+        }
+        return null;
+    }
+
+    public Iterable<Tag> getTags() {
+        return tagRelationshipDao.getTags(this.getId());
+    }
+
+    public void addTag(final Tag tag) {
+        // TODO - need txn_start/txn_end values
+    }
+
+    public void removeTag(final Tag tag) {
+        tagRelationshipDao.removeTag(tag.getId(), this.getId());
     }
 
     public void addCommentsInternal(String comment) {
@@ -211,6 +249,37 @@ public class AmberModel {
 
     public void setAlias(List<String> aliases) throws JsonProcessingException {
         setJsonAlias(serialiseToJSON(aliases));
+    }
+
+    public void setOrder(Node adjacent, String label, Direction direction, Integer order) {
+        if (Direction.IN.equals(direction)) {
+            edgeDao.setOrderIn(adjacent.getId(), label, order);
+        } else if (Direction.OUT.equals(direction)) {
+            edgeDao.setOrderOut(adjacent.getId(), label, order);
+        }
+    }
+
+    public Integer getOrder(Node adjacent, String label, Direction direction) {
+        if (Direction.IN.equals(direction)) {
+            return edgeDao.getOrderIn(adjacent.getId(), label);
+        } else if (Direction.OUT.equals(direction)) {
+            return edgeDao.getOrderOut(adjacent.getId(), label);
+        }
+
+        return 0;
+    }
+
+    // TODO - remove? only seems to be used in tests...
+    public Set<String> getPropertyKeySet() {
+        List<Field> fields = new ArrayList();
+        fields.addAll(Arrays.asList(this.getClass().getDeclaredFields()));
+
+        Set<String> result = new HashSet();
+        for (Field f : fields) {
+            result.add(f.getName());
+        }
+
+        return result;
     }
 
     protected List<String> deserialiseJSONString(String json) {

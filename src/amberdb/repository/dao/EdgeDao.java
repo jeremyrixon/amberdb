@@ -6,24 +6,16 @@ import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 
 public abstract class EdgeDao {
 
-    public void setOrder(Long id, Long txnStart, Long txnEnd, String direction, int edgeOrder) {
-        if ("in".equalsIgnoreCase(direction)) {
-            setOrderIn(id, txnStart, txnEnd, edgeOrder);
-        } else {
-            setOrderOut(id, txnStart, txnEnd, edgeOrder);
-        }
-    }
+    @SqlUpdate("update flatedge set edge_order = :order where v_in = :id and type = :type")
+    public abstract void setOrderIn(@Bind("id") Long id, @Bind("type") String type, @Bind("order") int edgeOrder);
 
-    @SqlUpdate("update flatedge set txn_start = :txnStart, txn_end = :txnEnd, edge_order = :edgeOrder where v_in = :id")
-    public abstract void setOrderIn(@Bind("id") Long id, @Bind("txnStart") Long txnStart, @Bind("txnEnd") Long txnEnd, @Bind("edgeOrder") int edgeOrder);
+    @SqlUpdate("update flatedge set edge_order = :order where v_out = :id and type = :type")
+    public abstract void setOrderOut(@Bind("id") Long id, @Bind("type") String type, @Bind("order") int edgeOrder);
 
-    @SqlUpdate("update flatedge set txn_start = :txnStart, txn_end = :txnEnd, edge_order = :edgeOrder where v_out = :id")
-    public abstract void setOrderOut(@Bind("id") Long id, @Bind("txnStart") Long txnStart, @Bind("txnEnd") Long txnEnd, @Bind("edgeOrder") int edgeOrder);
-
-    @SqlQuery("select edge_order from flatedge where type = :type and v_in = :id")
+    @SqlQuery("select edge_order from flatedge where v_in = :id and type = :type")
     public abstract int getOrderIn(@Bind("id") Long id, @Bind("type") String type);
 
-    @SqlQuery("select edge_order from flatedge where type = :type and v_out = :id")
+    @SqlQuery("select edge_order from flatedge where v_out = :id and type = :type")
     public abstract int getOrderOut(@Bind("id") Long id, @Bind("type") String type);
 
 }
