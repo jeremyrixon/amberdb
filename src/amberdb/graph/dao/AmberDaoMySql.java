@@ -125,7 +125,7 @@ public abstract class AmberDaoMySql extends AmberDao {
     		 + "AND c.id = s.id "
     		 + "AND s.s_id = @txn "
     		 + "AND s.state = 'DEL';")
-    		public abstract void endPartys(
+    		public abstract void endParties(
     		@Bind("txnId") Long txnId);
 
     		@SqlUpdate("SET @txn = :txnId;"

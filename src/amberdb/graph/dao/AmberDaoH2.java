@@ -117,7 +117,7 @@ public abstract class AmberDaoH2 extends AmberDao {
     		 + "DELETE FROM party c "
     		 + "WHERE c.txn_end = 0 "
     		 + "AND c.id IN (SELECT id FROM sess_party WHERE s_id = @txn AND STATE = 'DEL');")
-    		public abstract void endPartys(
+    		public abstract void endParties(
     		@Bind("txnId") Long txnId);
 
     		@SqlUpdate("SET @txn = :txnId;"

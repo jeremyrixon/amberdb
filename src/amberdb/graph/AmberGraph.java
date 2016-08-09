@@ -211,6 +211,8 @@ public class AmberGraph extends BaseGraph
 
         dao.createIdGeneratorTable();
         dao.createTransactionTable();
+        
+        dao.createV2Tables();
        
         newId(); // seed generator with id > 0
     }
@@ -854,7 +856,7 @@ public class AmberGraph extends BaseGraph
                 dao.endWorks(txnId);
                 dao.endFiles(txnId);
                 dao.endTags(txnId);
-                dao.endPartys(txnId);
+                dao.endParties(txnId);
                 dao.endDescriptions(txnId);
                 dao.endFlatedges(txnId);
                 // start new elements for new and modified transaction elements
@@ -863,7 +865,7 @@ public class AmberGraph extends BaseGraph
                 dao.startWorks(txnId);
                 dao.startFiles(txnId);
                 dao.startTags(txnId);
-                dao.startPartys(txnId);
+                dao.startParties(txnId);
                 dao.startDescriptions(txnId);
                 dao.startFlatedges(txnId);
                 // Refactor note: need to check when adding (modding?) edges that both ends exist
