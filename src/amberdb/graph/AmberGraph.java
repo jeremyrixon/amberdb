@@ -71,7 +71,7 @@ public class AmberGraph extends BaseGraph
     private static final Map<String, String>  edgeToTableMap = new HashMap<>();
     static {
     	edgeToTableMap.put("label",          "flatedge");
-    	edgeToTableMap.put("acknowledge",    "flatedge");
+    	edgeToTableMap.put("acknowledge",    "acknowledge");
     	edgeToTableMap.put("deliveredOn",    "flatedge");
     	edgeToTableMap.put("descriptionOf",  "flatedge");
     	edgeToTableMap.put("existsOn",       "flatedge");
@@ -874,6 +874,11 @@ public class AmberGraph extends BaseGraph
                 log.debug("commit complete");
                 break retryLoop;
             } catch (RuntimeException e) {
+                try {
+                    dao.rollback();
+                } catch (Exception rollbackException) {
+                    log.warn("Rollback failed: {}", rollbackException);
+                }
                 if (tryCount < retries) {
                     log.warn("AmberDb commit failed: Reason: {}\n" +
                             "Retry after {} milliseconds", e.getMessage(), backoff);

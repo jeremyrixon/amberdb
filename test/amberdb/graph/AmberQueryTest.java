@@ -276,7 +276,6 @@ public class AmberQueryTest {
         Vertex book = graph.addVertex(null);
         book.setProperty("title", title);
         book.setProperty("type", "Work");
-        addRandomProps(book, numProps);
 
         // add a section
         Vertex section = graph.addVertex(null);
@@ -296,8 +295,7 @@ public class AmberQueryTest {
     private Vertex addPage(Vertex book, int num, int numProps) {
         Vertex page = graph.addVertex(null);
         page.setProperty("type", "Work");
-        page.setProperty("number", num);
-        addRandomProps(page, numProps);
+        page.setProperty("subUnitNo", num);
         addCopy(page, "Master", num, numProps);
         addCopy(page, "Co-master", num, numProps);
         Edge e = page.addEdge("isPartOf", book);
@@ -308,8 +306,7 @@ public class AmberQueryTest {
     private Vertex addCopy(Vertex page, String type, int num, int numProps) {
         Vertex copy = graph.addVertex(null);
         copy.setProperty("type", "Copy");
-        copy.setProperty("number", num);
-        addRandomProps(copy, numProps);
+        copy.setProperty("subUnitNo", num);
         addFile(copy, num, numProps);
         copy.addEdge("isCopyOf", page);
         return copy;
@@ -318,8 +315,6 @@ public class AmberQueryTest {
     private Vertex addFile(Vertex copy, int num, int numProps) {
         Vertex file = graph.addVertex(null);
         file.setProperty("type", "File");
-        file.setProperty("number", num);
-        addRandomProps(file, numProps);
         addDesc(file, num);
         file.addEdge("isFileOf", copy);
         return file;
@@ -328,15 +323,9 @@ public class AmberQueryTest {
     private Vertex addDesc(Vertex file, int num) {
         Vertex desc = graph.addVertex(null);
         desc.setProperty("type", "Description");
-        desc.setProperty("number", num);
+        desc.setProperty("alternativeTitle", num);
         desc.addEdge("descriptionOf", file);
         return desc;
     }
 
-    
-    private void addRandomProps(Vertex v, int numProps) {
-        for (int i=0; i<numProps; i++) {
-            v.setProperty("prop"+i, UUID.randomUUID().toString());
-        }
-    }
 }

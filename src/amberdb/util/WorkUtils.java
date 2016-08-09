@@ -20,6 +20,11 @@ public class WorkUtils {
 	static final Logger log = LoggerFactory.getLogger(DateParser.class);    
 
     public static boolean checkCanReturnRepImage(Work work) {
+        String accessCondition = work.getAccessConditions();
+        if (!"unrestricted".equalsIgnoreCase(accessCondition)) {
+            return false;
+        }
+
         String internalAccesscondition = work.getInternalAccessConditions();
         if ("closed".equalsIgnoreCase(internalAccesscondition) || "restricted".equalsIgnoreCase(internalAccesscondition)) {
             return false;
