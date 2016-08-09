@@ -59,9 +59,9 @@ public class TransactionsTest {
         Vertex v2 = graph.addVertex(null);
         Vertex v3 = graph.addVertex(null);
         
-        v1.setProperty("name", "v1");
-        v2.setProperty("name", "v2");
-        v3.setProperty("name", "v3");
+        v1.setProperty("title", "v1");
+        v2.setProperty("title", "v2");
+        v3.setProperty("title", "v3");
         
         v1.setProperty("value", 1);
         v2.setProperty("value", 2);
@@ -75,7 +75,7 @@ public class TransactionsTest {
         graph.commit("test", "c1");
         
         // do some things
-        v1.setProperty("name", "vertex 1");
+        v1.setProperty("title", "vertex 1");
         v2.setProperty("value", 100);
         Edge e4 = graph.addEdge(null, v1, v2, "ordered");
         
@@ -106,10 +106,10 @@ public class TransactionsTest {
         // modify some bits
         Vertex book = graph.getVertices("title", title1).iterator().next();
         for (Vertex page : book.getVertices(Direction.IN, "isPartOf")) {
-            if ((Integer) page.getProperty("value") % 4 == 1) {
-                page.setProperty("code", page.hashCode());
+            if ((Integer) page.getProperty("subUnitNo") % 4 == 1) {
+                page.setProperty("publisher", "Black Wolf");
             }
-            if ((Integer) page.getProperty("value") % 4 == 0) {
+            if ((Integer) page.getProperty("subUnitNo") % 4 == 0) {
                 page.remove();            
             }
         }
@@ -129,9 +129,9 @@ public class TransactionsTest {
         // reorder some pages
         book = graph.getVertices("title", title2).iterator().next();
         for (Vertex page : book.getVertices(Direction.IN, "isPartOf")) {
-            if ((Integer) page.getProperty("value") % 5 == 0) {
+            if ((Integer) page.getProperty("subUnitNo") % 5 == 0) {
                 Edge e = page.getEdges(Direction.OUT, "isPartOf").iterator().next();
-                e.setProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME, (Integer) page.getProperty("value") + 3000);
+                e.setProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME, (Integer) page.getProperty("subUnitNo") + 3000);
             }
         }
         book.setProperty("internalAccessConditions", "Closed");
@@ -194,8 +194,8 @@ public class TransactionsTest {
     private Vertex createPage(Vertex book, int pageNum) {
         Vertex page = graph.addVertex(null);
         
-        page.setProperty("name", "page " + pageNum);
-        page.setProperty("value", pageNum);
+        page.setProperty("title", "title " + pageNum);
+        page.setProperty("subUnitNo", pageNum);
         page.setProperty("type", "Page");
         page.setProperty("bibLevel", "Part");
         
@@ -220,7 +220,7 @@ public class TransactionsTest {
     private Vertex createFile(Vertex copy) {
         Vertex file = graph.addVertex(null);
         file.setProperty("type", "File");
-        file.setProperty("path", "/fiddle/de/do");
+        file.setProperty("filename", "fiddle-de.do");
         file.addEdge("isFileOf", copy);
         return file;
     }

@@ -300,7 +300,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" coordinates TEXT, "
     				+" copyingPublishing TEXT, "
     				+" copyrightPolicy VARCHAR(31), "
-    				+" copyRole VARCHAR(3), "
+    				+" copyRole VARCHAR(16), "
     				+" copyStatus VARCHAR(8), "
     				+" copyType VARCHAR(9), "
     				+" correspondenceHeader TEXT, "
@@ -395,7 +395,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" startDate DATETIME, "
     				+" subHeadings TEXT, "
     				+" subject TEXT, "
-    				+" subType VARCHAR(7), "
+    				+" subType VARCHAR(16), "
     				+" subUnitNo TEXT, "
     				+" subUnitType VARCHAR(23), "
     				+" summary TEXT, "
@@ -408,7 +408,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" vendorId VARCHAR(7), "
     				+" versionNumber VARCHAR(1), "
     				+" workCreatedDuringMigration BOOLEAN, "
-    				+" workPid TEXT)  ; "
+    				+" workPid TEXT); "
     				+"CREATE INDEX work_id ON work (id); "
     				+"CREATE INDEX work_txn_id ON work (id, txn_start, txn_end); "
     				+"DROP TABLE IF EXISTS work_history; "
@@ -459,7 +459,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" coordinates TEXT, "
     				+" copyingPublishing TEXT, "
     				+" copyrightPolicy VARCHAR(31), "
-    				+" copyRole VARCHAR(3), "
+    				+" copyRole VARCHAR(16), "
     				+" copyStatus VARCHAR(8), "
     				+" copyType VARCHAR(9), "
     				+" correspondenceHeader TEXT, "
@@ -554,7 +554,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" startDate DATETIME, "
     				+" subHeadings TEXT, "
     				+" subject TEXT, "
-    				+" subType VARCHAR(7), "
+    				+" subType VARCHAR(16), "
     				+" subUnitNo TEXT, "
     				+" subUnitType VARCHAR(23), "
     				+" summary TEXT, "
@@ -567,7 +567,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" vendorId VARCHAR(7), "
     				+" versionNumber VARCHAR(1), "
     				+" workCreatedDuringMigration BOOLEAN, "
-    				+" workPid TEXT)  ; "
+    				+" workPid TEXT); "
     				+"CREATE INDEX work_history_id ON work_history (id); "
     				+"CREATE INDEX work_history_txn_id ON work_history (id, txn_start, txn_end); "
     				+"DROP TABLE IF EXISTS sess_work; "
@@ -620,7 +620,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" coordinates TEXT, "
     				+" copyingPublishing TEXT, "
     				+" copyrightPolicy VARCHAR(31), "
-    				+" copyRole VARCHAR(3), "
+    				+" copyRole VARCHAR(16), "
     				+" copyStatus VARCHAR(8), "
     				+" copyType VARCHAR(9), "
     				+" correspondenceHeader TEXT, "
@@ -715,7 +715,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" startDate DATETIME, "
     				+" subHeadings TEXT, "
     				+" subject TEXT, "
-    				+" subType VARCHAR(7), "
+    				+" subType VARCHAR(16), "
     				+" subUnitNo TEXT, "
     				+" subUnitType VARCHAR(23), "
     				+" summary TEXT, "
@@ -728,7 +728,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" vendorId VARCHAR(7), "
     				+" versionNumber VARCHAR(1), "
     				+" workCreatedDuringMigration BOOLEAN, "
-    				+" workPid TEXT)  ; "
+    				+" workPid TEXT); "
     				+"CREATE INDEX sess_work_id ON sess_work (id); "
     				+"CREATE INDEX sess_work_txn_id ON sess_work (id, txn_start, txn_end); "
     				+"DROP TABLE IF EXISTS file; "
@@ -739,7 +739,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" type VARCHAR(15), "
     				+" "
     				+" application TEXT, "
-    				+" applicationDateCreated VARCHAR(19), "
+    				+" applicationDateCreated VARCHAR(21), "
     				+" bitDepth VARCHAR(8), "
     				+" bitrate VARCHAR(3), "
     				+" blobId BIGINT, "
@@ -749,7 +749,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" channel VARCHAR(3), "
     				+" checksum VARCHAR(40), "
     				+" checksumGenerationDate DATETIME, "
-    				+" checksumType VARCHAR(4), "
+    				+" checksumType VARCHAR(10), "
     				+" codec VARCHAR(4), "
     				+" colourProfile VARCHAR(9), "
     				+" colourSpace VARCHAR(15), "
@@ -776,6 +776,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" manufacturerModelName VARCHAR(41), "
     				+" manufacturerSerialNumber VARCHAR(12), "
     				+" mimeType TEXT, "
+    				+" notes TEXT, "
     				+" orientation VARCHAR(36), "
     				+" photometric TEXT, "
     				+" reelSize VARCHAR(12), "
@@ -790,7 +791,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" surface VARCHAR(20), "
     				+" thickness VARCHAR(11), "
     				+" toolId VARCHAR(13), "
-    				+" zoomLevel TEXT)  ; "
+    				+" zoomLevel TEXT); "
     				+"CREATE INDEX file_id ON file (id); "
     				+"CREATE INDEX file_txn_id ON file (id, txn_start, txn_end); "
     				+"DROP TABLE IF EXISTS file_history; "
@@ -801,7 +802,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" type VARCHAR(15), "
     				+" "
     				+" application TEXT, "
-    				+" applicationDateCreated VARCHAR(19), "
+    				+" applicationDateCreated VARCHAR(21), "
     				+" bitDepth VARCHAR(8), "
     				+" bitrate VARCHAR(3), "
     				+" blobId BIGINT, "
@@ -811,7 +812,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" channel VARCHAR(3), "
     				+" checksum VARCHAR(40), "
     				+" checksumGenerationDate DATETIME, "
-    				+" checksumType VARCHAR(4), "
+    				+" checksumType VARCHAR(10), "
     				+" codec VARCHAR(4), "
     				+" colourProfile VARCHAR(9), "
     				+" colourSpace VARCHAR(15), "
@@ -838,6 +839,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" manufacturerModelName VARCHAR(41), "
     				+" manufacturerSerialNumber VARCHAR(12), "
     				+" mimeType TEXT, "
+    				+" notes TEXT, "
     				+" orientation VARCHAR(36), "
     				+" photometric TEXT, "
     				+" reelSize VARCHAR(12), "
@@ -852,7 +854,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" surface VARCHAR(20), "
     				+" thickness VARCHAR(11), "
     				+" toolId VARCHAR(13), "
-    				+" zoomLevel TEXT)  ; "
+    				+" zoomLevel TEXT); "
     				+"CREATE INDEX file_history_id ON file_history (id); "
     				+"CREATE INDEX file_history_txn_id ON file_history (id, txn_start, txn_end); "
     				+"DROP TABLE IF EXISTS sess_file; "
@@ -865,7 +867,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" type VARCHAR(15), "
     				+" "
     				+" application TEXT, "
-    				+" applicationDateCreated VARCHAR(19), "
+    				+" applicationDateCreated VARCHAR(21), "
     				+" bitDepth VARCHAR(8), "
     				+" bitrate VARCHAR(3), "
     				+" blobId BIGINT, "
@@ -875,7 +877,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" channel VARCHAR(3), "
     				+" checksum VARCHAR(40), "
     				+" checksumGenerationDate DATETIME, "
-    				+" checksumType VARCHAR(4), "
+    				+" checksumType VARCHAR(10), "
     				+" codec VARCHAR(4), "
     				+" colourProfile VARCHAR(9), "
     				+" colourSpace VARCHAR(15), "
@@ -903,6 +905,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" manufacturerSerialNumber VARCHAR(12), "
     				+" mimeType TEXT, "
     				+" orientation VARCHAR(36), "
+    				+" notes TEXT, "
     				+" photometric TEXT, "
     				+" reelSize VARCHAR(12), "
     				+" resolution VARCHAR(37), "
@@ -916,7 +919,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" surface VARCHAR(20), "
     				+" thickness VARCHAR(11), "
     				+" toolId VARCHAR(13), "
-    				+" zoomLevel TEXT)  ; "
+    				+" zoomLevel TEXT); "
     				+"CREATE INDEX sess_file_id ON sess_file (id); "
     				+"CREATE INDEX sess_file_txn_id ON sess_file (id, txn_start, txn_end); "
     				+"DROP TABLE IF EXISTS description; "
@@ -931,7 +934,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" country TEXT, "
     				+" digitalSourceType TEXT, "
     				+" event TEXT, "
-    				+" exposureFNumber VARCHAR(5), "
+    				+" exposureFNumber VARCHAR(16), "
     				+" exposureMode VARCHAR(15), "
     				+" exposureProgram VARCHAR(19), "
     				+" exposureTime VARCHAR(17), "
@@ -952,7 +955,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" subLocation TEXT, "
     				+" timestamp DATETIME, "
     				+" whiteBalance VARCHAR(18), "
-    				+" worldRegion TEXT)  ; "
+    				+" worldRegion TEXT); "
     				+"CREATE INDEX description_id ON description (id); "
     				+"CREATE INDEX description_txn_id ON description (id, txn_start, txn_end); "
     				+"DROP TABLE IF EXISTS description_history; "
@@ -967,7 +970,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" country TEXT, "
     				+" digitalSourceType TEXT, "
     				+" event TEXT, "
-    				+" exposureFNumber VARCHAR(5), "
+    				+" exposureFNumber VARCHAR(16), "
     				+" exposureMode VARCHAR(15), "
     				+" exposureProgram VARCHAR(19), "
     				+" exposureTime VARCHAR(17), "
@@ -988,7 +991,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" subLocation TEXT, "
     				+" timestamp DATETIME, "
     				+" whiteBalance VARCHAR(18), "
-    				+" worldRegion TEXT)  ; "
+    				+" worldRegion TEXT); "
     				+"CREATE INDEX description_history_id ON description_history (id); "
     				+"CREATE INDEX description_history_txn_id ON description_history (id, txn_start, txn_end); "
     				+"DROP TABLE IF EXISTS sess_description; "
@@ -1005,7 +1008,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" country TEXT, "
     				+" digitalSourceType TEXT, "
     				+" event TEXT, "
-    				+" exposureFNumber VARCHAR(5), "
+    				+" exposureFNumber VARCHAR(16), "
     				+" exposureMode VARCHAR(15), "
     				+" exposureProgram VARCHAR(19), "
     				+" exposureTime VARCHAR(17), "
@@ -1026,7 +1029,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" subLocation TEXT, "
     				+" timestamp DATETIME, "
     				+" whiteBalance VARCHAR(18), "
-    				+" worldRegion TEXT)  ; "
+    				+" worldRegion TEXT); "
     				+"CREATE INDEX sess_description_id ON sess_description (id); "
     				+"CREATE INDEX sess_description_txn_id ON sess_description (id, txn_start, txn_end); "
     				+"DROP TABLE IF EXISTS party; "
@@ -1039,7 +1042,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" name TEXT, "
     				+" orgUrl TEXT, "
     				+" suppressed BOOLEAN, "
-    				+" logoUrl VARCHAR(17))  ; "
+    				+" logoUrl TEXT); "
     				+"CREATE INDEX party_id ON party (id); "
     				+"CREATE INDEX party_txn_id ON party (id, txn_start, txn_end); "
     				+"DROP TABLE IF EXISTS party_history; "
@@ -1052,7 +1055,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" name TEXT, "
     				+" orgUrl TEXT, "
     				+" suppressed BOOLEAN, "
-    				+" logoUrl VARCHAR(17))  ; "
+    				+" logoUrl TEXT); "
     				+"CREATE INDEX party_history_id ON party_history (id); "
     				+"CREATE INDEX party_history_txn_id ON party_history (id, txn_start, txn_end); "
     				+"DROP TABLE IF EXISTS sess_party; "
@@ -1067,7 +1070,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" name TEXT, "
     				+" orgUrl TEXT, "
     				+" suppressed BOOLEAN, "
-    				+" logoUrl VARCHAR(17))  ; "
+    				+" logoUrl TEXT); "
     				+"CREATE INDEX sess_party_id ON sess_party (id); "
     				+"CREATE INDEX sess_party_txn_id ON sess_party (id, txn_start, txn_end); "
     				+"DROP TABLE IF EXISTS tag; "
@@ -1078,7 +1081,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" type VARCHAR(15), "
     				+" "
     				+" name TEXT, "
-    				+" description TEXT)  ; "
+    				+" description TEXT); "
     				+"CREATE INDEX tag_id ON tag (id); "
     				+"CREATE INDEX tag_txn_id ON tag (id, txn_start, txn_end); "
     				+"DROP TABLE IF EXISTS tag_history; "
@@ -1089,7 +1092,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" type VARCHAR(15), "
     				+" "
     				+" name TEXT, "
-    				+" description TEXT)  ; "
+    				+" description TEXT); "
     				+"CREATE INDEX tag_history_id ON tag_history (id); "
     				+"CREATE INDEX tag_history_txn_id ON tag_history (id, txn_start, txn_end); "
     				+"DROP TABLE IF EXISTS sess_tag; "
@@ -1102,7 +1105,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" type VARCHAR(15), "
     				+" "
     				+" name TEXT, "
-    				+" description TEXT)  ; "
+    				+" description TEXT); "
     				+"CREATE INDEX sess_tag_id ON sess_tag (id); "
     				+"CREATE INDEX sess_tag_txn_id ON sess_tag (id, txn_start, txn_end); "
     				+"DROP TABLE IF EXISTS flatedge; "
@@ -1114,7 +1117,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" "
     				+" v_out BIGINT, "
     				+" v_in BIGINT, "
-    				+" edge_order BIGINT)  ; "
+    				+" edge_order BIGINT); "
     				+"CREATE INDEX flatedge_id ON flatedge (id); "
     				+"CREATE INDEX flatedge_txn_id ON flatedge (id, txn_start, txn_end); "
     				+"DROP TABLE IF EXISTS flatedge_history; "
@@ -1126,7 +1129,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" "
     				+" v_out BIGINT, "
     				+" v_in BIGINT, "
-    				+" edge_order BIGINT)  ; "
+    				+" edge_order BIGINT); "
     				+"CREATE INDEX flatedge_history_id ON flatedge_history (id); "
     				+"CREATE INDEX flatedge_history_txn_id ON flatedge_history (id, txn_start, txn_end); "
     				+"DROP TABLE IF EXISTS sess_flatedge; "
@@ -1140,9 +1143,62 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" "
     				+" v_out BIGINT, "
     				+" v_in BIGINT, "
-    				+" edge_order BIGINT)  ; "
+    				+" edge_order BIGINT); "
     				+"CREATE INDEX sess_flatedge_id ON sess_flatedge (id); "
-    				+"CREATE INDEX sess_flatedge_txn_id ON sess_flatedge (id, txn_start, txn_end); ")
+    				+"CREATE INDEX sess_flatedge_txn_id ON sess_flatedge (id, txn_start, txn_end); "
+    				+"DROP TABLE IF EXISTS acknowledge; "
+    				+"CREATE TABLE IF NOT EXISTS acknowledge ( "
+    				+" id BIGINT, "
+    				+" txn_start BIGINT DEFAULT 0 NOT NULL, "
+    				+" txn_end BIGINT DEFAULT 0 NOT NULL, "
+    				+" type VARCHAR(15), "
+    				+" "
+    				+" v_out BIGINT, "
+    				+" v_in BIGINT, "
+    				+" edge_order BIGINT, "
+    				+" ackType VARCHAR(28), "
+    				+" date DATETIME, "
+    				+" kindOfSupport VARCHAR(11), "
+    				+" weighting DOUBLE, "
+    				+" urlToOriginal TEXT); "
+    				+"CREATE INDEX acknowledge_id ON acknowledge (id); "
+    				+"CREATE INDEX acknowledge_txn_id ON acknowledge (id, txn_start, txn_end); "
+    				+"DROP TABLE IF EXISTS acknowledge_history; "
+    				+"CREATE TABLE IF NOT EXISTS acknowledge_history ( "
+    				+" id BIGINT, "
+    				+" txn_start BIGINT DEFAULT 0 NOT NULL, "
+    				+" txn_end BIGINT DEFAULT 0 NOT NULL, "
+    				+" type VARCHAR(15), "
+    				+" "
+    				+" v_out BIGINT, "
+    				+" v_in BIGINT, "
+    				+" edge_order BIGINT, "
+    				+" ackType VARCHAR(28), "
+    				+" date DATETIME, "
+    				+" kindOfSupport VARCHAR(11), "
+    				+" weighting DOUBLE, "
+    				+" urlToOriginal TEXT); "
+    				+"CREATE INDEX acknowledge_history_id ON acknowledge_history (id); "
+    				+"CREATE INDEX acknowledge_history_txn_id ON acknowledge_history (id, txn_start, txn_end); "
+    				+"DROP TABLE IF EXISTS sess_acknowledge; "
+    				+"CREATE TABLE IF NOT EXISTS sess_acknowledge ( "
+    				+" s_id BIGINT, "
+    				+" state CHAR(3), "
+    				+" id BIGINT, "
+    				+" txn_start BIGINT DEFAULT 0 NOT NULL, "
+    				+" txn_end BIGINT DEFAULT 0 NOT NULL, "
+    				+" type VARCHAR(15), "
+    				+" "
+    				+" v_out BIGINT, "
+    				+" v_in BIGINT, "
+    				+" edge_order BIGINT, "
+    				+" ackType VARCHAR(28), "
+    				+" date DATETIME, "
+    				+" kindOfSupport VARCHAR(11), "
+    				+" weighting DOUBLE, "
+    				+" urlToOriginal TEXT); "
+    				+"CREATE INDEX sess_acknowledge_id ON sess_acknowledge (id); "
+    				+"CREATE INDEX sess_acknowledge_txn_id ON sess_acknowledge (id, txn_start, txn_end); ")
     public abstract void createV2Tables();
 
     @SqlQuery(
@@ -1454,201 +1510,61 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 	}
 
 
-	// The following query intentionally left blank. It's implemented in the db specific AmberDao sub classes (h2 or MySql)
+	// The following queries intentionally left blank. They are implemented in the db specific AmberDao sub classes (h2 or MySql)
 	@SqlUpdate("")
 	public abstract void endWorks(
 	@Bind("txnId") Long txnId);
 
-	@SqlUpdate("SET @txn = :txnId;"
-	 + "INSERT INTO work_history (id, txn_start, txn_end, type, abstract,access,accessConditions,acquisitionCategory,acquisitionStatus,additionalContributor,additionalCreator,additionalSeries,additionalSeriesStatement,additionalTitle,addressee,adminInfo,advertising,algorithm,alias,allowHighResdownload,allowOnsiteAccess,alternativeTitle,altform,arrangement,australianContent,bestCopy,bibId,bibLevel,bibliography,captions,carrier,category,childRange,classification,collection,collectionNumber,commentsExternal,commentsInternal,commercialStatus,copyCondition,availabilityConstraint,contributor,coordinates,copyingPublishing,copyrightPolicy,copyRole,copyStatus,copyType,correspondenceHeader,correspondenceId,correspondenceIndex,coverage,creator,creatorStatement,currentVersion,dateCreated,dateRangeInAS,dcmAltPi,dcmCopyPid,dcmDateTimeCreated,dcmDateTimeUpdated,dcmRecordCreator,dcmRecordUpdater,dcmSourceCopy,dcmWorkPid,depositType,digitalStatus,digitalStatusDate,displayTitlePage,eadUpdateReviewRequired,edition,encodingLevel,endChild,endDate,eventNote,exhibition,expiryDate,extent,findingAidNote,firstPart,folder,folderNumber,folderType,form,genre,heading,holdingId,holdingNumber,html,illustrated,ilmsSentDateTime,immutable,ingestJobId,interactiveIndexAvailable,internalAccessConditions,isMissingPage,issn,issueDate,language,localSystemNumber,manipulation,materialFromMultipleSources,materialType,metsId,moreIlmsDetailsRequired,notes,occupation,otherNumbers,otherTitle,preferredCitation,preservicaId,preservicaType,printedPageNumber,provenance,publicationCategory,publicationLevel,publicNotes,publisher,rdsAcknowledgementReceiver,rdsAcknowledgementType,recordSource,relatedMaterial,repository,restrictionsOnAccess,restrictionType,rights,scaleEtc,scopeContent,segmentIndicator,sendToIlms,sensitiveMaterial,sensitiveReason,series,sheetCreationDate,sheetName,standardId,startChild,startDate,subHeadings,subject,subType,subUnitNo,subUnitType,summary,tempHolding,tilePosition,timedStatus,title,totalDuration,uniformTitle,vendorId,versionNumber,workCreatedDuringMigration,workPid) "
-	 + "SELECT id, s_id, 0, type, abstract,access,accessConditions,acquisitionCategory,acquisitionStatus,additionalContributor,additionalCreator,additionalSeries,additionalSeriesStatement,additionalTitle,addressee,adminInfo,advertising,algorithm,alias,allowHighResdownload,allowOnsiteAccess,alternativeTitle,altform,arrangement,australianContent,bestCopy,bibId,bibLevel,bibliography,captions,carrier,category,childRange,classification,collection,collectionNumber,commentsExternal,commentsInternal,commercialStatus,copyCondition,availabilityConstraint,contributor,coordinates,copyingPublishing,copyrightPolicy,copyRole,copyStatus,copyType,correspondenceHeader,correspondenceId,correspondenceIndex,coverage,creator,creatorStatement,currentVersion,dateCreated,dateRangeInAS,dcmAltPi,dcmCopyPid,dcmDateTimeCreated,dcmDateTimeUpdated,dcmRecordCreator,dcmRecordUpdater,dcmSourceCopy,dcmWorkPid,depositType,digitalStatus,digitalStatusDate,displayTitlePage,eadUpdateReviewRequired,edition,encodingLevel,endChild,endDate,eventNote,exhibition,expiryDate,extent,findingAidNote,firstPart,folder,folderNumber,folderType,form,genre,heading,holdingId,holdingNumber,html,illustrated,ilmsSentDateTime,immutable,ingestJobId,interactiveIndexAvailable,internalAccessConditions,isMissingPage,issn,issueDate,language,localSystemNumber,manipulation,materialFromMultipleSources,materialType,metsId,moreIlmsDetailsRequired,notes,occupation,otherNumbers,otherTitle,preferredCitation,preservicaId,preservicaType,printedPageNumber,provenance,publicationCategory,publicationLevel,publicNotes,publisher,rdsAcknowledgementReceiver,rdsAcknowledgementType,recordSource,relatedMaterial,repository,restrictionsOnAccess,restrictionType,rights,scaleEtc,scopeContent,segmentIndicator,sendToIlms,sensitiveMaterial,sensitiveReason,series,sheetCreationDate,sheetName,standardId,startChild,startDate,subHeadings,subject,subType,subUnitNo,subUnitType,summary,tempHolding,tilePosition,timedStatus,title,totalDuration,uniformTitle,vendorId,versionNumber,workCreatedDuringMigration,workPid "
-	 + "FROM sess_work "
-	 + "WHERE s_id = @txn "
-	 + "AND state = 'NEW'; "
-
-	 + "INSERT INTO work_history (id, txn_start, txn_end, type, abstract,access,accessConditions,acquisitionCategory,acquisitionStatus,additionalContributor,additionalCreator,additionalSeries,additionalSeriesStatement,additionalTitle,addressee,adminInfo,advertising,algorithm,alias,allowHighResdownload,allowOnsiteAccess,alternativeTitle,altform,arrangement,australianContent,bestCopy,bibId,bibLevel,bibliography,captions,carrier,category,childRange,classification,collection,collectionNumber,commentsExternal,commentsInternal,commercialStatus,copyCondition,availabilityConstraint,contributor,coordinates,copyingPublishing,copyrightPolicy,copyRole,copyStatus,copyType,correspondenceHeader,correspondenceId,correspondenceIndex,coverage,creator,creatorStatement,currentVersion,dateCreated,dateRangeInAS,dcmAltPi,dcmCopyPid,dcmDateTimeCreated,dcmDateTimeUpdated,dcmRecordCreator,dcmRecordUpdater,dcmSourceCopy,dcmWorkPid,depositType,digitalStatus,digitalStatusDate,displayTitlePage,eadUpdateReviewRequired,edition,encodingLevel,endChild,endDate,eventNote,exhibition,expiryDate,extent,findingAidNote,firstPart,folder,folderNumber,folderType,form,genre,heading,holdingId,holdingNumber,html,illustrated,ilmsSentDateTime,immutable,ingestJobId,interactiveIndexAvailable,internalAccessConditions,isMissingPage,issn,issueDate,language,localSystemNumber,manipulation,materialFromMultipleSources,materialType,metsId,moreIlmsDetailsRequired,notes,occupation,otherNumbers,otherTitle,preferredCitation,preservicaId,preservicaType,printedPageNumber,provenance,publicationCategory,publicationLevel,publicNotes,publisher,rdsAcknowledgementReceiver,rdsAcknowledgementType,recordSource,relatedMaterial,repository,restrictionsOnAccess,restrictionType,rights,scaleEtc,scopeContent,segmentIndicator,sendToIlms,sensitiveMaterial,sensitiveReason,series,sheetCreationDate,sheetName,standardId,startChild,startDate,subHeadings,subject,subType,subUnitNo,subUnitType,summary,tempHolding,tilePosition,timedStatus,title,totalDuration,uniformTitle,vendorId,versionNumber,workCreatedDuringMigration,workPid) "
-	 + "SELECT id, s_id, 0, type, abstract,access,accessConditions,acquisitionCategory,acquisitionStatus,additionalContributor,additionalCreator,additionalSeries,additionalSeriesStatement,additionalTitle,addressee,adminInfo,advertising,algorithm,alias,allowHighResdownload,allowOnsiteAccess,alternativeTitle,altform,arrangement,australianContent,bestCopy,bibId,bibLevel,bibliography,captions,carrier,category,childRange,classification,collection,collectionNumber,commentsExternal,commentsInternal,commercialStatus,copyCondition,availabilityConstraint,contributor,coordinates,copyingPublishing,copyrightPolicy,copyRole,copyStatus,copyType,correspondenceHeader,correspondenceId,correspondenceIndex,coverage,creator,creatorStatement,currentVersion,dateCreated,dateRangeInAS,dcmAltPi,dcmCopyPid,dcmDateTimeCreated,dcmDateTimeUpdated,dcmRecordCreator,dcmRecordUpdater,dcmSourceCopy,dcmWorkPid,depositType,digitalStatus,digitalStatusDate,displayTitlePage,eadUpdateReviewRequired,edition,encodingLevel,endChild,endDate,eventNote,exhibition,expiryDate,extent,findingAidNote,firstPart,folder,folderNumber,folderType,form,genre,heading,holdingId,holdingNumber,html,illustrated,ilmsSentDateTime,immutable,ingestJobId,interactiveIndexAvailable,internalAccessConditions,isMissingPage,issn,issueDate,language,localSystemNumber,manipulation,materialFromMultipleSources,materialType,metsId,moreIlmsDetailsRequired,notes,occupation,otherNumbers,otherTitle,preferredCitation,preservicaId,preservicaType,printedPageNumber,provenance,publicationCategory,publicationLevel,publicNotes,publisher,rdsAcknowledgementReceiver,rdsAcknowledgementType,recordSource,relatedMaterial,repository,restrictionsOnAccess,restrictionType,rights,scaleEtc,scopeContent,segmentIndicator,sendToIlms,sensitiveMaterial,sensitiveReason,series,sheetCreationDate,sheetName,standardId,startChild,startDate,subHeadings,subject,subType,subUnitNo,subUnitType,summary,tempHolding,tilePosition,timedStatus,title,totalDuration,uniformTitle,vendorId,versionNumber,workCreatedDuringMigration,workPid "
-	 + "FROM sess_work "
-	 + "WHERE s_id = @txn "
-	 + "AND state = 'MOD'; "
-
-	 + "INSERT INTO work (id, txn_start, txn_end, type, abstract,access,accessConditions,acquisitionCategory,acquisitionStatus,additionalContributor,additionalCreator,additionalSeries,additionalSeriesStatement,additionalTitle,addressee,adminInfo,advertising,algorithm,alias,allowHighResdownload,allowOnsiteAccess,alternativeTitle,altform,arrangement,australianContent,bestCopy,bibId,bibLevel,bibliography,captions,carrier,category,childRange,classification,collection,collectionNumber,commentsExternal,commentsInternal,commercialStatus,copyCondition,availabilityConstraint,contributor,coordinates,copyingPublishing,copyrightPolicy,copyRole,copyStatus,copyType,correspondenceHeader,correspondenceId,correspondenceIndex,coverage,creator,creatorStatement,currentVersion,dateCreated,dateRangeInAS,dcmAltPi,dcmCopyPid,dcmDateTimeCreated,dcmDateTimeUpdated,dcmRecordCreator,dcmRecordUpdater,dcmSourceCopy,dcmWorkPid,depositType,digitalStatus,digitalStatusDate,displayTitlePage,eadUpdateReviewRequired,edition,encodingLevel,endChild,endDate,eventNote,exhibition,expiryDate,extent,findingAidNote,firstPart,folder,folderNumber,folderType,form,genre,heading,holdingId,holdingNumber,html,illustrated,ilmsSentDateTime,immutable,ingestJobId,interactiveIndexAvailable,internalAccessConditions,isMissingPage,issn,issueDate,language,localSystemNumber,manipulation,materialFromMultipleSources,materialType,metsId,moreIlmsDetailsRequired,notes,occupation,otherNumbers,otherTitle,preferredCitation,preservicaId,preservicaType,printedPageNumber,provenance,publicationCategory,publicationLevel,publicNotes,publisher,rdsAcknowledgementReceiver,rdsAcknowledgementType,recordSource,relatedMaterial,repository,restrictionsOnAccess,restrictionType,rights,scaleEtc,scopeContent,segmentIndicator,sendToIlms,sensitiveMaterial,sensitiveReason,series,sheetCreationDate,sheetName,standardId,startChild,startDate,subHeadings,subject,subType,subUnitNo,subUnitType,summary,tempHolding,tilePosition,timedStatus,title,totalDuration,uniformTitle,vendorId,versionNumber,workCreatedDuringMigration,workPid) "
-	 + "SELECT id, s_id, 0, type, abstract,access,accessConditions,acquisitionCategory,acquisitionStatus,additionalContributor,additionalCreator,additionalSeries,additionalSeriesStatement,additionalTitle,addressee,adminInfo,advertising,algorithm,alias,allowHighResdownload,allowOnsiteAccess,alternativeTitle,altform,arrangement,australianContent,bestCopy,bibId,bibLevel,bibliography,captions,carrier,category,childRange,classification,collection,collectionNumber,commentsExternal,commentsInternal,commercialStatus,copyCondition,availabilityConstraint,contributor,coordinates,copyingPublishing,copyrightPolicy,copyRole,copyStatus,copyType,correspondenceHeader,correspondenceId,correspondenceIndex,coverage,creator,creatorStatement,currentVersion,dateCreated,dateRangeInAS,dcmAltPi,dcmCopyPid,dcmDateTimeCreated,dcmDateTimeUpdated,dcmRecordCreator,dcmRecordUpdater,dcmSourceCopy,dcmWorkPid,depositType,digitalStatus,digitalStatusDate,displayTitlePage,eadUpdateReviewRequired,edition,encodingLevel,endChild,endDate,eventNote,exhibition,expiryDate,extent,findingAidNote,firstPart,folder,folderNumber,folderType,form,genre,heading,holdingId,holdingNumber,html,illustrated,ilmsSentDateTime,immutable,ingestJobId,interactiveIndexAvailable,internalAccessConditions,isMissingPage,issn,issueDate,language,localSystemNumber,manipulation,materialFromMultipleSources,materialType,metsId,moreIlmsDetailsRequired,notes,occupation,otherNumbers,otherTitle,preferredCitation,preservicaId,preservicaType,printedPageNumber,provenance,publicationCategory,publicationLevel,publicNotes,publisher,rdsAcknowledgementReceiver,rdsAcknowledgementType,recordSource,relatedMaterial,repository,restrictionsOnAccess,restrictionType,rights,scaleEtc,scopeContent,segmentIndicator,sendToIlms,sensitiveMaterial,sensitiveReason,series,sheetCreationDate,sheetName,standardId,startChild,startDate,subHeadings,subject,subType,subUnitNo,subUnitType,summary,tempHolding,tilePosition,timedStatus,title,totalDuration,uniformTitle,vendorId,versionNumber,workCreatedDuringMigration,workPid "
-	 + "FROM sess_work "
-	 + "WHERE s_id = @txn "
-	 + "AND state = 'NEW'; "
-
-	 + "UPDATE work c, sess_work s "
-	 + "SET c.txn_start = s.txn_start, c.txn_end = s.txn_end, c.type = s.type, c.abstract = s.abstract, c.access = s.access, c.accessConditions = s.accessConditions, c.acquisitionCategory = s.acquisitionCategory, c.acquisitionStatus = s.acquisitionStatus, c.additionalContributor = s.additionalContributor, c.additionalCreator = s.additionalCreator, c.additionalSeries = s.additionalSeries, c.additionalSeriesStatement = s.additionalSeriesStatement, c.additionalTitle = s.additionalTitle, c.addressee = s.addressee, c.adminInfo = s.adminInfo, c.advertising = s.advertising, c.algorithm = s.algorithm, c.alias = s.alias, c.allowHighResdownload = s.allowHighResdownload, c.allowOnsiteAccess = s.allowOnsiteAccess, c.alternativeTitle = s.alternativeTitle, c.altform = s.altform, c.arrangement = s.arrangement, c.australianContent = s.australianContent, c.bestCopy = s.bestCopy, c.bibId = s.bibId, c.bibLevel = s.bibLevel, c.bibliography = s.bibliography, c.captions = s.captions, c.carrier = s.carrier, c.category = s.category, c.childRange = s.childRange, c.classification = s.classification, c.collection = s.collection, c.collectionNumber = s.collectionNumber, c.commentsExternal = s.commentsExternal, c.commentsInternal = s.commentsInternal, c.commercialStatus = s.commercialStatus, c.copyCondition = s.copyCondition, c.availabilityConstraint = s.availabilityConstraint, c.contributor = s.contributor, c.coordinates = s.coordinates, c.copyingPublishing = s.copyingPublishing, c.copyrightPolicy = s.copyrightPolicy, c.copyRole = s.copyRole, c.copyStatus = s.copyStatus, c.copyType = s.copyType, c.correspondenceHeader = s.correspondenceHeader, c.correspondenceId = s.correspondenceId, c.correspondenceIndex = s.correspondenceIndex, c.coverage = s.coverage, c.creator = s.creator, c.creatorStatement = s.creatorStatement, c.currentVersion = s.currentVersion, c.dateCreated = s.dateCreated, c.dateRangeInAS = s.dateRangeInAS, c.dcmAltPi = s.dcmAltPi, c.dcmCopyPid = s.dcmCopyPid, c.dcmDateTimeCreated = s.dcmDateTimeCreated, c.dcmDateTimeUpdated = s.dcmDateTimeUpdated, c.dcmRecordCreator = s.dcmRecordCreator, c.dcmRecordUpdater = s.dcmRecordUpdater, c.dcmSourceCopy = s.dcmSourceCopy, c.dcmWorkPid = s.dcmWorkPid, c.depositType = s.depositType, c.digitalStatus = s.digitalStatus, c.digitalStatusDate = s.digitalStatusDate, c.displayTitlePage = s.displayTitlePage, c.eadUpdateReviewRequired = s.eadUpdateReviewRequired, c.edition = s.edition, c.encodingLevel = s.encodingLevel, c.endChild = s.endChild, c.endDate = s.endDate, c.eventNote = s.eventNote, c.exhibition = s.exhibition, c.expiryDate = s.expiryDate, c.extent = s.extent, c.findingAidNote = s.findingAidNote, c.firstPart = s.firstPart, c.folder = s.folder, c.folderNumber = s.folderNumber, c.folderType = s.folderType, c.form = s.form, c.genre = s.genre, c.heading = s.heading, c.holdingId = s.holdingId, c.holdingNumber = s.holdingNumber, c.html = s.html, c.illustrated = s.illustrated, c.ilmsSentDateTime = s.ilmsSentDateTime, c.immutable = s.immutable, c.ingestJobId = s.ingestJobId, c.interactiveIndexAvailable = s.interactiveIndexAvailable, c.internalAccessConditions = s.internalAccessConditions, c.isMissingPage = s.isMissingPage, c.issn = s.issn, c.issueDate = s.issueDate, c.language = s.language, c.localSystemNumber = s.localSystemNumber, c.manipulation = s.manipulation, c.materialFromMultipleSources = s.materialFromMultipleSources, c.materialType = s.materialType, c.metsId = s.metsId, c.moreIlmsDetailsRequired = s.moreIlmsDetailsRequired, c.notes = s.notes, c.occupation = s.occupation, c.otherNumbers = s.otherNumbers, c.otherTitle = s.otherTitle, c.preferredCitation = s.preferredCitation, c.preservicaId = s.preservicaId, c.preservicaType = s.preservicaType, c.printedPageNumber = s.printedPageNumber, c.provenance = s.provenance, c.publicationCategory = s.publicationCategory, c.publicationLevel = s.publicationLevel, c.publicNotes = s.publicNotes, c.publisher = s.publisher, c.rdsAcknowledgementReceiver = s.rdsAcknowledgementReceiver, c.rdsAcknowledgementType = s.rdsAcknowledgementType, c.recordSource = s.recordSource, c.relatedMaterial = s.relatedMaterial, c.repository = s.repository, c.restrictionsOnAccess = s.restrictionsOnAccess, c.restrictionType = s.restrictionType, c.rights = s.rights, c.scaleEtc = s.scaleEtc, c.scopeContent = s.scopeContent, c.segmentIndicator = s.segmentIndicator, c.sendToIlms = s.sendToIlms, c.sensitiveMaterial = s.sensitiveMaterial, c.sensitiveReason = s.sensitiveReason, c.series = s.series, c.sheetCreationDate = s.sheetCreationDate, c.sheetName = s.sheetName, c.standardId = s.standardId, c.startChild = s.startChild, c.startDate = s.startDate, c.subHeadings = s.subHeadings, c.subject = s.subject, c.subType = s.subType, c.subUnitNo = s.subUnitNo, c.subUnitType = s.subUnitType, c.summary = s.summary, c.tempHolding = s.tempHolding, c.tilePosition = s.tilePosition, c.timedStatus = s.timedStatus, c.title = s.title, c.totalDuration = s.totalDuration, c.uniformTitle = s.uniformTitle, c.vendorId = s.vendorId, c.versionNumber = s.versionNumber, c.workCreatedDuringMigration = s.workCreatedDuringMigration, c.workPid = s.workPid "
-	 + "WHERE c.id = s.id "
-	 + "AND s_id = @txn "
-	 + "AND state = 'MOD';")
+	@SqlUpdate("")
 	public abstract void startWorks(
 	@Bind("txnId") Long txnId);
 
-	// The following query intentionally left blank. It's implemented in the db specific AmberDao sub classes (h2 or MySql)
 	@SqlUpdate("")
 	public abstract void endFiles(
 	@Bind("txnId") Long txnId);
 
-	@SqlUpdate("SET @txn = :txnId;"
-	 + "INSERT INTO file_history (id, txn_start, txn_end, type, application,applicationDateCreated,bitDepth,bitrate,blobId,blockAlign,brand,carrierCapacity,channel,checksum,checksumGenerationDate,checksumType,codec,colourProfile,colourSpace,compression,cpLocation,dateDigitised,dcmCopyPid,device,deviceSerialNumber,duration,durationType,encoding,equalisation,fileContainer,fileFormat,fileFormatVersion,fileName,fileSize,framerate,imageLength,imageWidth,location,manufacturerMake,manufacturerModelName,manufacturerSerialNumber,mimeType,orientation,photometric,reelSize,resolution,resolutionUnit,samplesPerPixel,samplingRate,software,softwareSerialNumber,soundField,speed,surface,thickness,toolId,zoomLevel) "
-	 + "SELECT id, s_id, 0, type, application,applicationDateCreated,bitDepth,bitrate,blobId,blockAlign,brand,carrierCapacity,channel,checksum,checksumGenerationDate,checksumType,codec,colourProfile,colourSpace,compression,cpLocation,dateDigitised,dcmCopyPid,device,deviceSerialNumber,duration,durationType,encoding,equalisation,fileContainer,fileFormat,fileFormatVersion,fileName,fileSize,framerate,imageLength,imageWidth,location,manufacturerMake,manufacturerModelName,manufacturerSerialNumber,mimeType,orientation,photometric,reelSize,resolution,resolutionUnit,samplesPerPixel,samplingRate,software,softwareSerialNumber,soundField,speed,surface,thickness,toolId,zoomLevel "
-	 + "FROM sess_file "
-	 + "WHERE s_id = @txn "
-	 + "AND state = 'NEW'; "
-
-	 + "INSERT INTO file_history (id, txn_start, txn_end, type, application,applicationDateCreated,bitDepth,bitrate,blobId,blockAlign,brand,carrierCapacity,channel,checksum,checksumGenerationDate,checksumType,codec,colourProfile,colourSpace,compression,cpLocation,dateDigitised,dcmCopyPid,device,deviceSerialNumber,duration,durationType,encoding,equalisation,fileContainer,fileFormat,fileFormatVersion,fileName,fileSize,framerate,imageLength,imageWidth,location,manufacturerMake,manufacturerModelName,manufacturerSerialNumber,mimeType,orientation,photometric,reelSize,resolution,resolutionUnit,samplesPerPixel,samplingRate,software,softwareSerialNumber,soundField,speed,surface,thickness,toolId,zoomLevel) "
-	 + "SELECT id, s_id, 0, type, application,applicationDateCreated,bitDepth,bitrate,blobId,blockAlign,brand,carrierCapacity,channel,checksum,checksumGenerationDate,checksumType,codec,colourProfile,colourSpace,compression,cpLocation,dateDigitised,dcmCopyPid,device,deviceSerialNumber,duration,durationType,encoding,equalisation,fileContainer,fileFormat,fileFormatVersion,fileName,fileSize,framerate,imageLength,imageWidth,location,manufacturerMake,manufacturerModelName,manufacturerSerialNumber,mimeType,orientation,photometric,reelSize,resolution,resolutionUnit,samplesPerPixel,samplingRate,software,softwareSerialNumber,soundField,speed,surface,thickness,toolId,zoomLevel "
-	 + "FROM sess_file "
-	 + "WHERE s_id = @txn "
-	 + "AND state = 'MOD'; "
-
-	 + "INSERT INTO file (id, txn_start, txn_end, type, application,applicationDateCreated,bitDepth,bitrate,blobId,blockAlign,brand,carrierCapacity,channel,checksum,checksumGenerationDate,checksumType,codec,colourProfile,colourSpace,compression,cpLocation,dateDigitised,dcmCopyPid,device,deviceSerialNumber,duration,durationType,encoding,equalisation,fileContainer,fileFormat,fileFormatVersion,fileName,fileSize,framerate,imageLength,imageWidth,location,manufacturerMake,manufacturerModelName,manufacturerSerialNumber,mimeType,orientation,photometric,reelSize,resolution,resolutionUnit,samplesPerPixel,samplingRate,software,softwareSerialNumber,soundField,speed,surface,thickness,toolId,zoomLevel) "
-	 + "SELECT id, s_id, 0, type, application,applicationDateCreated,bitDepth,bitrate,blobId,blockAlign,brand,carrierCapacity,channel,checksum,checksumGenerationDate,checksumType,codec,colourProfile,colourSpace,compression,cpLocation,dateDigitised,dcmCopyPid,device,deviceSerialNumber,duration,durationType,encoding,equalisation,fileContainer,fileFormat,fileFormatVersion,fileName,fileSize,framerate,imageLength,imageWidth,location,manufacturerMake,manufacturerModelName,manufacturerSerialNumber,mimeType,orientation,photometric,reelSize,resolution,resolutionUnit,samplesPerPixel,samplingRate,software,softwareSerialNumber,soundField,speed,surface,thickness,toolId,zoomLevel "
-	 + "FROM sess_file "
-	 + "WHERE s_id = @txn "
-	 + "AND state = 'NEW'; "
-
-	 + "UPDATE file c, sess_file s "
-	 + "SET c.txn_start = s.txn_start, c.txn_end = s.txn_end, c.type = s.type, c.application = s.application, c.applicationDateCreated = s.applicationDateCreated, c.bitDepth = s.bitDepth, c.bitrate = s.bitrate, c.blobId = s.blobId, c.blockAlign = s.blockAlign, c.brand = s.brand, c.carrierCapacity = s.carrierCapacity, c.channel = s.channel, c.checksum = s.checksum, c.checksumGenerationDate = s.checksumGenerationDate, c.checksumType = s.checksumType, c.codec = s.codec, c.colourProfile = s.colourProfile, c.colourSpace = s.colourSpace, c.compression = s.compression, c.cpLocation = s.cpLocation, c.dateDigitised = s.dateDigitised, c.dcmCopyPid = s.dcmCopyPid, c.device = s.device, c.deviceSerialNumber = s.deviceSerialNumber, c.duration = s.duration, c.durationType = s.durationType, c.encoding = s.encoding, c.equalisation = s.equalisation, c.fileContainer = s.fileContainer, c.fileFormat = s.fileFormat, c.fileFormatVersion = s.fileFormatVersion, c.fileName = s.fileName, c.fileSize = s.fileSize, c.framerate = s.framerate, c.imageLength = s.imageLength, c.imageWidth = s.imageWidth, c.location = s.location, c.manufacturerMake = s.manufacturerMake, c.manufacturerModelName = s.manufacturerModelName, c.manufacturerSerialNumber = s.manufacturerSerialNumber, c.mimeType = s.mimeType, c.orientation = s.orientation, c.photometric = s.photometric, c.reelSize = s.reelSize, c.resolution = s.resolution, c.resolutionUnit = s.resolutionUnit, c.samplesPerPixel = s.samplesPerPixel, c.samplingRate = s.samplingRate, c.software = s.software, c.softwareSerialNumber = s.softwareSerialNumber, c.soundField = s.soundField, c.speed = s.speed, c.surface = s.surface, c.thickness = s.thickness, c.toolId = s.toolId, c.zoomLevel = s.zoomLevel "
-	 + "WHERE c.id = s.id "
-	 + "AND s_id = @txn "
-	 + "AND state = 'MOD';")
+	@SqlUpdate("")
 	public abstract void startFiles(
 	@Bind("txnId") Long txnId);
 
-	// The following query intentionally left blank. It's implemented in the db specific AmberDao sub classes (h2 or MySql)
 	@SqlUpdate("")
 	public abstract void endDescriptions(
 	@Bind("txnId") Long txnId);
 
-	@SqlUpdate("SET @txn = :txnId;"
-	 + "INSERT INTO description_history (id, txn_start, txn_end, type, alternativeTitle,city,country,digitalSourceType,event,exposureFNumber,exposureMode,exposureProgram,exposureTime,fileFormat,fileSource,focalLength,gpsVersion,isoCountryCode,isoSpeedRating,latitude,latitudeRef,lens,longitude,longitudeRef,mapDatum,meteringMode,province,subLocation,timestamp,whiteBalance,worldRegion) "
-	 + "SELECT id, s_id, 0, type, alternativeTitle,city,country,digitalSourceType,event,exposureFNumber,exposureMode,exposureProgram,exposureTime,fileFormat,fileSource,focalLength,gpsVersion,isoCountryCode,isoSpeedRating,latitude,latitudeRef,lens,longitude,longitudeRef,mapDatum,meteringMode,province,subLocation,timestamp,whiteBalance,worldRegion "
-	 + "FROM sess_description "
-	 + "WHERE s_id = @txn "
-	 + "AND state = 'NEW'; "
-
-	 + "INSERT INTO description_history (id, txn_start, txn_end, type, alternativeTitle,city,country,digitalSourceType,event,exposureFNumber,exposureMode,exposureProgram,exposureTime,fileFormat,fileSource,focalLength,gpsVersion,isoCountryCode,isoSpeedRating,latitude,latitudeRef,lens,longitude,longitudeRef,mapDatum,meteringMode,province,subLocation,timestamp,whiteBalance,worldRegion) "
-	 + "SELECT id, s_id, 0, type, alternativeTitle,city,country,digitalSourceType,event,exposureFNumber,exposureMode,exposureProgram,exposureTime,fileFormat,fileSource,focalLength,gpsVersion,isoCountryCode,isoSpeedRating,latitude,latitudeRef,lens,longitude,longitudeRef,mapDatum,meteringMode,province,subLocation,timestamp,whiteBalance,worldRegion "
-	 + "FROM sess_description "
-	 + "WHERE s_id = @txn "
-	 + "AND state = 'MOD'; "
-
-	 + "INSERT INTO description (id, txn_start, txn_end, type, alternativeTitle,city,country,digitalSourceType,event,exposureFNumber,exposureMode,exposureProgram,exposureTime,fileFormat,fileSource,focalLength,gpsVersion,isoCountryCode,isoSpeedRating,latitude,latitudeRef,lens,longitude,longitudeRef,mapDatum,meteringMode,province,subLocation,timestamp,whiteBalance,worldRegion) "
-	 + "SELECT id, s_id, 0, type, alternativeTitle,city,country,digitalSourceType,event,exposureFNumber,exposureMode,exposureProgram,exposureTime,fileFormat,fileSource,focalLength,gpsVersion,isoCountryCode,isoSpeedRating,latitude,latitudeRef,lens,longitude,longitudeRef,mapDatum,meteringMode,province,subLocation,timestamp,whiteBalance,worldRegion "
-	 + "FROM sess_description "
-	 + "WHERE s_id = @txn "
-	 + "AND state = 'NEW'; "
-
-	 + "UPDATE description c, sess_description s "
-	 + "SET c.txn_start = s.txn_start, c.txn_end = s.txn_end, c.type = s.type, c.alternativeTitle = s.alternativeTitle, c.city = s.city, c.country = s.country, c.digitalSourceType = s.digitalSourceType, c.event = s.event, c.exposureFNumber = s.exposureFNumber, c.exposureMode = s.exposureMode, c.exposureProgram = s.exposureProgram, c.exposureTime = s.exposureTime, c.fileFormat = s.fileFormat, c.fileSource = s.fileSource, c.focalLength = s.focalLength, c.gpsVersion = s.gpsVersion, c.isoCountryCode = s.isoCountryCode, c.isoSpeedRating = s.isoSpeedRating, c.latitude = s.latitude, c.latitudeRef = s.latitudeRef, c.lens = s.lens, c.longitude = s.longitude, c.longitudeRef = s.longitudeRef, c.mapDatum = s.mapDatum, c.meteringMode = s.meteringMode, c.province = s.province, c.subLocation = s.subLocation, c.timestamp = s.timestamp, c.whiteBalance = s.whiteBalance, c.worldRegion = s.worldRegion "
-	 + "WHERE c.id = s.id "
-	 + "AND s_id = @txn "
-	 + "AND state = 'MOD';")
+	@SqlUpdate("")
 	public abstract void startDescriptions(
 	@Bind("txnId") Long txnId);
 
-	// The following query intentionally left blank. It's implemented in the db specific AmberDao sub classes (h2 or MySql)
 	@SqlUpdate("")
 	public abstract void endParties(
 	@Bind("txnId") Long txnId);
 
-	@SqlUpdate("SET @txn = :txnId;"
-	 + "INSERT INTO party_history (id, txn_start, txn_end, type, name,orgUrl,suppressed,logoUrl) "
-	 + "SELECT id, s_id, 0, type, name,orgUrl,suppressed,logoUrl "
-	 + "FROM sess_party "
-	 + "WHERE s_id = @txn "
-	 + "AND state = 'NEW'; "
-
-	 + "INSERT INTO party_history (id, txn_start, txn_end, type, name,orgUrl,suppressed,logoUrl) "
-	 + "SELECT id, s_id, 0, type, name,orgUrl,suppressed,logoUrl "
-	 + "FROM sess_party "
-	 + "WHERE s_id = @txn "
-	 + "AND state = 'MOD'; "
-
-	 + "INSERT INTO party (id, txn_start, txn_end, type, name,orgUrl,suppressed,logoUrl) "
-	 + "SELECT id, s_id, 0, type, name,orgUrl,suppressed,logoUrl "
-	 + "FROM sess_party "
-	 + "WHERE s_id = @txn "
-	 + "AND state = 'NEW'; "
-
-	 + "UPDATE party c, sess_party s "
-	 + "SET c.txn_start = s.txn_start, c.txn_end = s.txn_end, c.type = s.type, c.name = s.name, c.orgUrl = s.orgUrl, c.suppressed = s.suppressed, c.logoUrl = s.logoUrl "
-	 + "WHERE c.id = s.id "
-	 + "AND s_id = @txn "
-	 + "AND state = 'MOD';")
+	@SqlUpdate("")
 	public abstract void startParties(
 	@Bind("txnId") Long txnId);
 
-	// The following query intentionally left blank. It's implemented in the db specific AmberDao sub classes (h2 or MySql)
 	@SqlUpdate("")
 	public abstract void endTags(
 	@Bind("txnId") Long txnId);
 
-	@SqlUpdate("SET @txn = :txnId;"
-	 + "INSERT INTO tag_history (id, txn_start, txn_end, type, name,description) "
-	 + "SELECT id, s_id, 0, type, name,description "
-	 + "FROM sess_tag "
-	 + "WHERE s_id = @txn "
-	 + "AND state = 'NEW'; "
-
-	 + "INSERT INTO tag_history (id, txn_start, txn_end, type, name,description) "
-	 + "SELECT id, s_id, 0, type, name,description "
-	 + "FROM sess_tag "
-	 + "WHERE s_id = @txn "
-	 + "AND state = 'MOD'; "
-
-	 + "INSERT INTO tag (id, txn_start, txn_end, type, name,description) "
-	 + "SELECT id, s_id, 0, type, name,description "
-	 + "FROM sess_tag "
-	 + "WHERE s_id = @txn "
-	 + "AND state = 'NEW'; "
-
-	 + "UPDATE tag c, sess_tag s "
-	 + "SET c.txn_start = s.txn_start, c.txn_end = s.txn_end, c.type = s.type, c.name = s.name, c.description = s.description "
-	 + "WHERE c.id = s.id "
-	 + "AND s_id = @txn "
-	 + "AND state = 'MOD';")
+	@SqlUpdate("")
 	public abstract void startTags(
 	@Bind("txnId") Long txnId);
 
-	// The following query intentionally left blank. It's implemented in the db specific AmberDao sub classes (h2 or MySql)
-	@SqlUpdate("")
-	public abstract void endEdges(
-	@Bind("txnId") Long txnId);
-
-	// The following query intentionally left blank. It's implemented in the db specific AmberDao sub classes (h2 or MySql)
 	@SqlUpdate("")
 	public abstract void endFlatedges(
 	@Bind("txnId") Long txnId);
 
-	@SqlUpdate("SET @txn = :txnId;"
-	 + "INSERT INTO flatedge_history (id, txn_start, txn_end, type, v_out,v_in,edge_order) "
-	 + "SELECT id, s_id, 0, type, v_out,v_in,edge_order "
-	 + "FROM sess_flatedge "
-	 + "WHERE s_id = @txn "
-	 + "AND state = 'NEW'; "
-
-	 + "INSERT INTO flatedge_history (id, txn_start, txn_end, type, v_out,v_in,edge_order) "
-	 + "SELECT id, s_id, 0, type, v_out,v_in,edge_order "
-	 + "FROM sess_flatedge "
-	 + "WHERE s_id = @txn "
-	 + "AND state = 'MOD'; "
-
-	 + "INSERT INTO flatedge (id, txn_start, txn_end, type, v_out,v_in,edge_order) "
-	 + "SELECT id, s_id, 0, type, v_out,v_in,edge_order "
-	 + "FROM sess_flatedge "
-	 + "WHERE s_id = @txn "
-	 + "AND state = 'NEW'; "
-
-	 + "UPDATE flatedge c, sess_flatedge s "
-	 + "SET c.txn_start = s.txn_start, c.txn_end = s.txn_end, c.type = s.type, c.v_out = s.v_out, c.v_in = s.v_in, c.edge_order = s.edge_order "
-	 + "WHERE c.id = s.id "
-	 + "AND s_id = @txn "
-	 + "AND state = 'MOD';")
+	@SqlUpdate("")
 	public abstract void startFlatedges(
+	@Bind("txnId") Long txnId);
+	
+	@SqlUpdate("")
+	public abstract void endAcknowledgements(
+	@Bind("txnId") Long txnId);
+
+	@SqlUpdate("")
+	public abstract void startAcknowledgements(
 	@Bind("txnId") Long txnId);
 
 
