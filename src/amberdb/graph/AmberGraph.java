@@ -48,7 +48,42 @@ public class AmberGraph extends BaseGraph
     
     public static final DataSource DEFAULT_DATASOURCE = 
             JdbcConnectionPool.create("jdbc:h2:mem:persist","pers","pers");
+    
+    private static final Map<String, String>  vertexToTableMap = new HashMap<>();
+    static {
+    	vertexToTableMap.put("work",            "work");
+    	vertexToTableMap.put("eadwork",         "work");
+    	vertexToTableMap.put("page",            "work");
+    	vertexToTableMap.put("copy",            "work");
+    	vertexToTableMap.put("section",         "work");
+    	vertexToTableMap.put("file",            "file");
+    	vertexToTableMap.put("imagefile",       "file");
+    	vertexToTableMap.put("movingimagefile", "file");
+    	vertexToTableMap.put("soundfile",       "file");
+    	vertexToTableMap.put("description",     "description");
+    	vertexToTableMap.put("cameradata",      "description");
+    	vertexToTableMap.put("geocoding",       "description");
+    	vertexToTableMap.put("iptc",            "description");
+    	vertexToTableMap.put("party",           "party");
+    	vertexToTableMap.put("tag",             "tag");
+    }
 
+    private static final Map<String, String>  edgeToTableMap = new HashMap<>();
+    static {
+    	edgeToTableMap.put("label",          "flatedge");
+    	edgeToTableMap.put("acknowledge",    "flatedge");
+    	edgeToTableMap.put("deliveredOn",    "flatedge");
+    	edgeToTableMap.put("descriptionOf",  "flatedge");
+    	edgeToTableMap.put("existsOn",       "flatedge");
+    	edgeToTableMap.put("isCopyOf",       "flatedge");
+    	edgeToTableMap.put("isDerivativeOf", "flatedge");
+    	edgeToTableMap.put("isFileOf",       "flatedge");
+    	edgeToTableMap.put("isPartOf",       "flatedge");
+    	edgeToTableMap.put("represents",     "flatedge");
+    	edgeToTableMap.put("tags",           "flatedge");
+    }
+    
+    
     protected DBI dbi;
     private AmberDao dao;
 
@@ -176,6 +211,8 @@ public class AmberGraph extends BaseGraph
 
         dao.createIdGeneratorTable();
         dao.createTransactionTable();
+        
+        dao.createV2Tables();
        
         newId(); // seed generator with id > 0
     }
@@ -817,10 +854,20 @@ public class AmberGraph extends BaseGraph
                 log.debug("ending elements");
                 dao.endElements(txnId);
                 dao.endWorks(txnId);
+                dao.endFiles(txnId);
+                dao.endTags(txnId);
+                dao.endParties(txnId);
+                dao.endDescriptions(txnId);
+                dao.endFlatedges(txnId);
                 // start new elements for new and modified transaction elements
                 log.debug("starting elements");
                 dao.startElements(txnId);
                 dao.startWorks(txnId);
+                dao.startFiles(txnId);
+                dao.startTags(txnId);
+                dao.startParties(txnId);
+                dao.startDescriptions(txnId);
+                dao.startFlatedges(txnId);
                 // Refactor note: need to check when adding (modding?) edges that both ends exist
                 dao.insertTransaction(txnId, new Date().getTime(), user, operation);
                 dao.commit();
@@ -838,7 +885,6 @@ public class AmberGraph extends BaseGraph
                         log.error("Backoff delay failed :", ie); // noted
                     }
                     backoff = backoff *2;
-                    dao.begin();
                 } else {
                     log.error("AmberDb commit failed after {} retries: Reason:", retries, e);
                     throw e;
@@ -1133,7 +1179,7 @@ public class AmberGraph extends BaseGraph
 	}
 
 	private void addEdge(Map<String, Set<AmberEdge>> edgesByType, AmberEdge e) {
-		final String type = e.getProperty("type");
+		final String type = e.getLabel();
 		if (StringUtils.isNotBlank(type)) {
 			Set<AmberEdge> set = edgesByType.get(type);
 			if (set == null) {
@@ -1146,13 +1192,21 @@ public class AmberGraph extends BaseGraph
 	
 	private void suspendIntoFlatVertexTables(Long sessId, Map<String, Set<AmberVertex>> verticesByType, String operation) {
         for (Entry<String, Set<AmberVertex>> entry: verticesByType.entrySet()) {
-        	dao.suspendIntoFlatVertexTable(sessId, operation, "sess_" + entry.getKey(), entry.getValue());
+        	String vertexType = entry.getKey().toLowerCase();
+        	String table = vertexToTableMap.get(vertexType);
+        	if (StringUtils.isNotBlank(table)) {
+        		dao.suspendIntoFlatVertexTable(sessId, operation, "sess_" + table, entry.getValue());
+        	}
         }
 	}
 
 	private void suspendIntoFlatEdgeTables(Long sessId, Map<String, Set<AmberEdge>> edgesByType, String operation) {
         for (Entry<String, Set<AmberEdge>> entry: edgesByType.entrySet()) {
-        	dao.suspendIntoFlatEdgeTable(sessId, operation, "sess_" + entry.getKey(), entry.getValue());
+        	String edgeType = entry.getKey().toLowerCase();
+        	String table = edgeToTableMap.get(edgeType);
+        	if (StringUtils.isNotBlank(table)) {
+        		dao.suspendIntoFlatEdgeTable(sessId, operation, "sess_" + table, entry.getValue());
+        	}
         }
 	}
 
