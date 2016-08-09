@@ -71,7 +71,7 @@ public class AmberGraph extends BaseGraph
     private static final Map<String, String>  edgeToTableMap = new HashMap<>();
     static {
     	edgeToTableMap.put("label",          "flatedge");
-    	edgeToTableMap.put("acknowledge",    "flatedge");
+    	edgeToTableMap.put("acknowledge",    "acknowledge");
     	edgeToTableMap.put("deliveredOn",    "flatedge");
     	edgeToTableMap.put("descriptionOf",  "flatedge");
     	edgeToTableMap.put("existsOn",       "flatedge");

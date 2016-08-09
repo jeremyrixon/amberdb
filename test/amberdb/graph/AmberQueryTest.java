@@ -315,7 +315,6 @@ public class AmberQueryTest {
     private Vertex addFile(Vertex copy, int num, int numProps) {
         Vertex file = graph.addVertex(null);
         file.setProperty("type", "File");
-        file.setProperty("subUnitNo", num);
         addDesc(file, num);
         file.addEdge("isFileOf", copy);
         return file;
