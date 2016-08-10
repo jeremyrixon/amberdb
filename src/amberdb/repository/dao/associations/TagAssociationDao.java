@@ -1,4 +1,4 @@
-package amberdb.repository.dao;
+package amberdb.repository.dao.associations;
 
 import amberdb.repository.model.Node;
 import amberdb.repository.model.Tag;
@@ -11,7 +11,7 @@ import org.skife.jdbi.v2.sqlobject.mixins.GetHandle;
 import java.util.List;
 import java.util.Map;
 
-public abstract class TagRelationshipDao implements GetHandle {
+public abstract class TagAssociationDao implements GetHandle {
 
     public List<Node> getTaggedObjects(Long id) {
         // TODO - figure out which table to pull the tagged object from

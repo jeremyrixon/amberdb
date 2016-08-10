@@ -1,19 +1,29 @@
 package amberdb.repository.model;
 
+import amberdb.enums.SubType;
+import amberdb.relation.ExistsOn;
+import amberdb.relation.IsPartOf;
+import amberdb.repository.dao.associations.AckAssociationDao;
 import amberdb.repository.dao.WorkDao;
+import amberdb.repository.dao.associations.DeliveryWorkAssociationDao;
+import amberdb.repository.dao.associations.ParentChildAssociationDao;
+import amberdb.repository.dao.associations.PartsAssociationDao;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
+import com.tinkerpop.blueprints.Direction;
 
 import javax.persistence.Column;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class Work extends Node {
+
     @Column(name="abstract")
     protected String abstractText;
     @Column
     protected String category;
-    @Column
-    protected String dcmAltPi;
+    @Column(name="dcmAltPi")
+    protected String jsonDcmAltPi;
     @Column
     protected String dcmWorkPid;
     @Column
@@ -133,44 +143,44 @@ public class Work extends Node {
     protected String preservicaId;
     @Column
     protected Boolean allowOnsiteAccess;
-    @Column
-    protected String series;
-    @Column
-    protected String classification;
-    @Column
-    protected String contributor;
-    @Column
-    protected String coverage;
-    @Column
-    protected String occupation;
-    @Column
-    protected String otherTitle;
-    @Column
-    protected String standardId;
-    @Column
-    protected String subject;
-    @Column
-    protected String scaleEtc;
+    @Column(name="series")
+    protected String jsonSeries;
+    @Column(name="classification")
+    protected String jsonClassification;
+    @Column(name="contributor")
+    protected String jsonContributor;
+    @Column(name="coverage")
+    protected String jsonCoverage;
+    @Column(name="occupation")
+    protected String jsonOccupation;
+    @Column(name="otherTitle")
+    protected String jsonOtherTitle;
+    @Column(name="standardId")
+    protected String jsonStandardId;
+    @Column(name="subject")
+    protected String jsonSubject;
+    @Column(name="scaleEtc")
+    protected String jsonScaleEtc;
     @Column
     protected String tilePosition;
     @Column
     protected String workPid;
-    @Column
-    protected String constraint;
+    @Column(name="scaleEtc")
+    protected String jsonConstraint;
     @Column
     protected String rights;
     @Column
     protected String tempHolding;
     @Column
     protected String sensitiveMaterial;
-    @Column
-    protected String sensitiveReason;
-    @Column
-    protected String restrictionsOnAccess;
-    @Column
-    protected String findingAidNote;
-    @Column
-    protected String eventNote;
+    @Column(name="sensitiveReason")
+    protected String jsonSensitiveReason;
+    @Column(name="restrictionsOnAccess")
+    protected String jsonRestrictionsOnAccess;
+    @Column(name="findingAidNote")
+    protected String jsonFindingAidNote;
+    @Column(name="findingAidNote")
+    protected String jsonEventNote;
     @Column
     protected String uniformTitle;
     @Column
@@ -197,12 +207,24 @@ public class Work extends Node {
     protected String additionalCreator;
     @Column
     protected String additionalSeries;
+    @Column(name="coordinates")
+    protected String jsonCoordinates;
+    @Column
+    protected String carrier;
 
     protected WorkDao workDao;
+    protected AckAssociationDao ackDao;
+    protected DeliveryWorkAssociationDao deliveryWorkDao;
+    protected ParentChildAssociationDao parentChildDao;
+    protected PartsAssociationDao partsDao;
 
     public Work() {
         super();
         workDao = jdbiHelper.getDbi().onDemand(WorkDao.class);
+        ackDao = jdbiHelper.getDbi().onDemand(AckAssociationDao.class);
+        deliveryWorkDao = jdbiHelper.getDbi().onDemand(DeliveryWorkAssociationDao.class);
+        parentChildDao = jdbiHelper.getDbi().onDemand(ParentChildAssociationDao.class);
+        partsDao = jdbiHelper.getDbi().onDemand(PartsAssociationDao.class);
     }
 
     public String getAbstractText() {
@@ -221,12 +243,12 @@ public class Work extends Node {
         this.category = category;
     }
 
-    public void setDcmAltPi(String dcmAltPi) {
-        this.dcmAltPi = dcmAltPi;
+    public void setJSONDcmAltPi(String jsonDcmAltPi) {
+        this.jsonDcmAltPi = jsonDcmAltPi;
     }
 
-    public String getDcmWorkPid() {
-        return dcmWorkPid;
+    public String getJSONDcmAltPi() {
+        return jsonDcmAltPi;
     }
 
     public void setDcmWorkPid(String dcmWorkPid) {
@@ -689,76 +711,76 @@ public class Work extends Node {
         this.allowOnsiteAccess = allowOnsiteAccess;
     }
 
-    public String getSeries() {
-        return series;
+    public String getJSONSeries() {
+        return jsonSeries;
     }
 
-    public void setSeries(String series) {
-        this.series = series;
+    public void setJSONSeries(String jsonSeries) {
+        this.jsonSeries = jsonSeries;
     }
 
-    public String getClassification() {
-        return classification;
+    public String getJSONClassification() {
+        return jsonClassification;
     }
 
-    public void setClassification(String classification) {
-        this.classification = classification;
+    public void setJSONClassification(String classification) {
+        this.jsonClassification = jsonClassification;
     }
 
-    public String getContributor() {
-        return contributor;
+    public String getJSONContributor() {
+        return jsonContributor;
     }
 
-    public void setContributor(String contributor) {
-        this.contributor = contributor;
+    public void setJSONContributor(String jsonContributor) {
+        this.jsonContributor = jsonContributor;
     }
 
-    public String getCoverage() {
-        return coverage;
+    public String getJSONCoverage() {
+        return jsonCoverage;
     }
 
-    public void setCoverage(String coverage) {
-        this.coverage = coverage;
+    public void setJSONCoverage(String jsonCoverage) {
+        this.jsonCoverage = jsonCoverage;
     }
 
-    public String getOccupation() {
-        return occupation;
+    public String getJSONOccupation() {
+        return jsonOccupation;
     }
 
-    public void setOccupation(String occupation) {
-        this.occupation = occupation;
+    public void setJSONOccupation(String jsonOccupation) {
+        this.jsonOccupation = jsonOccupation;
     }
 
-    public String getOtherTitle() {
-        return otherTitle;
+    public String getJSONOtherTitle() {
+        return jsonOtherTitle;
     }
 
-    public void setOtherTitle(String otherTitle) {
-        this.otherTitle = otherTitle;
+    public void setJSONOtherTitle(String jsonOtherTitle) {
+        this.jsonOtherTitle = jsonOtherTitle;
     }
 
-    public String getStandardId() {
-        return standardId;
+    public String getJSONStandardId() {
+        return jsonStandardId;
     }
 
-    public void setStandardId(String standardId) {
-        this.standardId = standardId;
+    public void setJSONStandardId(String jsonStandardId) {
+        this.jsonStandardId = jsonStandardId;
     }
 
-    public String getSubject() {
-        return subject;
+    public String getJSONSubject() {
+        return jsonSubject;
     }
 
-    public void setSubject(String subject) {
-        this.subject = subject;
+    public void setJSONSubject(String jsonSubject) {
+        this.jsonSubject = jsonSubject;
     }
 
-    public String getScaleEtc() {
-        return scaleEtc;
+    public String getJSONScaleEtc() {
+        return jsonScaleEtc;
     }
 
-    public void setScaleEtc(String scaleEtc) {
-        this.scaleEtc = scaleEtc;
+    public void setJSONScaleEtc(String jsonScaleEtc) {
+        this.jsonScaleEtc = jsonScaleEtc;
     }
 
     public String getTilePosition() {
@@ -777,12 +799,12 @@ public class Work extends Node {
         this.workPid = workPid;
     }
 
-    public String getConstraint() {
-        return constraint;
+    public String getJSONConstraint() {
+        return jsonConstraint;
     }
 
-    public void setConstraint(String constraint) {
-        this.constraint = constraint;
+    public void setJSONConstraint(String jsonConstraint) {
+        this.jsonConstraint = jsonConstraint;
     }
 
     public String getRights() {
@@ -809,36 +831,36 @@ public class Work extends Node {
         this.sensitiveMaterial = sensitiveMaterial;
     }
 
-    public String getSensitiveReason() {
-        return sensitiveReason;
+    public String getJSONSensitiveReason() {
+        return jsonSensitiveReason;
     }
 
-    public void setSensitiveReason(String sensitiveReason) {
-        this.sensitiveReason = sensitiveReason;
+    public void setJSONSensitiveReason(String jsonSensitiveReason) {
+        this.jsonSensitiveReason = jsonSensitiveReason;
     }
 
-    public String getRestrictionsOnAccess() {
-        return restrictionsOnAccess;
+    public String getJSONRestrictionsOnAccess() {
+        return jsonRestrictionsOnAccess;
     }
 
-    public void setRestrictionsOnAccess(String restrictionsOnAccess) {
-        this.restrictionsOnAccess = restrictionsOnAccess;
+    public void setJSONRestrictionsOnAccess(String jsonRestrictionsOnAccess) {
+        this.jsonRestrictionsOnAccess = jsonRestrictionsOnAccess;
     }
 
-    public String getFindingAidNote() {
-        return findingAidNote;
+    public String getJSONFindingAidNote() {
+        return jsonFindingAidNote;
     }
 
-    public void setFindingAidNote(String findingAidNote) {
-        this.findingAidNote = findingAidNote;
+    public void setJSONFindingAidNote(String jsonFindingAidNote) {
+        this.jsonFindingAidNote = jsonFindingAidNote;
     }
 
-    public String getEventNote() {
-        return eventNote;
+    public String getJSONEventNote() {
+        return jsonEventNote;
     }
 
-    public void setEventNote(String eventNote) {
-        this.eventNote = eventNote;
+    public void setJSONEventNote(String jsonEventNote) {
+        this.jsonEventNote = jsonEventNote;
     }
 
     public String getUniformTitle() {
@@ -945,31 +967,274 @@ public class Work extends Node {
         this.additionalSeries = additionalSeries;
     }
 
-    public WorkDao getWorkDao() {
-        return workDao;
+    public String getJSONCoordinates() {
+        return jsonCoordinates;
     }
 
-    public void setWorkDao(WorkDao workDao) {
-        this.workDao = workDao;
+    public void setJSONCoordinates(String jsonCoordinates) {
+        this.jsonCoordinates = jsonCoordinates;
     }
 
-    // TODO - Associations. Update below to use DAOs
+    public String getCarrier() {
+        return carrier;
+    }
 
-//    public GeoCoding addGeoCoding() {
-//
-//    }
-//
-//    public IPTC addIPTC() {
-//
-//    }
+    public void setCarrier(String carrier) {
+        this.carrier = carrier;
+    }
 
-    // TODO - Update below methods to use DAOs if needed
+    // TODO - Associations
+    // Getters only. Add/remove need to be done in controllers due to needing txn_start/txn_end values
 
-    public void setDcmAltPi(List<String> list) {
+    public GeoCoding getGeoCoding() {
+        return (GeoCoding) getDescription("GeoCoding");
+    }
 
+    public IPTC getIPTC() {
+        return (IPTC) getDescription("IPTC");
+    }
+
+    Iterable<Acknowledge> getAcknowledgements() {
+        return ackDao.getAcknowledgements(this.getId());
+    }
+
+    public List<Acknowledge> getOrderedAcknowledgements() {
+        return ackDao.getOrderedAcknowledgements(this.getId());
+    }
+
+    public Iterable<Work> getDeliveryWorks() {
+        return deliveryWorkDao.getDeliveryWorks(this.getId());
+    }
+
+    public Work getDeliveryWorkParent() {
+        return deliveryWorkDao.getDeliveryWorkParent(this.getId());
+    }
+
+    public void setDeliveryWorkOrder(int position) {
+        deliveryWorkDao.setDeliveryWorkOrder(this.getId(), position);
+    }
+
+    public Work getParent() {
+        return parentChildDao.getParent(this.getId());
+    }
+
+    public Iterable<Work> getChildren() {
+        return parentChildDao.getChildren(this.getId());
+    }
+
+    public void setOrder(int position) {
+        setOrder(getParent(), IsPartOf.label, Direction.IN, position);
+    }
+
+    public Iterable<Work> getLeafs(SubType subType) {
+        return partsDao.getLeafs(this.getId(), IsPartOf.label, subType.code());
+    }
+
+    public Iterable<Work> getLeafs(List<String> subTypes) {
+        String subType = String.join(", ", subTypes);
+        return partsDao.getLeafs(this.getId(), IsPartOf.label, subType);
+    }
+
+    public Iterable<Section> getSections(SubType subType) {
+        return partsDao.getSections(this.getId(), IsPartOf.label, subType.code());
+    }
+
+    public Section asSection() {
+        return (Section) this;
+    }
+
+    public EADWork asEADWork() {
+        return (EADWork) this;
+    }
+
+    // TODO - Previously implemented using @JavaHandler
+
+    public void setDcmAltPi(List<String> list) throws JsonProcessingException {
+        setJSONDcmAltPi(serialiseToJSON(list));
     }
 
     public List<String> getDcmAltPi() {
-        return new ArrayList();
+        return deserialiseJSONString(getJSONDcmAltPi());
+    }
+
+    public String getHoldingNumberAndId() {
+        return getHoldingNumber() + (getHoldingId() != null ? ("|:|" + getHoldingId()) : "");
+    }
+
+    public void setHoldingNumberAndId(String holdNumAndId) {
+        if (holdNumAndId == null || holdNumAndId.isEmpty()) {
+            setHoldingNumber(null);
+            setHoldingId(null);
+        } else {
+            List<String> splitted = Lists.newArrayList(Splitter.on("|:|").split(holdNumAndId));
+            if (splitted.size() == 2) {
+                setHoldingNumber(splitted.get(0));
+                setHoldingId(splitted.get(1));
+            }
+            else if (splitted.size() == 1) {
+                setHoldingNumber(splitted.get(0));
+            }
+        }
+    }
+
+    public List<Work> getPartsOf(List<String> subTypes) {
+        List<Work> works = partsDao.getSubType(this.getId(), IsPartOf.label);
+        List<Work> filteredWorks = new ArrayList();
+
+        for (Work w : works) {
+            if (subTypes.contains(w.getSubType())) {
+                filteredWorks.add(w);
+            }
+        }
+
+        return filteredWorks;
+    }
+
+    public List<Work> getExistsOn(List<String> subTypes) {
+        List<Work> works = partsDao.getSubType(this.getId(), ExistsOn.label);
+        List<Work> filteredWorks = new ArrayList();
+
+        for (Work w : works) {
+            if (subTypes.contains(w.getSubType())) {
+                filteredWorks.add(w);
+            }
+        }
+
+        return works;
+    }
+
+    public List<Work> getPartsOf(String subType) {
+        return getPartsOf(Arrays.asList(new String[]{subType}));
+    }
+
+    public List<Work> getExistsOn(String subType) {
+        return getExistsOn(Arrays.asList(new String[]{subType}));
+    }
+
+    public void setSeries(List<String> series) throws JsonProcessingException {
+        setJSONSeries(serialiseToJSON(series));
+    }
+
+    public List<String> getSeries() {
+        return deserialiseJSONString(getJSONSeries());
+    }
+
+    public void setClassification(List<String> classification) throws JsonProcessingException {
+        setJSONClassification(serialiseToJSON(classification));
+    }
+
+    public List<String> getClassification() {
+        return deserialiseJSONString(getJSONClassification());
+    }
+
+    public void setContributor(List<String> contributor) throws JsonProcessingException {
+        setJSONContributor(serialiseToJSON(contributor));
+    }
+
+    public List<String> getContributor() {
+        return deserialiseJSONString(getJSONContributor());
+    }
+
+    public void setCoverage(List<String> coverage) throws JsonProcessingException {
+        setJSONCoverage(serialiseToJSON(coverage));
+    }
+
+    public List<String> getCoverage() {
+        return deserialiseJSONString(getJSONCoverage());
+    }
+
+    public void setOccupation(List<String> occupation) throws JsonProcessingException {
+        setJSONOccupation(serialiseToJSON(occupation));
+    }
+
+    public List<String> getOccupation() {
+        return deserialiseJSONString(getJSONOccupation());
+    }
+
+    public void setOtherTitle(List<String> otherTitle) throws JsonProcessingException {
+        setJSONOtherTitle(serialiseToJSON(otherTitle));
+    }
+
+    public List<String> getOtherTitle() {
+        return deserialiseJSONString(getJSONOtherTitle());
+    }
+
+    public void setStandardId(List<String> standardId) throws JsonProcessingException {
+        setJSONStandardId(serialiseToJSON(standardId));
+    }
+
+    public List<String> getStandardId() {
+        return deserialiseJSONString(getJSONStandardId());
+    }
+
+    public void setSubject(List<String> subject) throws JsonProcessingException {
+        setJSONSubject(serialiseToJSON(subject));
+    }
+
+    public List<String> getSubject() {
+        return deserialiseJSONString(getJSONSubject());
+    }
+
+    public void setScaleEtc(List<String> scaleEtc) throws JsonProcessingException {
+        setJSONScaleEtc(serialiseToJSON(scaleEtc));
+    }
+
+    public List<String> getScaleEtc() {
+        return deserialiseJSONString(getJSONScaleEtc());
+    }
+
+    public void setConstraint(List<String> constraint) throws JsonProcessingException {
+        setJSONConstraint(serialiseToJSON(constraint));
+    }
+
+    public Set<String> getConstraint() {
+        List<String> list = deserialiseJSONString(getJSONConstraint());
+        LinkedHashSet<String> constraint = new LinkedHashSet<>();
+        constraint.addAll(list);
+        return constraint;
+    }
+
+    public void setSensitiveReason(List<String> sensitiveReason) throws JsonProcessingException {
+        setJSONSensitiveReason(serialiseToJSON(sensitiveReason));
+    }
+
+    public List<String> getSensitiveReason() {
+        return deserialiseJSONString(getJSONSensitiveReason());
+    }
+
+    public void setRestrictionsOnAccess(List<String> restrictionsOnAccess) throws JsonProcessingException {
+        setJSONRestrictionsOnAccess(serialiseToJSON(restrictionsOnAccess));
+    }
+
+    public List<String> getRestrictionsOnAccess() {
+        return deserialiseJSONString(getJSONRestrictionsOnAccess());
+    }
+
+    public void setFindingAidNote(List<String> findingAidNote) throws JsonProcessingException {
+        setJSONFindingAidNote(serialiseToJSON(findingAidNote));
+    }
+
+    public List<String> getFindingAidNote() {
+        return deserialiseJSONString(getJSONFindingAidNote());
+    }
+
+    public void setEventNote(List<String> eventNote) throws JsonProcessingException {
+        setJSONEventNote(serialiseToJSON(eventNote));
+    }
+
+    public List<String> getEventNote() {
+        return deserialiseJSONString(getJSONEventNote());
+    }
+
+    public void setCoordinates(List<String> coordinates) throws JsonProcessingException {
+        setJSONCoordinates(serialiseToJSON(coordinates));
+    }
+
+    public List<String> getCoordinates() {
+        return deserialiseJSONString(getJSONCoordinates());
+    }
+
+    public List<String> getDeliveryWorkIds() {
+        return null;
     }
 }

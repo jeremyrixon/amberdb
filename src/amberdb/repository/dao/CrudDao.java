@@ -17,7 +17,7 @@ public interface CrudDao<T extends Node> {
     void delete(Long id);
     void deleteHistory(Long id);
 
-    // below methods update both the main and history tables
+    // below methods should operate on both the main and history tables
     void add(T instance);
     void update(T instance);
     void remove(Long id);

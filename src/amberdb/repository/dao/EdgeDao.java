@@ -18,4 +18,10 @@ public abstract class EdgeDao {
     @SqlQuery("select edge_order from flatedge where v_out = :id and type = :type")
     public abstract int getOrderOut(@Bind("id") Long id, @Bind("type") String type);
 
+    @SqlUpdate("update flatedge set edge_order = :position where id = :id")
+    public abstract void setOrder(@Bind("id") Long id, @Bind("position") int position);
+
+    @SqlQuery("select count(id) from flatedge where v_out = :id and type = 'existsOn'")
+    public abstract int countExistsOn(@Bind("id") Long id);
+
 }

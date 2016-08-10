@@ -5,9 +5,9 @@ import amberdb.PIUtil;
 import amberdb.graph.AmberTransaction;
 import amberdb.graph.dao.AmberDao;
 import amberdb.repository.JdbiHelper;
-import amberdb.repository.dao.DescriptionRelationshipDao;
+import amberdb.repository.dao.associations.DescriptionAssociationDao;
 import amberdb.repository.dao.EdgeDao;
-import amberdb.repository.dao.TagRelationshipDao;
+import amberdb.repository.dao.associations.TagAssociationDao;
 import amberdb.repository.dao.WorkDao;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -54,16 +54,16 @@ public class Node {
     protected JdbiHelper jdbiHelper;
     protected AmberDao amberDao;
     protected WorkDao workDao;
-    protected DescriptionRelationshipDao descRelationshipDao;
-    protected TagRelationshipDao tagRelationshipDao;
+    protected DescriptionAssociationDao descRelationshipDao;
+    protected TagAssociationDao tagAssociationDao;
     protected EdgeDao edgeDao;
 
     public Node() {
         jdbiHelper = new JdbiHelper();
         amberDao = jdbiHelper.getDbi().onDemand(AmberDao.class);
         workDao = jdbiHelper.getDbi().onDemand(WorkDao.class);
-        descRelationshipDao = jdbiHelper.getDbi().onDemand(DescriptionRelationshipDao.class);
-        tagRelationshipDao = jdbiHelper.getDbi().onDemand(TagRelationshipDao.class);
+        descRelationshipDao = jdbiHelper.getDbi().onDemand(DescriptionAssociationDao.class);
+        tagAssociationDao = jdbiHelper.getDbi().onDemand(TagAssociationDao.class);
         edgeDao = jdbiHelper.getDbi().onDemand(EdgeDao.class);
     }
 
@@ -210,7 +210,7 @@ public class Node {
     }
 
     public Iterable<Tag> getTags() {
-        return tagRelationshipDao.getTags(this.getId());
+        return tagAssociationDao.getTags(this.getId());
     }
 
     public void addTag(final Tag tag) {
@@ -218,7 +218,7 @@ public class Node {
     }
 
     public void removeTag(final Tag tag) {
-        tagRelationshipDao.removeTag(tag.getId(), this.getId());
+        tagAssociationDao.removeTag(tag.getId(), this.getId());
     }
 
     public void addCommentsInternal(String comment) {
