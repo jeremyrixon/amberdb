@@ -1,14 +1,11 @@
 package amberdb.v2.model;
 
-import amberdb.v2.PIUtil;
-import amberdb.v2.model.dao.WorkDao;
-import amberdb.v2.model.mapper.AmberDbMapperFactory;
+import amberdb.repository.mappers.AmberDbMapperFactory;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Transient;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -16,8 +13,6 @@ import java.util.List;
 @Entity
 @RegisterMapperFactory(AmberDbMapperFactory.class)
 public class Work extends AmberModel {
-
-    protected WorkDao workDao;
 
     @Column
     protected Date dcmDateTimeCreated;

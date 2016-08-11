@@ -1,7 +1,13 @@
 package amberdb.repository.model;
 
-import javax.persistence.Column;
+import amberdb.repository.mappers.AmberDbMapperFactory;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+
+@Entity
+@RegisterMapperFactory(AmberDbMapperFactory.class)
 public class CameraData extends Description {
     @Column
     public String exposureTime;

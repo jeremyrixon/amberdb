@@ -1,10 +1,14 @@
 package amberdb.repository.model;
 
-import amberdb.model.*;
+import amberdb.repository.mappers.AmberDbMapperFactory;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
 import javax.persistence.Column;
+import javax.persistence.Entity;
 import java.util.Date;
 
+@Entity
+@RegisterMapperFactory(AmberDbMapperFactory.class)
 public class Acknowledge extends Node {
     @Column
     public Long v_out;

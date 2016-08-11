@@ -1,21 +1,36 @@
 package amberdb.repository.model;
 
+import amberdb.AmberSession;
+import amberdb.model.Coordinates;
+import amberdb.enums.CopyRole;
+import amberdb.enums.CopyType;
 import amberdb.enums.SubType;
 import amberdb.relation.ExistsOn;
 import amberdb.relation.IsPartOf;
-import amberdb.repository.dao.associations.AckAssociationDao;
+import amberdb.repository.dao.associations.*;
 import amberdb.repository.dao.WorkDao;
-import amberdb.repository.dao.associations.DeliveryWorkAssociationDao;
-import amberdb.repository.dao.associations.ParentChildAssociationDao;
-import amberdb.repository.dao.associations.PartsAssociationDao;
+import amberdb.repository.mappers.AmberDbMapperFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
+import doss.BlobStore;
+import org.apache.commons.lang3.StringUtils;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
 import javax.persistence.Column;
+import javax.persistence.Entity;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.*;
 
+@Entity
+@RegisterMapperFactory(AmberDbMapperFactory.class)
 public class Work extends Node {
 
     @Column(name="abstract")
@@ -217,6 +232,9 @@ public class Work extends Node {
     protected DeliveryWorkAssociationDao deliveryWorkDao;
     protected ParentChildAssociationDao parentChildDao;
     protected PartsAssociationDao partsDao;
+    protected CopyAssociationDao copyDao;
+
+    static ObjectMapper mapper = new ObjectMapper();
 
     public Work() {
         super();
@@ -225,6 +243,7 @@ public class Work extends Node {
         deliveryWorkDao = jdbiHelper.getDbi().onDemand(DeliveryWorkAssociationDao.class);
         parentChildDao = jdbiHelper.getDbi().onDemand(ParentChildAssociationDao.class);
         partsDao = jdbiHelper.getDbi().onDemand(PartsAssociationDao.class);
+        copyDao = jdbiHelper.getDbi().onDemand(CopyAssociationDao.class);
     }
 
     public String getAbstractText() {
@@ -983,35 +1002,69 @@ public class Work extends Node {
         this.carrier = carrier;
     }
 
-    // TODO - Associations
-    // Getters only. Add/remove need to be done in controllers due to needing txn_start/txn_end values
+    public GeoCoding addGeoCoding() {
+        // TODO
+        return null;
+    }
 
     public GeoCoding getGeoCoding() {
         return (GeoCoding) getDescription("GeoCoding");
+    }
+
+    public IPTC addIPTC() {
+        // TODO
+        return null;
     }
 
     public IPTC getIPTC() {
         return (IPTC) getDescription("IPTC");
     }
 
-    Iterable<Acknowledge> getAcknowledgements() {
-        return ackDao.getAcknowledgements(this.getId());
-    }
-
-    public List<Acknowledge> getOrderedAcknowledgements() {
-        return ackDao.getOrderedAcknowledgements(this.getId());
-    }
-
     public Iterable<Work> getDeliveryWorks() {
         return deliveryWorkDao.getDeliveryWorks(this.getId());
+    }
+
+    public void addDeliveryWork(Work deliveryWork) {
+        // TODO
+    }
+
+    public void removeDeliveryWork(Work deliveryWork) {
+        // TODO
     }
 
     public Work getDeliveryWorkParent() {
         return deliveryWorkDao.getDeliveryWorkParent(this.getId());
     }
 
+    public void setDeliveryWorkParent(final Work interview) {
+        // TODO
+    }
+
+    void removeDeliveryWorkParent(final Work interview) {
+        // TODO
+    }
+
     public void setDeliveryWorkOrder(int position) {
         deliveryWorkDao.setDeliveryWorkOrder(this.getId(), position);
+    }
+
+    public List<String> getDeliveryWorkIds() {
+        return null;
+    }
+
+    public void removeDeliveryWorks() {
+        Iterable<Work> deliveryWorks = getDeliveryWorks();
+        for (Work dw : deliveryWorks) {
+            dw.removeDeliveryWorkParent(this);
+        }
+    }
+
+    public void setParent(final Work parent) {
+        // TODO
+    }
+
+    public void addChild(final Work part) {
+        // TODO
     }
 
     public Work getParent() {
@@ -1039,6 +1092,178 @@ public class Work extends Node {
         return partsDao.getSections(this.getId(), IsPartOf.label, subType.code());
     }
 
+    public Iterable<Copy> getCopies() {
+        return getOrderedCopies();
+    }
+
+    public Iterable<Copy> getOrderedCopies() {
+        return copyDao.getCopies(this.getId());
+    }
+
+    public Iterable<Copy> getOrderedCopies(CopyRole role) {
+        return copyDao.getCopies(this.getId(), role.code());
+    }
+
+    public Iterable<Copy> getCopies(CopyRole role) {
+        return getOrderedCopies(role);
+    }
+
+    public Copy getCopy(CopyRole role) {
+        return copyDao.getCopy(this.getId(), role.code());
+    }
+
+    public Copy addCopy() {
+        // TODO
+        return null;
+    }
+
+    public void addCopy(final Copy copy) {
+        // TODO
+    }
+
+    public void removeCopy(final Copy copy) {
+        // TODO
+    }
+
+    public Section addSection() {
+        // TODO
+        return null;
+    }
+
+    public Page addPage() {
+        // TODO
+        return null;
+    }
+
+    public void removePage(final Page page) {
+        // TODO
+    }
+
+    public void addRepresentative(final Copy copy) {
+        // TODO
+    }
+
+    public void removeRepresentative(final Copy copy) {
+        // TODO
+    }
+
+    public Iterable<Copy> getRepresentations() {
+        return copyDao.getRepresentations(this.getId());
+    }
+
+    public void removePart(final Work part) {
+        // TODO
+    }
+
+    public Acknowledge addAcknowledgement(final Party party) {
+        // TODO
+        return null;
+    }
+
+    public void removeAcknowledgement(final Acknowledge ack) {
+        // TODO
+    }
+
+    Iterable<Acknowledge> getAcknowledgements() {
+        return ackDao.getAcknowledgements(this.getId());
+    }
+
+    public List<Acknowledge> getOrderedAcknowledgements() {
+        return ackDao.getOrderedAcknowledgements(this.getId());
+    }
+
+    public Acknowledge addAcknowledgement(final Party party, final String ackType, final String kindOfSupport,
+                                          final Double weighting, final Date dateOfAck, final String urlToOriginal) {
+        Acknowledge ack = addAcknowledgement(party);
+        ack.setAckType(ackType);
+        ack.setKindOfSupport(kindOfSupport);
+        ack.setWeighting(weighting);
+        ack.setUrlToOriginal(urlToOriginal);
+        ack.setDate(dateOfAck);
+        return ack;
+    }
+
+    public Page addPage(Path sourceFile, String mimeType, BlobStore blobStore) throws IOException {
+        Page page = addPage();
+        page.addCopy(sourceFile, CopyRole.MASTER_COPY, mimeType, blobStore);
+        return page;
+    }
+
+    public Page addLegacyDossPage(Path dossPath, String mimeType, BlobStore blobStore) throws IOException {
+        Page page = addPage();
+        page.addLegacyDossCopy(dossPath, CopyRole.MASTER_COPY, mimeType, blobStore);
+        return page;
+    }
+
+    public Copy addCopy(Path sourceFile, CopyRole copyRole, String mimeType, BlobStore blobStore) throws IOException {
+        Copy copy = addCopy();
+        copy.setCopyRole(copyRole.code());
+        copy.addFile(sourceFile, mimeType, blobStore);
+        return copy;
+    }
+
+    public Copy addLegacyDossCopy(Path dossPath, CopyRole copyRole, String mimeType, BlobStore blobStore) throws IOException {
+        Copy copy = addCopy();
+        copy.setCopyRole(copyRole.code());
+        copy.addLegacyDossFile(dossPath, mimeType, blobStore);
+        return copy;
+    }
+
+    public List<Page> getPages() {
+        List<Page> pages = new ArrayList<>();
+        Iterable<Work> parts = this.getChildren();
+        if (parts != null) {
+            for (Work part : parts) {
+                pages.add((Page) part);
+            }
+        }
+        return pages;
+    }
+
+    public Page getPage(int position) {
+        if (position <= 0)
+            throw new IllegalArgumentException("Cannot get this page, invalid input position " + position);
+
+        Iterable<Page> pages = this.getPages();
+        if (pages == null || countParts() < position)
+            throw new IllegalArgumentException("Cannot get this page, page at position " + position + " does not exist.");
+
+        Iterator<Page> pagesIt = pages.iterator();
+        int counter = 1;
+        Page page = null;
+        while (pagesIt.hasNext()) {
+            page = pagesIt.next();
+            if (counter == position)
+                return page;
+            counter++;
+        }
+        return page;
+    }
+
+    public Work getLeaf(SubType subType, int position) {
+        if (position <= 0)
+            throw new IllegalArgumentException("Cannot get this page, invalid input position " + position);
+
+        Iterable<Work> leafs = getLeafs(subType);
+        if (leafs == null)
+            throw new IllegalArgumentException("Cannot get this page, page at position " + position + " does not exist.");
+
+        int counter = 1;
+        for (Work leaf : leafs) {
+            if (counter == position)
+                return leaf;
+        }
+        return null;
+    }
+
+    public int countCopies() {
+        return Lists.newArrayList(this.getCopies()).size();
+    }
+
+    public int countParts() {
+        return partsDao.countParts(this.getId());
+    }
+
     public Section asSection() {
         return (Section) this;
     }
@@ -1046,8 +1271,6 @@ public class Work extends Node {
     public EADWork asEADWork() {
         return (EADWork) this;
     }
-
-    // TODO - Previously implemented using @JavaHandler
 
     public void setDcmAltPi(List<String> list) throws JsonProcessingException {
         setJSONDcmAltPi(serialiseToJSON(list));
@@ -1109,6 +1332,165 @@ public class Work extends Node {
 
     public List<Work> getExistsOn(String subType) {
         return getExistsOn(Arrays.asList(new String[]{subType}));
+    }
+
+    public boolean isRepresented() {
+        Iterable<Copy> representations = getRepresentations();
+        return representations != null && Iterables.size(representations) != 0;
+    }
+
+    public void removeRepresentation(final Copy copy) {
+        removeRepresentative(copy);
+    }
+
+    public void addRepresentation(final Copy copy) {
+        addRepresentative(copy);
+    }
+
+    public Work getRepresentativeImageWork() {
+        // TODO - WTF?
+        return null;
+    }
+
+    public boolean hasBornDigitalCopy() {
+        Copy origCopy = getCopy(CopyRole.ORIGINAL_COPY);
+        return (origCopy != null) && CopyType.BORN_DIGITAL.code().equals(origCopy.getCopyType());
+    }
+
+    public boolean hasMasterCopy() {
+        return hasCopyRole(CopyRole.MASTER_COPY);
+    }
+
+    public boolean hasCopyRole(CopyRole role) {
+        return getCopy(role) != null;
+    }
+
+    public boolean hasCopyRole(List<CopyRole> copyRoles){
+        if (copyRoles != null){
+            for (CopyRole copyRole: copyRoles){
+                if (hasCopyRole(copyRole)){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public Copy getOrCreateCopy(CopyRole role) {
+        Copy copy = getCopy(role);
+        if (copy == null) {
+            copy = addCopy();
+            copy.setCopyRole(role.code());
+        }
+        return copy;
+    }
+
+    public Copy getFirstExistingCopy(CopyRole... roles){
+        if (roles != null){
+            for (CopyRole copyRole : roles){
+                Copy copy = getCopy(copyRole);
+                if (copy != null){
+                    return copy;
+                }
+            }
+        }
+        return null;
+    }
+
+    public boolean hasUniqueAlias(AmberSession session) {
+        List<String> aliases = getAlias();
+        if (aliases == null || aliases.size() == 0 || aliases.size() > 1) {
+            return false;
+        } else {
+            String alias = aliases.get(0);
+            List<Work> works = session.findModelByValueInJsonList("alias", alias, Work.class);
+            if (works.size() > 1) {
+                // Has more than 1 work with the same alias
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public Map<String, Collection<Copy>> getOrderedCopyMap() {
+        LinkedListMultimap<String, Copy> orderedCopyMap = LinkedListMultimap.create();
+        for (Copy copy : getOrderedCopies()) {
+            orderedCopyMap.put(copy.getCopyRole(), copy);
+        }
+        return orderedCopyMap.asMap();
+    }
+
+    public boolean hasImageAccessCopy(){
+        Copy accessCopy = getCopy(CopyRole.ACCESS_COPY);
+        return accessCopy != null && accessCopy.getImageFile() != null;
+    }
+
+    public Copy getCopy(CopyRole role, int index) {
+        List<Copy> orderedCopies = Lists.newArrayList(getOrderedCopies(role));
+        if (orderedCopies == null) {
+            return null;
+        }
+
+        if (orderedCopies.size() -1 < index) {
+            return null;
+        }
+
+        return orderedCopies.get(index);
+    }
+
+    public Coordinates getCoordinates(int index) {
+        List<Coordinates> allCoordinates = getCoordinates();
+        return allCoordinates.get(index);
+    }
+
+    public void addCoordinates(Coordinates coordinates) throws JsonProcessingException {
+        List<Coordinates> allCoordinates = getCoordinates();
+        allCoordinates.add(coordinates);
+        setCoordinates(allCoordinates);
+    }
+
+    public void setCoordinates(List<Coordinates> coordinatesList) throws JsonProcessingException {
+
+        setJSONCoordinates(mapper.writeValueAsString(coordinatesList));
+    }
+
+    public List<Coordinates> getCoordinates() {
+        String json = getJSONCoordinates();
+        if (json == null || json.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return deserialiseJSONString(json, new TypeReference<List<Coordinates>>() {});
+    }
+
+    public Integer getOrder() {
+        final Work currWork = this;
+        final long currId = currWork.getId();
+        Work parent = getParent();
+        if (parent == null) {
+            return null;
+        }
+        Iterable<Page> pages = parent.getPages();
+        int order = Iterables.indexOf(pages, new Predicate<Work>() {
+            @Override
+            public boolean apply(Work work) {
+                return currId == work.getId();
+            }
+        });
+        return order+1;
+    }
+
+    public boolean isVoyagerRecord() {
+        return StringUtils.isNotBlank(getBibId()) && StringUtils.equalsIgnoreCase(getRecordSource(), "voyager");
+    }
+
+    public void removeCopies(List<CopyRole> copyRoles) {
+        for (CopyRole copyRole : copyRoles){
+            Iterator<Copy> copies = getCopies(copyRole).iterator();
+            while (copies.hasNext()) {
+                removeCopy(copies.next());
+            }
+        }
     }
 
     public void setSeries(List<String> series) throws JsonProcessingException {
@@ -1226,15 +1608,4 @@ public class Work extends Node {
         return deserialiseJSONString(getJSONEventNote());
     }
 
-    public void setCoordinates(List<String> coordinates) throws JsonProcessingException {
-        setJSONCoordinates(serialiseToJSON(coordinates));
-    }
-
-    public List<String> getCoordinates() {
-        return deserialiseJSONString(getJSONCoordinates());
-    }
-
-    public List<String> getDeliveryWorkIds() {
-        return null;
-    }
 }

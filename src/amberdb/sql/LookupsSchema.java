@@ -1143,7 +1143,7 @@ public abstract class LookupsSchema {
     public abstract void seedManipulationLookups();
 
     @SqlUpdate(
-            "INSERT INTO vertexMap(vertexType, tableName) VALUE "
+            "INSERT INTO vertex_map(vertexType, tableName) VALUES "
             + "('work', 'work'), "
             + "('eadwork', 'work'), "
             + "('page', 'work'), "
@@ -1162,7 +1162,7 @@ public abstract class LookupsSchema {
     public abstract void seedVertexMap();
 
     @SqlUpdate(
-            "INSERT INTO edgeMap(edgeType, tableName) VALUE "
+            "INSERT INTO edge_map(edgeType, tableName) VALUES "
             + "('label', 'flatedge'), "
             + "('acknowledge', 'flatedge'), "
             + "('deliveredOn', 'flatedge'), "

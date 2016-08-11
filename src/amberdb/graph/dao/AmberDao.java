@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import amberdb.repository.mappers.AmberDbResultSetMapper;
 import org.apache.commons.lang.StringUtils;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.PreparedBatch;
@@ -1567,12 +1568,6 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 	public abstract void startAcknowledgements(
 	@Bind("txnId") Long txnId);
 
-	@SqlQuery("select tableName from vertex_map for type")
-	public abstract String getTableForVertexType(@Bind("type") String vertexType);
-
-	@SqlQuery("select tableName from edge_map for type")
-	public abstract String getTableForEdgeType(@Bind("type") String edgeType);
-
 	public AmberTransaction getFirstTransaction(Long id, String type) {
 		String tableName = getTableForVertexType(type);
 
@@ -1592,5 +1587,19 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 
 		return getTransaction(txnId);
 	}
+
+	public <T> T findObjectModelById(Long id, Class<T> type) {
+		String tableName = getTableForVertexType(type.getSimpleName());
+		String sql = String.format("select * from %s where id = %s", tableName, id);
+
+		Handle h = getHandle();
+		return (T) h.createQuery(sql).map(new AmberDbResultSetMapper(type)).first();
+	}
+
+	@SqlQuery("select tableName from vertex_map where vertexType = :vertexType")
+	public abstract String getTableForVertexType(String vertexType);
+
+	@SqlQuery("select tableName from edge_map where edgeType = :edgeType")
+	public abstract String getTableForEdgeType(String edgeType);
 }
 

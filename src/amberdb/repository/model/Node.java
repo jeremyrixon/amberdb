@@ -5,22 +5,25 @@ import amberdb.PIUtil;
 import amberdb.graph.AmberTransaction;
 import amberdb.graph.dao.AmberDao;
 import amberdb.repository.JdbiHelper;
-import amberdb.repository.dao.associations.DescriptionAssociationDao;
 import amberdb.repository.dao.EdgeDao;
-import amberdb.repository.dao.associations.TagAssociationDao;
 import amberdb.repository.dao.WorkDao;
+import amberdb.repository.dao.associations.DescriptionAssociationDao;
+import amberdb.repository.dao.associations.TagAssociationDao;
+import amberdb.repository.mappers.AmberDbMapperFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tinkerpop.blueprints.Direction;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
 import javax.persistence.Column;
-import javax.persistence.MappedSuperclass;
+import javax.persistence.Entity;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
 
-@MappedSuperclass
+@Entity
+@RegisterMapperFactory(AmberDbMapperFactory.class)
 public class Node {
     @Column
     protected long id = 0;

@@ -1,13 +1,18 @@
 package amberdb.repository.model;
 
+import amberdb.repository.mappers.AmberDbMapperFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
 import javax.persistence.Column;
+import javax.persistence.Entity;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+@Entity
+@RegisterMapperFactory(AmberDbMapperFactory.class)
 public class EADWork extends Work {
     @Column
     private String rdsAcknowledgementType;

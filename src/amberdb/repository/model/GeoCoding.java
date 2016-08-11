@@ -1,8 +1,14 @@
 package amberdb.repository.model;
 
+import amberdb.repository.mappers.AmberDbMapperFactory;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
+
 import javax.persistence.Column;
+import javax.persistence.Entity;
 import java.util.Date;
 
+@Entity
+@RegisterMapperFactory(AmberDbMapperFactory.class)
 public class GeoCoding extends Description {
     @Column
     public String gpsVersion;

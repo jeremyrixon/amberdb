@@ -61,19 +61,19 @@ public class Section extends Work {
     }
 
     public Iterable<Page> getExistsOnPages() {
-        return pageAssociationDao.existsOnPages(this.getId());
+        return partsDao.existsOnPages(this.getId());
     }
 
     public Page getPage(int idx) {
-        return pageAssociationDao.getPage(this.getId(), idx);
+        return partsDao.getPage(this.getId(), idx);
     }
 
     public Iterable<Work> getLeafs(String subType) {
-        return pageAssociationDao.getLeafs(this.getId(), ExistsOn.label, subType);
+        return partsDao.getLeafs(this.getId(), ExistsOn.label, subType);
     }
 
     public long getExistsOnRef(int position) {
-        return pageAssociationDao.getPage(this.getId(), position).getId();
+        return partsDao.getPage(this.getId(), position).getId();
     }
 
     public int countExistsOns() {

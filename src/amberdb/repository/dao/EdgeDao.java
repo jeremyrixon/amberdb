@@ -1,5 +1,6 @@
 package amberdb.repository.dao;
 
+import amberdb.repository.model.Copy;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
@@ -23,5 +24,4 @@ public abstract class EdgeDao {
 
     @SqlQuery("select count(id) from flatedge where v_out = :id and type = 'existsOn'")
     public abstract int countExistsOn(@Bind("id") Long id);
-
 }

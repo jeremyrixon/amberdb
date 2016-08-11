@@ -23,4 +23,7 @@ public abstract class PartsAssociationDao {
 
     @SqlQuery("select * from work w where w.id in (select f.v_out from flatedge f where f.id = :id and f.type = :relation")
     public abstract List<Work> getSubType(Long id, String relation);
+
+    @SqlQuery("select count(v_out) from flatedge where v_in = :id and type = 'isPartOf'")
+    public abstract Integer countParts(Long id);
 }
