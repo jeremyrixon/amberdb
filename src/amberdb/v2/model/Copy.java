@@ -1,12 +1,10 @@
 package amberdb.v2.model;
 
-import amberdb.AmberSession;
 import amberdb.NoSuchCopyException;
 import amberdb.enums.CopyRole;
-import amberdb.model.*;
 import amberdb.model.ImageFile;
+import amberdb.repository.mappers.AmberDbMapperFactory;
 import amberdb.util.Jp2Converter;
-import amberdb.v2.model.mapper.AmberDbMapperFactory;
 import doss.Blob;
 import doss.BlobStore;
 import org.apache.tika.Tika;

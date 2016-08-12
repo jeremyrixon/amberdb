@@ -1,5 +1,4 @@
-package amberdb.v2.model;
-
+package amberdb.repository.model;
 
 import amberdb.repository.mappers.AmberDbMapperFactory;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
@@ -9,16 +8,15 @@ import javax.persistence.Entity;
 
 @Entity
 @RegisterMapperFactory(AmberDbMapperFactory.class)
-public class Party extends AmberModel {
-
+public class Party extends Node {
     @Column
-    private String name;
+    public String name;
     @Column
-    private Boolean suppressed;
+    public String orgUrl;
     @Column
-    private String orgUrl;
+    public Boolean suppressed;
     @Column
-    private String logoUrl;
+    public String logoUrl;
 
     public String getName() {
         return name;
@@ -28,20 +26,20 @@ public class Party extends AmberModel {
         this.name = name;
     }
 
-    public Boolean getSuppressed() {
-        return suppressed;
-    }
-
-    public void setSuppressed(Boolean suppressed) {
-        this.suppressed = suppressed;
-    }
-
     public String getOrgUrl() {
         return orgUrl;
     }
 
     public void setOrgUrl(String orgUrl) {
         this.orgUrl = orgUrl;
+    }
+
+    public Boolean getSuppressed() {
+        return suppressed;
+    }
+
+    public void setSuppressed(Boolean suppressed) {
+        this.suppressed = suppressed;
     }
 
     public String getLogoUrl() {

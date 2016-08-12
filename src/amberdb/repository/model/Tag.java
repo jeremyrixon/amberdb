@@ -1,0 +1,45 @@
+package amberdb.repository.model;
+
+import amberdb.repository.mappers.AmberDbMapperFactory;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+
+@Entity
+@RegisterMapperFactory(AmberDbMapperFactory.class)
+public class Tag extends Node {
+    @Column
+    public String name;
+    @Column
+    public String description;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void addNode(final Node node) {
+        // TODO - need txn_start/txn_end values to insert into edge table
+        tagAssociationDao.addNode(this.getId(), node.getId());
+    }
+
+    public void removeNode(final Node node) {
+        tagAssociationDao.removeNode(this.getId(), node.getId());
+    }
+
+    public Iterable<Node> getTaggedObjects() {
+        return tagAssociationDao.getTaggedObjects(this.getId());
+    }
+}

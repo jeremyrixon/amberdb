@@ -1,8 +1,7 @@
 package amberdb.v2.model;
 
-
-import amberdb.v2.model.mapper.AmberDbMapperFactory;
-import amberdb.v2.util.DurationUtils;
+import amberdb.repository.mappers.AmberDbMapperFactory;
+import amberdb.util.DurationUtils;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 
 import javax.persistence.Column;

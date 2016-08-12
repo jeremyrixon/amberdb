@@ -259,10 +259,16 @@ public class AmberSession implements AutoCloseable {
      */
     public <T> T findModelObjectById(long objectId, Class<T> returnClass) {
         // TODO This should do some validation that the class is as expected, but that is almost impossible.
-        T obj = graph.getVertex(objectId, returnClass);
+        T obj = getAmberGraph().dao().findObjectModelById(objectId, returnClass);
+
+        if (obj == null) {
+            graph.getVertex(objectId, returnClass);
+        }
+
         if (obj == null) {
             throw new NoSuchObjectException(objectId);
         }
+
         return obj;
     }
 
