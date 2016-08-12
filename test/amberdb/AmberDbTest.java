@@ -24,21 +24,16 @@ import amberdb.model.File;
 import amberdb.model.Page;
 import amberdb.model.Work;
 
-public class AmberDbTest {
-
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
-
-
+public class AmberDbTest extends AbstractDatabaseIntegrationTest {
     @Test
     public void testPersistence() throws IOException {
         Work w1, w2;
         Long sessId;
-        try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()))) {
+        try (AmberSession db = amberDb.begin()) {
             w1 = db.addWork();
             sessId = db.suspend();
         }
-        try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()), sessId)) {
+        try (AmberSession db = amberDb.resume(sessId)) {
             assertNotNull(db.findWork(w1.getId()));
             w2 = db.addWork();
             db.commit();
@@ -50,11 +45,11 @@ public class AmberDbTest {
     @Test
     public void testIngestBook() throws IOException {
         
-        Path tmpFile = folder.newFile().toPath();
+        Path tmpFile = tempFolder.newFile().toPath();
         Files.write(tmpFile, "Hello world".getBytes());
 
         
-        AmberDb adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist","per","per"), folder.getRoot().toPath());
+        AmberDb adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+tempFolder.getRoot()+"persist","per","per"), tempFolder.getRoot().toPath());
         
         Long sessId;
         Long bookId;
@@ -86,7 +81,7 @@ public class AmberDbTest {
         }
         // next, persist the session (by closing it) open a new one and get the contents
 
-        adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist","per","per"), folder.getRoot().toPath());
+        adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+tempFolder.getRoot()+"persist","per","per"), tempFolder.getRoot().toPath());
         try (AmberSession db = adb.begin()) {
 
             Work book2 = db.findWork(bookId);
@@ -105,7 +100,7 @@ public class AmberDbTest {
     @Test
     public void testSuspendResume() throws IOException {
         
-        AmberDb adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist","per","per"), folder.getRoot().toPath());
+        AmberDb adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+tempFolder.getRoot()+"persist","per","per"), tempFolder.getRoot().toPath());
         
         Long sessId;
         Long bookId;
@@ -119,7 +114,7 @@ public class AmberDbTest {
             sessId = db.suspend();
         }
 
-        AmberDb adb2 = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist","per","per"), folder.getRoot().toPath());
+        AmberDb adb2 = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+tempFolder.getRoot()+"persist","per","per"), tempFolder.getRoot().toPath());
         try (AmberSession db = adb2.resume(sessId)) {
             
             // now, can we retrieve the files ?

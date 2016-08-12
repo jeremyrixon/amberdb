@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 import java.util.Date;
 
+import amberdb.AbstractDatabaseIntegrationTest;
 import com.google.common.collect.Sets;
 
 import amberdb.AmberSession;
@@ -15,14 +16,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class DescriptionTest {
-    private AmberSession amberDb;
+public class DescriptionTest extends AbstractDatabaseIntegrationTest {
     private String objId;
     
     @Before
     public void startup() {
-        amberDb = new AmberSession();
-        Work work = amberDb.addWork();
+        amberSession = amberDb.begin();
+        Work work = amberSession.addWork();
         objId = work.getObjId();
         Copy masterCopy = work.addCopy();
         masterCopy.setCopyRole(CopyRole.MASTER_COPY.code());
@@ -63,19 +63,19 @@ public class DescriptionTest {
         cd.setWhiteBalance("Auto");
         cd.setFileSource("Digital Still Camera (DSC)");
         
-        amberDb.commit();
+        amberSession.commit();
     }
     
     @After
     public void teardown() throws IOException {
-        if (amberDb != null) {
-            amberDb.close();
+        if (amberSession != null) {
+            amberSession.close();
         }
     }
     
     @Test
     public void testGetDescriptions() {
-        Work work = amberDb.findWork(objId);
+        Work work = amberSession.findWork(objId);
         Iterable<Description> workDescriptions = work.getDescriptions();
         assertNotNull(workDescriptions);
         assertEquals(IteratorUtils.toList(workDescriptions.iterator()).size(), 2);
@@ -87,9 +87,9 @@ public class DescriptionTest {
 
     @Test
     public void testGetADescription() {
-        long sessId = amberDb.suspend();
-        amberDb.recover(sessId);
-        Work work = amberDb.findWork(objId);
+        long sessId = amberSession.suspend();
+        amberSession.recover(sessId);
+        Work work = amberSession.findWork(objId);
         Description workGeocoding = work.getDescription("GeoCoding");
         assertNotNull(workGeocoding);
         assertEquals(workGeocoding.getType(), "GeoCoding");
@@ -97,7 +97,7 @@ public class DescriptionTest {
     
     @Test
     public void testGetGeocoding() {
-        Work work = amberDb.findWork(objId);
+        Work work = amberSession.findWork(objId);
         GeoCoding workGeocoding = work.getGeoCoding();
         assertNotNull(workGeocoding);
         assertEquals(workGeocoding.getLatitude(), "53,17.7924S");
@@ -107,7 +107,7 @@ public class DescriptionTest {
     
     @Test
     public void testGetIPTC() {
-        Work work = amberDb.findWork(objId);
+        Work work = amberSession.findWork(objId);
         IPTC workIPTC = work.getIPTC();
         assertNotNull(workIPTC);
         assertEquals(workIPTC.getSubLocation(), "Parkes");
@@ -118,7 +118,7 @@ public class DescriptionTest {
     
     @Test
     public void testGetCameraData() {
-        Work work = amberDb.findWork(objId);
+        Work work = amberSession.findWork(objId);
         Copy masterCopy = work.getCopy(CopyRole.MASTER_COPY);
         CameraData copyCameraData = masterCopy.getCameraData();
         assertNotNull(copyCameraData);
@@ -128,7 +128,7 @@ public class DescriptionTest {
 
     @Test
     public void propertySetHasAllProperties() {
-        Work work = amberDb.addWork();
+        Work work = amberSession.addWork();
         Copy masterCopy = work.addCopy();
         CameraData cd = masterCopy.addCameraData();
         cd.setExposureProgram("ex");

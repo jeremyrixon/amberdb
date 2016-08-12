@@ -20,55 +20,51 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 
-public class IngestTest {
-    @ClassRule
-    public static TemporaryFolder folder = new TemporaryFolder();
-
-    private static AmberSession db;
+public class IngestTest extends AbstractDatabaseIntegrationTest {
     private static JobMockup job;
     private static String samplePI;
 
-    @BeforeClass
-    public static void setup() throws IOException {
+    @Before
+    public void setup() throws IOException {
         job = uploadFiles();
-        db = identifyWorks();
+        amberSession = identifyWorks();
     }
 
-    @AfterClass
-    public static void teardown() throws IOException {
+    @After
+    public void teardown() throws IOException {
         job = null;
-        if (db != null) {
-            db.close();
+        if (amberSession != null) {
+            amberSession.close();
         }
-        db = null;
+        amberSession = null;
     }
 
-    private static JobMockup uploadFiles() throws IOException {
+    private JobMockup uploadFiles() throws IOException {
         job = new JobMockup();
 
         // Note: banjo upload files step does not interact with amberDb at all.
         List<Path> list = new ArrayList<Path>();
-        list.add(AmberDbTestUtils.newDummyFile(folder, "a.tiff"));
-        list.add(AmberDbTestUtils.newDummyFile(folder, "b.tiff"));
+        list.add(AmberDbTestUtils.newDummyFile(tempFolder, "a.tiff"));
+        list.add(AmberDbTestUtils.newDummyFile(tempFolder, "b.tiff"));
 
-        list.add(AmberDbTestUtils.newDummyFile(folder, "nla.aus-vn12345-1.tiff"));
-        list.add(AmberDbTestUtils.newDummyFile(folder, "nla.aus-vn12345-2.tiff"));
-        list.add(AmberDbTestUtils.newDummyFile(folder, "nla.aus-vn12345.xml"));
+        list.add(AmberDbTestUtils.newDummyFile(tempFolder, "nla.aus-vn12345-1.tiff"));
+        list.add(AmberDbTestUtils.newDummyFile(tempFolder, "nla.aus-vn12345-2.tiff"));
+        list.add(AmberDbTestUtils.newDummyFile(tempFolder, "nla.aus-vn12345.xml"));
 
-        list.add(AmberDbTestUtils.newDummyFile(folder, "nla.aus-vn643643-1.tiff"));
-        list.add(AmberDbTestUtils.newDummyFile(folder, "nla.aus-vn643643-2.tiff"));
+        list.add(AmberDbTestUtils.newDummyFile(tempFolder, "nla.aus-vn643643-1.tiff"));
+        list.add(AmberDbTestUtils.newDummyFile(tempFolder, "nla.aus-vn643643-2.tiff"));
 
         job.files = list;
         return job;
     }
 
-    private static AmberSession identifyWorks() throws IOException {
-        AmberSession amberDb = new AmberSession();
+    private AmberSession identifyWorks() throws IOException {
+        AmberSession amberSession = amberDb.begin();
 
         List<Long> bookIds = new ArrayList<Long>();
         // try to detect works based on filenames,
 
-        Work auto1 = amberDb.addWork();
+        Work auto1 = amberSession.addWork();
         samplePI = auto1.getObjId();
 
         auto1.setBibId("12345");
@@ -84,7 +80,7 @@ public class IngestTest {
         auto1.setTitle("Blinky Bill");
         bookIds.add(auto1.getId());
 
-        Work auto2 = amberDb.addWork();
+        Work auto2 = amberSession.addWork();
         auto2.setBibId("55555");
         auto2.addPage(job.files.get(5), "image/tiff").setOrder(1);
         auto2.setTitle("James and the giant peach");
@@ -93,7 +89,7 @@ public class IngestTest {
 
         // user manually creates a work out of the first two pages
 
-        Work manual = amberDb.addWork();
+        Work manual = amberSession.addWork();
         manual.addPage(job.files.get(0), "image/tiff").setOrder(1);
         manual.addPage(job.files.get(1), "image/tiff").setOrder(2);
         manual.setTitle("Little red riding hood");
@@ -104,14 +100,14 @@ public class IngestTest {
         // save this transaction without committing it
         // so we can continue manipulating these objects
         // in another web request
-        job.setAmberTxId(amberDb.suspend());
+        job.setAmberTxId(amberSession.suspend());
 
-        return amberDb;
+        return amberSession;
     }
 
     @Test
     public void testFindWorkByPI() {
-        Work sample = db.findWork(PIUtil.parse(samplePI));
+        Work sample = amberSession.findWork(PIUtil.parse(samplePI));
         assertEquals("Blinky Bill", sample.getTitle());
 
         String resultPI = sample.getObjId();
@@ -122,18 +118,18 @@ public class IngestTest {
     public void testDescribeWorks() {
 
         for (Long workId : job.getWorks()) {
-            describeWork(job, db.findWork(workId));
+            describeWork(job, amberSession.findWork(workId));
         }
 
         // save this transaction without committing it
         // so we can continue manipulating these objects
         // in another web request
-        job.setAmberTxId(db.suspend());
+        job.setAmberTxId(amberSession.suspend());
     }
 
     @Test
     public void testFixLabel() {
-        Work work = db.findWorkByVn(12345);
+        Work work = amberSession.findWorkByVn(12345);
 
         try {
             int count = work.countParts();
@@ -146,12 +142,12 @@ public class IngestTest {
             e.printStackTrace();
         }
 
-        db.commit();
+        amberSession.commit();
     }
 
     @Test
     public void testCancelJob() {
-        db.rollback();
+        amberSession.rollback();
     }
 
     @Test
@@ -160,7 +156,7 @@ public class IngestTest {
         System.out.println(new ObjectMapper()
                 .writerWithDefaultPrettyPrinter()
                 .writeValueAsString(
-                        db.serializeToJson()));
+                        amberSession.serializeToJson()));
     }
 
     private void describeWork(JobMockup job, Work work) {

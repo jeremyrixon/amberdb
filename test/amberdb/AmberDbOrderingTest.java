@@ -17,18 +17,14 @@ import amberdb.model.Node;
 import amberdb.model.Page;
 import amberdb.model.Work;
 
-public class AmberDbOrderingTest {
-
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
-
+public class AmberDbOrderingTest extends AbstractDatabaseIntegrationTest {
     @Test
     public void testPersistReorderedWork() throws IOException {
         Work w1, w2, w3, w4;
         Long sessId;
         List<Long> order = new ArrayList<>();
         List<Long> order1 = new ArrayList<>();
-        try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()))) {
+        try (AmberSession db = amberDb.begin()) {
             w1 = db.addWork();
             List<Work> pages = new ArrayList<>();
             for (int i = 0; i < 6; i++) {
@@ -45,7 +41,7 @@ public class AmberDbOrderingTest {
             db.commit();
             db.close();
         }
-        try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()), sessId)) {
+        try (AmberSession db = amberDb.resume(sessId)) {
             w2 = db.findWork(w1.getId());
             assertNotNull(w2);
             Iterable<Page> pages = w2.getPages();
@@ -56,7 +52,7 @@ public class AmberDbOrderingTest {
             }
             db.close();
         }
-        try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()), sessId)) {
+        try (AmberSession db = amberDb.resume(sessId)) {
             w3 = db.findWork(w2.getId());
             assertNotNull(w3);
             List<Work> pages = w3.getPartsOf("Page");
@@ -73,7 +69,7 @@ public class AmberDbOrderingTest {
             }
             db.close();
         }
-        try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()), sessId)) {
+        try (AmberSession db = amberDb.resume(sessId)) {
             w4 = db.findWork(w3.getId());
             assertNotNull(w4);
             List<Work> pages = w4.getPartsOf("Page");
