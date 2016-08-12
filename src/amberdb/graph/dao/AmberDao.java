@@ -1589,7 +1589,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 	}
 
 	public <T> T findObjectModelById(Long id, Class<T> type) {
-		String tableName = getTableForVertexType(type.getSimpleName());
+		String tableName = getTableForVertexType(type.getSimpleName().toLowerCase());
 		String sql = String.format("select * from %s where id = %s", tableName, id);
 
 		Handle h = getHandle();
@@ -1597,9 +1597,9 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 	}
 
 	@SqlQuery("select tableName from vertex_map where vertexType = :vertexType")
-	public abstract String getTableForVertexType(String vertexType);
+	public abstract String getTableForVertexType(@Bind("vertexType") String vertexType);
 
 	@SqlQuery("select tableName from edge_map where edgeType = :edgeType")
-	public abstract String getTableForEdgeType(String edgeType);
+	public abstract String getTableForEdgeType(@Bind("edgeType") String edgeType);
 }
 

@@ -1225,6 +1225,8 @@ public abstract class LookupsSchema {
         seedMaterialTypesLookups();
         seedDepositTypeList();
         seedManipulationLookups();
+        seedVertexMap();
+        seedEdgeMap();
     }
 
     public void setupToolsAssociations(List<ListLu> lookups) {

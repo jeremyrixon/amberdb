@@ -31,6 +31,8 @@ import doss.BlobStore;
 import org.apache.commons.lang.StringUtils;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 
@@ -72,6 +74,7 @@ public class AmberSession implements AutoCloseable {
                 .build());
     private List<AmberPreCommitHook> preCommitHooks = new ArrayList<>();
 
+    private static final Logger log = LoggerFactory.getLogger(AmberSession.class);
 
     /**
      * Constructs an in-memory AmberDb for testing with. Also creates a BlobStore in a temp dir
@@ -259,10 +262,16 @@ public class AmberSession implements AutoCloseable {
      */
     public <T> T findModelObjectById(long objectId, Class<T> returnClass) {
         // TODO This should do some validation that the class is as expected, but that is almost impossible.
-        T obj = getAmberGraph().dao().findObjectModelById(objectId, returnClass);
+        T obj = null;
+
+        try {
+            obj = getAmberGraph().dao().findObjectModelById(objectId, returnClass);
+        } catch(IllegalArgumentException e) {
+            log.trace("Attempted to retrieve a V1 model");
+        }
 
         if (obj == null) {
-            graph.getVertex(objectId, returnClass);
+            obj = graph.getVertex(objectId, returnClass);
         }
 
         if (obj == null) {
@@ -587,7 +596,7 @@ public class AmberSession implements AutoCloseable {
      * edge has been modified, then both its connected objects (vertices) are
      * returned
      *
-     * @param when
+     * @param from
      *            time of first modifications to be included
      * @return a map of object ids and how they changed
      */

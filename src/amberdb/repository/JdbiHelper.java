@@ -19,9 +19,8 @@ public class JdbiHelper {
     /**
      * Use with Spring.
      * @param dbi DBI
-     * @param dbType type of database
      */
-    public JdbiHelper(DBI dbi, String dbType) {
+    public JdbiHelper(DBI dbi) {
         this.dbi = dbi;
         this.dbi.registerMapper(new AmberDbMapperFactory());
     }
@@ -40,6 +39,7 @@ public class JdbiHelper {
 
         // Try to read the database connection details from System properties
         if (System.getProperty("amber.url") != null) {
+            log.debug("Reading database connection properties from environment variables");
             JdbcConnectionPool jdbcConnectionPool =
                     JdbcConnectionPool.create(
                             System.getProperty("amber.url"),
@@ -48,6 +48,7 @@ public class JdbiHelper {
             dbi = new DBI(jdbcConnectionPool);
         } else {
             // Otherwise, read it from a properties file
+            log.debug("Reading database connection properties from db.properties file");
             JdbcConnectionPool jdbcConnectionPool =
                     JdbcConnectionPool.create(
                             DbProperties.DB_URL.val(),

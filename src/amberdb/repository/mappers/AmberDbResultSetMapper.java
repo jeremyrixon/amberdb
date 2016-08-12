@@ -39,12 +39,12 @@ public class AmberDbResultSetMapper<T> implements ResultSetMapper<T> {
         Class aClass = type;
         while(aClass != null) {
             for (Field field : aClass.getDeclaredFields()) {
-                String fieldName;
+                String fieldName = field.getName().toLowerCase();
                 if (field.isAnnotationPresent(Column.class)) {
                     Column col = field.getAnnotation(Column.class);
-                    fieldName = col.name().toLowerCase();
-                } else {
-                    fieldName = field.getName().toLowerCase();
+                    if (StringUtils.isNotBlank(col.name())) {
+                        fieldName = col.name().toLowerCase();
+                    }
                 }
                 properties.put(fieldName, field);
             }

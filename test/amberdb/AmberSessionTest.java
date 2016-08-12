@@ -15,10 +15,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -36,30 +34,9 @@ import amberdb.model.Work;
 import doss.CorruptBlobStoreException;
 import doss.local.LocalBlobStore;
 
-public class AmberSessionTest {
+public class AmberSessionTest extends AbstractDatabaseIntegrationTest {
 
-    public AmberSession sess;
     Path fileLocation = Paths.get("test/resources/hello.txt");
-    Path dossLocation;
-
-    @Rule
-    public TemporaryFolder tmpFolder = new TemporaryFolder();
-
-    @Before
-    public void setup() throws CorruptBlobStoreException, IOException {
-        dossLocation = tmpFolder.getRoot().toPath();
-        LocalBlobStore.init(dossLocation);
-        sess = new AmberSession(LocalBlobStore.open(dossLocation));
-        for (Vertex v : sess.getGraph().getVertices()) {
-            v.remove();
-        }
-        sess.commit();
-    }
-
-    @After
-    public void tearDown() throws IOException {
-        if (sess != null) sess.close();
-    }
 
     @Test
     public void testDeleteWorkWithAudit() throws IOException {
@@ -83,16 +60,16 @@ public class AmberSessionTest {
         // 5 copies (none for the section)
         assertEquals(c, 5);
 
-        sess.commit();
-        sess.close();
+        amberSession.commit();
+        amberSession.close();
 
-        sess = new AmberSession(LocalBlobStore.open(dossLocation));
+        amberSession = amberDb.begin();
 
-        Work bookAgain = sess.findWork(book.getId());
+        Work bookAgain = amberSession.findWork(book.getId());
         assertNotNull(bookAgain);
 
-        Map<String, Integer> counts = sess.deleteWorksFast(new HashMap<String, Integer>(), bookAgain);
-        assertEquals(numVertices(sess.getAmberGraph()), 0);
+        Map<String, Integer> counts = amberSession.deleteWorksFast(new HashMap<String, Integer>(), bookAgain);
+        assertEquals(numVertices(amberSession.getAmberGraph()), 0);
 
         assertEquals(new Integer(5), counts.get("File"));
         assertEquals(new Integer(5), counts.get("Copy"));
@@ -108,16 +85,16 @@ public class AmberSessionTest {
         book3.addChild(book5);
 
         // check we have the 4 books
-        assertEquals(numVertices(sess.getAmberGraph()), 68);
+        assertEquals(numVertices(amberSession.getAmberGraph()), 68);
 
-        counts = sess.deleteWorksFast(new HashMap<String, Integer>(), book3);
+        counts = amberSession.deleteWorksFast(new HashMap<String, Integer>(), book3);
 
         assertEquals(new Integer(15), counts.get("File"));
         assertEquals(new Integer(15), counts.get("Copy"));
         assertEquals(new Integer(21), counts.get("Work"));
 
         // we should have retained book6 as it's not in book3 hierarchy
-        assertEquals(numVertices(sess.getAmberGraph()), 17);
+        assertEquals(numVertices(amberSession.getAmberGraph()), 17);
     }
 
     @Test
@@ -142,16 +119,16 @@ public class AmberSessionTest {
         // 5 copies (none for the section)
         assertEquals(c, 5);
 
-        sess.commit();
-        sess.close();
+        amberSession.commit();
+        amberSession.close();
 
-        sess = new AmberSession(LocalBlobStore.open(dossLocation));
+        amberSession = amberDb.begin();
 
-        Work bookAgain = sess.findWork(book.getId());
+        Work bookAgain = amberSession.findWork(book.getId());
         assertNotNull(bookAgain);
 
-        sess.deleteWorks(bookAgain);
-        assertEquals(numVertices(sess.getAmberGraph()), 0);
+        amberSession.deleteWorks(bookAgain);
+        assertEquals(numVertices(amberSession.getAmberGraph()), 0);
 
         // check we don't delete Sets
         Work book3 = makeBook();
@@ -164,12 +141,12 @@ public class AmberSessionTest {
         book3.addChild(book5);
 
         // check we have the 4 books
-        assertEquals(numVertices(sess.getAmberGraph()), 68);
+        assertEquals(numVertices(amberSession.getAmberGraph()), 68);
 
-        sess.deleteWorks(book3);
+        amberSession.deleteWorks(book3);
 
         // we should have retained book6 as it's not in book3 hierarchy
-        assertEquals(numVertices(sess.getAmberGraph()), 17);
+        assertEquals(numVertices(amberSession.getAmberGraph()), 17);
     }
 
     @Test
@@ -183,7 +160,7 @@ public class AmberSessionTest {
         book4.addChild(book5);
         book5.addChild(book3);
 
-        sess.deleteWorks(book4);
+        amberSession.deleteWorks(book4);
     }
 
     private static void s(String s) {
@@ -192,7 +169,7 @@ public class AmberSessionTest {
 
     private Work makeBook() throws IOException {
 
-        Work book = sess.addWork();
+        Work book = amberSession.addWork();
         book.setBibLevel("Item");
 
         Page p1 = book.addPage(fileLocation, "text/plain");
@@ -213,7 +190,7 @@ public class AmberSessionTest {
     public void testSuspensionEdgeDeletions() throws IOException {
 
         // create a graph with 1 edge
-        AmberGraph g = sess.getAmberGraph();
+        AmberGraph g = amberSession.getAmberGraph();
 
         Vertex v1 = g.addVertex(null);
         Vertex v2 = g.addVertex(null);
@@ -223,17 +200,17 @@ public class AmberSessionTest {
         g.removeEdge(e);
         assertEquals(numEdges(g), 0);
         Long sId = g.suspend();
-        sess.close();
+        amberSession.close();
 
-        sess = new AmberSession(LocalBlobStore.open(dossLocation));
-        AmberGraph g2 = sess.getAmberGraph();
+        amberSession = amberDb.begin();
+        AmberGraph g2 = amberSession.getAmberGraph();
         g2.resume(sId);
         assertEquals(numEdges(g2), 0);
         g2.commit();
-        sess.close();
+        amberSession.close();
 
-        sess = new AmberSession(LocalBlobStore.open(dossLocation));
-        AmberGraph g3 = sess.getAmberGraph();
+        amberSession = amberDb.begin();
+        AmberGraph g3 = amberSession.getAmberGraph();
         assertEquals(numEdges(g3), 0);
     }
 
@@ -244,29 +221,29 @@ public class AmberSessionTest {
         Work book = makeBook();
 
         // check our creation
-        assertEquals(19, numEdges(sess.getAmberGraph()));
-        assertEquals(17, numVertices(sess.getAmberGraph()));
+        assertEquals(19, numEdges(amberSession.getAmberGraph()));
+        assertEquals(17, numVertices(amberSession.getAmberGraph()));
 
         // now delete the parent and suspend
-        sess.deleteWork(book);
-        long sessId = sess.suspend();
-        sess.close();
+        amberSession.deleteWork(book);
+        long sessId = amberSession.suspend();
+        amberSession.close();
 
         // next recover the session
-        sess = new AmberSession(LocalBlobStore.open(dossLocation));
-        sess.recover(sessId);
+        amberSession = amberDb.begin();
+        amberSession.recover(sessId);
 
         // check what's in the resumed session - should be 5 pages with 5 copies and 5 files, and 1 Section
-        assertEquals(13, numEdges(sess.getAmberGraph()));
-        assertEquals(16, numVertices(sess.getAmberGraph()));
+        assertEquals(13, numEdges(amberSession.getAmberGraph()));
+        assertEquals(16, numVertices(amberSession.getAmberGraph()));
         // now commit it
-        sess.commit();
-        sess.close();
+        amberSession.commit();
+        amberSession.close();
 
         // then recover the session
-        sess = new AmberSession(LocalBlobStore.open(dossLocation));
-        assertEquals(13, numEdges(sess.getAmberGraph()));
-        assertEquals(16, numVertices(sess.getAmberGraph()));
+        amberSession = amberDb.begin();
+        assertEquals(13, numEdges(amberSession.getAmberGraph()));
+        assertEquals(16, numVertices(amberSession.getAmberGraph()));
     }
 
     private int numEdges(Graph g) {
@@ -289,10 +266,10 @@ public class AmberSessionTest {
     public void testFindModelByJsonListValue() throws IOException {
 
         // committed works
-        Work w1 = sess.addWork();
-        Work w2 = sess.addWork();
-        Work w3 = sess.addWork();
-        Work w4 = sess.addWork();
+        Work w1 = amberSession.addWork();
+        Work w2 = amberSession.addWork();
+        Work w3 = amberSession.addWork();
+        Work w4 = amberSession.addWork();
 
         w1.setAlias(Arrays.asList("wally", "beta", "delta", "epsilon", "gamma"));
         w2.setAlias(Arrays.asList("beta", "delta", "epsilon", "gamma", "wally"));
@@ -301,34 +278,34 @@ public class AmberSessionTest {
         w4.setAlias(Arrays.asList("beta", "delta", "wally", "epsilon", "gamma"));
         w4.setStandardId(Arrays.asList("1445-2197 (ISSN)"));
 
-        sess.commit();
+        amberSession.commit();
 
         // uncommitted works
-        Work w5 = sess.addWork();
-        Work w6 = sess.addWork();
+        Work w5 = amberSession.addWork();
+        Work w6 = amberSession.addWork();
 
         w5.setAlias(Arrays.asList("wally", "beta", "delta", "epsilon", "gamma"));
         w6.setAlias(Arrays.asList("beta", "delta", "epsilon", "gamma"));
         w6.setStandardId(Arrays.asList("1445-2197 (ISSN)"));
 
-        List<Work> works = sess.findModelByValueInJsonList("alias", "wally", Work.class);
+        List<Work> works = amberSession.findModelByValueInJsonList("alias", "wally", Work.class);
 
         assertEquals(4, works.size());
         for (Work w : works) {
             assertTrue(w.getAlias().contains("wally"));
         }
         
-        assertEquals(3, sess.findModelByValueInJsonList("standardId", "1445-2197 (ISSN)", Work.class).size());
+        assertEquals(3, amberSession.findModelByValueInJsonList("standardId", "1445-2197 (ISSN)", Work.class).size());
     }
 
     @Test
     public void testFindModelByValue() throws IOException {
 
         // committed works
-        Work w1 = sess.addWork();
-        Work w2 = sess.addWork();
-        Work w3 = sess.addWork();
-        Work w4 = sess.addWork();
+        Work w1 = amberSession.addWork();
+        Work w2 = amberSession.addWork();
+        Work w3 = amberSession.addWork();
+        Work w4 = amberSession.addWork();
 
         w1.setBibId("harry");
         w2.setBibId("houdini");
@@ -344,11 +321,11 @@ public class AmberSessionTest {
         w3.setDcmDateTimeCreated(d2);
         w4.setDcmDateTimeCreated(d2);
 
-        sess.commit();
+        amberSession.commit();
 
         // uncommitted works
-        Work w5 = sess.addWork();
-        Work w6 = sess.addWork();
+        Work w5 = amberSession.addWork();
+        Work w6 = amberSession.addWork();
 
         w5.setBibId("harrison");
         w6.setBibId("harry");
@@ -356,10 +333,10 @@ public class AmberSessionTest {
         w6.setDcmDateTimeCreated(d1);
 
         // string find
-        List<Work> works = sess.findModelByValue("bibId", "harry", Work.class);
+        List<Work> works = amberSession.findModelByValue("bibId", "harry", Work.class);
         assertEquals(3, works.size());
 
-        works = sess.findModelByValue("dcmDateTimeCreated", d1, Work.class);
+        works = amberSession.findModelByValue("dcmDateTimeCreated", d1, Work.class);
         assertEquals(2, works.size());
     }
     
@@ -369,7 +346,7 @@ public class AmberSessionTest {
         String[] collections = { "nla.aus", "nla.gen", "nla.aus", "nla.aus"};
         String[] alias = {"alias", "altalias"};
         for (int i = 0; i < 4; i++) {
-            Work record = sess.addWork();
+            Work record = amberSession.addWork();
             records.add(record);
             record.setCollection(collections[i]);
             List<String> recordAlias = new ArrayList<>();
@@ -377,18 +354,49 @@ public class AmberSessionTest {
                 recordAlias.add(alia + i);
             }
             record.setAlias(recordAlias);
-        }        
-        sess.commit();
-        Tag tag = sess.addTagForCollection("nla.aus", "nla-aus-alias-tag", "alias", true);
-        sess.commit();
+        }
+        amberSession.commit();
+        Tag tag = amberSession.addTagForCollection("nla.aus", "nla-aus-alias-tag", "alias", true);
+        amberSession.commit();
         
         HashMap<String, List<Long>> map = new ObjectMapper().readValue(tag.getDescription(), new TypeReference<LinkedHashMap<String, List<Long>>>() {});
         for (String alia : map.keySet()) {
             List<Long> recordIds = map.get(alia);
             for (Long recordId : recordIds) {
-                Work record = sess.findWork(recordId);
+                Work record = amberSession.findWork(recordId);
                 assertTrue(record.getAlias().contains(alia));
             }
         }
+    }
+
+    @Test
+    public void testFindModelObjectById() {
+        // committed works
+        Work w1 = amberSession.addWork();
+        Work w2 = amberSession.addWork();
+        Work w3 = amberSession.addWork();
+        Work w4 = amberSession.addWork();
+
+        w1.setBibId("harry");
+        w2.setBibId("houdini");
+        w3.setBibId("harry");
+        w4.setBibId("potter");
+
+        Date d1 = new Date();
+        Date d2 = new Date();
+        d2.setYear(0);
+
+        w1.setDcmDateTimeCreated(d2);
+        w2.setDcmDateTimeCreated(d1);
+        w3.setDcmDateTimeCreated(d2);
+        w4.setDcmDateTimeCreated(d2);
+
+        amberSession.commit();
+
+        amberdb.repository.model.Work work = amberSession.findModelObjectById(w1.getId(), amberdb.repository.model.Work.class);
+        assertNotNull(work);
+        assertEquals(w1.getId(), work.getId());
+        assertTrue(StringUtils.equals(w1.getBibId(), work.getBibId()));
+        assertEquals(w1.getDcmDateTimeCreated(), work.getDcmDateTimeCreated());
     }
 }
