@@ -10,7 +10,7 @@ import java.util.List;
 
 public abstract class WorkDao implements Transactional<WorkDao>, GetHandle {
 
-    @SqlQuery("select * from work where id = :id")
+    @SqlQuery("select * from work where id = :id and type = 'EADWork'")
     public abstract EADWork getEADWork(Long id);
 
     @SqlQuery("select * from work where localSystemNumber = :localSystemNumber")

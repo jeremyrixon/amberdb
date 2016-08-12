@@ -3,6 +3,7 @@ package amberdb.repository.mappers;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.skife.jdbi.v2.StatementContext;
+import org.skife.jdbi.v2.tweak.ResultColumnMapper;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,67 +15,80 @@ import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
- * Uses annotations and reflection to map ResultSet to POJO.
+ * Slight modification of JDBI's ReflectionBeanMapper to use <code>@Column</code>
+ * annotations for property names.
  *
  * @param <T> The class to map
  */
 public class AmberDbResultSetMapper<T> implements ResultSetMapper<T> {
 
     private final Class<T> type;
+    private final Map<String, Field> properties = new HashMap<String, Field>();
 
     private static final Logger log = LoggerFactory.getLogger(AmberDbResultSetMapper.class);
 
     public AmberDbResultSetMapper(Class<T> type) {
         this.type = type;
+        cacheAllFieldsIncludingSuperClass(type);
+    }
+
+    private void cacheAllFieldsIncludingSuperClass(Class<T> type) {
+        Class aClass = type;
+        while(aClass != null) {
+            for (Field field : aClass.getDeclaredFields()) {
+                String fieldName;
+                if (field.isAnnotationPresent(Column.class)) {
+                    Column col = field.getAnnotation(Column.class);
+                    fieldName = col.name().toLowerCase();
+                } else {
+                    fieldName = field.getName().toLowerCase();
+                }
+                properties.put(fieldName, field);
+            }
+            aClass = aClass.getSuperclass();
+        }
     }
 
     @Override
     public T map(int row, ResultSet rs, StatementContext ctx) throws SQLException {
-        T bean = null;
+        T bean;
 
         try {
-            if (rs != null) {
-                if (type.isAnnotationPresent(Entity.class)) {
-                    ResultSetMetaData md = rs.getMetaData();
-                    // Models inherit from AmberModel, which has the ID, transaction start and end properties
-                    // but also have to take into account models inheriting from other models.
-                    // eg. Section => Work => AmberModel.
-                    // Adjust for level of inheritance when needed.
-                    List<Field> fields = new ArrayList();
-                    fields.addAll(Arrays.asList(type.getSuperclass().getSuperclass().getDeclaredFields()));
-                    fields.addAll(Arrays.asList(type.getSuperclass().getDeclaredFields()));
-                    fields.addAll(Arrays.asList(type.getDeclaredFields()));
+            bean = type.newInstance();
+        } catch (Exception e) {
+            throw new IllegalArgumentException(String.format("A bean, %s, was mapped " +
+                    "which was not instantiable", type.getName()), e);
+        }
 
-                    bean = type.newInstance();
+        ResultSetMetaData metadata = rs.getMetaData();
 
-                    for (int i = 1; i <= md.getColumnCount(); ++i) {
-                        String colName = md.getColumnLabel(i);
-                        Object colValue = rs.getObject(i);
+        for (int i = 1; i <= metadata.getColumnCount(); ++i) {
+            String name = metadata.getColumnLabel(i).toLowerCase();
 
-                        for (Field f : fields) {
-                            if (f.isAnnotationPresent(Column.class)) {
-                                Column col = f.getAnnotation(Column.class);
-                                String _colName = col.name();
-                                if (StringUtils.isBlank(_colName)) {
-                                    _colName = f.getName();
-                                }
-                                if (_colName.equalsIgnoreCase(colName)
-                                        && colValue != null) {
-                                    BeanUtils.setProperty(bean, f.getName(), colValue);
-                                }
-                            }
-                        }
-                    }
+            Field field = properties.get(name);
+
+            if (field != null) {
+                Class type = field.getType();
+
+                Object value;
+                ResultColumnMapper mapper = ctx.columnMapperFor(type);
+                if (mapper != null) {
+                    value = mapper.mapColumn(rs, i, ctx);
+                } else {
+                    value = rs.getObject(i);
+                }
+
+                try {
+                    field.setAccessible(true);
+                    field.set(bean, value);
+                } catch (IllegalAccessException e) {
+                    throw new IllegalArgumentException(String.format("Unable to access " +
+                            "property, %s", name), e);
                 }
             }
-
-        } catch (InstantiationException | InvocationTargetException | IllegalAccessException e) {
-            log.error("Bean of type {} could not be mapped.", type);
         }
 
         return bean;
