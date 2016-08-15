@@ -1,0 +1,36 @@
+package amberdb.util;
+
+import amberdb.AmberDb;
+import amberdb.AmberSession;
+import amberdb.sql.ListLu;
+import org.h2.jdbcx.JdbcConnectionPool;
+import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import javax.sql.DataSource;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
+public class LookupRefreshTest {
+
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
+    
+    @Test
+    public void TestRefreshLookupData() throws IOException {
+
+        DataSource ds = JdbcConnectionPool.create("jdbc:h2:mem:amberdb", "test/java/amberdb", "test/java/amberdb");
+        
+        try (AmberSession db = new AmberDb(ds, folder.getRoot().toPath()).begin()) {
+            List<ListLu> srcLu = LookupRefresh.synchronizeLookups(db);
+            Map<String, ListLu> destMap = LookupRefresh.indexLookups(db.getLookups().findActiveLookups());
+            for (ListLu lu : srcLu) {
+                String nameCode = lu.getName() + "_" + lu.getCode();
+                Assert.assertNotNull(destMap.get(nameCode));
+            }
+        }
+    }
+}
