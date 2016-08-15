@@ -34,11 +34,11 @@
     </distributionManagement>
     
     <build>
-        <sourceDirectory>${basedir}/src</sourceDirectory>
-        <testSourceDirectory>${basedir}/test</testSourceDirectory>
+        <sourceDirectory>${basedir}/src/main/java</sourceDirectory>
+        <testSourceDirectory>${basedir}/src/test/java</testSourceDirectory>
         <resources>
             <resource>
-                <directory>src</directory>
+                <directory>src/main/resources</directory>
                 <excludes>
                     <exclude>**/*.java</exclude>
                 </excludes>
@@ -46,7 +46,7 @@
         </resources>
         <testResources>
             <testResource>
-                <directory>test</directory>
+                <directory>src/test/resources</directory>
                 <excludes>
                     <exclude>**/*.java</exclude>
                 </excludes>
@@ -75,7 +75,7 @@
                 <version>2.4.2</version>
                 <configuration>
                     <excludes>
-                        <exclude>amberdb/v1/TestUtils.java</exclude>
+                        <exclude>amberdb/TestUtils.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
