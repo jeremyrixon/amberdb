@@ -2,7 +2,10 @@ package amberdb.graph;
 
 
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
@@ -12,6 +15,14 @@ public class VertexMapper implements ResultSetMapper<AmberVertexWithState> {
 
     
     private AmberGraph graph;
+    
+    private static Set<String> skipProps = new HashSet<>();
+    static {
+    	skipProps.add("id");
+    	skipProps.add("txn_start");
+    	skipProps.add("txn_end");
+    	skipProps.add("state");
+    }
 
     
     public VertexMapper(AmberGraph graph) {
@@ -27,7 +38,18 @@ public class VertexMapper implements ResultSetMapper<AmberVertexWithState> {
                 graph,
                 rs.getLong("txn_start"),
                 rs.getLong("txn_end"));
-
+        
+        ResultSetMetaData metadata = rs.getMetaData();
+        int numColumns = metadata.getColumnCount();
+        for(int column = 1; column <= numColumns; column++) {
+        	String label = metadata.getColumnLabel(column);
+        	if (!skipProps.contains(label)) {
+	        	Object o = rs.getObject(column);
+	        	if (o != null) {
+	        		vertex.setProperty(label, o);
+	        	}
+        	}
+        }
         return new AmberVertexWithState(vertex, rs.getString("state"));
     }
 }

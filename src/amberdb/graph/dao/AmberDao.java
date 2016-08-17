@@ -1198,7 +1198,66 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" weighting DOUBLE, "
     				+" urlToOriginal TEXT); "
     				+"CREATE INDEX sess_acknowledge_id ON sess_acknowledge (id); "
-    				+"CREATE INDEX sess_acknowledge_txn_id ON sess_acknowledge (id, txn_start, txn_end); ")
+    				+"CREATE INDEX sess_acknowledge_txn_id ON sess_acknowledge (id, txn_start, txn_end); "
+    				+"DROP TABLE IF EXISTS node; "
+    				+"CREATE TABLE IF NOT EXISTS node ( "
+    				+" id BIGINT, "
+    				+" txn_start BIGINT DEFAULT 0 NOT NULL, "
+    				+" txn_end BIGINT DEFAULT 0 NOT NULL, "
+    				+" type VARCHAR(15), "
+    				+" "
+    				+" accessConditions VARCHAR(13), "
+    				+" alias TEXT, "
+    				+" commentsExternal TEXT, "
+    				+" commentsInternal TEXT, "
+    				+" expiryDate DATETIME, "
+    				+" internalAccessConditions TEXT, "
+    				+" localSystemNumber VARCHAR(39), "
+    				+" notes VARCHAR(30), "
+    				+" recordSource VARCHAR(8), "
+    				+" restrictionType TEXT); "
+    				+"CREATE INDEX node_id ON node (id); "
+    				+"CREATE INDEX node_txn_id ON node (id, txn_start, txn_end); "
+    				+"DROP TABLE IF EXISTS node_history; "
+    				+"CREATE TABLE IF NOT EXISTS node_history ( "
+    				+" id BIGINT, "
+    				+" txn_start BIGINT DEFAULT 0 NOT NULL, "
+    				+" txn_end BIGINT DEFAULT 0 NOT NULL, "
+    				+" type VARCHAR(15), "
+    				+" "
+    				+" accessConditions VARCHAR(13), "
+    				+" alias TEXT, "
+    				+" commentsExternal TEXT, "
+    				+" commentsInternal TEXT, "
+    				+" expiryDate DATETIME, "
+    				+" internalAccessConditions TEXT, "
+    				+" localSystemNumber VARCHAR(39), "
+    				+" notes VARCHAR(30), "
+    				+" recordSource VARCHAR(8), "
+    				+" restrictionType TEXT); "
+    				+"CREATE INDEX node_history_id ON node_history (id); "
+    				+"CREATE INDEX node_history_txn_id ON node_history (id, txn_start, txn_end); "
+    				+"DROP TABLE IF EXISTS sess_node; "
+    				+"CREATE TABLE IF NOT EXISTS sess_node ( "
+    				+" s_id BIGINT, "
+    				+" state CHAR(3), "
+    				+" id BIGINT, "
+    				+" txn_start BIGINT DEFAULT 0 NOT NULL, "
+    				+" txn_end BIGINT DEFAULT 0 NOT NULL, "
+    				+" type VARCHAR(15), "
+    				+" "
+    				+" accessConditions VARCHAR(13), "
+    				+" alias TEXT, "
+    				+" commentsExternal TEXT, "
+    				+" commentsInternal TEXT, "
+    				+" expiryDate DATETIME, "
+    				+" internalAccessConditions TEXT, "
+    				+" localSystemNumber VARCHAR(39), "
+    				+" notes VARCHAR(30), "
+    				+" recordSource VARCHAR(8), "
+    				+" restrictionType TEXT); "
+    				+"CREATE INDEX sess_node_id ON sess_node (id); "
+    				+"CREATE INDEX sess_node_txn_id ON sess_node (id, txn_start, txn_end); ")
     public abstract void createV2Tables();
 
     @SqlQuery(
@@ -1458,6 +1517,37 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 		preparedBatch.execute();
 		
 	}
+	
+	public void suspendIntoNodeTable(Long sessId, String state, Set<AmberVertex> set) {
+		String sql = "INSERT INTO sess_node ( s_id,  state,  id,  txn_start,  txn_end,  type,  accessConditions,  alias,  commentsExternal,  commentsInternal,  expiryDate,  internalAccessConditions,  localSystemNumber,  notes,  recordSource,  restrictionType) "
+				                  + "VALUES (:s_id, :state, :id, :txn_start, :txn_end, :type, :accessConditions, :alias, :commentsExternal, :commentsInternal, :expiryDate, :internalAccessConditions, :localSystemNumber, :notes, :recordSource, :restrictionType)";
+		if ("DEL".equals(state)) { 
+			sql = "INSERT INTO sess_node ( s_id,  state,  id,  txn_start,  txn_end,  type) "
+	                           + "VALUES (:s_id, :state, :id, :txn_start, :txn_end, :type)";
+		}
+
+		Handle h = getHandle();
+		PreparedBatch preparedBatch = h.prepareBatch(sql);
+		for (AmberVertex v: set) {
+			PreparedBatchPart preparedBatchPart = preparedBatch.add();
+			preparedBatchPart.bind("s_id",       sessId);
+			preparedBatchPart.bind("state",      state);
+			preparedBatchPart.bind("id",         v.getId());
+			preparedBatchPart.bind("txn_start",  v.getTxnStart());
+			preparedBatchPart.bind("txn_end",    v.getTxnEnd());
+			preparedBatchPart.bind("type",       v.getProperty("type"));
+			if (!"DEL".equals(state)) {
+				String[] fields = new String[] { "accessConditions", "alias", "commentsExternal", "commentsInternal", "expiryDate", "internalAccessConditions", "localSystemNumber", "notes", "recordSource", "restrictionType"}; 
+				for (String field: fields) {
+					preparedBatchPart.bind(field, v.getProperty(field));
+				}
+
+			}
+		}
+		preparedBatch.execute();
+		
+	}
+	
 
 	public void suspendIntoFlatEdgeTable(Long sessId, String state, String table, Set<AmberEdge> set) {
 		Set<String> fields = getFields(set, state);
@@ -1511,6 +1601,14 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 
 
 	// The following queries intentionally left blank. They are implemented in the db specific AmberDao sub classes (h2 or MySql)
+	@SqlUpdate("")
+	public abstract void endNodes(
+	@Bind("txnId") Long txnId);
+
+	@SqlUpdate("")
+	public abstract void startNodes(
+	@Bind("txnId") Long txnId);
+
 	@SqlUpdate("")
 	public abstract void endWorks(
 	@Bind("txnId") Long txnId);

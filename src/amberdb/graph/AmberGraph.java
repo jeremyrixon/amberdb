@@ -72,13 +72,13 @@ public class AmberGraph extends BaseGraph
     static {
     	edgeToTableMap.put("label",          "flatedge");
     	edgeToTableMap.put("acknowledge",    "acknowledge");
-    	edgeToTableMap.put("deliveredOn",    "flatedge");
-    	edgeToTableMap.put("descriptionOf",  "flatedge");
-    	edgeToTableMap.put("existsOn",       "flatedge");
-    	edgeToTableMap.put("isCopyOf",       "flatedge");
-    	edgeToTableMap.put("isDerivativeOf", "flatedge");
-    	edgeToTableMap.put("isFileOf",       "flatedge");
-    	edgeToTableMap.put("isPartOf",       "flatedge");
+    	edgeToTableMap.put("deliveredon",    "flatedge");
+    	edgeToTableMap.put("descriptionof",  "flatedge");
+    	edgeToTableMap.put("existson",       "flatedge");
+    	edgeToTableMap.put("iscopyof",       "flatedge");
+    	edgeToTableMap.put("isderivativeof", "flatedge");
+    	edgeToTableMap.put("isfileof",       "flatedge");
+    	edgeToTableMap.put("ispartof",       "flatedge");
     	edgeToTableMap.put("represents",     "flatedge");
     	edgeToTableMap.put("tags",           "flatedge");
     }
@@ -640,10 +640,14 @@ public class AmberGraph extends BaseGraph
         AmberVertexWithState vs;
         try (Handle h = dbi.open()) {
             vs = h.createQuery(
-                "SELECT id, txn_start, txn_end, 'AMB' state "
-                + "FROM vertex " 
-                + "WHERE id = :id "
-                + "AND txn_end = 0")
+            		"select *, 'AMB' state " +
+            		"from node " +
+            		"left join work        on        work.id = node.id " +
+            		"left join file        on        file.id = node.id " +
+            		"left join description on description.id = node.id " +
+            		"left join party       on       party.id = node.id " +
+            		"left join tag         on         tag.id = node.id " +
+            		"where node.id = :id")
                 .bind("id", parseId(id))
                 .map(new VertexMapper(this)).first();
 
@@ -652,7 +656,7 @@ public class AmberGraph extends BaseGraph
             if (removedVertices.containsKey(vertex.getId())) return null;
 
             AmberVertex v = (AmberVertex) vertex;
-            v.replaceProperties(getElementPropertyMap((Long) v.getId(), v.txnStart, h));
+            //v.replaceProperties(getElementPropertyMap((Long) v.getId(), v.txnStart, h));
             addVertexToGraph(v);
         }
         
@@ -853,6 +857,7 @@ public class AmberGraph extends BaseGraph
                 // Additionally, end edges orphaned by this procedure.
                 log.debug("ending elements");
                 dao.endElements(txnId);
+                dao.endNodes(txnId);
                 dao.endWorks(txnId);
                 dao.endFiles(txnId);
                 dao.endTags(txnId);
@@ -862,6 +867,7 @@ public class AmberGraph extends BaseGraph
                 // start new elements for new and modified transaction elements
                 log.debug("starting elements");
                 dao.startElements(txnId);
+                dao.startNodes(txnId);
                 dao.startWorks(txnId);
                 dao.startFiles(txnId);
                 dao.startTags(txnId);
@@ -1200,6 +1206,7 @@ public class AmberGraph extends BaseGraph
         	String vertexType = entry.getKey().toLowerCase();
         	String table = vertexToTableMap.get(vertexType);
         	if (StringUtils.isNotBlank(table)) {
+        		dao.suspendIntoNodeTable(sessId, operation, entry.getValue());
         		dao.suspendIntoFlatVertexTable(sessId, operation, "sess_" + table, entry.getValue());
         	}
         }

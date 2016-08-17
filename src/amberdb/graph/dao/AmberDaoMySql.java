@@ -60,6 +60,50 @@ public abstract class AmberDaoMySql extends AmberDao {
 			@Bind("txnId") Long txnId);
 
 	@SqlUpdate("SET @txn = :txnId;"
+			 + "INSERT INTO node_history (id, txn_start, txn_end, type, accessConditions,alias,commentsExternal,commentsInternal,expiryDate,internalAccessConditions,localSystemNumber,notes,recordSource,restrictionType) "
+			 + "SELECT id, s_id, 0, type, accessConditions,alias,commentsExternal,commentsInternal,expiryDate,internalAccessConditions,localSystemNumber,notes,recordSource,restrictionType "
+			 + "FROM sess_node "
+			 + "WHERE s_id = @txn "
+			 + "AND state = 'NEW'; "
+
+			 + "INSERT INTO node_history (id, txn_start, txn_end, type, accessConditions,alias,commentsExternal,commentsInternal,expiryDate,internalAccessConditions,localSystemNumber,notes,recordSource,restrictionType) "
+			 + "SELECT id, s_id, 0, type, accessConditions,alias,commentsExternal,commentsInternal,expiryDate,internalAccessConditions,localSystemNumber,notes,recordSource,restrictionType "
+			 + "FROM sess_node "
+			 + "WHERE s_id = @txn "
+			 + "AND state = 'MOD'; "
+
+			 + "INSERT INTO node (id, txn_start, txn_end, type, accessConditions,alias,commentsExternal,commentsInternal,expiryDate,internalAccessConditions,localSystemNumber,notes,recordSource,restrictionType) "
+			 + "SELECT id, s_id, 0, type, accessConditions,alias,commentsExternal,commentsInternal,expiryDate,internalAccessConditions,localSystemNumber,notes,recordSource,restrictionType "
+			 + "FROM sess_node "
+			 + "WHERE s_id = @txn "
+			 + "AND state = 'NEW'; "
+
+			 + "UPDATE node c, sess_node s "
+			 + "SET c.txn_start = s.txn_start, c.txn_end = s.txn_end, c.type = s.type, c.accessConditions = s.accessConditions, c.alias = s.alias, c.commentsExternal = s.commentsExternal, c.commentsInternal = s.commentsInternal, c.expiryDate = s.expiryDate, c.internalAccessConditions = s.internalAccessConditions, c.localSystemNumber = s.localSystemNumber, c.notes = s.notes, c.recordSource = s.recordSource, c.restrictionType = s.restrictionType "
+			 + "WHERE c.id = s.id "
+			 + "AND s_id = @txn "
+			 + "AND state = 'MOD';")
+			public abstract void startNodes(
+			@Bind("txnId") Long txnId);
+
+			@SqlUpdate("SET @txn = :txnId;"
+			 + "UPDATE node_history h, sess_node s "
+			 + "SET h.txn_end = @txn "
+			 + "WHERE h.txn_end = 0 "
+			 + "AND h.id = s.id "
+			 + "AND s.s_id = @txn "
+			 + "AND s.state <> 'AMB'; "
+			 + " "
+			 + "DELETE c "
+			 + "FROM node c, sess_node s "
+			 + "WHERE c.txn_end = 0 "
+			 + "AND c.id = s.id "
+			 + "AND s.s_id = @txn "
+			 + "AND s.state = 'DEL';")
+			public abstract void endNodes(
+			@Bind("txnId") Long txnId);
+
+	@SqlUpdate("SET @txn = :txnId;"
 			+ "INSERT INTO work_history (id, txn_start, txn_end, type, abstract,access,accessConditions,acquisitionCategory,acquisitionStatus,additionalContributor,additionalCreator,additionalSeries,additionalSeriesStatement,additionalTitle,addressee,adminInfo,advertising,algorithm,alias,allowHighResdownload,allowOnsiteAccess,alternativeTitle,altform,arrangement,australianContent,bestCopy,bibId,bibLevel,bibliography,captions,carrier,category,childRange,classification,collection,collectionNumber,commentsExternal,commentsInternal,commercialStatus,copyCondition,availabilityConstraint,contributor,coordinates,copyingPublishing,copyrightPolicy,copyRole,copyStatus,copyType,correspondenceHeader,correspondenceId,correspondenceIndex,coverage,creator,creatorStatement,currentVersion,dateCreated,dateRangeInAS,dcmAltPi,dcmCopyPid,dcmDateTimeCreated,dcmDateTimeUpdated,dcmRecordCreator,dcmRecordUpdater,dcmSourceCopy,dcmWorkPid,depositType,digitalStatus,digitalStatusDate,displayTitlePage,eadUpdateReviewRequired,edition,encodingLevel,endChild,endDate,eventNote,exhibition,expiryDate,extent,findingAidNote,firstPart,folder,folderNumber,folderType,form,genre,heading,holdingId,holdingNumber,html,illustrated,ilmsSentDateTime,immutable,ingestJobId,interactiveIndexAvailable,internalAccessConditions,isMissingPage,issn,issueDate,language,localSystemNumber,manipulation,materialFromMultipleSources,materialType,metsId,moreIlmsDetailsRequired,notes,occupation,otherNumbers,otherTitle,preferredCitation,preservicaId,preservicaType,printedPageNumber,provenance,publicationCategory,publicationLevel,publicNotes,publisher,rdsAcknowledgementReceiver,rdsAcknowledgementType,recordSource,relatedMaterial,repository,restrictionsOnAccess,restrictionType,rights,scaleEtc,scopeContent,segmentIndicator,sendToIlms,sensitiveMaterial,sensitiveReason,series,sheetCreationDate,sheetName,standardId,startChild,startDate,subHeadings,subject,subType,subUnitNo,subUnitType,summary,tempHolding,tilePosition,timedStatus,title,totalDuration,uniformTitle,vendorId,versionNumber,workCreatedDuringMigration,workPid) "
 			+ "SELECT id, s_id, 0, type, abstract,access,accessConditions,acquisitionCategory,acquisitionStatus,additionalContributor,additionalCreator,additionalSeries,additionalSeriesStatement,additionalTitle,addressee,adminInfo,advertising,algorithm,alias,allowHighResdownload,allowOnsiteAccess,alternativeTitle,altform,arrangement,australianContent,bestCopy,bibId,bibLevel,bibliography,captions,carrier,category,childRange,classification,collection,collectionNumber,commentsExternal,commentsInternal,commercialStatus,copyCondition,availabilityConstraint,contributor,coordinates,copyingPublishing,copyrightPolicy,copyRole,copyStatus,copyType,correspondenceHeader,correspondenceId,correspondenceIndex,coverage,creator,creatorStatement,currentVersion,dateCreated,dateRangeInAS,dcmAltPi,dcmCopyPid,dcmDateTimeCreated,dcmDateTimeUpdated,dcmRecordCreator,dcmRecordUpdater,dcmSourceCopy,dcmWorkPid,depositType,digitalStatus,digitalStatusDate,displayTitlePage,eadUpdateReviewRequired,edition,encodingLevel,endChild,endDate,eventNote,exhibition,expiryDate,extent,findingAidNote,firstPart,folder,folderNumber,folderType,form,genre,heading,holdingId,holdingNumber,html,illustrated,ilmsSentDateTime,immutable,ingestJobId,interactiveIndexAvailable,internalAccessConditions,isMissingPage,issn,issueDate,language,localSystemNumber,manipulation,materialFromMultipleSources,materialType,metsId,moreIlmsDetailsRequired,notes,occupation,otherNumbers,otherTitle,preferredCitation,preservicaId,preservicaType,printedPageNumber,provenance,publicationCategory,publicationLevel,publicNotes,publisher,rdsAcknowledgementReceiver,rdsAcknowledgementType,recordSource,relatedMaterial,repository,restrictionsOnAccess,restrictionType,rights,scaleEtc,scopeContent,segmentIndicator,sendToIlms,sensitiveMaterial,sensitiveReason,series,sheetCreationDate,sheetName,standardId,startChild,startDate,subHeadings,subject,subType,subUnitNo,subUnitType,summary,tempHolding,tilePosition,timedStatus,title,totalDuration,uniformTitle,vendorId,versionNumber,workCreatedDuringMigration,workPid "
 			+ "FROM sess_work "
