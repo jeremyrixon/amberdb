@@ -1,6 +1,7 @@
 package amberdb.graph;
 
 
+import java.sql.Clob;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -43,9 +44,13 @@ public class VertexMapper implements ResultSetMapper<AmberVertexWithState> {
         int numColumns = metadata.getColumnCount();
         for(int column = 1; column <= numColumns; column++) {
         	String label = metadata.getColumnLabel(column);
-        	if (!skipProps.contains(label)) {
+        	if (!skipProps.contains(label.toLowerCase())) {
 	        	Object o = rs.getObject(column);
 	        	if (o != null) {
+	        		if (o instanceof Clob) {
+						Clob clob = (Clob) o;
+						o = clob.getSubString(1,  (int) clob.length());
+					}
 	        		vertex.setProperty(label, o);
 	        	}
         	}
