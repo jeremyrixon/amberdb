@@ -2,6 +2,7 @@ package amberdb.graph;
 
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,7 +36,6 @@ import com.tinkerpop.blueprints.Vertex;
 import amberdb.graph.dao.AmberDao;
 import amberdb.graph.dao.AmberDaoH2;
 import amberdb.graph.dao.AmberDaoMySql;
-import doss.net.DossService.verify_result;
 
 
 public class AmberGraph extends BaseGraph 
@@ -864,6 +864,7 @@ public class AmberGraph extends BaseGraph
                 dao.endParties(txnId);
                 dao.endDescriptions(txnId);
                 dao.endFlatedges(txnId);
+                dao.endAcknowledgements(txnId);
                 // start new elements for new and modified transaction elements
                 log.debug("starting elements");
                 dao.startElements(txnId);
@@ -873,7 +874,16 @@ public class AmberGraph extends BaseGraph
                 dao.startTags(txnId);
                 dao.startParties(txnId);
                 dao.startDescriptions(txnId);
+                System.out.println("Before dao.startFlatedges " + txnId);
+                dao.dumpQuery("select * from flatedge");
+                dao.dumpQuery("select * from flatedge_history");
+                dao.dumpQuery("select * from sess_flatedge");
                 dao.startFlatedges(txnId);
+                System.out.println("After dao.startFlatedges " + txnId);
+                dao.dumpQuery("select * from flatedge");
+                dao.dumpQuery("select * from flatedge_history");
+                dao.dumpQuery("select * from sess_flatedge");
+                dao.startAcknowledgements(txnId);
                 // Refactor note: need to check when adding (modding?) edges that both ends exist
                 dao.insertTransaction(txnId, new Date().getTime(), user, operation);
                 dao.commit();
@@ -1217,9 +1227,36 @@ public class AmberGraph extends BaseGraph
         	String edgeType = entry.getKey().toLowerCase();
         	String table = edgeToTableMap.get(edgeType);
         	if (StringUtils.isNotBlank(table)) {
-        		dao.suspendIntoFlatEdgeTable(sessId, operation, "sess_" + table, entry.getValue());
+        		dao.suspendIntoFlatEdgeTable(sessId, operation, entry.getValue());
+        		if (!"flatedge".equals(table)) {
+        			dao.suspendIntoFlatEdgeSpecificTable(sessId, operation, "sess_" + table, entry.getValue());
+        		}
         	}
         }
+	}
+	
+    private void dumpQuery(String string) {
+    	System.out.println(string);
+    	try (Connection conn = dao.getHandle().getConnection()) {
+    	      ResultSet results = conn.createStatement().executeQuery(string);
+    	      int numCols = results.getMetaData().getColumnCount();
+	    	  StringBuilder sb = new StringBuilder();
+	    	  for (int c = 1; c <= numCols; c++) {
+	    		  sb.append(String.format("%20s", results.getMetaData().getColumnLabel(c)));
+	    	  }
+	    	  System.out.println(sb);
+    	      while (results.next()) {
+    	    	  sb.setLength(0);
+    	    	  for (int c = 1; c <= numCols; c++) {
+    	    		  Object o = results.getObject(c);
+    	    		  sb.append(String.format("%20s", o));
+    	    	  }
+    	    	  System.out.println(sb);
+    	      }
+    		
+    	} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

@@ -1,6 +1,9 @@
 package amberdb.graph.dao;
 
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -1262,7 +1265,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 
     @SqlQuery(
             "SELECT (COUNT(table_name) >= 8) "
-            + "FROM information_schema.tables "
+            + "FROM INFORMATION_SCHEMA.TABLES "
             + "WHERE table_name IN ("
             + "  'VERTEX', 'EDGE', 'PROPERTY', "
             + "  'SESS_VERTEX', 'SESS_EDGE', 'SESS_PROPERTY', "
@@ -1548,8 +1551,31 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 		
 	}
 	
+	public void suspendIntoFlatEdgeTable(Long sessId, String state, Set<AmberEdge> set) {
+		Set<String> fields = getFields(set, state);
+		String sql = String.format("INSERT INTO sess_flatedge (s_id, state, id, txn_start, txn_end, v_out, v_in, edge_order, type) values (:s_id, :state, :id, :txn_start, :txn_end, :v_out, :v_in, :edge_order, :type)",
+				StringUtils.join(format(fields, ", %s"), ' '),
+				StringUtils.join(format(fields, ", :%s"), ' '));
 
-	public void suspendIntoFlatEdgeTable(Long sessId, String state, String table, Set<AmberEdge> set) {
+		Handle h = getHandle();
+		PreparedBatch preparedBatch = h.prepareBatch(sql);
+		for (AmberEdge v: set) {
+			PreparedBatchPart preparedBatchPart = preparedBatch.add();
+			preparedBatchPart.bind("s_id",       sessId);
+			preparedBatchPart.bind("state",      state);
+			preparedBatchPart.bind("id",         v.getId());
+			preparedBatchPart.bind("txn_start",  v.getTxnStart());
+			preparedBatchPart.bind("txn_end",    v.getTxnEnd());
+			preparedBatchPart.bind("v_out",      v.getOutId());
+			preparedBatchPart.bind("v_in",       v.getInId());
+			preparedBatchPart.bind("edge_order", v.getOrder());
+			preparedBatchPart.bind("type",       v.getLabel());
+		}
+		preparedBatch.execute();
+		
+	}
+
+	public void suspendIntoFlatEdgeSpecificTable(Long sessId, String state, String table, Set<AmberEdge> set) {
 		Set<String> fields = getFields(set, state);
 		String sql = String.format("INSERT INTO %s (s_id, state, id, txn_start, txn_end, v_out, v_in, edge_order, type %s) values (:s_id, :state, :id, :txn_start, :txn_end, :v_out, :v_in, :edge_order, :type %s)",
 				table,
@@ -1665,6 +1691,30 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 	public abstract void startAcknowledgements(
 	@Bind("txnId") Long txnId);
 
+	public void dumpQuery(String string) {
+		System.out.println(string);
+		try {
+			Connection conn = getHandle().getConnection();
+			ResultSet results = conn.createStatement().executeQuery(string);
+			int numCols = results.getMetaData().getColumnCount();
+			StringBuilder sb = new StringBuilder();
+			for (int c = 1; c <= numCols; c++) {
+				sb.append(String.format("%20s", results.getMetaData().getColumnLabel(c)));
+			}
+			System.out.println(sb);
+			while (results.next()) {
+				sb.setLength(0);
+				for (int c = 1; c <= numCols; c++) {
+					Object o = results.getObject(c);
+					sb.append(String.format("%20s", o));
+				}
+				System.out.println(sb);
+			}
 
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
 }
 

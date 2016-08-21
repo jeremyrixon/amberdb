@@ -43,8 +43,8 @@ public class VertexMapper implements ResultSetMapper<AmberVertexWithState> {
         ResultSetMetaData metadata = rs.getMetaData();
         int numColumns = metadata.getColumnCount();
         for(int column = 1; column <= numColumns; column++) {
-        	String label = metadata.getColumnLabel(column);
-        	if (!skipProps.contains(label.toLowerCase())) {
+        	String label = metadata.getColumnLabel(column).toLowerCase();
+        	if (!skipProps.contains(label)) {
 	        	Object o = rs.getObject(column);
 	        	if (o != null) {
 	        		if (o instanceof Clob) {
