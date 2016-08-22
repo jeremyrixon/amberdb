@@ -874,15 +874,15 @@ public class AmberGraph extends BaseGraph
                 dao.startTags(txnId);
                 dao.startParties(txnId);
                 dao.startDescriptions(txnId);
-                System.out.println("Before dao.startFlatedges " + txnId);
-                dao.dumpQuery("select * from party");
-                dao.dumpQuery("select * from party_history");
-                dao.dumpQuery("select * from sess_party");
+//                System.out.println("Before dao.startFlatedges " + txnId);
+//                dao.dumpQuery("select * from flatedge");
+//                dao.dumpQuery("select * from flatedge_history");
+//                dao.dumpQuery("select * from sess_flatedge");
                 dao.startFlatedges(txnId);
-                System.out.println("After dao.startFlatedges " + txnId);
-                dao.dumpQuery("select * from party");
-                dao.dumpQuery("select * from party_history");
-                dao.dumpQuery("select * from sess_party");
+//                System.out.println("After dao.startFlatedges " + txnId);
+//                dao.dumpQuery("select * from flatedge");
+//                dao.dumpQuery("select * from flatedge_history");
+//                dao.dumpQuery("select * from sess_flatedge");
                 dao.startAcknowledgements(txnId);
                 // Refactor note: need to check when adding (modding?) edges that both ends exist
                 dao.insertTransaction(txnId, new Date().getTime(), user, operation);
@@ -1223,6 +1223,11 @@ public class AmberGraph extends BaseGraph
 	}
 
 	private void suspendIntoFlatEdgeTables(Long sessId, Map<String, Set<AmberEdge>> edgesByType, String operation) {
+//        System.out.println("Before suspendIntoFlatEdgeTables " + sessId);
+//        dao.dumpQuery("select * from flatedge");
+//        dao.dumpQuery("select * from flatedge_history");
+//        dao.dumpQuery("select * from sess_flatedge");
+
         for (Entry<String, Set<AmberEdge>> entry: edgesByType.entrySet()) {
         	String edgeType = entry.getKey().toLowerCase();
         	String table = edgeToTableMap.get(edgeType);
@@ -1233,6 +1238,11 @@ public class AmberGraph extends BaseGraph
         		}
         	}
         }
+
+//        System.out.println("After suspendIntoFlatEdgeTables " + sessId);
+//        dao.dumpQuery("select * from flatedge");
+//        dao.dumpQuery("select * from flatedge_history");
+//        dao.dumpQuery("select * from sess_flatedge");
 	}
 	
     private void dumpQuery(String string) {
