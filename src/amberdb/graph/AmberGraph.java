@@ -47,7 +47,7 @@ public class AmberGraph extends BaseGraph
     private static final Logger log = LoggerFactory.getLogger(AmberGraph.class);
     
     public static final DataSource DEFAULT_DATASOURCE = 
-            JdbcConnectionPool.create("jdbc:h2:mem:persist","pers","pers");
+            JdbcConnectionPool.create("jdbc:h2:mem:persist;DATABASE_TO_UPPER=false;","pers","pers");
     
     private static final Map<String, String>  vertexToTableMap = new HashMap<>();
     static {
@@ -875,14 +875,14 @@ public class AmberGraph extends BaseGraph
                 dao.startParties(txnId);
                 dao.startDescriptions(txnId);
                 System.out.println("Before dao.startFlatedges " + txnId);
-                dao.dumpQuery("select * from flatedge");
-                dao.dumpQuery("select * from flatedge_history");
-                dao.dumpQuery("select * from sess_flatedge");
+                dao.dumpQuery("select * from party");
+                dao.dumpQuery("select * from party_history");
+                dao.dumpQuery("select * from sess_party");
                 dao.startFlatedges(txnId);
                 System.out.println("After dao.startFlatedges " + txnId);
-                dao.dumpQuery("select * from flatedge");
-                dao.dumpQuery("select * from flatedge_history");
-                dao.dumpQuery("select * from sess_flatedge");
+                dao.dumpQuery("select * from party");
+                dao.dumpQuery("select * from party_history");
+                dao.dumpQuery("select * from sess_party");
                 dao.startAcknowledgements(txnId);
                 // Refactor note: need to check when adding (modding?) edges that both ends exist
                 dao.insertTransaction(txnId, new Date().getTime(), user, operation);
