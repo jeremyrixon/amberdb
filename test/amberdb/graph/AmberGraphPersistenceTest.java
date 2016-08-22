@@ -51,15 +51,16 @@ public class AmberGraphPersistenceTest {
         this.stopWatch();
         
         Vertex v1 = graph1.addVertex(null);
-        v1.setProperty("name", "enter the dragon");
-        v1.setProperty("number", 42);
-        assertEquals("enter the dragon", v1.getProperty("name"));
-        assertEquals(42, v1.getProperty("number"));
+        v1.setProperty("type", "Work");
+        v1.setProperty("title", "enter the dragon");
+        v1.setProperty("subunitNo", 42);
+        assertEquals("enter the dragon", v1.getProperty("title"));
+        assertEquals(42, v1.getProperty("subunitNo"));
         
         graph1.commit("tester", "Persisting v1");
         
-        assertEquals("session vertex must retain properties after being persisted", "enter the dragon", v1.getProperty("name"));
-        assertEquals("session vertex must retain properties after being persisted", 42, v1.getProperty("number"));
+        assertEquals("session vertex must retain properties after being persisted", "enter the dragon", v1.getProperty("title"));
+        assertEquals("session vertex must retain properties after being persisted", 42, v1.getProperty("subunitNo"));
 
         assertEquals(graph1.getVertex(v1.getId()), v1);
 
@@ -69,13 +70,15 @@ public class AmberGraphPersistenceTest {
         // create 2nd session
         Vertex v2 = graph2.getVertex(v1.getId());
         assertNotNull(v2);
-        assertEquals("enter the dragon", v2.getProperty("name"));
+        assertEquals("enter the dragon", v2.getProperty("title"));
         
-        v2.setProperty("name", "game of death");
+        v2.setProperty("title", "game of death");
+        v2.setProperty("type", "Work");
 
         Vertex v3 = graph2.addVertex(null);
-        v3.addEdge("connect", v3);
-        v3.setProperty("name", "bruce lee");
+        v3.setProperty("type", "Work");
+        v3.addEdge("partOf", v3);
+        v3.setProperty("title", "bruce lee");
         
         graph2.commit("tester","update v2 and connector");
         
