@@ -35,7 +35,7 @@ public class AmberGraphPersistenceTest {
     public void setup() throws MalformedURLException, IOException {
         
         String tempPath = tempFolder.getRoot().getAbsolutePath();
-        ds = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"persist","per","per");
+        ds = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"persist;DATABASE_TO_UPPER=false","per","per");
         
         graph1 = new AmberGraph(ds);
         graph2 = new AmberGraph(ds);

@@ -85,7 +85,7 @@ public class AmberSession implements AutoCloseable {
         blobStore = AmberDb.openBlobStore(tempDir.getPath());
 
         // Graph
-        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:graph;DB_CLOSE_DELAY=-1;MVCC=TRUE;", "amb", "amb");
+        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:graph;DB_CLOSE_DELAY=-1;MVCC=TRUE;DATABASE_TO_UPPER=false;", "amb", "amb");
         AmberGraph amber = init(dataSource, null);
         graph = openGraph(amber);
     }
@@ -96,7 +96,7 @@ public class AmberSession implements AutoCloseable {
      */
     public AmberSession(BlobStore blobStore, Long sessionId) throws IOException {
 
-        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:graph;DB_CLOSE_DELAY=-1;MVCC=TRUE;", "amb", "amb");
+        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:graph;DB_CLOSE_DELAY=-1;MVCC=TRUE;DATABASE_TO_UPPER=false;", "amb", "amb");
         AmberGraph amber = init(dataSource, sessionId);
         tempDir = null;
 
@@ -110,7 +110,7 @@ public class AmberSession implements AutoCloseable {
 
     public AmberSession(BlobStore blobStore) throws IOException {
 
-        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:graph;DB_CLOSE_DELAY=-1;MVCC=TRUE;", "amb", "amb");
+        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:graph;DB_CLOSE_DELAY=-1;MVCC=TRUE;DATABASE_TO_UPPER=false;", "amb", "amb");
         AmberGraph amber = init(dataSource, null);
         tempDir = null;
 

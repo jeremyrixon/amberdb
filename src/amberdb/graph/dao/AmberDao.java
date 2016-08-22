@@ -1267,9 +1267,9 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             "SELECT (COUNT(table_name) >= 8) "
             + "FROM INFORMATION_SCHEMA.TABLES "
             + "WHERE table_name IN ("
-            + "  'VERTEX', 'EDGE', 'PROPERTY', "
-            + "  'SESS_VERTEX', 'SESS_EDGE', 'SESS_PROPERTY', "
-            + "  'ID_GENERATOR', 'TRANSACTION')")
+            + "  'vertex', 'edge', 'property', "
+            + "  'sess_vertex', 'sess_edge', 'sess_property', "
+            + "  'id_generator', 'transaction')")
 	public abstract boolean schemaTablesExist();
 
 
