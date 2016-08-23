@@ -52,31 +52,33 @@ public class AmberPropertyQueryTest {
         Vertex v8 = graph.addVertex(null);
         Vertex v9 = graph.addVertex(null);
         Vertex v10 = graph.addVertex(null);
-        
-        v1.setProperty("PNAME1", "PVALUE1");
-        v1.setProperty("PNAMEN", "PVALUEN");
 
-        v2.setProperty("PNAME1", "PVALUE2");
+        setType("Work", v1, v2, v3, v4, v5, v6, v7, v8, v9, v10);
 
-        v3.setProperty("PNAME2", new Boolean(false));
-        v4.setProperty("PNAME2", "Something different");
-        v5.setProperty("PNAME2", new Boolean(true));
-        
-        v6.setProperty("PNAME1", "PVALUE1");
-        v7.setProperty("PNAME2", "PVALUE1");
-        
-        v8.setProperty("PNAME3", new Integer(3));
-        v9.setProperty("PNAME3", new Integer(0));
+        v1.setProperty("abstract", "PVALUE1");
+        v1.setProperty("category", "PVALUEN");
 
-        v10.setProperty("PNAME1", "PVALUE1");
-        v10.setProperty("PNAME2", new Boolean(true));
-        v10.setProperty("PNAME3", "xxxxXXXXxxxx");
+        v2.setProperty("abstract", "PVALUE2");
+
+        v3.setProperty("title", "false");
+        v4.setProperty("title", "Something different");
+        v5.setProperty("title", "true");
+        
+        v6.setProperty("abstract", "PVALUE1");
+        v7.setProperty("title", "PVALUE1");
+        
+        v8.setProperty("heading", "3");
+        v9.setProperty("heading", "0");
+
+        v10.setProperty("abstract", "PVALUE1");
+        v10.setProperty("title", "true");
+        v10.setProperty("heading", "xxxxXXXXxxxx");
         
         graph.commit("tester", "saving some vertices with properties");
         
-        AmberProperty p1 = new AmberProperty(0, "PNAME1", "PVALUE1");
-        AmberProperty p2 = new AmberProperty(0, "PNAME2", new Boolean(true));
-        AmberProperty p3 = new AmberProperty(0, "PNAME3", new Integer(3));
+        AmberProperty p1 = new AmberProperty(0, "abstract", "PVALUE1");
+        AmberProperty p2 = new AmberProperty(0, "title", "true");
+        AmberProperty p3 = new AmberProperty(0, "heading", "3");
         
         List<AmberProperty> aps = new ArrayList<AmberProperty>();
         aps.add(p1);
@@ -98,7 +100,7 @@ public class AmberPropertyQueryTest {
         assertEquals(0, results.size());
     }
 
-    @Test
+	@Test
     public void testAndQueryGeneration() throws Exception {
 
         Vertex v1 = graph.addVertex(null);
@@ -112,33 +114,36 @@ public class AmberPropertyQueryTest {
         Vertex v9 = graph.addVertex(null);
         Vertex v10 = graph.addVertex(null);
         
-        v1.setProperty("PNAME1", "PVALUE1");
-        v1.setProperty("PNAMEN", "PVALUEN");
+        setType("Work", v1, v2, v3, v4, v5, v6, v7, v8, v9, v10);
 
-        v2.setProperty("PNAME1", "PVALUE2");
-        v2.setProperty("PNAMEN", "PVALUEN");
-
-        v3.setProperty("PNAME2", new Boolean(false));
-        v4.setProperty("PNAME2", "Something different");
-        v5.setProperty("PNAME2", new Boolean(true));
         
-        v6.setProperty("PNAME1", "PVALUE1");
-        v6.setProperty("PNAMEN", "PVALUEN");
+        v1.setProperty("abstract", "PVALUE1");
+        v1.setProperty("category", "PVALUEN");
 
-        v7.setProperty("PNAME2", "PVALUE1");
+        v2.setProperty("abstract", "PVALUE2");
+        v2.setProperty("category", "PVALUEN");
+
+        v3.setProperty("title", "false");
+        v4.setProperty("title", "Something different");
+        v5.setProperty("title", "true");
         
-        v8.setProperty("PNAME3", new Integer(3));
-        v9.setProperty("PNAME3", new Integer(0));
+        v6.setProperty("abstract", "PVALUE1");
+        v6.setProperty("category", "PVALUEN");
 
-        v10.setProperty("PNAME1", "PVALUE1");
-        v10.setProperty("PNAMEN", "PVALUEN");
-        v10.setProperty("PNAME2", new Boolean(true));
-        v10.setProperty("PNAME3", "xxxxXXXXxxxx");
+        v7.setProperty("title", "PVALUE1");
+        
+        v8.setProperty("heading", "3");
+        v9.setProperty("heading", "0");
+
+        v10.setProperty("abstract", "PVALUE1");
+        v10.setProperty("category", "PVALUEN");
+        v10.setProperty("title", "true");
+        v10.setProperty("heading", "xxxxXXXXxxxx");
         
         graph.commit("tester", "saving some vertices with properties");
         
-        AmberProperty p1 = new AmberProperty(0, "PNAME1", "PVALUE1");
-        AmberProperty p2 = new AmberProperty(0, "PNAMEN", "PVALUEN");
+        AmberProperty p1 = new AmberProperty(0, "abstract", "PVALUE1");
+        AmberProperty p2 = new AmberProperty(0, "category", "PVALUEN");
         
         List<AmberProperty> aps = new ArrayList<AmberProperty>();
         aps.add(p1);
@@ -171,30 +176,32 @@ public class AmberPropertyQueryTest {
         Vertex v9 = graph.addVertex(null);
         Vertex v10 = graph.addVertex(null);
         
-        v1.setProperty("PNAME1", "PVALUE1");
-        v1.setProperty("PNAMEN", "PVALUEN");
-
-        v2.setProperty("PNAME1", "PVALUE2");
-
-        v3.setProperty("PNAME2", new Boolean(false));
-        v4.setProperty("PNAME2", "Something different");
-        v5.setProperty("PNAME2", new Boolean(true));
+        setType("Work", v1, v2, v3, v4, v5, v6, v7, v8, v9, v10);
         
-        v6.setProperty("PNAME1", "PVALUE1");
-        v7.setProperty("PNAME2", "PVALUE1");
-        
-        v8.setProperty("PNAME3", new Integer(3));
-        v9.setProperty("PNAME3", new Integer(0));
+        v1.setProperty("abstract", "PVALUE1");
+        v1.setProperty("category", "PVALUEN");
 
-        v10.setProperty("PNAME1", "PVALUE1");
-        v10.setProperty("PNAME2", new Boolean(true));
-        v10.setProperty("PNAME3", "xxxxXXXXxxxx");
+        v2.setProperty("abstract", "PVALUE2");
+
+        v3.setProperty("title", "false");
+        v4.setProperty("title", "Something different");
+        v5.setProperty("title", "true");
+        
+        v6.setProperty("abstract", "PVALUE1");
+        v7.setProperty("title", "PVALUE1");
+        
+        v8.setProperty("heading", "3");
+        v9.setProperty("heading", "0");
+
+        v10.setProperty("abstract", "PVALUE1");
+        v10.setProperty("title", "true");
+        v10.setProperty("heading", "xxxxXXXXxxxx");
         
         graph.commit("tester", "saving some vertices with properties");
         
-        AmberProperty p1 = new AmberProperty(0, "PNAME1", "PVALUE1");
-        AmberProperty p2 = new AmberProperty(0, "PNAME2", new Boolean(true));
-        AmberProperty p3 = new AmberProperty(0, "PNAME3", null);
+        AmberProperty p1 = new AmberProperty(0, "abstract", "PVALUE1");
+        AmberProperty p2 = new AmberProperty(0, "title", "true");
+        AmberProperty p3 = new AmberProperty(0, "heading", null);
         
         List<AmberProperty> aps = new ArrayList<AmberProperty>();
         aps.add(p1);
@@ -242,4 +249,13 @@ public class AmberPropertyQueryTest {
     void s(String s) {
         System.out.println(s);
     }
+    
+    private void setType(String type, Vertex... vertices) {
+		for (Vertex v: vertices) {
+			v.setProperty("type", type);
+		}
+	}
+
+
+    
 }

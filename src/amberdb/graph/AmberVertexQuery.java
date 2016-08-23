@@ -10,11 +10,16 @@ import java.util.Map;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.TransactionIsolationLevel;
 import org.skife.jdbi.v2.Update;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Node;
 
 import com.tinkerpop.blueprints.Vertex;
 
 
 public class AmberVertexQuery extends AmberQueryBase {
+	
+    private static final Logger log = LoggerFactory.getLogger(AmberVertexQuery.class);
 
     // limit the number of vertices returned by a query without criteria
     static final int MAX_VERTICES = 10000; 
@@ -99,25 +104,25 @@ public class AmberVertexQuery extends AmberQueryBase {
     
     protected String generateAndQuery() {
         StringBuilder s = new StringBuilder();
-        s.append("INSERT INTO vp (id) \n" 
-                + "SELECT p0.id \n"
-                + "FROM property p0 \n");
+        s.append("INSERT INTO vp (id) \n" +
+        		"select node.id \n" +
+        		"from node \n" +
+        		"left join work        on        work.id = node.id \n" +
+        		"left join file        on        file.id = node.id \n" +
+        		"left join description on description.id = node.id \n" +
+        		"left join party       on       party.id = node.id \n" +
+        		"left join tag         on         tag.id = node.id \n" +
+        		"where \n");
         
-        for (int i = 1; i < properties.size(); i++) {
-            s.append(String.format("INNER JOIN property p%1$d ON (p0.id = p%1$d.id AND p0.txn_start = p%1$d.txn_start) \n", i));
+        
+        for (int i = 0; i < properties.size(); i++) {
+        	String columnName = properties.get(i).getName();
+        	if ("type".equals(columnName)) {
+        		columnName = "node.type";
+        	}
+        	s.append(columnName + " = :value"+ i + " \n and ");
         }
-        
-        s.append("WHERE p0.txn_end = 0 "
-                + "AND p0.name = :name0 "
-                + "AND p0.value = :value0 \n");
-        
-        for (int i = 1; i < properties.size(); i++) {
-            s.append(String.format("AND p%1$d.txn_end = 0 "
-                    + "AND p%1$d.name = :name%1$d "
-                    + "AND p%1$d.value = :value%1$d \n",
-                    i));
-        }
-        s.append(";\n");
+        s.setLength(s.length()-4);
         return s.toString();
     }
     
@@ -126,11 +131,19 @@ public class AmberVertexQuery extends AmberQueryBase {
         StringBuilder s = new StringBuilder();
         s.append("INSERT INTO vp (id) \n");
         for (int i = 0; i < properties.size(); i++) {
-            s.append("SELECT p.id \n"
-                    + "FROM property p \n"
-                    + "WHERE p.txn_end = 0 \n"
-                    + "AND p.name = :name" + i + " " 
-                    + "AND p.value = :value"+ i + " \n"
+        	String columnName = properties.get(i).getName();
+        	if ("type".equals(columnName)) {
+        		columnName = "node.type";
+        	}
+            s.append(
+            		"select node.id \n" +
+            		"from node \n" +
+            		"left join work        on        work.id = node.id \n" +
+            		"left join file        on        file.id = node.id \n" +
+            		"left join description on description.id = node.id \n" +
+            		"left join party       on       party.id = node.id \n" +
+            		"left join tag         on         tag.id = node.id \n" +
+            		"where " + columnName + " = :value"+ i + " \n"
                     + "UNION ALL \n");
         }
         s.setLength(s.length()-13);
@@ -174,11 +187,13 @@ public class AmberVertexQuery extends AmberQueryBase {
             // run the generated query
             h.begin();
             h.execute("DROP " + graph.tempTableDrop + " TABLE IF EXISTS vp; CREATE TEMPORARY TABLE vp (id BIGINT) " + graph.tempTableEngine + ";");
-            Update q = h.createStatement(generateQuery());
+            
+            String sql = generateQuery();
+            Update q = h.createStatement(sql);
             
             for (int i = 0; i < properties.size(); i++) {
-                q.bind("name"+i, properties.get(i).getName());
-                q.bind("value"+i, AmberProperty.encode(properties.get(i).getValue()));
+                // q.bind("name"+i, properties.get(i).getName());
+                q.bind("value"+i, properties.get(i).getValue());
             }
             q.execute();
             h.commit();
@@ -186,6 +201,9 @@ public class AmberVertexQuery extends AmberQueryBase {
             // and reap the rewards
             Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h, "vp", "id");
             vertices = getVertices(h, graph, propMaps, "vp", "id", "id");
+        } catch (Exception e) {
+        	log.error("Exception executing vertex query.", e);
+        	throw(e);
         }
         return vertices;
     }

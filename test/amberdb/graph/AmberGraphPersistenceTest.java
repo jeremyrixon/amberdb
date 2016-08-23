@@ -175,34 +175,41 @@ public class AmberGraphPersistenceTest {
         
         // save a graph to persist
         Vertex v0 = graph1.addVertex(null);
-        v0.setProperty("string", "v1");
+        v0.setProperty("type", "Work");
+        v0.setProperty("title", "v1");
         
         Vertex v1 = graph1.addVertex(null);
-        v1.setProperty("string", "v3");
+        v1.setProperty("type", "Work");
+        v1.setProperty("title", "v3");
 
         Vertex v2 = graph1.addVertex(null);
-        v2.setProperty("string", "v1");
+        v2.setProperty("type", "Work");
+        v2.setProperty("title", "v1");
 
         Vertex v3 = graph1.addVertex(null);
-        v3.setProperty("string", "v1");
+        v3.setProperty("type", "Work");
+        v3.setProperty("title", "v1");
 
         Vertex v4 = graph1.addVertex(null);
-        v4.setProperty("string2", "v1");
+        v4.setProperty("type", "Work");
+        v4.setProperty("category", "v1");
 
         // persist that sucker
         graph1.commit();
         
         // add a couple more
         Vertex v5 = graph1.addVertex(null);
-        v5.setProperty("string", "v1");
+        v5.setProperty("title", "v1");
+        v5.setProperty("type", "Work");
 
         Vertex v6 = graph1.addVertex(null);
-        v6.setProperty("string2", "v1");
+        v6.setProperty("category", "v1");
+        v6.setProperty("type", "Work");
 
         // ok let's get testing
         
         // find vertices with a particular string property 
-        List<Vertex> vertices = Lists.newArrayList(graph1.getVertices("string", "v1"));
+        List<Vertex> vertices = Lists.newArrayList(graph1.getVertices("title", "v1"));
         assertEquals(4, vertices.size());
         assertTrue(vertices.contains(v0));
         assertTrue(vertices.contains(v2));
@@ -211,9 +218,9 @@ public class AmberGraphPersistenceTest {
         
         // now try deleting a vertex and a property
         v5.remove();
-        v2.removeProperty("string");
+        v2.removeProperty("title");
         
-        vertices = Lists.newArrayList(graph1.getVertices("string", "v1"));
+        vertices = Lists.newArrayList(graph1.getVertices("title", "v1"));
         assertEquals(2, vertices.size());
         assertTrue(vertices.contains(v0));
         assertTrue(vertices.contains(v3));
