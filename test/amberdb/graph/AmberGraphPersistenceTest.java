@@ -125,49 +125,56 @@ public class AmberGraphPersistenceTest {
         
         // save a graph to persist
         Vertex v = graph1.addVertex(null);
+        v.setProperty("type", "Work");
         
-        Edge e = v.addEdge("e1", graph1.addVertex(null));
-        e.setProperty("string", "value1");
-        e.setProperty("int", 5);
+        Edge e = v.addEdge("acknowledgement", createWork(graph1));
+        e.setProperty("ackType", "value1");
+        e.setProperty("weighting", 5);
 
-        Edge e2 = v.addEdge("e2", graph1.addVertex(null));
-        e2.setProperty("string", "value1");
-        e2.setProperty("int", 10);
+        Edge e2 = v.addEdge("acknowledgement", createWork(graph1));
+        e2.setProperty("ackType", "value1");
+        e2.setProperty("weighting", 10);
 
-        Edge e3 = v.addEdge("e3", graph1.addVertex(null));
-        e3.setProperty("string", "value2");
-        e3.setProperty("int", 10);
+        Edge e3 = v.addEdge("acknowledgement", createWork(graph1));
+        e3.setProperty("ack_type", "value2");
+        e3.setProperty("weighting", 10);
         
         graph1.commit();
 
         // now add some session edges just for fun
-        Edge e4 = v.addEdge("e4", graph1.addVertex(null));
-        e4.setProperty("string", "value1");
-        e4.setProperty("int", 5);
+        Edge e4 = v.addEdge("acknowledgement", createWork(graph1));
+        e4.setProperty("ackType", "value1");
+        e4.setProperty("weighting", 5);
 
-        Edge e5 = v.addEdge("e5", graph1.addVertex(null));
-        e5.setProperty("string", "value3");
-        e5.setProperty("int", 8);
+        Edge e5 = v.addEdge("acknowledgement", createWork(graph1));
+        e5.setProperty("ackType", "value3");
+        e5.setProperty("weighting", 8);
 
-        Edge e6 = v.addEdge("e6", graph1.addVertex(null));
-        e6.setProperty("string", "value2");
-        e6.setProperty("int", 10);
+        Edge e6 = v.addEdge("acknowledgement", createWork(graph1));
+        e6.setProperty("ackType", "value2");
+        e6.setProperty("weighting", 10);
         
         // ok let's get testing
         
         // find edges with a particular string property 
-        List<Edge> edges = Lists.newArrayList(graph1.getEdges("string", "value1"));
+        List<Edge> edges = Lists.newArrayList(graph1.getEdges("ackType", "value1"));
         assertEquals(3, edges.size());
         assertTrue(edges.contains(e));
         assertTrue(edges.contains(e2));
         assertTrue(edges.contains(e4));
         
         // now try getting by the int properties to be sure
-        edges = Lists.newArrayList(graph1.getEdges("int", 10));
+        edges = Lists.newArrayList(graph1.getEdges("weighting", 10));
         assertEquals(3, edges.size());
         assertTrue(edges.contains(e2));
         assertTrue(edges.contains(e3));
         assertTrue(edges.contains(e6));        
+    }
+    
+    private Vertex createWork(AmberGraph graph) {
+    	Vertex v = graph.addVertex(null);
+    	v.setProperty("type", "Work");
+    	return v;
     }
 
     @Test
