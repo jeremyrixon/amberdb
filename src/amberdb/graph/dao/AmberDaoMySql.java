@@ -324,26 +324,26 @@ public abstract class AmberDaoMySql extends AmberDao {
 			@Bind("txnId") Long txnId);
 
 			@SqlUpdate("SET @txn = :txnId;"
-			 + "INSERT INTO flatedge_history (id, txn_start, txn_end, type, v_out,v_in,edge_order) "
-			 + "SELECT id, s_id, 0, type, v_out,v_in,edge_order "
+			 + "INSERT INTO flatedge_history (id, txn_start, txn_end, label, v_out,v_in,edge_order) "
+			 + "SELECT id, s_id, 0, label, v_out,v_in,edge_order "
 			 + "FROM sess_flatedge "
 			 + "WHERE s_id = @txn "
 			 + "AND state = 'NEW'; "
 
-			 + "INSERT INTO flatedge_history (id, txn_start, txn_end, type, v_out,v_in,edge_order) "
-			 + "SELECT id, s_id, 0, type, v_out,v_in,edge_order "
+			 + "INSERT INTO flatedge_history (id, txn_start, txn_end, label, v_out,v_in,edge_order) "
+			 + "SELECT id, s_id, 0, label, v_out,v_in,edge_order "
 			 + "FROM sess_flatedge "
 			 + "WHERE s_id = @txn "
 			 + "AND state = 'MOD'; "
 
-			 + "INSERT INTO flatedge (id, txn_start, txn_end, type, v_out,v_in,edge_order) "
-			 + "SELECT id, s_id, 0, type, v_out,v_in,edge_order "
+			 + "INSERT INTO flatedge (id, txn_start, txn_end, label, v_out,v_in,edge_order) "
+			 + "SELECT id, s_id, 0, label, v_out,v_in,edge_order "
 			 + "FROM sess_flatedge "
 			 + "WHERE s_id = @txn "
 			 + "AND state = 'NEW'; "
 
 			 + "UPDATE flatedge c, sess_flatedge s "
-			 + "SET c.txn_start = s.s_id, c.txn_end = s.txn_end, c.type = s.type, c.v_out = s.v_out, c.v_in = s.v_in, c.edge_order = s.edge_order "
+			 + "SET c.txn_start = s.s_id, c.txn_end = s.txn_end, c.label = s.label, c.v_out = s.v_out, c.v_in = s.v_in, c.edge_order = s.edge_order "
 			 + "WHERE c.id = s.id "
 			 + "AND s_id = @txn "
 			 + "AND state = 'MOD';")
@@ -368,26 +368,26 @@ public abstract class AmberDaoMySql extends AmberDao {
 			@Bind("txnId") Long txnId);
 
 			@SqlUpdate("SET @txn = :txnId;"
-			 + "INSERT INTO acknowledge_history (id, txn_start, txn_end, type, v_out,v_in,edge_order,ackType,date,kindOfSupport,weighting,urlToOriginal) "
-			 + "SELECT id, s_id, 0, type, v_out,v_in,edge_order,ackType,date,kindOfSupport,weighting,urlToOriginal "
+			 + "INSERT INTO acknowledge_history (id, txn_start, txn_end, v_out,v_in,edge_order,ackType,date,kindOfSupport,weighting,urlToOriginal) "
+			 + "SELECT id, s_id, 0, v_out,v_in,edge_order,ackType,date,kindOfSupport,weighting,urlToOriginal "
 			 + "FROM sess_acknowledge "
 			 + "WHERE s_id = @txn "
 			 + "AND state = 'NEW'; "
 
-			 + "INSERT INTO acknowledge_history (id, txn_start, txn_end, type, v_out,v_in,edge_order,ackType,date,kindOfSupport,weighting,urlToOriginal) "
-			 + "SELECT id, s_id, 0, type, v_out,v_in,edge_order,ackType,date,kindOfSupport,weighting,urlToOriginal "
+			 + "INSERT INTO acknowledge_history (id, txn_start, txn_end, v_out,v_in,edge_order,ackType,date,kindOfSupport,weighting,urlToOriginal) "
+			 + "SELECT id, s_id, 0, v_out,v_in,edge_order,ackType,date,kindOfSupport,weighting,urlToOriginal "
 			 + "FROM sess_acknowledge "
 			 + "WHERE s_id = @txn "
 			 + "AND state = 'MOD'; "
 
-			 + "INSERT INTO acknowledge (id, txn_start, txn_end, type, v_out,v_in,edge_order,ackType,date,kindOfSupport,weighting,urlToOriginal) "
-			 + "SELECT id, s_id, 0, type, v_out,v_in,edge_order,ackType,date,kindOfSupport,weighting,urlToOriginal "
+			 + "INSERT INTO acknowledge (id, txn_start, txn_end, v_out,v_in,edge_order,ackType,date,kindOfSupport,weighting,urlToOriginal) "
+			 + "SELECT id, s_id, 0, v_out,v_in,edge_order,ackType,date,kindOfSupport,weighting,urlToOriginal "
 			 + "FROM sess_acknowledge "
 			 + "WHERE s_id = @txn "
 			 + "AND state = 'NEW'; "
 
 			 + "UPDATE acknowledge c, sess_acknowledge s "
-			 + "SET c.txn_start = s.s_id, c.txn_end = s.txn_end, c.type = s.type, c.v_out = s.v_out, c.v_in = s.v_in, c.edge_order = s.edge_order, c.ackType = s.ackType, c.date = s.date, c.kindOfSupport = s.kindOfSupport, c.weighting = s.weighting, c.urlToOriginal = s.urlToOriginal "
+			 + "SET c.txn_start = s.s_id, c.txn_end = s.txn_end, c.v_out = s.v_out, c.v_in = s.v_in, c.edge_order = s.edge_order, c.ackType = s.ackType, c.date = s.date, c.kindOfSupport = s.kindOfSupport, c.weighting = s.weighting, c.urlToOriginal = s.urlToOriginal "
 			 + "WHERE c.id = s.id "
 			 + "AND s_id = @txn "
 			 + "AND state = 'MOD';")

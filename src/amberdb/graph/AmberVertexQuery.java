@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.Query;
 import org.skife.jdbi.v2.TransactionIsolationLevel;
 import org.skife.jdbi.v2.Update;
 import org.slf4j.Logger;
@@ -104,8 +105,8 @@ public class AmberVertexQuery extends AmberQueryBase {
     
     protected String generateAndQuery() {
         StringBuilder s = new StringBuilder();
-        s.append("INSERT INTO vp (id) \n" +
-        		"select node.id \n" +
+        s.append(
+        		"select * \n" +
         		"from node \n" +
         		"left join work        on        work.id = node.id \n" +
         		"left join file        on        file.id = node.id \n" +
@@ -129,14 +130,13 @@ public class AmberVertexQuery extends AmberQueryBase {
 
     protected String generateOrQuery() {
         StringBuilder s = new StringBuilder();
-        s.append("INSERT INTO vp (id) \n");
         for (int i = 0; i < properties.size(); i++) {
         	String columnName = properties.get(i).getName();
         	if ("type".equals(columnName)) {
         		columnName = "node.type";
         	}
             s.append(
-            		"select node.id \n" +
+            		"select * \n" +
             		"from node \n" +
             		"left join work        on        work.id = node.id \n" +
             		"left join file        on        file.id = node.id \n" +
@@ -155,12 +155,15 @@ public class AmberVertexQuery extends AmberQueryBase {
     protected String generateAllQuery() {
         
         StringBuilder s = new StringBuilder();
-        s.append("INSERT INTO vp (id) \n"
-                + "SELECT v.id \n"
-                + "FROM vertex v \n"
-                + "WHERE v.txn_end = 0 \n"
-                + "LIMIT " + MAX_VERTICES);
-
+        s.append(
+        		"select * \n" +
+        		"from node \n" +
+        		"left join work        on        work.id = node.id \n" +
+        		"left join file        on        file.id = node.id \n" +
+        		"left join description on description.id = node.id \n" +
+        		"left join party       on       party.id = node.id \n" +
+        		"left join tag         on         tag.id = node.id \n" +
+                "LIMIT " + MAX_VERTICES);
         return s.toString();        
     }
     
@@ -181,26 +184,15 @@ public class AmberVertexQuery extends AmberQueryBase {
     
     public List<Vertex> execute() {
 
-        List<Vertex> vertices;
+        List<Vertex> vertices = new ArrayList<>();
         try (Handle h = graph.dbi().open()) {
-
-            // run the generated query
             h.begin();
-            h.execute("DROP " + graph.tempTableDrop + " TABLE IF EXISTS vp; CREATE TEMPORARY TABLE vp (id BIGINT) " + graph.tempTableEngine + ";");
-            
             String sql = generateQuery();
-            Update q = h.createStatement(sql);
-            
+            Query<Map<String, Object>> q = h.createQuery(sql);
             for (int i = 0; i < properties.size(); i++) {
-                // q.bind("name"+i, properties.get(i).getName());
                 q.bind("value"+i, properties.get(i).getValue());
             }
-            q.execute();
-            h.commit();
-
-            // and reap the rewards
-            Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h, "vp", "id");
-            vertices = getVertices(h, graph, propMaps, "vp", "id", "id");
+            vertices.addAll(q.map(new AmberVertexMapper(graph)).list());
         } catch (Exception e) {
         	log.error("Exception executing vertex query.", e);
         	throw(e);

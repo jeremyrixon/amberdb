@@ -12,7 +12,7 @@ import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 
-public class VertexMapper implements ResultSetMapper<AmberVertexWithState> {
+public class AmberVertexMapper implements ResultSetMapper<AmberVertex>  {
 
     
     private AmberGraph graph;
@@ -26,12 +26,12 @@ public class VertexMapper implements ResultSetMapper<AmberVertexWithState> {
     }
 
     
-    public VertexMapper(AmberGraph graph) {
+    public AmberVertexMapper(AmberGraph graph) {
         this.graph = graph;
     }
 
     
-    public AmberVertexWithState map(int index, ResultSet rs, StatementContext ctx) throws SQLException {
+    public AmberVertex map(int index, ResultSet rs, StatementContext ctx) throws SQLException {
         
         AmberVertex vertex = new AmberVertex(
                 rs.getLong("id"), 
@@ -55,6 +55,6 @@ public class VertexMapper implements ResultSetMapper<AmberVertexWithState> {
 	        	}
         	}
         }
-        return new AmberVertexWithState(vertex, rs.getString("state"));
+        return vertex;
     }
 }

@@ -57,7 +57,7 @@ public class AmberQueryBase {
                 + " v.txn_end = 0 AND v.id = %1$s.%2$s "
                 + " ORDER BY %1$s.%3$s, %1$s.%2$s",
                 vertexIdTable, vertexIdColumn, vertexOrderColumn))
-                .map(new VertexMapper(graph)).list();
+                .map(new AmberVertexWithStateMapper(graph)).list();
 
         // add them to the graph
         for (AmberVertexWithState wrapper : wrappedVertices) {

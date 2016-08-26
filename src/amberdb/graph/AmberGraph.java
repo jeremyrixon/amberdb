@@ -538,7 +538,7 @@ public class AmberGraph extends BaseGraph
                 "FROM sess_vertex " +
                 "WHERE s_id = :sessId")
                 .bind("sessId", sessId)
-                .map(new VertexMapper(this)).list();
+                .map(new AmberVertexWithStateMapper(this)).list();
         }
         return vertices;
     }
@@ -649,7 +649,7 @@ public class AmberGraph extends BaseGraph
             		"left join tag         on         tag.id = node.id " +
             		"where node.id = :id")
                 .bind("id", parseId(id))
-                .map(new VertexMapper(this)).first();
+                .map(new AmberVertexWithStateMapper(this)).first();
 
             if (vs == null) return null;
             vertex = vs.vertex;
@@ -874,18 +874,12 @@ public class AmberGraph extends BaseGraph
                 dao.startTags(txnId);
                 dao.startParties(txnId);
                 dao.startDescriptions(txnId);
-//                System.out.println("Before dao.startFlatedges " + txnId);
-//                dao.dumpQuery("select * from flatedge");
-//                dao.dumpQuery("select * from flatedge_history");
-//                dao.dumpQuery("select * from sess_flatedge");
                 dao.startFlatedges(txnId);
-//                System.out.println("After dao.startFlatedges " + txnId);
-//                dao.dumpQuery("select * from flatedge");
-//                dao.dumpQuery("select * from flatedge_history");
-//                dao.dumpQuery("select * from sess_flatedge");
                 dao.startAcknowledgements(txnId);
                 // Refactor note: need to check when adding (modding?) edges that both ends exist
                 dao.insertTransaction(txnId, new Date().getTime(), user, operation);
+                dao.dumpQuery("select * from sess_node order by id, txn_start, txn_end, type");
+                dao.dumpQuery("select * from node order by id, txn_start, txn_end, type");
                 dao.commit();
                 log.debug("commit complete");
                 break retryLoop;
@@ -898,7 +892,6 @@ public class AmberGraph extends BaseGraph
                 if (tryCount < retries) {
                     log.warn("AmberDb commit failed: Reason: {}\n" +
                             "Retry after {} milliseconds", e.getMessage(), backoff);
-                    dao.rollback();
                     tryCount++;
                     try {
                         Thread.sleep(backoff);
@@ -1126,7 +1119,7 @@ public class AmberGraph extends BaseGraph
                 + "AND v.txn_end = t.id) "
                 + "ORDER BY id")
                 .bind("id", id)
-                .map(new VertexMapper(this)).list();
+                .map(new AmberVertexWithStateMapper(this)).list();
 
             List<AmberVertex> vertices = new ArrayList<>();
             for (AmberVertexWithState v : vs) {
@@ -1223,11 +1216,6 @@ public class AmberGraph extends BaseGraph
 	}
 
 	private void suspendIntoFlatEdgeTables(Long sessId, Map<String, Set<AmberEdge>> edgesByType, String operation) {
-//        System.out.println("Before suspendIntoFlatEdgeTables " + sessId);
-//        dao.dumpQuery("select * from flatedge");
-//        dao.dumpQuery("select * from flatedge_history");
-//        dao.dumpQuery("select * from sess_flatedge");
-
         for (Entry<String, Set<AmberEdge>> entry: edgesByType.entrySet()) {
         	String edgeType = entry.getKey().toLowerCase();
         	String table = edgeToTableMap.get(edgeType);
@@ -1238,36 +1226,6 @@ public class AmberGraph extends BaseGraph
         		}
         	}
         }
-
-//        System.out.println("After suspendIntoFlatEdgeTables " + sessId);
-//        dao.dumpQuery("select * from flatedge");
-//        dao.dumpQuery("select * from flatedge_history");
-//        dao.dumpQuery("select * from sess_flatedge");
 	}
-	
-    private void dumpQuery(String string) {
-    	System.out.println(string);
-    	try (Connection conn = dao.getHandle().getConnection()) {
-    	      ResultSet results = conn.createStatement().executeQuery(string);
-    	      int numCols = results.getMetaData().getColumnCount();
-	    	  StringBuilder sb = new StringBuilder();
-	    	  for (int c = 1; c <= numCols; c++) {
-	    		  sb.append(String.format("%20s", results.getMetaData().getColumnLabel(c)));
-	    	  }
-	    	  System.out.println(sb);
-    	      while (results.next()) {
-    	    	  sb.setLength(0);
-    	    	  for (int c = 1; c <= numCols; c++) {
-    	    		  Object o = results.getObject(c);
-    	    		  sb.append(String.format("%20s", o));
-    	    	  }
-    	    	  System.out.println(sb);
-    	      }
-    		
-    	} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-
 }
 

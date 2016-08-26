@@ -1116,7 +1116,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" id BIGINT, "
     				+" txn_start BIGINT DEFAULT 0 NOT NULL, "
     				+" txn_end BIGINT DEFAULT 0 NOT NULL, "
-    				+" type VARCHAR(15), "
+    				+" label VARCHAR(15), "
     				+" "
     				+" v_out BIGINT, "
     				+" v_in BIGINT, "
@@ -1128,7 +1128,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" id BIGINT, "
     				+" txn_start BIGINT DEFAULT 0 NOT NULL, "
     				+" txn_end BIGINT DEFAULT 0 NOT NULL, "
-    				+" type VARCHAR(15), "
+    				+" label VARCHAR(15), "
     				+" "
     				+" v_out BIGINT, "
     				+" v_in BIGINT, "
@@ -1142,7 +1142,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" id BIGINT, "
     				+" txn_start BIGINT DEFAULT 0 NOT NULL, "
     				+" txn_end BIGINT DEFAULT 0 NOT NULL, "
-    				+" type VARCHAR(15), "
+    				+" label VARCHAR(15), "
     				+" "
     				+" v_out BIGINT, "
     				+" v_in BIGINT, "
@@ -1154,7 +1154,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" id BIGINT, "
     				+" txn_start BIGINT DEFAULT 0 NOT NULL, "
     				+" txn_end BIGINT DEFAULT 0 NOT NULL, "
-    				+" type VARCHAR(15), "
+    				+" label VARCHAR(15), "
     				+" "
     				+" v_out BIGINT, "
     				+" v_in BIGINT, "
@@ -1171,7 +1171,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" id BIGINT, "
     				+" txn_start BIGINT DEFAULT 0 NOT NULL, "
     				+" txn_end BIGINT DEFAULT 0 NOT NULL, "
-    				+" type VARCHAR(15), "
+    				+" label VARCHAR(15), "
     				+" "
     				+" v_out BIGINT, "
     				+" v_in BIGINT, "
@@ -1190,7 +1190,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     				+" id BIGINT, "
     				+" txn_start BIGINT DEFAULT 0 NOT NULL, "
     				+" txn_end BIGINT DEFAULT 0 NOT NULL, "
-    				+" type VARCHAR(15), "
+    				+" label VARCHAR(15), "
     				+" "
     				+" v_out BIGINT, "
     				+" v_in BIGINT, "
@@ -1553,7 +1553,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 	
 	public void suspendIntoFlatEdgeTable(Long sessId, String state, Set<AmberEdge> set) {
 		Set<String> fields = getFields(set, state);
-		String sql = String.format("INSERT INTO sess_flatedge (s_id, state, id, txn_start, txn_end, v_out, v_in, edge_order, type) values (:s_id, :state, :id, :txn_start, :txn_end, :v_out, :v_in, :edge_order, :type)",
+		String sql = String.format("INSERT INTO sess_flatedge (s_id, state, id, txn_start, txn_end, v_out, v_in, edge_order, label) values (:s_id, :state, :id, :txn_start, :txn_end, :v_out, :v_in, :edge_order, :label)",
 				StringUtils.join(format(fields, ", %s"), ' '),
 				StringUtils.join(format(fields, ", :%s"), ' '));
 
@@ -1569,7 +1569,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			preparedBatchPart.bind("v_out",      v.getOutId());
 			preparedBatchPart.bind("v_in",       v.getInId());
 			preparedBatchPart.bind("edge_order", v.getOrder());
-			preparedBatchPart.bind("type",       v.getLabel());
+			preparedBatchPart.bind("label",      v.getLabel());
 		}
 		preparedBatch.execute();
 		
@@ -1577,7 +1577,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 
 	public void suspendIntoFlatEdgeSpecificTable(Long sessId, String state, String table, Set<AmberEdge> set) {
 		Set<String> fields = getFields(set, state);
-		String sql = String.format("INSERT INTO %s (s_id, state, id, txn_start, txn_end, v_out, v_in, edge_order, type %s) values (:s_id, :state, :id, :txn_start, :txn_end, :v_out, :v_in, :edge_order, :type %s)",
+		String sql = String.format("INSERT INTO %s (s_id, state, id, txn_start, txn_end, v_out, v_in, edge_order, label %s) values (:s_id, :state, :id, :txn_start, :txn_end, :v_out, :v_in, :edge_order, :label %s)",
 				table,
 				StringUtils.join(format(fields, ", %s"), ' '),
 				StringUtils.join(format(fields, ", :%s"), ' '));
@@ -1594,7 +1594,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			preparedBatchPart.bind("v_out",      v.getOutId());
 			preparedBatchPart.bind("v_in",       v.getInId());
 			preparedBatchPart.bind("edge_order", v.getOrder());
-			preparedBatchPart.bind("type",       v.getLabel());
+			preparedBatchPart.bind("label",       v.getLabel());
 			if (!"DEL".equals(state)) {
 				for (String field: fields) {
 					preparedBatchPart.bind(field,    v.getProperty(field));
@@ -1692,7 +1692,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 	@Bind("txnId") Long txnId);
 
 	public void dumpQuery(String string) {
-		System.out.println(string);
+		System.err.println(string);
 		try {
 			Connection conn = getHandle().getConnection();
 			ResultSet results = conn.createStatement().executeQuery(string);
@@ -1701,15 +1701,16 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			for (int c = 1; c <= numCols; c++) {
 				sb.append(String.format("%20s", results.getMetaData().getColumnLabel(c)));
 			}
-			System.out.println(sb);
+			System.err.println(sb);
 			while (results.next()) {
 				sb.setLength(0);
 				for (int c = 1; c <= numCols; c++) {
 					Object o = results.getObject(c);
 					sb.append(String.format("%20s", o));
 				}
-				System.out.println(sb);
+				System.err.println(sb);
 			}
+			System.err.flush();
 
 		} catch (SQLException e) {
 			e.printStackTrace();

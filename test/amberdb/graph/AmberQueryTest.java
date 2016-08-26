@@ -34,7 +34,7 @@ public class AmberQueryTest {
     
     @Before
     public void setup() throws MalformedURLException, IOException {
-        src = JdbcConnectionPool.create("jdbc:h2:mem;DATABASE_TO_UPPER=false;","sess","sess");
+        src = JdbcConnectionPool.create("jdbc:h2:mem:persist;DATABASE_TO_UPPER=false;","pers","pers");
         graph = new AmberGraph(src);
     }
 

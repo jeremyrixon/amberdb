@@ -698,7 +698,10 @@ public class AmberSession implements AutoCloseable {
     }
 
     private Party addParty() {
-        return graph.addVertex(null, Party.class);
+    	Party v = graph.addVertex(null, Party.class);
+    	v.asVertex().setProperty("type",  "Party");
+        return v;
+        
     }
 
     public Party addParty(String name) {

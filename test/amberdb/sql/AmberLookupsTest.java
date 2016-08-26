@@ -26,7 +26,7 @@ public class AmberLookupsTest {
 
     @Before
     public void setup() {
-        adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist","lookups","lookups"), folder.getRoot().toPath());
+        adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist;DATABASE_TO_UPPER=false;","lookups","lookups"), folder.getRoot().toPath());
         session = adb.begin();
         lookups = session.getLookups();
     }
