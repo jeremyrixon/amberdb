@@ -183,8 +183,6 @@ public class AmberVertexQuery extends AmberQueryBase {
     
     
     public List<Vertex> execute() {
-
-        List<Vertex> vertices = new ArrayList<>();
         try (Handle h = graph.dbi().open()) {
             h.begin();
             String sql = generateQuery();
@@ -192,16 +190,17 @@ public class AmberVertexQuery extends AmberQueryBase {
             for (int i = 0; i < properties.size(); i++) {
                 q.bind("value"+i, properties.get(i).getValue());
             }
-            vertices.addAll(q.map(new AmberVertexMapper(graph)).list());
+            return getVertices(q.map(new AmberVertexMapper(graph)).list());
         } catch (Exception e) {
         	log.error("Exception executing vertex query.", e);
         	throw(e);
         }
-        return vertices;
     }
     
     
-    public List<Vertex> executeJsonValSearch(String name, String value) {
+
+
+	public List<Vertex> executeJsonValSearch(String name, String value) {
         // quote any characters that could cause issues with the regex matching - assumes we are performing an exact match on value
         for (String quote : Arrays.asList(".", "(", ")", "[", "]", "{", "}")) {
             value = value.replace(quote, "\\" + quote);
