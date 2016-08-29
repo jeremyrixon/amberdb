@@ -878,8 +878,6 @@ public class AmberGraph extends BaseGraph
                 dao.startAcknowledgements(txnId);
                 // Refactor note: need to check when adding (modding?) edges that both ends exist
                 dao.insertTransaction(txnId, new Date().getTime(), user, operation);
-                dao.dumpQuery("select * from sess_node order by id, txn_start, txn_end, type");
-                dao.dumpQuery("select * from node order by id, txn_start, txn_end, type");
                 dao.commit();
                 log.debug("commit complete");
                 break retryLoop;
