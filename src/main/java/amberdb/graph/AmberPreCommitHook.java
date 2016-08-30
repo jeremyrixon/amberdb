@@ -1,16 +1,19 @@
 package amberdb.graph;
 
-import amberdb.v2.model.*;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.common.collect.ImmutableList;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.frames.FramedGraph;
 
 import amberdb.AmberSession;
-import amberdb.v2.model.*;
-
-import java.util.ArrayList;
-import java.util.List;
+import amberdb.model.Copy;
+import amberdb.model.EADWork;
+import amberdb.model.Section;
+import amberdb.model.SoundFile;
+import amberdb.model.Work;
 
 public abstract class AmberPreCommitHook<T> {
     public static List<String> WORK_TYPES = ImmutableList.<String>builder().add(
