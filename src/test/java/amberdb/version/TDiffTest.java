@@ -1,18 +1,29 @@
 package amberdb.version;
 
-import amberdb.graph.AmberGraph;
-import com.tinkerpop.blueprints.Vertex;
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.junit.*;
-import org.junit.rules.TemporaryFolder;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import javax.sql.DataSource;
+
+import org.h2.jdbcx.JdbcConnectionPool;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+
+import org.junit.rules.TemporaryFolder;
+
+import com.tinkerpop.blueprints.Vertex;
+
+import amberdb.graph.AmberGraph;
 
 
 public class TDiffTest {
@@ -28,7 +39,7 @@ public class TDiffTest {
     @Before
     public void setup() throws MalformedURLException, IOException {
         tempPath = Paths.get(tempFolder.getRoot().getAbsolutePath());
-        src = JdbcConnectionPool.create("jdbc:h2:"+tempPath.toString()+"amber;auto_server=true","sess","sess");
+        src = JdbcConnectionPool.create("jdbc:h2:"+tempPath.toString()+"amber;auto_server=true;DATABASE_TO_UPPER=false;","sess","sess");
         graph = new AmberGraph(src);
         vGraph = new VersionedGraph(src);
     }
@@ -92,78 +103,78 @@ public class TDiffTest {
         //s("--NEW transitions:");
         //printDiffMap(new1);
         diffs = new1.getDiffMap();
-        Assert.assertNull(diffs.get("prop1")[0]);
-        Assert.assertNull(diffs.get("prop2")[0]);
-        Assert.assertNull(diffs.get("prop3")[0]);
-        Assert.assertNull(diffs.get("prop4")[0]);
-        Assert.assertEquals("v1", diffs.get("prop1")[1]);
-        Assert.assertEquals("v2", diffs.get("prop2")[1]);
-        Assert.assertEquals("v3", diffs.get("prop3")[1]);
-        Assert.assertEquals("v4", diffs.get("prop4")[1]);
+        assertNull(diffs.get("prop1")[0]);
+        assertNull(diffs.get("prop2")[0]);
+        assertNull(diffs.get("prop3")[0]);
+        assertNull(diffs.get("prop4")[0]);
+        assertEquals("v1", diffs.get("prop1")[1]);
+        assertEquals("v2", diffs.get("prop2")[1]);
+        assertEquals("v3", diffs.get("prop3")[1]);
+        assertEquals("v4", diffs.get("prop4")[1]);
 
         //s("\n");
         //printDiffMap(new2);        
         diffs = new2.getDiffMap();
-        Assert.assertNull(diffs.get("prop1")[0]);
-        Assert.assertNull(diffs.get("prop2")[0]);
-        Assert.assertNull(diffs.get("prop3")[0]);
-        Assert.assertNull(diffs.get("prop5")[0]);
-        Assert.assertEquals("v5", diffs.get("prop1")[1]);
-        Assert.assertEquals("v2", diffs.get("prop2")[1]);
-        Assert.assertEquals("v6", diffs.get("prop3")[1]);
-        Assert.assertEquals("v7", diffs.get("prop5")[1]);
+        assertNull(diffs.get("prop1")[0]);
+        assertNull(diffs.get("prop2")[0]);
+        assertNull(diffs.get("prop3")[0]);
+        assertNull(diffs.get("prop5")[0]);
+        assertEquals("v5", diffs.get("prop1")[1]);
+        assertEquals("v2", diffs.get("prop2")[1]);
+        assertEquals("v6", diffs.get("prop3")[1]);
+        assertEquals("v7", diffs.get("prop5")[1]);
 
         //s("\n--DELETED transitions:");
         //printDiffMap(del1);
         diffs = del1.getDiffMap();
-        Assert.assertNull(diffs.get("prop1")[1]);
-        Assert.assertNull(diffs.get("prop2")[1]);
-        Assert.assertNull(diffs.get("prop3")[1]);
-        Assert.assertNull(diffs.get("prop4")[1]);
-        Assert.assertEquals("v1", diffs.get("prop1")[0]);
-        Assert.assertEquals("v2", diffs.get("prop2")[0]);
-        Assert.assertEquals("v3", diffs.get("prop3")[0]);
-        Assert.assertEquals("v4", diffs.get("prop4")[0]);
+        assertNull(diffs.get("prop1")[1]);
+        assertNull(diffs.get("prop2")[1]);
+        assertNull(diffs.get("prop3")[1]);
+        assertNull(diffs.get("prop4")[1]);
+        assertEquals("v1", diffs.get("prop1")[0]);
+        assertEquals("v2", diffs.get("prop2")[0]);
+        assertEquals("v3", diffs.get("prop3")[0]);
+        assertEquals("v4", diffs.get("prop4")[0]);
         
         //s("\n");
         //printDiffMap(del2);        
         diffs = del2.getDiffMap();
-        Assert.assertNull(diffs.get("prop1")[1]);
-        Assert.assertNull(diffs.get("prop2")[1]);
-        Assert.assertNull(diffs.get("prop3")[1]);
-        Assert.assertNull(diffs.get("prop5")[1]);
-        Assert.assertEquals("v5", diffs.get("prop1")[0]);
-        Assert.assertEquals("v2", diffs.get("prop2")[0]);
-        Assert.assertEquals("v6", diffs.get("prop3")[0]);
-        Assert.assertEquals("v7", diffs.get("prop5")[0]);
+        assertNull(diffs.get("prop1")[1]);
+        assertNull(diffs.get("prop2")[1]);
+        assertNull(diffs.get("prop3")[1]);
+        assertNull(diffs.get("prop5")[1]);
+        assertEquals("v5", diffs.get("prop1")[0]);
+        assertEquals("v2", diffs.get("prop2")[0]);
+        assertEquals("v6", diffs.get("prop3")[0]);
+        assertEquals("v7", diffs.get("prop5")[0]);
 
         //s("\n--MODIFIED transitions:");
         //printDiffMap(mod1);
         diffs = mod1.getDiffMap();
-        Assert.assertEquals("v1", diffs.get("prop1")[0]);
-        Assert.assertEquals("v2", diffs.get("prop2")[0]);
-        Assert.assertEquals("v3", diffs.get("prop3")[0]);
-        Assert.assertEquals("v4", diffs.get("prop4")[0]);
-        Assert.assertNull(diffs.get("prop5")[0]);
+        assertEquals("v1", diffs.get("prop1")[0]);
+        assertEquals("v2", diffs.get("prop2")[0]);
+        assertEquals("v3", diffs.get("prop3")[0]);
+        assertEquals("v4", diffs.get("prop4")[0]);
+        assertNull(diffs.get("prop5")[0]);
 
-        Assert.assertEquals("v5", diffs.get("prop1")[1]);
-        Assert.assertEquals("v2", diffs.get("prop2")[1]);
-        Assert.assertEquals("v6", diffs.get("prop3")[1]);
-        Assert.assertEquals("v7", diffs.get("prop5")[1]);
-        Assert.assertNull(diffs.get("prop4")[1]);
+        assertEquals("v5", diffs.get("prop1")[1]);
+        assertEquals("v2", diffs.get("prop2")[1]);
+        assertEquals("v6", diffs.get("prop3")[1]);
+        assertEquals("v7", diffs.get("prop5")[1]);
+        assertNull(diffs.get("prop4")[1]);
 
         //s("\n--UNCHANGED transitions:");
         //printDiffMap(un1);
         diffs = un1.getDiffMap();
-        Assert.assertEquals(diffs.get("prop1")[0], diffs.get("prop1")[1]);
-        Assert.assertEquals(diffs.get("prop2")[0], diffs.get("prop2")[1]);
-        Assert.assertEquals(diffs.get("prop3")[0], diffs.get("prop3")[1]);
-        Assert.assertEquals(diffs.get("prop4")[0], diffs.get("prop4")[1]);
+        assertEquals(diffs.get("prop1")[0], diffs.get("prop1")[1]);
+        assertEquals(diffs.get("prop2")[0], diffs.get("prop2")[1]);
+        assertEquals(diffs.get("prop3")[0], diffs.get("prop3")[1]);
+        assertEquals(diffs.get("prop4")[0], diffs.get("prop4")[1]);
         
         //s("\n");
         //printDiffMap(un2);        
         diffs = un2.getDiffMap();
-        Assert.assertEquals(0, diffs.size());
+        assertEquals(0, diffs.size());
     }        
     
     @Test
@@ -196,11 +207,11 @@ public class TDiffTest {
 
         VersionedVertex vv = vGraph.getVertex(id);
         
-        Assert.assertEquals(vv.getDiff(txn0, txn4).getTransition(), TTransition.UNCHANGED); // before creation after deletion
-        Assert.assertEquals(vv.getDiff(txn2, txn4).getTransition(), TTransition.DELETED); // after creation after deletion
-        Assert.assertEquals(vv.getDiff(txn1, txn4).getTransition(), TTransition.DELETED); // on creation after deletion
-        Assert.assertEquals(vv.getDiff(txn1, txn3).getTransition(), TTransition.DELETED); // on creation on deletion
-        Assert.assertEquals(vv.getDiff(txn2, txn3).getTransition(), TTransition.DELETED); // after creation on deletion
+        assertEquals(vv.getDiff(txn0, txn4).getTransition(), TTransition.UNCHANGED); // before creation after deletion
+        assertEquals(vv.getDiff(txn2, txn4).getTransition(), TTransition.DELETED); // after creation after deletion
+        assertEquals(vv.getDiff(txn1, txn4).getTransition(), TTransition.DELETED); // on creation after deletion
+        assertEquals(vv.getDiff(txn1, txn3).getTransition(), TTransition.DELETED); // on creation on deletion
+        assertEquals(vv.getDiff(txn2, txn3).getTransition(), TTransition.DELETED); // after creation on deletion
 
     }        
     

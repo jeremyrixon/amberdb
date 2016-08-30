@@ -1,16 +1,23 @@
 package amberdb.graph;
 
-import com.google.common.collect.Lists;
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Vertex;
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.junit.*;
-import org.junit.rules.TemporaryFolder;
-
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.List;
+
+import javax.sql.DataSource;
+
+import org.h2.jdbcx.JdbcConnectionPool;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
+import org.junit.rules.TemporaryFolder;
+
+import com.google.common.collect.Lists;
+import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Vertex;
 
 
 public class AmberGraphPersistenceTest {
@@ -28,7 +35,7 @@ public class AmberGraphPersistenceTest {
     public void setup() throws MalformedURLException, IOException {
         
         String tempPath = tempFolder.getRoot().getAbsolutePath();
-        ds = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"persist","per","per");
+        ds = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"persist;DATABASE_TO_UPPER=false","per","per");
         
         graph1 = new AmberGraph(ds);
         graph2 = new AmberGraph(ds);
@@ -44,49 +51,52 @@ public class AmberGraphPersistenceTest {
         this.stopWatch();
         
         Vertex v1 = graph1.addVertex(null);
-        v1.setProperty("name", "enter the dragon");
-        v1.setProperty("number", 42);
-        Assert.assertEquals("enter the dragon", v1.getProperty("name"));
-        Assert.assertEquals(42, v1.getProperty("number"));
+        v1.setProperty("type", "Work");
+        v1.setProperty("title", "enter the dragon");
+        v1.setProperty("subunitNo", 42);
+        assertEquals("enter the dragon", v1.getProperty("title"));
+        assertEquals(42, v1.getProperty("subunitNo"));
         
         graph1.commit("tester", "Persisting v1");
         
-        Assert.assertEquals("session vertex must retain properties after being persisted", "enter the dragon", v1.getProperty("name"));
-        Assert.assertEquals("session vertex must retain properties after being persisted", 42, v1.getProperty("number"));
+        assertEquals("session vertex must retain properties after being persisted", "enter the dragon", v1.getProperty("title"));
+        assertEquals("session vertex must retain properties after being persisted", 42, v1.getProperty("subunitNo"));
 
-        Assert.assertEquals(graph1.getVertex(v1.getId()), v1);
+        assertEquals(graph1.getVertex(v1.getId()), v1);
 
         v1.remove();
-        Assert.assertNull(graph1.getVertex(v1.getId()));
+        assertNull(graph1.getVertex(v1.getId()));
         
         // create 2nd session
         Vertex v2 = graph2.getVertex(v1.getId());
-        Assert.assertNotNull(v2);
-        Assert.assertEquals("enter the dragon", v2.getProperty("name"));
+        assertNotNull(v2);
+        assertEquals("enter the dragon", v2.getProperty("title"));
         
-        v2.setProperty("name", "game of death");
+        v2.setProperty("title", "game of death");
+        v2.setProperty("type", "Work");
 
         Vertex v3 = graph2.addVertex(null);
-        v3.addEdge("connect", v3);
-        v3.setProperty("name", "bruce lee");
+        v3.setProperty("type", "Work");
+        v3.addEdge("partOf", v3);
+        v3.setProperty("title", "bruce lee");
         
         graph2.commit("tester","update v2 and connector");
         
         Vertex v4 = graph1.getVertex(v3.getId());
-        Assert.assertEquals(v4, v3);
+        assertEquals(v4, v3);
 
         Vertex v5 = graph1.getVertex(v2.getId());
-        Assert.assertNull(v5); // v1 has been removed in graph1, and v2 has same id as v1
+        assertNull(v5); // v1 has been removed in graph1, and v2 has same id as v1
 
         Vertex v6 = graph2.getVertex(v1.getId());
-        Assert.assertNotNull(v6);
+        assertNotNull(v6);
         
         graph1.shutdown();
         
         graph3 = new AmberGraph(ds);
         
         v3 = graph3.getVertex(v1.getId());
-        Assert.assertNotNull(v6);
+        assertNotNull(v6);
     }
     
     @Test
@@ -102,12 +112,12 @@ public class AmberGraphPersistenceTest {
         graph1.commit();
 
         Vertex v2 = graph1.getVertex(v.getId());
-        Assert.assertEquals(v.getProperty("String"),  v2.getProperty("String"));
-        Assert.assertEquals(v.getProperty("Boolean"), v2.getProperty("Boolean"));
-        Assert.assertEquals(v.getProperty("Long"),    v2.getProperty("Long"));
-        Assert.assertEquals(v.getProperty("Integer"), v2.getProperty("Integer"));
-        Assert.assertEquals(v.getProperty("Float"),   v2.getProperty("Float"));
-        Assert.assertEquals(v.getProperty("Double"),  v2.getProperty("Double"));
+        assertEquals(v.getProperty("String"),  v2.getProperty("String"));
+        assertEquals(v.getProperty("Boolean"), v2.getProperty("Boolean"));
+        assertEquals(v.getProperty("Long"),    v2.getProperty("Long"));
+        assertEquals(v.getProperty("Integer"), v2.getProperty("Integer"));
+        assertEquals(v.getProperty("Float"),   v2.getProperty("Float"));
+        assertEquals(v.getProperty("Double"),  v2.getProperty("Double"));
     }
 
     @Test
@@ -115,49 +125,56 @@ public class AmberGraphPersistenceTest {
         
         // save a graph to persist
         Vertex v = graph1.addVertex(null);
+        v.setProperty("type", "Work");
         
-        Edge e = v.addEdge("e1", graph1.addVertex(null));
-        e.setProperty("string", "value1");
-        e.setProperty("int", 5);
+        Edge e = v.addEdge("acknowledgement", createWork(graph1));
+        e.setProperty("ackType", "value1");
+        e.setProperty("weighting", 5);
 
-        Edge e2 = v.addEdge("e2", graph1.addVertex(null));
-        e2.setProperty("string", "value1");
-        e2.setProperty("int", 10);
+        Edge e2 = v.addEdge("acknowledgement", createWork(graph1));
+        e2.setProperty("ackType", "value1");
+        e2.setProperty("weighting", 10);
 
-        Edge e3 = v.addEdge("e3", graph1.addVertex(null));
-        e3.setProperty("string", "value2");
-        e3.setProperty("int", 10);
+        Edge e3 = v.addEdge("acknowledgement", createWork(graph1));
+        e3.setProperty("ack_type", "value2");
+        e3.setProperty("weighting", 10);
         
         graph1.commit();
 
         // now add some session edges just for fun
-        Edge e4 = v.addEdge("e4", graph1.addVertex(null));
-        e4.setProperty("string", "value1");
-        e4.setProperty("int", 5);
+        Edge e4 = v.addEdge("acknowledgement", createWork(graph1));
+        e4.setProperty("ackType", "value1");
+        e4.setProperty("weighting", 5);
 
-        Edge e5 = v.addEdge("e5", graph1.addVertex(null));
-        e5.setProperty("string", "value3");
-        e5.setProperty("int", 8);
+        Edge e5 = v.addEdge("acknowledgement", createWork(graph1));
+        e5.setProperty("ackType", "value3");
+        e5.setProperty("weighting", 8);
 
-        Edge e6 = v.addEdge("e6", graph1.addVertex(null));
-        e6.setProperty("string", "value2");
-        e6.setProperty("int", 10);
+        Edge e6 = v.addEdge("acknowledgement", createWork(graph1));
+        e6.setProperty("ackType", "value2");
+        e6.setProperty("weighting", 10);
         
         // ok let's get testing
         
         // find edges with a particular string property 
-        List<Edge> edges = Lists.newArrayList(graph1.getEdges("string", "value1"));
-        Assert.assertEquals(3, edges.size());
-        Assert.assertTrue(edges.contains(e));
-        Assert.assertTrue(edges.contains(e2));
-        Assert.assertTrue(edges.contains(e4));
+        List<Edge> edges = Lists.newArrayList(graph1.getEdges("ackType", "value1"));
+        assertEquals(3, edges.size());
+        assertTrue(edges.contains(e));
+        assertTrue(edges.contains(e2));
+        assertTrue(edges.contains(e4));
         
         // now try getting by the int properties to be sure
-        edges = Lists.newArrayList(graph1.getEdges("int", 10));
-        Assert.assertEquals(3, edges.size());
-        Assert.assertTrue(edges.contains(e2));
-        Assert.assertTrue(edges.contains(e3));
-        Assert.assertTrue(edges.contains(e6));
+        edges = Lists.newArrayList(graph1.getEdges("weighting", 10));
+        assertEquals(3, edges.size());
+        assertTrue(edges.contains(e2));
+        assertTrue(edges.contains(e3));
+        assertTrue(edges.contains(e6));        
+    }
+    
+    private Vertex createWork(AmberGraph graph) {
+    	Vertex v = graph.addVertex(null);
+    	v.setProperty("type", "Work");
+    	return v;
     }
 
     @Test
@@ -165,48 +182,55 @@ public class AmberGraphPersistenceTest {
         
         // save a graph to persist
         Vertex v0 = graph1.addVertex(null);
-        v0.setProperty("string", "v1");
+        v0.setProperty("type", "Work");
+        v0.setProperty("title", "v1");
         
         Vertex v1 = graph1.addVertex(null);
-        v1.setProperty("string", "v3");
+        v1.setProperty("type", "Work");
+        v1.setProperty("title", "v3");
 
         Vertex v2 = graph1.addVertex(null);
-        v2.setProperty("string", "v1");
+        v2.setProperty("type", "Work");
+        v2.setProperty("title", "v1");
 
         Vertex v3 = graph1.addVertex(null);
-        v3.setProperty("string", "v1");
+        v3.setProperty("type", "Work");
+        v3.setProperty("title", "v1");
 
         Vertex v4 = graph1.addVertex(null);
-        v4.setProperty("string2", "v1");
+        v4.setProperty("type", "Work");
+        v4.setProperty("category", "v1");
 
         // persist that sucker
         graph1.commit();
         
         // add a couple more
         Vertex v5 = graph1.addVertex(null);
-        v5.setProperty("string", "v1");
+        v5.setProperty("title", "v1");
+        v5.setProperty("type", "Work");
 
         Vertex v6 = graph1.addVertex(null);
-        v6.setProperty("string2", "v1");
+        v6.setProperty("category", "v1");
+        v6.setProperty("type", "Work");
 
         // ok let's get testing
         
         // find vertices with a particular string property 
-        List<Vertex> vertices = Lists.newArrayList(graph1.getVertices("string", "v1"));
-        Assert.assertEquals(4, vertices.size());
-        Assert.assertTrue(vertices.contains(v0));
-        Assert.assertTrue(vertices.contains(v2));
-        Assert.assertTrue(vertices.contains(v3));
-        Assert.assertTrue(vertices.contains(v5));
+        List<Vertex> vertices = Lists.newArrayList(graph1.getVertices("title", "v1"));
+        assertEquals(4, vertices.size());
+        assertTrue(vertices.contains(v0));
+        assertTrue(vertices.contains(v2));
+        assertTrue(vertices.contains(v3));
+        assertTrue(vertices.contains(v5));
         
         // now try deleting a vertex and a property
         v5.remove();
-        v2.removeProperty("string");
+        v2.removeProperty("title");
         
-        vertices = Lists.newArrayList(graph1.getVertices("string", "v1"));
-        Assert.assertEquals(2, vertices.size());
-        Assert.assertTrue(vertices.contains(v0));
-        Assert.assertTrue(vertices.contains(v3));
+        vertices = Lists.newArrayList(graph1.getVertices("title", "v1"));
+        assertEquals(2, vertices.size());
+        assertTrue(vertices.contains(v0));
+        assertTrue(vertices.contains(v3));
     }
     
     /*

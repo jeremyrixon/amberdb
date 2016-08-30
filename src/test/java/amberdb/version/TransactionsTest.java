@@ -1,22 +1,32 @@
 package amberdb.version;
 
-import amberdb.TransactionIndexer;
-import amberdb.graph.AmberEdge;
-import amberdb.graph.AmberGraph;
+import static org.junit.Assert.assertEquals;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Paths;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
+
+import javax.sql.DataSource;
+
+import org.h2.jdbcx.JdbcConnectionPool;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+
+import org.junit.rules.TemporaryFolder;
+
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.junit.*;
-import org.junit.rules.TemporaryFolder;
 
-import javax.sql.DataSource;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Set;
+import amberdb.TransactionIndexer;
+import amberdb.graph.AmberEdge;
+import amberdb.graph.AmberGraph;
 
 
 public class TransactionsTest {
@@ -32,7 +42,7 @@ public class TransactionsTest {
     @Before
     public void setup() throws MalformedURLException, IOException {
         tempPath = Paths.get(tempFolder.getRoot().getAbsolutePath());
-        src = JdbcConnectionPool.create("jdbc:h2:"+tempPath.toString()+"amber;auto_server=true","sess","sess");
+        src = JdbcConnectionPool.create("jdbc:h2:"+tempPath.toString()+"amber;auto_server=true;DATABASE_TO_UPPER=false;","sess","sess");
         graph = new AmberGraph(src);
         vGraph = new VersionedGraph(src);
     }
@@ -81,8 +91,8 @@ public class TransactionsTest {
         
         vGraph.loadTransactionGraph(0L, 100L, true);
 
-        Assert.assertEquals(((List) vGraph.getVertices()).size(), 3);
-        Assert.assertEquals(((List) vGraph.getEdges()).size(), 4);
+        assertEquals(((List) vGraph.getVertices()).size(), 3);
+        assertEquals(((List) vGraph.getEdges()).size(), 4);
     }        
     
     
@@ -131,36 +141,36 @@ public class TransactionsTest {
         Set<Long>[] objSets = cl.findObjectsToBeIndexed(1L, txn1);
         Set<Long> modified = objSets[0];
         Set<Long> deleted = objSets[1];
-        Assert.assertEquals(modified.size(), 61);
-        Assert.assertEquals(deleted.size(), 0);
+        assertEquals(modified.size(), 61);
+        assertEquals(deleted.size(), 0);
         
         cl = new TransactionIndexer(graph);
         objSets = cl.findObjectsToBeIndexed(txn1, txn2);
         modified = objSets[0];
         deleted = objSets[1];
-        Assert.assertEquals(modified.size(), 5);
-        Assert.assertEquals(deleted.size(), 5);
+        assertEquals(modified.size(), 5);
+        assertEquals(deleted.size(), 5);
         
         cl = new TransactionIndexer(graph);
         objSets = cl.findObjectsToBeIndexed(txn2, txn3);
         modified = objSets[0];
         deleted = objSets[1];
-        Assert.assertEquals(modified.size(), 9);
-        Assert.assertEquals(deleted.size(), 0);
+        assertEquals(modified.size(), 9);
+        assertEquals(deleted.size(), 0);
 
         cl = new TransactionIndexer(graph);
         objSets = cl.findObjectsToBeIndexed(txn3, txn4);
         modified = objSets[0];
         deleted = objSets[1];
-        Assert.assertEquals(modified.size(), 121);
-        Assert.assertEquals(deleted.size(), 0);
+        assertEquals(modified.size(), 121);
+        assertEquals(deleted.size(), 0);
 
         cl = new TransactionIndexer(graph);
         objSets = cl.findObjectsToBeIndexed(txn4, txn5);
         modified = objSets[0];
         deleted = objSets[1];
-        Assert.assertEquals(modified.size(), 0);
-        Assert.assertEquals(deleted.size(), 1);
+        assertEquals(modified.size(), 0);
+        assertEquals(deleted.size(), 1);
     }        
     
     

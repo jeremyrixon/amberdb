@@ -1,21 +1,31 @@
 package amberdb.version;
 
-import amberdb.graph.AmberEdge;
-import amberdb.graph.AmberGraph;
+import static org.junit.Assert.assertEquals;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Paths;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.sql.DataSource;
+
+import org.h2.jdbcx.JdbcConnectionPool;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+
+import org.junit.rules.TemporaryFolder;
+
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.junit.*;
-import org.junit.rules.TemporaryFolder;
 
-import javax.sql.DataSource;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import amberdb.graph.AmberEdge;
+import amberdb.graph.AmberGraph;
 
 
 public class VersionQueryTest {
@@ -31,7 +41,7 @@ public class VersionQueryTest {
     @Before
     public void setup() throws MalformedURLException, IOException {
         tempPath = Paths.get(tempFolder.getRoot().getAbsolutePath());
-        src = JdbcConnectionPool.create("jdbc:h2:"+tempPath.toString()+"amber;auto_server=true","sess","sess");
+        src = JdbcConnectionPool.create("jdbc:h2:"+tempPath.toString()+"amber;auto_server=true;DATABASE_TO_UPPER=false;","sess","sess");
         graph = new AmberGraph(src);
         vGraph = new VersionedGraph(src);
     }
@@ -128,11 +138,11 @@ public class VersionQueryTest {
             case "Description": descs++; break;
             }
         }
-        Assert.assertEquals(1, works);
-        Assert.assertEquals(15, pages);
-        Assert.assertEquals(30, copies);
-        Assert.assertEquals(30, files);
-        Assert.assertEquals(30, descs);
+        assertEquals(1, works);
+        assertEquals(15, pages);
+        assertEquals(30, copies);
+        assertEquals(30, files);
+        assertEquals(30, descs);
         
     }        
 

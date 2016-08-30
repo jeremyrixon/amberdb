@@ -1262,14 +1262,14 @@ public abstract class LookupsSchema {
 
     @SqlQuery(
             "SELECT (COUNT(table_name) >= 4) "
-            + "FROM information_schema.tables "
+            + "FROM INFORMATION_SCHEMA.tables "
             + "WHERE table_name IN ('LOOKUPS', 'TOOLS', 'VERTEX_MAP', 'EDGE_MAP', 'lookups', 'tools', 'vertex_map', 'edge_map')")
     public abstract boolean schemaTablesExist();
 
 
     @SqlQuery(
             "SELECT (COUNT(table_name) >= 1 ) "
-            + "FROM information_schema.tables "
+            + "FROM INFORMATION_SCHEMA.tables "
             + "WHERE table_name IN ('carrier_algorithm', 'CARRIER_ALGORITHM')")
     public abstract boolean carrierAlgorithmTableExist();
 }
