@@ -1,31 +1,22 @@
 package amberdb.version;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.Paths;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.sql.DataSource;
-
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-
-import org.junit.rules.TemporaryFolder;
-
+import amberdb.graph.AmberEdge;
+import amberdb.graph.AmberGraph;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
+import org.h2.jdbcx.JdbcConnectionPool;
+import org.junit.*;
+import org.junit.rules.TemporaryFolder;
 
-import amberdb.graph.AmberEdge;
-import amberdb.graph.AmberGraph;
+import javax.sql.DataSource;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
 
 
 public class VersionQueryTest {
@@ -138,11 +129,11 @@ public class VersionQueryTest {
             case "Description": descs++; break;
             }
         }
-        assertEquals(1, works);
-        assertEquals(15, pages);
-        assertEquals(30, copies);
-        assertEquals(30, files);
-        assertEquals(30, descs);
+        Assert.assertEquals(1, works);
+        Assert.assertEquals(15, pages);
+        Assert.assertEquals(30, copies);
+        Assert.assertEquals(30, files);
+        Assert.assertEquals(30, descs);
         
     }        
 

@@ -1,32 +1,5 @@
 package amberdb.graph;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import java.nio.file.Path;
-
-import javax.sql.DataSource;
-
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
-
-import org.junit.rules.TemporaryFolder;
-
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Vertex;
-
 import amberdb.AmberDb;
 import amberdb.AmberSession;
 import amberdb.enums.CopyRole;
@@ -36,6 +9,23 @@ import amberdb.model.Page;
 import amberdb.model.Work;
 import amberdb.version.VersionedGraph;
 import amberdb.version.VersionedVertex;
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Vertex;
+import org.h2.jdbcx.JdbcConnectionPool;
+import org.hamcrest.CoreMatchers;
+import org.junit.*;
+import org.junit.rules.TemporaryFolder;
+
+import javax.sql.DataSource;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 
 public class AmberHistoryTransactionsSinceTest {
@@ -78,7 +68,7 @@ public class AmberHistoryTransactionsSinceTest {
         // check we get them all back again
         AmberHistory ah = new AmberHistory(graph);
         Map<Long, String> vSince = ah.getModifiedObjectIds(now);
-        assertEquals(100, vSince.size());
+        Assert.assertEquals(100, vSince.size());
 
         now = new Date();
         
@@ -102,7 +92,7 @@ public class AmberHistoryTransactionsSinceTest {
         }
 
         // check for no change before commit
-        assertEquals(0, ah.getModifiedObjectIds(now).size());
+        Assert.assertEquals(0, ah.getModifiedObjectIds(now).size());
         
         // don't forget to commit
         graph.commit("test", "modified 80");
@@ -125,9 +115,9 @@ public class AmberHistoryTransactionsSinceTest {
             }
         }
         
-        assertEquals(10, vNew);
-        assertEquals(20, vMod);
-        assertEquals(50, vDel);
+        Assert.assertEquals(10, vNew);
+        Assert.assertEquals(20, vMod);
+        Assert.assertEquals(50, vDel);
 
         now = new Date();
         
@@ -138,7 +128,7 @@ public class AmberHistoryTransactionsSinceTest {
         graph.commit("test", "rel test");    
 
         vSince = ah.getModifiedObjectIds(now);
-        assertEquals(20, vSince.size());
+        Assert.assertEquals(20, vSince.size());
     }        
 
     
@@ -176,7 +166,7 @@ public class AmberHistoryTransactionsSinceTest {
 
         // Check we get all the bits of the work we want
         Map<Long, String> changed = sess.getModifiedObjectIds(now);
-        assertThat(changed.size(), is (101));
+        Assert.assertThat(changed.size(), CoreMatchers.is (101));
         
         now = new Date();
 
@@ -191,7 +181,7 @@ public class AmberHistoryTransactionsSinceTest {
         aGraph.clear();
         
         changed = sess.getModifiedObjectIds(now);
-        assertThat(changed.size(), is (2));
+        Assert.assertThat(changed.size(), CoreMatchers.is (2));
         
         now = new Date();
 
@@ -213,7 +203,7 @@ public class AmberHistoryTransactionsSinceTest {
         
         
         changed = sess.getModifiedObjectIds(now);
-        assertEquals(16, changed.size()); // 1 for title modification, 3 x 5 per page (1 page, 2 copies and 2 files) deletions
+        Assert.assertEquals(16, changed.size()); // 1 for title modification, 3 x 5 per page (1 page, 2 copies and 2 files) deletions
     }
     
     @Test
@@ -264,11 +254,11 @@ public class AmberHistoryTransactionsSinceTest {
         
         List<VersionedVertex> deletedParent = (List<VersionedVertex>) newly.getVertices(Direction.IN, "e-f");
         VersionedVertex parent = deletedParent.get(0);
-        assertEquals(parent.getId(), e.getId());
+        Assert.assertEquals(parent.getId(), e.getId());
         List<VersionedVertex> deletedGrandParent = (List<VersionedVertex>) parent.getVertices(Direction.IN, "b-e");
 
         VersionedVertex grandParent = deletedGrandParent.get(0);
-        assertEquals(grandParent.getId(), b.getId());
+        Assert.assertEquals(grandParent.getId(), b.getId());
     }
 
     @Test
@@ -295,19 +285,20 @@ public class AmberHistoryTransactionsSinceTest {
         v2.setProperty("title", "t2.2"); // not committed, so should not appear
 
         List<AmberTransaction> txns = graph.getTransactionsByVertexId((Long) v1.getId());
-        assertEquals(3, txns.size());
+        Assert.assertEquals(3, txns.size());
 
         txns = graph.getTransactionsByVertexId((Long) v2.getId());
-        assertEquals(2, txns.size());
+        Assert.assertEquals(2, txns.size());
 
         txns = graph.getTransactionsByEdgeId((Long) e1.getId());
-        assertEquals(1, txns.size());
+        Assert.assertEquals(1, txns.size());
 
         List<AmberVertex> vertices = graph.getVerticesByTransactionId(txns.get(0).getId());
-        assertEquals(2, vertices.size());
+        Assert.assertEquals(2, vertices.size());
 
         List<AmberEdge> edges = graph.getEdgesByTransactionId(txns.get(0).getId());
-        assertEquals(1, edges.size());
+        Assert.assertEquals(1, edges.size());
     }
 
 }
+

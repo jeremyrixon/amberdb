@@ -103,7 +103,10 @@ public class AmberEdgeQuery extends AmberQueryBase {
         		"where \n");
         
         for (int i = 0; i < properties.size(); i++) {
-        	String columnName = properties.get(i).getName();
+        	String columnName = properties.get(i).getName().toLowerCase();
+        	if ("label".equals(columnName)) {
+        		columnName = "flatedge.label";  
+        	}
         	s.append(columnName + " = :value"+ i + " \n and ");
         }
         s.setLength(s.length()-4);
@@ -114,7 +117,10 @@ public class AmberEdgeQuery extends AmberQueryBase {
         StringBuilder s = new StringBuilder();
         s.append("INSERT INTO ep (id) \n");
         for (int i = 0; i < properties.size(); i++) {
-        	String columnName = properties.get(i).getName();
+        	String columnName = properties.get(i).getName().toLowerCase();
+        	if ("label".equals(columnName)) {
+        		columnName = "flatedge.label";  
+        	}
             s.append(
             		"select flatedge.id \n" +
             		"from flatedge \n" +

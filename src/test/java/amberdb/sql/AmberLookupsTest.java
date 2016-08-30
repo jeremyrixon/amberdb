@@ -1,20 +1,14 @@
 package amberdb.sql;
 
-import static org.junit.Assert.*;
+import amberdb.AmberDb;
+import amberdb.AmberSession;
+import org.h2.jdbcx.JdbcConnectionPool;
+import org.junit.*;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import amberdb.AmberDb;
-import amberdb.AmberSession;
 
 public class AmberLookupsTest {
     private AmberSession session;
@@ -26,7 +20,7 @@ public class AmberLookupsTest {
 
     @Before
     public void setup() {
-        adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist;DATABASE_TO_UPPER=false;","lookups","lookups"), folder.getRoot().toPath());
+        adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist","lookups","lookups"), folder.getRoot().toPath());
         session = adb.begin();
         lookups = session.getLookups();
     }
@@ -43,56 +37,56 @@ public class AmberLookupsTest {
         Long entry1 = lookups.addLookup("testAddition", "entry", "entry");
         ListLu lu = lookups.findLookup(entry);
         ListLu lu1 = lookups.findLookup(entry1);
-        assertEquals("entry", lu.getCode());
-        assertEquals("entry_1", lu1.getCode());
+        Assert.assertEquals("entry", lu.getCode());
+        Assert.assertEquals("entry_1", lu1.getCode());
     }
     
     @Test
     public void testFindActiveDevices() {
         List<ToolsLu> devices = lookups.findActiveToolsFor("toolCategory", "Device");
-        assertNotNull(devices);
-        assertEquals(devices.size(), 10);
+        Assert.assertNotNull(devices);
+        Assert.assertEquals(devices.size(), 10);
     }
 
     @Test
     public void testNaturalSort() {
         List<ListLu> values = lookups.findActiveLookupsFor("carrierCapacity");
-        assertNotNull(values);
+        Assert.assertNotNull(values);
         String[] actuals = populateArray(values);
         String[] expected = { "2 min", "4.7 GB", "5 min", "12 min", "30 min", "40 min", "45 min", "46 min", "60 min", "63 min", "65 min", "74 min", "80 min", "90 min", "95 min", "96 min", "120 min", "122 min", "125 min", "180 min", "650 MB" };
-        assertArrayEquals(expected, actuals);
+        Assert.assertArrayEquals(expected, actuals);
 
         values = lookups.findActiveLookupsFor("speed");
         actuals = populateArray(values);
         String[] expectedSpeed = { "2.38 cm/s", "4.76 cm/s", "9.5 cm/s", "19.05 cm/s", "38.1 cm/s", "76.2 cm/s" };
-        assertArrayEquals(expectedSpeed, actuals);
+        Assert.assertArrayEquals(expectedSpeed, actuals);
 
         values = lookups.findActiveLookupsFor("reelSize");
         actuals = populateArray(values);
         String[] expectedReelSize = { "2 min", "2in", "3in IEC", "4.7 GB", "4in IEC", "5 min", "5in IEC", "5in NAB", "6in IEC", "7in IEC", "7in NAB", "8.25in IEC", 
                 "10in IEC", "10in NAB", "12 min", "30 min", "40 min", "45 min", "46 min", "60 min", "63 min", "65 min", "74 min", "80 min", "90 min", "95 min", 
                 "96 min", "120 min", "122 min", "125 min", "180 min", "650MB"};
-        assertArrayEquals(expectedReelSize, actuals);
+        Assert.assertArrayEquals(expectedReelSize, actuals);
 
         values = lookups.findActiveLookupsFor("channel");
         actuals = populateArray(values);
         String[] expectedChannel = { "0.5", "1", "2", "4", "8", "16", "24" };      
-        assertArrayEquals(expectedChannel, actuals);
+        Assert.assertArrayEquals(expectedChannel, actuals);
 
         values = lookups.findActiveLookupsFor("constraint");
         actuals = populateArray(values);
         String[] expectedConstraint = {"Adult content", "Closed", "Copyright", "Error during migration", "Free-of-charge", "Indigenous", "Indigenous - male", "OH/SPATS", "Pending", "Thumbnails only", "Written permission required"};
-        assertArrayEquals(expectedConstraint, actuals);
+        Assert.assertArrayEquals(expectedConstraint, actuals);
 
         values = lookups.findActiveLookupsFor("tempHolding");
         actuals = populateArray(values);
         String[] expectedTempHolding = {"No", "Yes"};
-        assertArrayEquals(expectedTempHolding, actuals);
+        Assert.assertArrayEquals(expectedTempHolding, actuals);
 
         values = lookups.findActiveLookupsFor("sensitiveMaterial");
         actuals = populateArray(values);
         String[] expectedSensitiveMaterial = {"No", "Yes"};
-        assertArrayEquals(expectedSensitiveMaterial, actuals);
+        Assert.assertArrayEquals(expectedSensitiveMaterial, actuals);
 
         values = lookups.findActiveLookupsFor("digitalSourceType");
         actuals = populateArray(values);
@@ -100,18 +94,18 @@ public class AmberLookupsTest {
                                               "Digitised from a positive on film",
                                               "Digitised from a print on non-transparent medium",
                                               "Original digital capture of a real life scene"};
-        assertArrayEquals(expectedDigitalSourceType, actuals);
+        Assert.assertArrayEquals(expectedDigitalSourceType, actuals);
 
         values = lookups.findActiveLookupsFor("sensitiveReason");
         actuals = populateArray(values);
         String[] expectedSensitiveReason = {"Disturbing content", "Indigenous - community only",
                                             "Indigenous - female only", "Indigenous - male only",
                                             "Offensive content"};
-        assertArrayEquals(expectedSensitiveReason, actuals);
+        Assert.assertArrayEquals(expectedSensitiveReason, actuals);
         
         values = lookups.findActiveLookupsFor("subUnitType");
         actuals = populateArray(values);
-        assertTrue("sub unit type should contain article", Arrays.asList(actuals).contains("Article"));
+        Assert.assertTrue("sub unit type should contain article", Arrays.asList(actuals).contains("Article"));
     }
     
     private String[] populateArray(List<ListLu> values) {
@@ -126,22 +120,22 @@ public class AmberLookupsTest {
     @Test
     public void testFindActiveScanners() {
         List<ToolsLu> scanners = lookups.findActiveToolsFor("toolType", "scanner");
-        assertNotNull(scanners);
+        Assert.assertNotNull(scanners);
         System.out.println("devices size " + scanners.size());
-        assertEquals(scanners.size(), 10);
+        Assert.assertEquals(scanners.size(), 10);
     }
 
     @Test
     public void testFindActiveToolsForNikonInInitialSeeds() {
         List<ToolsLu> nikonEntries = lookups.findActiveToolsFor("name", "Nikon");
-        assertNotNull(nikonEntries);
+        Assert.assertNotNull(nikonEntries);
         assert (nikonEntries.size() == 2);
     }
 
     @Test
     public void testFindToolsEverRecordedForNikonInInitialSeeds() {
         List<ToolsLu> nikonEntries = lookups.findToolsEverRecordedFor("name", "Nikon");
-        assertNotNull(nikonEntries);
+        Assert.assertNotNull(nikonEntries);
         assert (nikonEntries.size() == 2);
     }
 
@@ -163,7 +157,7 @@ public class AmberLookupsTest {
         long id = 9L;
         ToolsLu cannon20D = lookups.findActiveTool(id);
         assert (cannon20D.getName().equals("Canon 20D"));
-        assertNull(cannon20D.getResolution());
+        Assert.assertNull(cannon20D.getResolution());
         cannon20D.setResolution("3504x2336");
         lookups.updTool(cannon20D);
         session.commit();
@@ -179,11 +173,11 @@ public class AmberLookupsTest {
         long newToolTypeId = lookups.findActiveLookup("toolType", "Reflective scanner").get(0).getId();
 
         ToolsLu canon = lookups.findTool(canonId);
-        assertEquals(oldToolTypeId, canon.getToolTypeId().longValue());
+        Assert.assertEquals(oldToolTypeId, canon.getToolTypeId().longValue());
         canon.setToolTypeId(newToolTypeId);
         lookups.updTool(canon);
         ToolsLu newCanon = lookups.findTool(canonId);
-        assertEquals(newToolTypeId, newCanon.getToolTypeId().longValue());
+        Assert.assertEquals(newToolTypeId, newCanon.getToolTypeId().longValue());
     }
 
     @Test
@@ -219,7 +213,7 @@ public class AmberLookupsTest {
         ListLu imageMT = lookups.findLookup("materialType", "Text");
         imageMT.setValue("Ocr Text");
         lookups.updateLookup(imageMT.id, imageMT.value);
-        assertFalse(activeLookupsInclude("materialType", "Text"));
+        Assert.assertFalse(activeLookupsInclude("materialType", "Text"));
         assert (activeLookupsInclude("materialType", "Ocr Text"));
     }
 
@@ -236,7 +230,7 @@ public class AmberLookupsTest {
 
     @Test
     public void testAddMaterialTypeWireless() {
-        assertFalse(activeLookupsInclude("materialType", "wireless"));
+        Assert.assertFalse(activeLookupsInclude("materialType", "wireless"));
         ListLu wireless = new ListLu("materialType", "wireless");
         lookups.addLookup(wireless);
         assert (activeLookupsInclude("materialType", "wireless"));
@@ -262,10 +256,10 @@ public class AmberLookupsTest {
         ListLu listLu = new ListLu("carrier", "tape 1", "1234");
         lookups.addLookup(listLu);
         ListLu found = lookups.findActiveLookup("carrier", "tape 1").get(0);
-        assertEquals(found.getValue(), "1234");
+        Assert.assertEquals(found.getValue(), "1234");
         lookups.updateLookup(found.getId(), "234", "tape 2");
         ListLu updatedLookup = lookups.findLookup(found.getId());
-        assertEquals(updatedLookup.getCode(), "tape 2");
-        assertEquals(updatedLookup.getValue(), "234");  
+        Assert.assertEquals(updatedLookup.getCode(), "tape 2");
+        Assert.assertEquals(updatedLookup.getValue(), "234");
     }
 }
