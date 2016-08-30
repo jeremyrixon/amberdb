@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.skife.jdbi.v2.StatementContext;
@@ -39,7 +40,7 @@ public class AmberVertexMapper implements ResultSetMapper<AmberVertex>  {
                 graph,
                 rs.getLong("txn_start"),
                 rs.getLong("txn_end"));
-        
+        Map<String, Object> properties = vertex.getProperties();
         ResultSetMetaData metadata = rs.getMetaData();
         int numColumns = metadata.getColumnCount();
         for(int column = 1; column <= numColumns; column++) {
@@ -51,7 +52,7 @@ public class AmberVertexMapper implements ResultSetMapper<AmberVertex>  {
 						Clob clob = (Clob) o;
 						o = clob.getSubString(1,  (int) clob.length());
 					}
-	        		vertex.setProperty(label, o);
+	        		properties.put(label, o);
 	        	}
         	}
         }
