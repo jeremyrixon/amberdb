@@ -1,6 +1,5 @@
 package amberdb;
 
-
 import amberdb.graph.*;
 import amberdb.model.*;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -21,7 +20,6 @@ import com.tinkerpop.frames.modules.gremlingroovy.GremlinGroovyModule;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerModule;
 import com.tinkerpop.frames.modules.typedgraph.TypedGraphModuleBuilder;
 
-import amberdb.graph.*;
 import amberdb.graph.AmberMultipartQuery.QueryClause;
 import amberdb.query.ModifiedObjectsQueryRequest;
 import amberdb.query.ModifiedObjectsQueryResponse;
@@ -29,7 +27,6 @@ import amberdb.sql.Lookups;
 import amberdb.version.VersionedVertex;
 import doss.BlobStore;
 
-import amberdb.model.*;
 import org.apache.commons.lang.StringUtils;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
@@ -977,14 +974,4 @@ public class AmberSession implements AutoCloseable {
     public List<Vertex> loadMultiLevelWorks(final List<Long> ids) {
         return loadMultiLevelWorks(ids.toArray(new Long[ids.size()]));
     }
-
-
-
-
-
-
-
-
-
-
 }
