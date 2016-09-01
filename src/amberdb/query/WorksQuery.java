@@ -42,6 +42,7 @@ public class WorksQuery {
             Work work = sess.getGraph().frame(v, Work.class);
             populateFirstTransactionDetails(work, firstTransactionMap);
             populateLastTransactionDetails(work, lastTransactionMap);
+            work.getIPTC();
             works.put(Long.valueOf(work.getId()), work);
         }
         return works;
