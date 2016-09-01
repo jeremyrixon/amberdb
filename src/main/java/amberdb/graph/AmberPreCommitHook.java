@@ -1,12 +1,16 @@
 package amberdb.graph;
 
-import amberdb.model.*;
 import com.google.common.collect.ImmutableList;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.frames.FramedGraph;
 
 import amberdb.AmberSession;
+import amberdb.model.Copy;
+import amberdb.model.EADWork;
+import amberdb.model.Section;
+import amberdb.model.SoundFile;
+import amberdb.model.Work;
 
 import java.util.ArrayList;
 import java.util.List;

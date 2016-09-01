@@ -20,7 +20,7 @@ public class PartyTest {
 
     @Before
     public void startup() {
-        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:;MVCC=TRUE;", "amb", "amb");
+        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:;MVCC=TRUE;DATABASE_TO_UPPER=false", "amb", "amb");
         db = new AmberDb(dataSource, Paths.get(folder.getRoot().getPath()));
         sess = db.begin();
     }

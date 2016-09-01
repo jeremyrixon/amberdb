@@ -1,6 +1,5 @@
 package amberdb;
 
-
 import amberdb.graph.*;
 import amberdb.model.*;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -21,7 +20,6 @@ import com.tinkerpop.frames.modules.gremlingroovy.GremlinGroovyModule;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerModule;
 import com.tinkerpop.frames.modules.typedgraph.TypedGraphModuleBuilder;
 
-import amberdb.graph.*;
 import amberdb.graph.AmberMultipartQuery.QueryClause;
 import amberdb.query.ModifiedObjectsQueryRequest;
 import amberdb.query.ModifiedObjectsQueryResponse;
@@ -29,7 +27,6 @@ import amberdb.sql.Lookups;
 import amberdb.version.VersionedVertex;
 import doss.BlobStore;
 
-import amberdb.model.*;
 import org.apache.commons.lang.StringUtils;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
@@ -90,7 +87,7 @@ public class AmberSession implements AutoCloseable {
         blobStore = AmberDb.openBlobStore(tempDir.getPath());
 
         // Graph
-        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:graph;DB_CLOSE_DELAY=-1;MVCC=TRUE;", "amb", "amb");
+        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:graph;DB_CLOSE_DELAY=-1;MVCC=TRUE;DATABASE_TO_UPPER=false;", "amb", "amb");
         AmberGraph amber = init(dataSource, null);
         graph = openGraph(amber);
     }
@@ -101,7 +98,7 @@ public class AmberSession implements AutoCloseable {
      */
     public AmberSession(BlobStore blobStore, Long sessionId) throws IOException {
 
-        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:graph;DB_CLOSE_DELAY=-1;MVCC=TRUE;", "amb", "amb");
+        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:graph;DB_CLOSE_DELAY=-1;MVCC=TRUE;DATABASE_TO_UPPER=false;", "amb", "amb");
         AmberGraph amber = init(dataSource, sessionId);
         tempDir = null;
 
@@ -115,7 +112,7 @@ public class AmberSession implements AutoCloseable {
 
     public AmberSession(BlobStore blobStore) throws IOException {
 
-        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:graph;DB_CLOSE_DELAY=-1;MVCC=TRUE;", "amb", "amb");
+        DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:graph;DB_CLOSE_DELAY=-1;MVCC=TRUE;DATABASE_TO_UPPER=false;", "amb", "amb");
         AmberGraph amber = init(dataSource, null);
         tempDir = null;
 
@@ -977,14 +974,4 @@ public class AmberSession implements AutoCloseable {
     public List<Vertex> loadMultiLevelWorks(final List<Long> ids) {
         return loadMultiLevelWorks(ids.toArray(new Long[ids.size()]));
     }
-
-
-
-
-
-
-
-
-
-
 }
