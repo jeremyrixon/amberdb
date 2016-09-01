@@ -555,7 +555,7 @@ public class WorkTest extends AbstractDatabaseIntegrationTest {
         Work work = amberSession.addWork();
         Copy masterCopy = work.addCopy();
         masterCopy.setCopyRole(CopyRole.MASTER_COPY.code());
-        Copy copy = work.getFirstExistingCopy(null);
+        Copy copy = work.getFirstExistingCopy(new CopyRole[]{});
         Assert.assertThat (copy, CoreMatchers.is(CoreMatchers.nullValue()));
     }
 

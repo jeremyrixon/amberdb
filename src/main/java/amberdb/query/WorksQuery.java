@@ -1,26 +1,21 @@
 package amberdb.query;
 
-import java.util.*;
-
-import amberdb.graph.*;
-import amberdb.relation.*;
 import amberdb.AmberSession;
 import amberdb.enums.BibLevel;
 import amberdb.graph.*;
+import amberdb.model.Copy;
 import amberdb.model.Work;
 import amberdb.relation.*;
+import com.google.common.base.Joiner;
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Vertex;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.util.ByteArrayMapper;
-
-import com.google.common.base.Joiner;
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Vertex;
-
-import amberdb.model.Copy;
-
 import org.skife.jdbi.v2.util.LongMapper;
+
+import java.util.*;
 
 public class WorksQuery {
 

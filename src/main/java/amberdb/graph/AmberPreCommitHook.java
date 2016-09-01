@@ -1,13 +1,12 @@
 package amberdb.graph;
 
-import amberdb.v2.model.*;
+import amberdb.model.*;
 import com.google.common.collect.ImmutableList;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.frames.FramedGraph;
 
 import amberdb.AmberSession;
-import amberdb.v2.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
