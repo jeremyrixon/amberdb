@@ -380,7 +380,7 @@ public class AmberSessionTest extends AbstractDatabaseIntegrationTest {
 
         amberSession.commit();
 
-        amberdb.repository.model.Work work = amberSession.findModelObjectById(w1.getId(), amberdb.repository.model.Work.class);
+        Work work = amberSession.findModelObjectById(w1.getId(), Work.class);
         Assert.assertNotNull(work);
         assertEquals(w1.getId(), work.getId());
         Assert.assertTrue(StringUtils.equals(w1.getBibId(), work.getBibId()));
