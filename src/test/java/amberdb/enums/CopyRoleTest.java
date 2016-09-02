@@ -1,5 +1,6 @@
 package amberdb.enums;
 
+import amberdb.AbstractDatabaseIntegrationTest;
 import amberdb.AmberSession;
 import amberdb.model.Copy;
 import amberdb.model.Work;
@@ -11,21 +12,8 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.List;
 
-public class CopyRoleTest {
-    private AmberSession amberDb;
+public class CopyRoleTest extends AbstractDatabaseIntegrationTest {
 
-    @Before
-    public void startup() {
-        amberDb = new AmberSession();  
-    }
-    
-    @After
-    public void teardown() throws IOException {
-        if (amberDb != null) {
-            amberDb.close();
-        }
-    }
-    
     @Test
     public void shouldReturnCopyRolesAlphabetically() {
         List<CopyRole> roles = CopyRole.listAlphabetically();
@@ -37,7 +25,7 @@ public class CopyRoleTest {
     
     @Test
     public void shouldReturnOrderedCopiesBaseOnCopyRoles() {
-        Work work = amberDb.addWork();
+        Work work = amberSession.addWork();
         Copy master = work.addCopy();
         master.setCopyRole(CopyRole.MASTER_COPY.code());
         Copy original = work.addCopy();

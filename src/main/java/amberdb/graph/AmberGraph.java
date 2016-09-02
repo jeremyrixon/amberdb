@@ -47,7 +47,7 @@ public class AmberGraph extends BaseGraph
     private static final Logger log = LoggerFactory.getLogger(AmberGraph.class);
     
     public static final DataSource DEFAULT_DATASOURCE = 
-            JdbcConnectionPool.create("jdbc:h2:mem:persist;DATABASE_TO_UPPER=false;","pers","pers");
+            JdbcConnectionPool.create("jdbc:h2:mem:persist;","pers","pers");
     
     private static final Map<String, String>  vertexToTableMap = new HashMap<>();
     static {

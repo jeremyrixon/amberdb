@@ -1,5 +1,6 @@
 package amberdb.util;
 
+import amberdb.AbstractDatabaseIntegrationTest;
 import amberdb.AmberSession;
 import amberdb.enums.CopyRole;
 import amberdb.model.Copy;
@@ -17,23 +18,21 @@ import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-public class OcrCheckTest {
+public class OcrCheckTest extends AbstractDatabaseIntegrationTest {
     private Page blinkyBillMaster;
     private Page blinkyBillCoMaster;
-    private AmberSession db;
     java.io.File jsonFile = Paths.get("src/test/resources/nla.obj-20673-oc.json").toFile();
     
     @Before
     public void init() throws IOException, ParseException {
-        db = new AmberSession();
         SimpleDateFormat dateFmt = new SimpleDateFormat("dd-MMM-yyyy");
-        Work book1 = db.addWork();
+        Work book1 = amberSession.addWork();
         blinkyBillMaster = book1.addPage();
         Copy[] copies = new Copy[3];
         copies[0] = blinkyBillMaster.addCopy(Paths.get("src/test/resources/nla.obj-20673-m.tif"), CopyRole.MASTER_COPY, "image/tiff");
         copies[0].getImageFile().setFileName("nla.obj-20673-m.tif");
         
-        Work book2 = db.addWork();
+        Work book2 = amberSession.addWork();
         blinkyBillCoMaster = book2.addPage();
         copies[1] = blinkyBillCoMaster.addCopy(Paths.get("src/test/resources/nla.obj-20673-m.tif"), CopyRole.MASTER_COPY, "image/tiff");
         copies[2] = blinkyBillCoMaster.addCopy(Paths.get("src/test/resources/nla.obj-20673-c.tif"), CopyRole.CO_MASTER_COPY, "image/tiff");
@@ -49,7 +48,7 @@ public class OcrCheckTest {
             file.setApplicationDateCreated(dateFmt.parse("04-APR-2014"));
         }
         blinkyBillCoMaster.addCopy(jsonFile.toPath(), CopyRole.OCR_JSON_COPY, "application/json");
-        db.commit();
+        amberSession.commit();
     }
     
     @Test

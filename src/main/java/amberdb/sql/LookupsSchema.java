@@ -1196,7 +1196,7 @@ public abstract class LookupsSchema {
     }
 
     @SqlQuery(
-            "SELECT (COUNT(table_name) >= 4) "
+            "SELECT (COUNT(table_name) >= 2) "
             + "FROM INFORMATION_SCHEMA.tables "
             + "WHERE table_name IN ('LOOKUPS', 'TOOLS', 'lookups', 'tools')")
     public abstract boolean schemaTablesExist();

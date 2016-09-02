@@ -1,5 +1,6 @@
 package amberdb.graph;
 
+import amberdb.AbstractDatabaseIntegrationTest;
 import amberdb.graph.AmberMultipartQuery.QueryClause;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
@@ -18,19 +19,14 @@ import java.util.*;
 import static amberdb.graph.BranchType.*;
 
 
-public class AmberQueryTest {
+public class AmberQueryTest extends AbstractDatabaseIntegrationTest {
 
     public AmberGraph graph;
-    DataSource src;
-    
+
     @Before
     public void setup() throws MalformedURLException, IOException {
-        src = JdbcConnectionPool.create("jdbc:h2:mem:persist;DATABASE_TO_UPPER=false;","pers","pers");
-        graph = new AmberGraph(src);
+        graph = amberSession.getAmberGraph();
     }
-
-    @After
-    public void teardown() {}
 
     @Test
     public void testQueryGeneration() throws Exception {

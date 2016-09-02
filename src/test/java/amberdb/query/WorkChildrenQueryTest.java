@@ -1,5 +1,6 @@
 package amberdb.query;
 
+import amberdb.AbstractDatabaseIntegrationTest;
 import amberdb.AmberSession;
 import amberdb.enums.CopyRole;
 import amberdb.model.*;
@@ -12,40 +13,28 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.List;
 
-public class WorkChildrenQueryTest {
-
-    public AmberSession sess;
-    
-    @Before
-    public void setup() throws CorruptBlobStoreException, IOException {
-        sess = new AmberSession();
-    }
-
-    @After
-    public void tearDown() throws IOException {
-        if (sess != null) sess.close();
-    }
+public class WorkChildrenQueryTest extends AbstractDatabaseIntegrationTest {
 
     @Test
     public void testGetWorkChildren() throws IOException {
 
         // create a test work with children
         Work parent = buildWork();
-        sess.commit();
+        amberSession.commit();
 
-        WorkChildrenQuery wcq = new WorkChildrenQuery(sess);
+        WorkChildrenQuery wcq = new WorkChildrenQuery(amberSession);
         List<Work> children = wcq.getChildRange(parent.getId(), 0, 5);
         Assert.assertEquals(children.size(), 5);
         for (int i = 0; i < 5; i++) {
             Assert.assertEquals(children.get(i).getTitle(),"page " + i);
         }
-        
-        sess.setLocalMode(true); 
+
+        amberSession.setLocalMode(true);
         for (int i = 0; i < 5; i++) {
             Assert.assertEquals(children.get(i).getCopy(CopyRole.MASTER_COPY)
                     .getFile().getDevice(),"device " + i);
         }
-        sess.setLocalMode(false);
+        amberSession.setLocalMode(false);
         
         children = wcq.getChildRange(parent.getId(), 5, 5);
         Assert.assertEquals(children.size(), 5);
@@ -67,9 +56,9 @@ public class WorkChildrenQueryTest {
         Assert.assertTrue(roles.contains(CopyRole.MASTER_COPY));
         Assert.assertTrue(roles.contains(CopyRole.ACCESS_COPY));
 
-        sess.getAmberGraph().clear();
+        amberSession.getAmberGraph().clear();
         children = wcq.getChildRange(parent.getId(), 5, 5);
-        sess.setLocalMode(true);
+        amberSession.setLocalMode(true);
         Assert.assertEquals(children.size(), 5);
         Work c1 = children.get(0);
         for (Copy c : c1.getCopies()) {
@@ -77,17 +66,17 @@ public class WorkChildrenQueryTest {
             File f = c.getFile();
             Assert.assertNotNull(f);
         }
-        sess.setLocalMode(false);
+        amberSession.setLocalMode(false);
 
         List<Section> sections = wcq.getSections(parent.getId());
-        sess.setLocalMode(true);
+        amberSession.setLocalMode(true);
         Assert.assertEquals(sections.size(), 7);
-        sess.setLocalMode(false);
+        amberSession.setLocalMode(false);
     }        
     
 
     private Work buildWork() {
-        Work parent = sess.addWork();
+        Work parent = amberSession.addWork();
         
         for (int i = 0; i < 20; i++) {
             
@@ -109,7 +98,7 @@ public class WorkChildrenQueryTest {
 
         for (int i = 20; i < 30; i++) {
             
-            Work w = sess.addWork();
+            Work w = amberSession.addWork();
             parent.addChild(w);
             w.setTitle("work " + i);
             w.setOrder(i);
