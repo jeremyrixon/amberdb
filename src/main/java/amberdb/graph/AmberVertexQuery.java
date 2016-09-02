@@ -120,7 +120,9 @@ public class AmberVertexQuery extends AmberQueryBase {
         	String columnName = properties.get(i).getName();
         	if ("type".equals(columnName)) {
         		columnName = "node.type";
-        	}
+        	} else if ("localSystemNumber".equals(columnName)) {
+                columnName = "work.localSystemNumber";
+            }
         	s.append(columnName + " = :value"+ i + " \n and ");
         }
         s.setLength(s.length()-4);
@@ -134,7 +136,9 @@ public class AmberVertexQuery extends AmberQueryBase {
         	String columnName = properties.get(i).getName();
         	if ("type".equals(columnName)) {
         		columnName = "node.type";
-        	}
+        	} else if ("localSystemNumber".equals(columnName)) {
+                columnName = "work.localSystemNumber";
+            }
             s.append(
             		"select * \n" +
             		"from node \n" +
