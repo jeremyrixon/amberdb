@@ -191,9 +191,6 @@ public class AmberVertexQuery extends AmberQueryBase {
                 q.bind("value"+i, properties.get(i).getValue());
             }
             return getVertices(q.map(new AmberVertexMapper(graph)).list());
-        } catch (Exception e) {
-        	log.error("Exception executing vertex query.", e);
-        	throw(e);
         }
     }
     

@@ -54,20 +54,6 @@ public abstract class LookupsSchema {
     public abstract void createToolsTable();
 
     @SqlUpdate(
-            "CREATE TABLE IF NOT EXISTS vertex_map ("
-            + "id           int(10) PRIMARY KEY AUTO_INCREMENT, "
-            + "vertexType   varchar(20), "
-            + "tableName    varchar(20))")
-    public abstract void createVertexMapTable();
-
-    @SqlUpdate(
-            "CREATE TABLE IF NOT EXISTS edge_map ("
-            + "id           int(10) PRIMARY KEY AUTO_INCREMENT, "
-            + "edgeType     varchar(20), "
-            + "tableName    varchar(20))")
-    public abstract void createEdgeMapTable();
-
-    @SqlUpdate(
             "CREATE INDEX lookups_id_idx "
             + "ON lookups(id, deleted)")
     public abstract void createLookupsIdIndex();
@@ -113,17 +99,6 @@ public abstract class LookupsSchema {
             "CREATE INDEX tools_material_type_idx "
             + "ON tools(materialTypeId, deleted)")
     public abstract void createToolsMaterialTypeIdIndex();
-
-    @SqlUpdate(
-            "CREATE INDEX vertex_type_idx "
-            + "ON vertex_map(vertexType)")
-    public abstract void createVertexTypeIndex();
-
-    @SqlUpdate(
-            "CREATE INDEX edge_type_idx "
-            + "ON edge_map(edgeType)")
-    public abstract void createEdgeTypeIndex();
-
 
     /*
      * General lookups
@@ -1142,40 +1117,6 @@ public abstract class LookupsSchema {
     )
     public abstract void seedManipulationLookups();
 
-    @SqlUpdate(
-            "INSERT INTO vertex_map(vertexType, tableName) VALUES "
-            + "('work', 'work'), "
-            + "('eadwork', 'work'), "
-            + "('page', 'work'), "
-            + "('copy', 'work'), "
-            + "('section', 'work'), "
-            + "('file', 'file'), "
-            + "('imagefile', 'file'), "
-            + "('movingimagefile', 'file'), "
-            + "('soundfile', 'file'), "
-            + "('description', 'description'), "
-            + "('cameradata', 'description'), "
-            + "('geocoding', 'description'), "
-            + "('iptc', 'description'), "
-            + "('party', 'party'), "
-            + "('tag', 'tag')")
-    public abstract void seedVertexMap();
-
-    @SqlUpdate(
-            "INSERT INTO edge_map(edgeType, tableName) VALUES "
-            + "('label', 'flatedge'), "
-            + "('acknowledge', 'flatedge'), "
-            + "('deliveredOn', 'flatedge'), "
-            + "('descriptionOf', 'flatedge'), "
-            + "('existsOn', 'flatedge'), "
-            + "('isCopyOf', 'flatedge'), "
-            + "('isDerivativeOf', 'flatedge'), "
-            + "('isFileOf', 'flatedge'), "
-            + "('isPartOf', 'flatedge'), "
-            + "('represents', 'flatedge'), "
-            + "('tags', 'flatedge') ")
-    public abstract void seedEdgeMap();
-
     @SqlUpdate("UPDATE tools SET toolTypeId = :toolTypeId where id > 0 and id < 11")
     public abstract void updateToolTypeForToolsGroup1(@Bind("toolTypeId")Long toolTypeId);
 
@@ -1207,10 +1148,6 @@ public abstract class LookupsSchema {
         createToolsToolTypeIdIndex();
         createToolsToolCategoryIdIndex();
         createToolsMaterialTypeIdIndex();
-        createVertexMapTable();
-        createVertexTypeIndex();
-        createEdgeMapTable();
-        createEdgeTypeIndex();
         seedKeyCodeList();
         seedEADUpdateReviewRequired();
         seedDataValidationMsgs();
@@ -1225,8 +1162,6 @@ public abstract class LookupsSchema {
         seedMaterialTypesLookups();
         seedDepositTypeList();
         seedManipulationLookups();
-        seedVertexMap();
-        seedEdgeMap();
     }
 
     public void setupToolsAssociations(List<ListLu> lookups) {
@@ -1263,7 +1198,7 @@ public abstract class LookupsSchema {
     @SqlQuery(
             "SELECT (COUNT(table_name) >= 4) "
             + "FROM INFORMATION_SCHEMA.tables "
-            + "WHERE table_name IN ('LOOKUPS', 'TOOLS', 'VERTEX_MAP', 'EDGE_MAP', 'lookups', 'tools', 'vertex_map', 'edge_map')")
+            + "WHERE table_name IN ('LOOKUPS', 'TOOLS', 'lookups', 'tools')")
     public abstract boolean schemaTablesExist();
 
 
