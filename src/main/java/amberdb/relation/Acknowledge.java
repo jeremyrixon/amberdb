@@ -2,10 +2,17 @@ package amberdb.relation;
 
 import java.util.Date;
 
+<<<<<<< HEAD
 import amberdb.model.Party;
 
 import com.tinkerpop.frames.InVertex;
 import com.tinkerpop.frames.Property;
+=======
+import com.tinkerpop.frames.InVertex;
+import com.tinkerpop.frames.Property;
+
+import amberdb.model.Party;
+>>>>>>> refs/heads/amberv2
 
 /**
  * work acknowledgement

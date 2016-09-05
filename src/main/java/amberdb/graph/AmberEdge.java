@@ -122,4 +122,25 @@ public class AmberEdge extends BaseEdge implements Comparable {
         sb.append("  }\n}");
         return sb.toString();
     }
+    
+	public Long getTxnStart() {
+		return txnStart;
+	}
+
+
+	public Long getTxnEnd() {
+		return txnEnd;
+	}
+
+	public Long getInId() {
+		return inId;
+	}
+
+	public Long getOutId() {
+		return outId;
+	}
+
+	public Integer getOrder() {
+		return order;
+	}
 }

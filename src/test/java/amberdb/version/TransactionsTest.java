@@ -1,34 +1,22 @@
 package amberdb.version;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.Paths;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import javax.sql.DataSource;
-
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-
-
-import org.junit.rules.TemporaryFolder;
-
 import amberdb.TransactionIndexer;
 import amberdb.graph.AmberEdge;
 import amberdb.graph.AmberGraph;
-
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
+import org.h2.jdbcx.JdbcConnectionPool;
+import org.junit.*;
+import org.junit.rules.TemporaryFolder;
+
+import javax.sql.DataSource;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Set;
 
 
 public class TransactionsTest {
@@ -44,7 +32,7 @@ public class TransactionsTest {
     @Before
     public void setup() throws MalformedURLException, IOException {
         tempPath = Paths.get(tempFolder.getRoot().getAbsolutePath());
-        src = JdbcConnectionPool.create("jdbc:h2:"+tempPath.toString()+"amber;auto_server=true","sess","sess");
+        src = JdbcConnectionPool.create("jdbc:h2:"+tempPath.toString()+"amber;auto_server=true;","sess","sess");
         graph = new AmberGraph(src);
         vGraph = new VersionedGraph(src);
     }
@@ -61,9 +49,9 @@ public class TransactionsTest {
         Vertex v2 = graph.addVertex(null);
         Vertex v3 = graph.addVertex(null);
         
-        v1.setProperty("name", "v1");
-        v2.setProperty("name", "v2");
-        v3.setProperty("name", "v3");
+        v1.setProperty("title", "v1");
+        v2.setProperty("title", "v2");
+        v3.setProperty("title", "v3");
         
         v1.setProperty("value", 1);
         v2.setProperty("value", 2);
@@ -77,7 +65,7 @@ public class TransactionsTest {
         graph.commit("test", "c1");
         
         // do some things
-        v1.setProperty("name", "vertex 1");
+        v1.setProperty("title", "vertex 1");
         v2.setProperty("value", 100);
         Edge e4 = graph.addEdge(null, v1, v2, "ordered");
         
@@ -93,8 +81,8 @@ public class TransactionsTest {
         
         vGraph.loadTransactionGraph(0L, 100L, true);
 
-        assertEquals(((List) vGraph.getVertices()).size(), 3);
-        assertEquals(((List) vGraph.getEdges()).size(), 4);
+        Assert.assertEquals(((List) vGraph.getVertices()).size(), 3);
+        Assert.assertEquals(((List) vGraph.getEdges()).size(), 4);
     }        
     
     
@@ -108,10 +96,10 @@ public class TransactionsTest {
         // modify some bits
         Vertex book = graph.getVertices("title", title1).iterator().next();
         for (Vertex page : book.getVertices(Direction.IN, "isPartOf")) {
-            if ((Integer) page.getProperty("value") % 4 == 1) {
-                page.setProperty("code", page.hashCode());
+            if ((Integer) page.getProperty("subUnitNo") % 4 == 1) {
+                page.setProperty("publisher", "Black Wolf");
             }
-            if ((Integer) page.getProperty("value") % 4 == 0) {
+            if ((Integer) page.getProperty("subUnitNo") % 4 == 0) {
                 page.remove();            
             }
         }
@@ -131,9 +119,9 @@ public class TransactionsTest {
         // reorder some pages
         book = graph.getVertices("title", title2).iterator().next();
         for (Vertex page : book.getVertices(Direction.IN, "isPartOf")) {
-            if ((Integer) page.getProperty("value") % 5 == 0) {
+            if ((Integer) page.getProperty("subUnitNo") % 5 == 0) {
                 Edge e = page.getEdges(Direction.OUT, "isPartOf").iterator().next();
-                e.setProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME, (Integer) page.getProperty("value") + 3000);
+                e.setProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME, (Integer) page.getProperty("subUnitNo") + 3000);
             }
         }
         book.setProperty("internalAccessConditions", "Closed");
@@ -143,36 +131,36 @@ public class TransactionsTest {
         Set<Long>[] objSets = cl.findObjectsToBeIndexed(1L, txn1);
         Set<Long> modified = objSets[0];
         Set<Long> deleted = objSets[1];
-        assertEquals(modified.size(), 61);
-        assertEquals(deleted.size(), 0);
+        Assert.assertEquals(modified.size(), 61);
+        Assert.assertEquals(deleted.size(), 0);
         
         cl = new TransactionIndexer(graph);
         objSets = cl.findObjectsToBeIndexed(txn1, txn2);
         modified = objSets[0];
         deleted = objSets[1];
-        assertEquals(modified.size(), 5);
-        assertEquals(deleted.size(), 5);
+        Assert.assertEquals(modified.size(), 5);
+        Assert.assertEquals(deleted.size(), 5);
         
         cl = new TransactionIndexer(graph);
         objSets = cl.findObjectsToBeIndexed(txn2, txn3);
         modified = objSets[0];
         deleted = objSets[1];
-        assertEquals(modified.size(), 9);
-        assertEquals(deleted.size(), 0);
+        Assert.assertEquals(modified.size(), 9);
+        Assert.assertEquals(deleted.size(), 0);
 
         cl = new TransactionIndexer(graph);
         objSets = cl.findObjectsToBeIndexed(txn3, txn4);
         modified = objSets[0];
         deleted = objSets[1];
-        assertEquals(modified.size(), 121);
-        assertEquals(deleted.size(), 0);
+        Assert.assertEquals(modified.size(), 121);
+        Assert.assertEquals(deleted.size(), 0);
 
         cl = new TransactionIndexer(graph);
         objSets = cl.findObjectsToBeIndexed(txn4, txn5);
         modified = objSets[0];
         deleted = objSets[1];
-        assertEquals(modified.size(), 0);
-        assertEquals(deleted.size(), 1);
+        Assert.assertEquals(modified.size(), 0);
+        Assert.assertEquals(deleted.size(), 1);
     }        
     
     
@@ -196,8 +184,8 @@ public class TransactionsTest {
     private Vertex createPage(Vertex book, int pageNum) {
         Vertex page = graph.addVertex(null);
         
-        page.setProperty("name", "page " + pageNum);
-        page.setProperty("value", pageNum);
+        page.setProperty("title", "title " + pageNum);
+        page.setProperty("subUnitNo", pageNum);
         page.setProperty("type", "Page");
         page.setProperty("bibLevel", "Part");
         
@@ -222,7 +210,7 @@ public class TransactionsTest {
     private Vertex createFile(Vertex copy) {
         Vertex file = graph.addVertex(null);
         file.setProperty("type", "File");
-        file.setProperty("path", "/fiddle/de/do");
+        file.setProperty("filename", "fiddle-de.do");
         file.addEdge("isFileOf", copy);
         return file;
     }

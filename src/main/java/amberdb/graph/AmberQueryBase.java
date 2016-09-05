@@ -57,7 +57,7 @@ public class AmberQueryBase {
                 + " v.txn_end = 0 AND v.id = %1$s.%2$s "
                 + " ORDER BY %1$s.%3$s, %1$s.%2$s",
                 vertexIdTable, vertexIdColumn, vertexOrderColumn))
-                .map(new VertexMapper(graph)).list();
+                .map(new AmberVertexWithStateMapper(graph)).list();
 
         // add them to the graph
         for (AmberVertexWithState wrapper : wrappedVertices) {
@@ -76,6 +76,23 @@ public class AmberQueryBase {
         } 
         return vertices;
     }
+
+    protected List<Vertex> getVertices(List<AmberVertex> amberVertices) {
+    	List<Vertex> vertices = new ArrayList<>();
+    	for(AmberVertex amberVertex: amberVertices) {
+            if (graph.removedVertices.containsKey(amberVertex.getId())) {
+                continue;
+            }
+            if (graph.graphVertices.containsKey(amberVertex.getId())) {
+                vertices.add(graph.graphVertices.get(amberVertex.getId()));
+            } else {
+                graph.addVertexToGraph(amberVertex);
+                vertices.add(amberVertex);
+            }
+    	}
+		return vertices;
+	}
+
     
 
     protected List<Edge> getEdges(Handle h , AmberGraph graph, Map<Long, Map<String, Object>> propMaps, 

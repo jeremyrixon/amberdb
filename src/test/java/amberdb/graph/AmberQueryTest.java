@@ -1,47 +1,33 @@
 package amberdb.graph;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import javax.sql.DataSource;
-
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import static org.junit.Assert.*;
-
-import amberdb.graph.AmberGraph;
+import amberdb.AbstractDatabaseIntegrationTest;
 import amberdb.graph.AmberMultipartQuery.QueryClause;
-import static amberdb.graph.BranchType.*;
-
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
+import org.h2.jdbcx.JdbcConnectionPool;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.sql.DataSource;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.util.*;
+
+import static amberdb.graph.BranchType.*;
 
 
-public class AmberQueryTest {
+public class AmberQueryTest extends AbstractDatabaseIntegrationTest {
 
     public AmberGraph graph;
-    DataSource src;
-    
+
     @Before
     public void setup() throws MalformedURLException, IOException {
-        src = JdbcConnectionPool.create("jdbc:h2:mem:","sess","sess");
-        graph = new AmberGraph(src);
+        graph = amberSession.getAmberGraph();
     }
 
-    @After
-    public void teardown() {}
-
-    @Ignore
     @Test
     public void testQueryGeneration() throws Exception {
 
@@ -106,10 +92,10 @@ public class AmberQueryTest {
         graph.setLocalMode(true);
         
         
-        assertEquals(results.size(), 706);    
+        Assert.assertEquals(results.size(), 706);
         Vertex book = graph.getVertex(book2.getId());
         List<Vertex> pages = (List<Vertex>) book.getVertices(Direction.IN, "isPartOf");
-        assertEquals(pages.size(), 51);
+        Assert.assertEquals(pages.size(), 51);
     }
     
     Date then, now;
@@ -219,19 +205,19 @@ public class AmberQueryTest {
                 Long numParts = (Long) thing.get(0).get("num");
                 switch (step) {
                 case 1: 
-                    assertTrue(numParts.equals(6L));
+                    Assert.assertTrue(numParts.equals(6L));
                     break;
                 case 2: 
-                    assertTrue(numParts.equals(75L));
+                    Assert.assertTrue(numParts.equals(75L));
                     break;
                 case 3: 
-                    assertTrue(numParts.equals(102L));
+                    Assert.assertTrue(numParts.equals(102L));
                     break;
                 case 4: 
-                    assertTrue(numParts.equals(33L));
+                    Assert.assertTrue(numParts.equals(33L));
                     break;
                 case 5: 
-                    assertTrue(numParts.equals(0L));
+                    Assert.assertTrue(numParts.equals(0L));
                     break;
                 default:    
                 }
@@ -258,7 +244,7 @@ public class AmberQueryTest {
             i++;
         }
         graph.setLocalMode(false);
-        assertEquals(i, 1299);
+        Assert.assertEquals(i, 1299);
         //mark("delete in mem");
 
         graph.commit("test", "kill them all");
@@ -277,7 +263,6 @@ public class AmberQueryTest {
         Vertex book = graph.addVertex(null);
         book.setProperty("title", title);
         book.setProperty("type", "Work");
-        addRandomProps(book, numProps);
 
         // add a section
         Vertex section = graph.addVertex(null);
@@ -297,8 +282,7 @@ public class AmberQueryTest {
     private Vertex addPage(Vertex book, int num, int numProps) {
         Vertex page = graph.addVertex(null);
         page.setProperty("type", "Work");
-        page.setProperty("number", num);
-        addRandomProps(page, numProps);
+        page.setProperty("subUnitNo", num);
         addCopy(page, "Master", num, numProps);
         addCopy(page, "Co-master", num, numProps);
         Edge e = page.addEdge("isPartOf", book);
@@ -309,8 +293,7 @@ public class AmberQueryTest {
     private Vertex addCopy(Vertex page, String type, int num, int numProps) {
         Vertex copy = graph.addVertex(null);
         copy.setProperty("type", "Copy");
-        copy.setProperty("number", num);
-        addRandomProps(copy, numProps);
+        copy.setProperty("subUnitNo", num);
         addFile(copy, num, numProps);
         copy.addEdge("isCopyOf", page);
         return copy;
@@ -319,8 +302,6 @@ public class AmberQueryTest {
     private Vertex addFile(Vertex copy, int num, int numProps) {
         Vertex file = graph.addVertex(null);
         file.setProperty("type", "File");
-        file.setProperty("number", num);
-        addRandomProps(file, numProps);
         addDesc(file, num);
         file.addEdge("isFileOf", copy);
         return file;
@@ -329,15 +310,9 @@ public class AmberQueryTest {
     private Vertex addDesc(Vertex file, int num) {
         Vertex desc = graph.addVertex(null);
         desc.setProperty("type", "Description");
-        desc.setProperty("number", num);
+        desc.setProperty("alternativeTitle", num);
         desc.addEdge("descriptionOf", file);
         return desc;
     }
 
-    
-    private void addRandomProps(Vertex v, int numProps) {
-        for (int i=0; i<numProps; i++) {
-            v.setProperty("prop"+i, UUID.randomUUID().toString());
-        }
-    }
 }
