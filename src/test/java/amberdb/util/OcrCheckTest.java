@@ -23,7 +23,7 @@ public class OcrCheckTest {
     private Page blinkyBillMaster;
     private Page blinkyBillCoMaster;
     private AmberSession db;
-    java.io.File jsonFile = Paths.get("test").resolve("resources").resolve("nla.obj-20673-oc.json").toFile();
+    java.io.File jsonFile = Paths.get("src/test/resources/nla.obj-20673-oc.json").toFile();
     
     @Before
     public void init() throws IOException, ParseException {
@@ -32,13 +32,13 @@ public class OcrCheckTest {
         Work book1 = db.addWork();
         blinkyBillMaster = book1.addPage();
         Copy[] copies = new Copy[3];
-        copies[0] = blinkyBillMaster.addCopy(Paths.get("test").resolve("resources").resolve("nla.obj-20673-m.tif"), CopyRole.MASTER_COPY, "image/tiff");
+        copies[0] = blinkyBillMaster.addCopy(Paths.get("src/test/resources/nla.obj-20673-m.tif"), CopyRole.MASTER_COPY, "image/tiff");
         copies[0].getImageFile().setFileName("nla.obj-20673-m.tif");
         
         Work book2 = db.addWork();
         blinkyBillCoMaster = book2.addPage();
-        copies[1] = blinkyBillCoMaster.addCopy(Paths.get("test").resolve("resources").resolve("nla.obj-20673-m.tif"), CopyRole.MASTER_COPY, "image/tiff");
-        copies[2] = blinkyBillCoMaster.addCopy(Paths.get("test").resolve("resources").resolve("nla.obj-20673-c.tif"), CopyRole.CO_MASTER_COPY, "image/tiff");
+        copies[1] = blinkyBillCoMaster.addCopy(Paths.get("src/test/resources/nla.obj-20673-m.tif"), CopyRole.MASTER_COPY, "image/tiff");
+        copies[2] = blinkyBillCoMaster.addCopy(Paths.get("src/test/resources/nla.obj-20673-c.tif"), CopyRole.CO_MASTER_COPY, "image/tiff");
         copies[1].getImageFile().setFileName("nla.obj-20673-m.tif");
         copies[2].getImageFile().setFileName("nla.obj-20673-c.tif");
         for (Copy copy : copies) {
