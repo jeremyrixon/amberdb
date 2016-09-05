@@ -46,7 +46,7 @@ import amberdb.AmberSession;
 public class AmberSessionTest {
 
     public AmberSession sess;
-    Path fileLocation = Paths.get("test/resources/hello.txt");
+    Path fileLocation = Paths.get("src/test/resources/hello.txt");
     Path dossLocation;
 
     @Rule

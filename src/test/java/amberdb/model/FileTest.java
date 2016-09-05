@@ -57,7 +57,7 @@ public class FileTest extends AbstractDatabaseIntegrationTest {
 
         copy = work.addCopy();
         file = copy.addFile();
-        file.putLegacyDoss(Paths.get("test/resources/hello.txt"));
+        file.putLegacyDoss(Paths.get("src/test/resources/hello.txt"));
         assertEquals(5L, file.getFileSize());
         assertEquals(5L, file.getSize());
 

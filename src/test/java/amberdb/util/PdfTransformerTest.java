@@ -17,8 +17,8 @@ public class PdfTransformerTest {
     @Test
     public void testGeneratePdf() throws IOException {
         Tika tika = new Tika();
-        InputStream in = new FileInputStream(new File("test/resources/books.xml"));
-        Reader stylesheets = new FileReader(Paths.get("test/resources/books.xsl").toFile());
+        InputStream in = new FileInputStream(new File("src/test/resources/books.xml"));
+        Reader stylesheets = new FileReader(Paths.get("src/test/resources/books.xsl").toFile());
         byte[] pdf = PdfTransformerFop.transform(in, stylesheets);
         assertTrue(tika.detect(pdf).equals("application/pdf"));
     }
