@@ -123,24 +123,23 @@ public class AmberEdge extends BaseEdge implements Comparable {
         return sb.toString();
     }
     
-	public Long getTxnStart() {
-		return txnStart;
-	}
+    public Long getTxnStart() {
+        return txnStart;
+    }
 
+    public Long getTxnEnd() {
+        return txnEnd;
+    }
 
-	public Long getTxnEnd() {
-		return txnEnd;
-	}
+    public Long getInId() {
+        return inId;
+    }
 
-	public Long getInId() {
-		return inId;
-	}
+    public Long getOutId() {
+        return outId;
+    }
 
-	public Long getOutId() {
-		return outId;
-	}
-
-	public Integer getOrder() {
-		return order;
-	}
+    public Integer getOrder() {
+        return order;
+    }
 }
