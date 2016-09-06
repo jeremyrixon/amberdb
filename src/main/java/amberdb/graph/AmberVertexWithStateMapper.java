@@ -16,6 +16,7 @@ public class AmberVertexWithStateMapper implements ResultSetMapper<AmberVertexWi
     	amberVertexMapper = new AmberVertexMapper(graph);
     }
     
+    @Override
     public AmberVertexWithState map(int index, ResultSet rs, StatementContext ctx) throws SQLException {
         return new AmberVertexWithState(amberVertexMapper.map(index, rs, ctx), rs.getString("state"));
     }

@@ -33,7 +33,7 @@ public class AmberVertexMapper implements ResultSetMapper<AmberVertex>  {
         this.graph = graph;
     }
 
-    
+    @Override
     public AmberVertex map(int index, ResultSet rs, StatementContext ctx) throws SQLException {
         
         AmberVertex vertex = new AmberVertex(

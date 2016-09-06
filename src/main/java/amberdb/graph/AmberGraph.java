@@ -656,7 +656,6 @@ public class AmberGraph extends BaseGraph
             if (removedVertices.containsKey(vertex.getId())) return null;
 
             AmberVertex v = (AmberVertex) vertex;
-            //v.replaceProperties(getElementPropertyMap((Long) v.getId(), v.txnStart, h));
             addVertexToGraph(v);
         }
         

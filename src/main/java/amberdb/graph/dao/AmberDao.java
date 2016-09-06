@@ -1565,10 +1565,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 	}
 	
 	public void suspendIntoFlatEdgeTable(Long sessId, String state, Set<AmberEdge> set) {
-		Set<String> fields = getFields(set, state);
-		String sql = String.format("INSERT INTO sess_flatedge (s_id, state, id, txn_start, txn_end, v_out, v_in, edge_order, label) values (:s_id, :state, :id, :txn_start, :txn_end, :v_out, :v_in, :edge_order, :label)",
-				StringUtils.join(format(fields, ", %s"), ' '),
-				StringUtils.join(format(fields, ", :%s"), ' '));
+		String sql = "INSERT INTO sess_flatedge (s_id, state, id, txn_start, txn_end, v_out, v_in, edge_order, label) values (:s_id, :state, :id, :txn_start, :txn_end, :v_out, :v_in, :edge_order, :label)";
 
 		Handle h = getHandle();
 		PreparedBatch preparedBatch = h.prepareBatch(sql);
@@ -1704,31 +1701,6 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 	public abstract void startAcknowledgements(
 	@Bind("txnId") Long txnId);
 
-	public void dumpQuery(String string) {
-		System.err.println(string);
-		try {
-			Connection conn = getHandle().getConnection();
-			ResultSet results = conn.createStatement().executeQuery(string);
-			int numCols = results.getMetaData().getColumnCount();
-			StringBuilder sb = new StringBuilder();
-			for (int c = 1; c <= numCols; c++) {
-				sb.append(String.format("%20s", results.getMetaData().getColumnLabel(c)));
-			}
-			System.err.println(sb);
-			while (results.next()) {
-				sb.setLength(0);
-				for (int c = 1; c <= numCols; c++) {
-					Object o = results.getObject(c);
-					sb.append(String.format("%20s", o));
-				}
-				System.err.println(sb);
-			}
-			System.err.flush();
-
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
 	public AmberTransaction getFirstTransaction(Long id, String type) {
 		String tableName = getTableForVertexType(type);
 

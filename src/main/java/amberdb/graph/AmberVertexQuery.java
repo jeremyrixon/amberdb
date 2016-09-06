@@ -20,8 +20,6 @@ import com.tinkerpop.blueprints.Vertex;
 
 public class AmberVertexQuery extends AmberQueryBase {
 	
-    private static final Logger log = LoggerFactory.getLogger(AmberVertexQuery.class);
-
     // limit the number of vertices returned by a query without criteria
     static final int MAX_VERTICES = 10000; 
     
