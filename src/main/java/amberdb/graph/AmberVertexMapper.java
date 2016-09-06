@@ -12,6 +12,8 @@ import java.util.Set;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
+import amberdb.graph.dao.AmberDao;
+
 
 public class AmberVertexMapper implements ResultSetMapper<AmberVertex>  {
 
@@ -52,6 +54,9 @@ public class AmberVertexMapper implements ResultSetMapper<AmberVertex>  {
 						Clob clob = (Clob) o;
 						o = clob.getSubString(1,  (int) clob.length());
 					}
+	        		if (AmberDao.fieldMappingReverse.containsKey(label)) {
+	        			label = AmberDao.fieldMappingReverse.get(label);
+	        		}
 	        		properties.put(label, o);
 	        	}
         	}

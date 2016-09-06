@@ -6,9 +6,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang.StringUtils;
 import org.skife.jdbi.v2.Handle;
@@ -33,7 +36,18 @@ import amberdb.graph.TransactionMapper;
 
 
 public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
-
+	
+    public static final Map<String, String> fieldMapping        = new HashMap<>();
+    public static final Map<String, String> fieldMappingReverse = new HashMap<>();
+    static {
+    	fieldMapping.put("constraint", "availabilityConstraint");
+    	fieldMapping.put("condition",  "copyCondition");
+    	
+    	for (Entry<String, String> entry: fieldMapping.entrySet()) {
+    		fieldMappingReverse.put(entry.getValue(), entry.getKey());
+    	}
+    }
+    
     /*
      * DB creation operations (DDL)
      */
@@ -1538,6 +1552,9 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			if (!"DEL".equals(state)) {
 				String[] fields = new String[] { "accessConditions", "alias", "commentsExternal", "commentsInternal", "expiryDate", "internalAccessConditions", "localSystemNumber", "notes", "recordSource", "restrictionType"}; 
 				for (String field: fields) {
+					if (fieldMapping.containsKey(field)) {
+						field = fieldMapping.get(field);
+					}
 					preparedBatchPart.bind(field, v.getProperty(field));
 				}
 
