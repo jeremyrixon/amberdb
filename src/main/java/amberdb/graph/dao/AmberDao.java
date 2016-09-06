@@ -30,7 +30,6 @@ import amberdb.graph.AmberVertex;
 import amberdb.graph.BaseElement;
 import amberdb.graph.PropertyMapper;
 import amberdb.graph.TransactionMapper;
-import amberdb.repository.mappers.AmberDbResultSetMapper;
 
 
 public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
@@ -1733,13 +1732,6 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 		return getTransaction(txnId);
 	}
 
-	public <T> T findObjectModelById(Long id, Class<T> type) {
-		String tableName = getTableForVertexType(type.getSimpleName().toLowerCase());
-		String sql = String.format("select * from %s where id = %s", tableName, id);
-
-		Handle h = getHandle();
-		return (T) h.createQuery(sql).map(new AmberDbResultSetMapper(type)).first();
-	}
 
 	@SqlQuery("select tableName from vertex_map where vertexType = :vertexType")
 	public abstract String getTableForVertexType(@Bind("vertexType") String vertexType);
