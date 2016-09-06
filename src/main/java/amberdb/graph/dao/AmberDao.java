@@ -5,12 +5,15 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang.StringUtils;
@@ -47,6 +50,21 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     		fieldMappingReverse.put(entry.getValue(), entry.getKey());
     	}
     }
+    public static final Set<String> nodeFields = new TreeSet<>();
+    static {
+        nodeFields.add("accessConditions");
+        nodeFields.add("alias");
+        nodeFields.add("commentsExternal");
+        nodeFields.add("commentsInternal");
+        nodeFields.add("expiryDate");
+        nodeFields.add("internalAccessConditions");
+        nodeFields.add("localSystemNumber");
+        nodeFields.add("name");
+        nodeFields.add("notes");
+        nodeFields.add("recordSource");
+        nodeFields.add("restrictionType");
+    }
+
     
     /*
      * DB creation operations (DDL)
@@ -279,6 +297,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			+" expiryDate DATETIME,"
 			+" internalAccessConditions TEXT,"
 			+" localSystemNumber VARCHAR(63),"
+            +" name VARCHAR(255),"
 			+" notes VARCHAR(255),"
 			+" recordSource VARCHAR(63),"
 			+" restrictionType VARCHAR(255));"
@@ -298,6 +317,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			+" expiryDate DATETIME,"
 			+" internalAccessConditions TEXT,"
 			+" localSystemNumber VARCHAR(63),"
+            +" name VARCHAR(255),"
 			+" notes VARCHAR(255),"
 			+" recordSource VARCHAR(63),"
 			+" restrictionType VARCHAR(255));"
@@ -319,6 +339,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			+" expiryDate DATETIME,"
 			+" internalAccessConditions TEXT,"
 			+" localSystemNumber VARCHAR(63),"
+            +" name VARCHAR(255),"
 			+" notes VARCHAR(255),"
 			+" recordSource VARCHAR(63),"
 			+" restrictionType VARCHAR(255));"
@@ -1111,7 +1132,6 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			+" txn_end BIGINT DEFAULT 0 NOT NULL,"
 			+" type VARCHAR(15),"
 			+""
-			+" name VARCHAR(255),"
 			+" orgUrl VARCHAR(255),"
 			+" suppressed BOOLEAN,"
 			+" logoUrl VARCHAR(255));"
@@ -1124,7 +1144,6 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			+" txn_end BIGINT DEFAULT 0 NOT NULL,"
 			+" type VARCHAR(15),"
 			+""
-			+" name VARCHAR(255),"
 			+" orgUrl VARCHAR(255),"
 			+" suppressed BOOLEAN,"
 			+" logoUrl VARCHAR(255));"
@@ -1139,7 +1158,6 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			+" txn_end BIGINT DEFAULT 0 NOT NULL,"
 			+" type VARCHAR(15),"
 			+""
-			+" name VARCHAR(255),"
 			+" orgUrl VARCHAR(255),"
 			+" suppressed BOOLEAN,"
 			+" logoUrl VARCHAR(255));"
@@ -1152,7 +1170,6 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			+" txn_end BIGINT DEFAULT 0 NOT NULL,"
 			+" type VARCHAR(15),"
 			+""
-			+" name VARCHAR(255),"
 			+" description VARCHAR(255));"
 			+"CREATE INDEX tag_id ON tag (id);"
 			+"CREATE INDEX tag_txn_id ON tag (id, txn_start, txn_end);"
@@ -1163,7 +1180,6 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			+" txn_end BIGINT DEFAULT 0 NOT NULL,"
 			+" type VARCHAR(15),"
 			+""
-			+" name VARCHAR(255),"
 			+" description VARCHAR(255));"
 			+"CREATE INDEX tag_history_id ON tag_history (id);"
 			+"CREATE INDEX tag_history_txn_id ON tag_history (id, txn_start, txn_end);"
@@ -1176,7 +1192,6 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			+" txn_end BIGINT DEFAULT 0 NOT NULL,"
 			+" type VARCHAR(15),"
 			+""
-			+" name VARCHAR(255),"
 			+" description VARCHAR(255));"
 			+"CREATE INDEX sess_tag_id ON sess_tag (id);"
 			+"CREATE INDEX sess_tag_txn_id ON sess_tag (id, txn_start, txn_end);"
@@ -1523,7 +1538,9 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			preparedBatchPart.bind("txn_end",    v.getTxnEnd());
 			if (!"DEL".equals(state)) {
 				for (String field: fields) {
-					preparedBatchPart.bind(field,    v.getProperty(field));
+				    if (!nodeFields.contains(field)) {
+				        preparedBatchPart.bind(field,    v.getProperty(field));
+				    }
 				}
 			}
 		}
@@ -1532,8 +1549,8 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 	}
 	
 	public void suspendIntoNodeTable(Long sessId, String state, Set<AmberVertex> set) {
-		String sql = "INSERT INTO sess_node ( s_id,  state,  id,  txn_start,  txn_end,  type,  accessConditions,  alias,  commentsExternal,  commentsInternal,  expiryDate,  internalAccessConditions,  localSystemNumber,  notes,  recordSource,  restrictionType) "
-				                  + "VALUES (:s_id, :state, :id, :txn_start, :txn_end, :type, :accessConditions, :alias, :commentsExternal, :commentsInternal, :expiryDate, :internalAccessConditions, :localSystemNumber, :notes, :recordSource, :restrictionType)";
+		String sql = "INSERT INTO sess_node ( s_id,  state,  id,  txn_start,  txn_end,  type,  accessConditions,  alias,  commentsExternal,  commentsInternal,  expiryDate,  internalAccessConditions,  localSystemNumber,  name,  notes,  recordSource,  restrictionType) "
+				                  + "VALUES (:s_id, :state, :id, :txn_start, :txn_end, :type, :accessConditions, :alias, :commentsExternal, :commentsInternal, :expiryDate, :internalAccessConditions, :localSystemNumber, :name, :notes, :recordSource, :restrictionType)";
 		if ("DEL".equals(state)) { 
 			sql = "INSERT INTO sess_node ( s_id,  state,  id,  txn_start,  txn_end,  type) "
 	                           + "VALUES (:s_id, :state, :id, :txn_start, :txn_end, :type)";
@@ -1550,8 +1567,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			preparedBatchPart.bind("txn_end",    v.getTxnEnd());
 			preparedBatchPart.bind("type",       v.getProperty("type"));
 			if (!"DEL".equals(state)) {
-				String[] fields = new String[] { "accessConditions", "alias", "commentsExternal", "commentsInternal", "expiryDate", "internalAccessConditions", "localSystemNumber", "notes", "recordSource", "restrictionType"}; 
-				for (String field: fields) {
+				for (String field: nodeFields) {
 					if (fieldMapping.containsKey(field)) {
 						field = fieldMapping.get(field);
 					}
@@ -1632,6 +1648,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 				allFields.addAll(fields);
 			}
 		}
+		allFields.removeAll(nodeFields);
 		return allFields;
 	}
 

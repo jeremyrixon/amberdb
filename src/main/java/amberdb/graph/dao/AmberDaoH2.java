@@ -70,22 +70,22 @@ public abstract class AmberDaoH2 extends AmberDao {
 			@Bind("txnId") Long txnId);
 
 	@SqlUpdate("SET @txn = :txnId;"
-			 + "INSERT INTO node_history (id, txn_start, txn_end, type, accessConditions,alias,commentsExternal,commentsInternal,expiryDate,internalAccessConditions,localSystemNumber,notes,recordSource,restrictionType) "
-			 + "SELECT id, s_id, 0, type, accessConditions,alias,commentsExternal,commentsInternal,expiryDate,internalAccessConditions,localSystemNumber,notes,recordSource,restrictionType "
+			 + "INSERT INTO node_history (id, txn_start, txn_end, type, accessConditions,alias,commentsExternal,commentsInternal,expiryDate,internalAccessConditions,localSystemNumber,name,notes,recordSource,restrictionType) "
+			 + "SELECT id, s_id, 0, type, accessConditions,alias,commentsExternal,commentsInternal,expiryDate,internalAccessConditions,localSystemNumber,name,notes,recordSource,restrictionType "
 			 + "FROM sess_node "
 			 + "WHERE s_id = @txn "
 			 + "AND state = 'NEW'; "
 
-			 + "INSERT INTO node_history (id, txn_start, txn_end, type, accessConditions,alias,commentsExternal,commentsInternal,expiryDate,internalAccessConditions,localSystemNumber,notes,recordSource,restrictionType) "
-			 + "SELECT id, s_id, 0, type, accessConditions,alias,commentsExternal,commentsInternal,expiryDate,internalAccessConditions,localSystemNumber,notes,recordSource,restrictionType "
+			 + "INSERT INTO node_history (id, txn_start, txn_end, type, accessConditions,alias,commentsExternal,commentsInternal,expiryDate,internalAccessConditions,localSystemNumber,name,notes,recordSource,restrictionType) "
+			 + "SELECT id, s_id, 0, type, accessConditions,alias,commentsExternal,commentsInternal,expiryDate,internalAccessConditions,localSystemNumber,name,notes,recordSource,restrictionType "
 			 + "FROM sess_node "
 			 + "WHERE s_id = @txn "
 			 + "AND state = 'MOD'; "
 
 			 + "DELETE from node WHERE id in (SELECT id from sess_node WHERE s_id = @txn AND state = 'MOD');"
 
-			 + "INSERT INTO node (id, txn_start, txn_end, type, accessConditions,alias,commentsExternal,commentsInternal,expiryDate,internalAccessConditions,localSystemNumber,notes,recordSource,restrictionType) "
-			 + "SELECT id, s_id, 0, type, accessConditions,alias,commentsExternal,commentsInternal,expiryDate,internalAccessConditions,localSystemNumber,notes,recordSource,restrictionType "
+			 + "INSERT INTO node (id, txn_start, txn_end, type, accessConditions,alias,commentsExternal,commentsInternal,expiryDate,internalAccessConditions,localSystemNumber,name,notes,recordSource,restrictionType) "
+			 + "SELECT id, s_id, 0, type, accessConditions,alias,commentsExternal,commentsInternal,expiryDate,internalAccessConditions,localSystemNumber,name,notes,recordSource,restrictionType "
 			 + "FROM sess_node "
 			 + "WHERE s_id = @txn "
 			 + "AND (state = 'NEW' or state = 'MOD'); ")
@@ -211,22 +211,22 @@ public abstract class AmberDaoH2 extends AmberDao {
 			@Bind("txnId") Long txnId);
 
 			@SqlUpdate("SET @txn = :txnId;"
-			 + "INSERT INTO party_history (id, txn_start, txn_end, type, name,orgUrl,suppressed,logoUrl) "
-			 + "SELECT id, s_id, 0, type, name,orgUrl,suppressed,logoUrl "
+			 + "INSERT INTO party_history (id, txn_start, txn_end, type, orgUrl,suppressed,logoUrl) "
+			 + "SELECT id, s_id, 0, type, orgUrl,suppressed,logoUrl "
 			 + "FROM sess_party "
 			 + "WHERE s_id = @txn "
 			 + "AND state = 'NEW'; "
 
-			 + "INSERT INTO party_history (id, txn_start, txn_end, type, name,orgUrl,suppressed,logoUrl) "
-			 + "SELECT id, s_id, 0, type, name,orgUrl,suppressed,logoUrl "
+			 + "INSERT INTO party_history (id, txn_start, txn_end, type, orgUrl,suppressed,logoUrl) "
+			 + "SELECT id, s_id, 0, type, orgUrl,suppressed,logoUrl "
 			 + "FROM sess_party "
 			 + "WHERE s_id = @txn "
 			 + "AND state = 'MOD'; "
 
 			 + "DELETE from party WHERE id in (SELECT id from sess_party WHERE s_id = @txn AND state = 'MOD');"
 
-			 + "INSERT INTO party (id, txn_start, txn_end, type, name,orgUrl,suppressed,logoUrl) "
-			 + "SELECT id, s_id, 0, type, name,orgUrl,suppressed,logoUrl "
+			 + "INSERT INTO party (id, txn_start, txn_end, type, orgUrl,suppressed,logoUrl) "
+			 + "SELECT id, s_id, 0, type, orgUrl,suppressed,logoUrl "
 			 + "FROM sess_party "
 			 + "WHERE s_id = @txn "
 			 + "AND (state = 'NEW' or state = 'MOD'); ")
@@ -246,22 +246,22 @@ public abstract class AmberDaoH2 extends AmberDao {
 			@Bind("txnId") Long txnId);
 
 			@SqlUpdate("SET @txn = :txnId;"
-			 + "INSERT INTO tag_history (id, txn_start, txn_end, type, name,description) "
-			 + "SELECT id, s_id, 0, type, name,description "
+			 + "INSERT INTO tag_history (id, txn_start, txn_end, type, description) "
+			 + "SELECT id, s_id, 0, type, description "
 			 + "FROM sess_tag "
 			 + "WHERE s_id = @txn "
 			 + "AND state = 'NEW'; "
 
-			 + "INSERT INTO tag_history (id, txn_start, txn_end, type, name,description) "
-			 + "SELECT id, s_id, 0, type, name,description "
+			 + "INSERT INTO tag_history (id, txn_start, txn_end, type, description) "
+			 + "SELECT id, s_id, 0, type, description "
 			 + "FROM sess_tag "
 			 + "WHERE s_id = @txn "
 			 + "AND state = 'MOD'; "
 			 
 			 + "DELETE from tag WHERE id in (SELECT id from sess_tag WHERE s_id = @txn AND state = 'MOD');"
 
-			 + "INSERT INTO tag (id, txn_start, txn_end, type, name,description) "
-			 + "SELECT id, s_id, 0, type, name,description "
+			 + "INSERT INTO tag (id, txn_start, txn_end, type, description) "
+			 + "SELECT id, s_id, 0, type, description "
 			 + "FROM sess_tag "
 			 + "WHERE s_id = @txn "
 			 + "AND (state = 'NEW' or state = 'MOD'); ")
