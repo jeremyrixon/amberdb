@@ -1,20 +1,17 @@
 package amberdb.graph.dao;
 
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import static amberdb.graph.State.*;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.Map.Entry;
 
 import org.apache.commons.lang.StringUtils;
 import org.skife.jdbi.v2.Handle;
@@ -35,6 +32,7 @@ import amberdb.graph.AmberTransaction;
 import amberdb.graph.AmberVertex;
 import amberdb.graph.BaseElement;
 import amberdb.graph.PropertyMapper;
+import amberdb.graph.State;
 import amberdb.graph.TransactionMapper;
 
 
@@ -1328,7 +1326,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             @Bind("inId")      List<Long>    inId,
             @Bind("label")     List<String>  label,
             @Bind("edgeOrder") List<Integer> edgeOrder,
-            @Bind("state")     List<String>  state);
+            @Bind("state")     List<State>   state);
 
 
     @SqlBatch("INSERT INTO sess_vertex (s_id, id, txn_start, txn_end, state) "
@@ -1338,7 +1336,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             @Bind("id")        List<Long>   id,
             @Bind("txnStart")  List<Long>   txnStart,
             @Bind("txnEnd")    List<Long>   txnEnd,
-            @Bind("state")     List<String> state);
+            @Bind("state")     List<State>  state);
 
 
     @SqlBatch("INSERT INTO sess_property (s_id, id, name, type, value) "
@@ -1520,7 +1518,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     public abstract void clearSession(
             @Bind("sessId") Long sessId);
 
-	public void suspendIntoFlatVertexTable(Long sessId, String state, String table, Set<AmberVertex> set) {
+	public void suspendIntoFlatVertexTable(Long sessId, State state, String table, Set<AmberVertex> set) {
 		Set<String> fields = getFields(set, state);
 		String sql = String.format("INSERT INTO %s (s_id, state, id, txn_start, txn_end %s) values (:s_id, :state, :id, :txn_start, :txn_end %s)",
 				table,
@@ -1536,7 +1534,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			preparedBatchPart.bind("id",         v.getId());
 			preparedBatchPart.bind("txn_start",  v.getTxnStart());
 			preparedBatchPart.bind("txn_end",    v.getTxnEnd());
-			if (!"DEL".equals(state)) {
+			if (state != DEL) {
 				for (String field: fields) {
 				    if (!nodeFields.contains(field)) {
 				        preparedBatchPart.bind(field,    v.getProperty(field));
@@ -1548,10 +1546,10 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 		
 	}
 	
-	public void suspendIntoNodeTable(Long sessId, String state, Set<AmberVertex> set) {
+	public void suspendIntoNodeTable(Long sessId, State state, Set<AmberVertex> set) {
 		String sql = "INSERT INTO sess_node ( s_id,  state,  id,  txn_start,  txn_end,  type,  accessConditions,  alias,  commentsExternal,  commentsInternal,  expiryDate,  internalAccessConditions,  localSystemNumber,  name,  notes,  recordSource,  restrictionType) "
 				                  + "VALUES (:s_id, :state, :id, :txn_start, :txn_end, :type, :accessConditions, :alias, :commentsExternal, :commentsInternal, :expiryDate, :internalAccessConditions, :localSystemNumber, :name, :notes, :recordSource, :restrictionType)";
-		if ("DEL".equals(state)) { 
+		if (state == DEL) { 
 			sql = "INSERT INTO sess_node ( s_id,  state,  id,  txn_start,  txn_end,  type) "
 	                           + "VALUES (:s_id, :state, :id, :txn_start, :txn_end, :type)";
 		}
@@ -1561,12 +1559,12 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 		for (AmberVertex v: set) {
 			PreparedBatchPart preparedBatchPart = preparedBatch.add();
 			preparedBatchPart.bind("s_id",       sessId);
-			preparedBatchPart.bind("state",      state);
+			preparedBatchPart.bind("state",      state.toString());
 			preparedBatchPart.bind("id",         v.getId());
 			preparedBatchPart.bind("txn_start",  v.getTxnStart());
 			preparedBatchPart.bind("txn_end",    v.getTxnEnd());
 			preparedBatchPart.bind("type",       v.getProperty("type"));
-			if (!"DEL".equals(state)) {
+			if (state != DEL) {
 				for (String field: nodeFields) {
 					if (fieldMapping.containsKey(field)) {
 						field = fieldMapping.get(field);
@@ -1580,7 +1578,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 		
 	}
 	
-	public void suspendIntoFlatEdgeTable(Long sessId, String state, Set<AmberEdge> set) {
+	public void suspendIntoFlatEdgeTable(Long sessId, State state, Set<AmberEdge> set) {
 		String sql = "INSERT INTO sess_flatedge (s_id, state, id, txn_start, txn_end, v_out, v_in, edge_order, label) values (:s_id, :state, :id, :txn_start, :txn_end, :v_out, :v_in, :edge_order, :label)";
 
 		Handle h = getHandle();
@@ -1588,7 +1586,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 		for (AmberEdge v: set) {
 			PreparedBatchPart preparedBatchPart = preparedBatch.add();
 			preparedBatchPart.bind("s_id",       sessId);
-			preparedBatchPart.bind("state",      state);
+			preparedBatchPart.bind("state",      state.toString());
 			preparedBatchPart.bind("id",         v.getId());
 			preparedBatchPart.bind("txn_start",  v.getTxnStart());
 			preparedBatchPart.bind("txn_end",    v.getTxnEnd());
@@ -1601,7 +1599,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 		
 	}
 
-	public void suspendIntoFlatEdgeSpecificTable(Long sessId, String state, String table, Set<AmberEdge> set) {
+	public void suspendIntoFlatEdgeSpecificTable(Long sessId, State state, String table, Set<AmberEdge> set) {
 		Set<String> fields = getFields(set, state);
 		String sql = String.format("INSERT INTO %s (s_id, state, id, txn_start, txn_end, v_out, v_in, edge_order, label %s) values (:s_id, :state, :id, :txn_start, :txn_end, :v_out, :v_in, :edge_order, :label %s)",
 				table,
@@ -1613,7 +1611,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 		for (AmberEdge v: set) {
 			PreparedBatchPart preparedBatchPart = preparedBatch.add();
 			preparedBatchPart.bind("s_id",       sessId);
-			preparedBatchPart.bind("state",      state);
+			preparedBatchPart.bind("state",      state.toString());
 			preparedBatchPart.bind("id",         v.getId());
 			preparedBatchPart.bind("txn_start",  v.getTxnStart());
 			preparedBatchPart.bind("txn_end",    v.getTxnEnd());
@@ -1621,7 +1619,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			preparedBatchPart.bind("v_in",       v.getInId());
 			preparedBatchPart.bind("edge_order", v.getOrder());
 			preparedBatchPart.bind("label",       v.getLabel());
-			if (!"DEL".equals(state)) {
+			if (state != DEL) {
 				for (String field: fields) {
 					preparedBatchPart.bind(field,    v.getProperty(field));
 				}
@@ -1639,9 +1637,9 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 		return r;
 	}
 
-	private Set<String> getFields(Set<? extends BaseElement> set, String state) {
+	private Set<String> getFields(Set<? extends BaseElement> set, State state) {
 		Set<String> allFields = new HashSet<>();
-		if (!"DEL".equals(state)) {
+		if (state != DEL) {
 			for (BaseElement element: set) {
 				Set<String> fields = element.getPropertyKeys();
 				fields.remove("nextStep");

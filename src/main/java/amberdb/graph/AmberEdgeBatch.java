@@ -15,12 +15,12 @@ public class AmberEdgeBatch {
     List<Long>    vertexIn  = new ArrayList<Long>();
     List<String>  label     = new ArrayList<String>();
     List<Integer> order     = new ArrayList<Integer>();
-    List<String>  state     = new ArrayList<String>();
+    List<State>   state     = new ArrayList<State>();
     
     
     void add(AmberEdgeWithState wrapper) {
         AmberEdge edge = wrapper.edge;
-        String state = wrapper.state;
+        State state = wrapper.state;
         
         id.add((Long) edge.getId());
         txnStart.add(edge.txnStart);

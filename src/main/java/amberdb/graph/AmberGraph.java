@@ -2,7 +2,6 @@ package amberdb.graph;
 
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,6 +35,8 @@ import com.tinkerpop.blueprints.Vertex;
 import amberdb.graph.dao.AmberDao;
 import amberdb.graph.dao.AmberDaoH2;
 import amberdb.graph.dao.AmberDaoMySql;
+
+import static amberdb.graph.State.*;
 
 
 public class AmberGraph extends BaseGraph 
@@ -337,12 +338,12 @@ public class AmberGraph extends BaseGraph
             dao.suspendVertices(sessId, v.id, v.txnStart, v.txnEnd, v.state);
             dao.suspendProperties(sessId, p.id, p.name, p.type, p.value);
 
-            suspendIntoFlatVertexTables(sessId, newVerticesByType,      "NEW");
-            suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, "MOD");
-            suspendIntoFlatVertexTables(sessId, removedVerticesByType , "DEL");
-            suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         "NEW");
-            suspendIntoFlatEdgeTables(  sessId, modifiedEdgesByType,    "MOD");
-            suspendIntoFlatEdgeTables(  sessId, removedEdgesByType ,    "DEL");
+            suspendIntoFlatVertexTables(sessId, newVerticesByType,      NEW);
+            suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, MOD);
+            suspendIntoFlatVertexTables(sessId, removedVerticesByType , DEL);
+            suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         NEW);
+            suspendIntoFlatEdgeTables(  sessId, modifiedEdgesByType,    MOD);
+            suspendIntoFlatEdgeTables(  sessId, removedEdgesByType ,    DEL);
             
             dao.commit();
         }
@@ -379,19 +380,19 @@ public class AmberGraph extends BaseGraph
         for (Edge e : removedEdges.values()) {
             modifiedEdges.remove(e);
             if (newEdges.remove(e)) continue;
-            edges.add(new AmberEdgeWithState((AmberEdge) e, "DEL"));
+            edges.add(new AmberEdgeWithState((AmberEdge) e, DEL));
         }
 
         for (Edge e : newEdges) {
             AmberEdge ae = (AmberEdge) e;
             modifiedEdges.remove(e);
-            edges.add(new AmberEdgeWithState(ae, "NEW"));
+            edges.add(new AmberEdgeWithState(ae, NEW));
             properties.add((Long) ae.getId(), ae.getProperties());
         }
 
         for (Edge e : modifiedEdges) {
             AmberEdge ae = (AmberEdge) e;
-            edges.add(new AmberEdgeWithState(ae, "MOD"));
+            edges.add(new AmberEdgeWithState(ae, MOD));
             properties.add((Long) ae.getId(), ae.getProperties());
         }
     }
@@ -405,19 +406,19 @@ public class AmberGraph extends BaseGraph
         for (Vertex v : removedVertices.values()) {
             modifiedVertices.remove(v);
             if (newVertices.remove(v)) continue;
-            vertices.add(new AmberVertexWithState((AmberVertex) v, "DEL"));
+            vertices.add(new AmberVertexWithState((AmberVertex) v, DEL));
         }
 
         for (Vertex v : newVertices) {
             AmberVertex av = (AmberVertex) v;
             modifiedVertices.remove(v);
-            vertices.add(new AmberVertexWithState(av, "NEW"));
+            vertices.add(new AmberVertexWithState(av, NEW));
             properties.add((Long) av.getId(), av.getProperties());
         }
 
         for (Vertex v : modifiedVertices) {
             AmberVertex av = (AmberVertex) v;
-            vertices.add(new AmberVertexWithState(av, "MOD"));
+            vertices.add(new AmberVertexWithState(av, MOD));
             properties.add((Long) av.getId(), av.getProperties());
         }
     }
@@ -483,8 +484,8 @@ public class AmberGraph extends BaseGraph
         for (AmberVertexWithState wrapper : vertexStateWrappers) {
             AmberVertex vertex = wrapper.vertex; 
             
-            String state = wrapper.state;
-            if (state.equals("DEL")) {
+            State state = wrapper.state;
+            if (state.equals(DEL)) {
                 removedVertices.put(vertex.getId(), vertex);
                 continue;
             } 
@@ -492,9 +493,9 @@ public class AmberGraph extends BaseGraph
             addVertexToGraph(vertex);
             vertex.replaceProperties(propertyMaps.get((Long) vertex.getId()));
             
-            if (state.equals("NEW")) {
+            if (state == NEW) {
                 newVertices.add(vertex);
-            } else if (state.equals("MOD")) {
+            } else if (state == MOD) {
                 modifiedVertices.add(vertex);
             }
         }
@@ -503,8 +504,8 @@ public class AmberGraph extends BaseGraph
         for (AmberEdgeWithState wrapper : edgeStateWrappers) {
             AmberEdge edge = wrapper.edge; 
             
-            String state = wrapper.state;
-            if (state.equals("DEL")) {
+            State state = wrapper.state;
+            if (state == DEL) {
                 removedEdges.put(edge.getId(), edge);
                 continue;
             } 
@@ -518,9 +519,9 @@ public class AmberGraph extends BaseGraph
             addEdgeToGraph(edge);
             edge.replaceProperties(propertyMaps.get((Long) edge.getId()));
             
-            if (state.equals("NEW")) {
+            if (state == NEW) {
                 newEdges.add(edge);
-            } else if (state.equals("MOD")) {
+            } else if (state == MOD) {
                 modifiedEdges.add(edge);
             }
         }
@@ -932,7 +933,7 @@ public class AmberGraph extends BaseGraph
         for (Vertex v : removedVertices.values()) {
             modifiedVertices.remove(v);
             if (newVertices.remove(v)) continue;
-            vertices.add(new AmberVertexWithState((AmberVertex) v, "DEL"));
+            vertices.add(new AmberVertexWithState((AmberVertex) v, DEL));
             addVertex(removedVerticesByType, (AmberVertex) v);
 
             batchLimit++;
@@ -941,7 +942,7 @@ public class AmberGraph extends BaseGraph
                 
                 dao.suspendVertices(sessId, vertices.id, vertices.txnStart, vertices.txnEnd, vertices.state);
                 
-                suspendIntoFlatVertexTables(sessId, removedVerticesByType , "DEL");
+                suspendIntoFlatVertexTables(sessId, removedVerticesByType , DEL);
                 
                 vertices.clear();
                 batchLimit = 0;
@@ -953,11 +954,11 @@ public class AmberGraph extends BaseGraph
             AmberVertex av = (AmberVertex) v;
             if (newVertices.contains(v)) {
                 modifiedVertices.remove(v); // a modified new vertex is just a new vertex
-                vertices.add(new AmberVertexWithState(av, "NEW"));
+                vertices.add(new AmberVertexWithState(av, NEW));
                 properties.add((Long) av.getId(), av.getProperties());
                 addVertex(newVerticesByType, av);
             } else if (modifiedVertices.contains(v)) {
-                vertices.add(new AmberVertexWithState(av, "MOD"));
+                vertices.add(new AmberVertexWithState(av, MOD));
                 properties.add((Long) av.getId(), av.getProperties());
                 addVertex(modifiedVerticesByType, av);
             }
@@ -969,8 +970,8 @@ public class AmberGraph extends BaseGraph
                 dao.suspendVertices(sessId, vertices.id, vertices.txnStart, vertices.txnEnd, vertices.state);
                 dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
 
-                suspendIntoFlatVertexTables(sessId, newVerticesByType,      "NEW");
-                suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, "MOD");
+                suspendIntoFlatVertexTables(sessId, newVerticesByType,      NEW);
+                suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, MOD);
                 
                 vertices.clear();
                 properties.clear();
@@ -983,9 +984,9 @@ public class AmberGraph extends BaseGraph
         dao.suspendVertices(sessId, vertices.id, vertices.txnStart, vertices.txnEnd, vertices.state);
         dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
         
-        suspendIntoFlatVertexTables(sessId, newVerticesByType,      "NEW");
-        suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, "MOD");
-        suspendIntoFlatVertexTables(sessId, removedVerticesByType , "DEL");
+        suspendIntoFlatVertexTables(sessId, newVerticesByType,      NEW);
+        suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, MOD);
+        suspendIntoFlatVertexTables(sessId, removedVerticesByType , DEL);
 
     }
 
@@ -1007,7 +1008,7 @@ public class AmberGraph extends BaseGraph
         for (Edge e : removedEdges.values()) {
             modifiedEdges.remove(e);
             if (newEdges.remove(e)) continue;
-            edges.add(new AmberEdgeWithState((AmberEdge) e, "DEL"));
+            edges.add(new AmberEdgeWithState((AmberEdge) e, DEL));
             addEdge(removedEdgesByType, (AmberEdge) e);
 
             batchLimit++;
@@ -1016,7 +1017,7 @@ public class AmberGraph extends BaseGraph
                 dao.suspendEdges(sessId, edges.id, edges.txnStart, edges.txnEnd, 
                         edges.vertexOut, edges.vertexIn, edges.label, edges.order, edges.state);
                 
-                suspendIntoFlatEdgeTables(  sessId, removedEdgesByType ,    "DEL");
+                suspendIntoFlatEdgeTables(  sessId, removedEdgesByType ,    DEL);
 
                 edges.clear();
                 batchLimit = 0;
@@ -1028,11 +1029,11 @@ public class AmberGraph extends BaseGraph
             AmberEdge ae = (AmberEdge) e;
             if (newEdges.contains(e)) {
                 modifiedEdges.remove(e); // a modified new edge is just a new edge
-                edges.add(new AmberEdgeWithState(ae, "NEW"));
+                edges.add(new AmberEdgeWithState(ae, NEW));
                 properties.add((Long) ae.getId(), ae.getProperties());
                 addEdge(newEdgesByType, (AmberEdge) e);
             } else if (modifiedEdges.contains(e)) {
-                edges.add(new AmberEdgeWithState(ae, "MOD"));
+                edges.add(new AmberEdgeWithState(ae, MOD));
                 properties.add((Long) ae.getId(), ae.getProperties());
                 addEdge(modifiedEdgesByType, (AmberEdge) e);
             }
@@ -1044,8 +1045,8 @@ public class AmberGraph extends BaseGraph
                 dao.suspendEdges(sessId, edges.id, edges.txnStart, edges.txnEnd, 
                         edges.vertexOut, edges.vertexIn, edges.label, edges.order, edges.state);
                 dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
-                suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         "NEW");
-                suspendIntoFlatEdgeTables(  sessId, modifiedEdgesByType,    "MOD");
+                suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         NEW);
+                suspendIntoFlatEdgeTables(  sessId, modifiedEdgesByType,    MOD);
 
                 edges.clear();
                 properties.clear();
@@ -1059,9 +1060,9 @@ public class AmberGraph extends BaseGraph
                 edges.vertexOut, edges.vertexIn, edges.label, edges.order, edges.state);
         dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
 
-        suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         "NEW");
-        suspendIntoFlatEdgeTables(  sessId, modifiedEdgesByType,    "MOD");
-        suspendIntoFlatEdgeTables(  sessId, removedEdgesByType ,    "DEL");
+        suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         NEW);
+        suspendIntoFlatEdgeTables(  sessId, modifiedEdgesByType,    MOD);
+        suspendIntoFlatEdgeTables(  sessId, removedEdgesByType ,    DEL);
     }
 
 
@@ -1201,7 +1202,7 @@ public class AmberGraph extends BaseGraph
 		}
 	}
 	
-	private void suspendIntoFlatVertexTables(Long sessId, Map<String, Set<AmberVertex>> verticesByType, String operation) {
+	private void suspendIntoFlatVertexTables(Long sessId, Map<String, Set<AmberVertex>> verticesByType, State operation) {
         for (Entry<String, Set<AmberVertex>> entry: verticesByType.entrySet()) {
         	String vertexType = entry.getKey().toLowerCase();
         	String table = vertexToTableMap.get(vertexType);
@@ -1212,7 +1213,7 @@ public class AmberGraph extends BaseGraph
         }
 	}
 
-	private void suspendIntoFlatEdgeTables(Long sessId, Map<String, Set<AmberEdge>> edgesByType, String operation) {
+	private void suspendIntoFlatEdgeTables(Long sessId, Map<String, Set<AmberEdge>> edgesByType, State operation) {
         for (Entry<String, Set<AmberEdge>> entry: edgesByType.entrySet()) {
         	String edgeType = entry.getKey().toLowerCase();
         	String table = edgeToTableMap.get(edgeType);
