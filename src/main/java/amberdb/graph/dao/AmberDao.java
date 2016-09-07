@@ -1716,32 +1716,5 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 	public abstract void startAcknowledgements(
 	@Bind("txnId") Long txnId);
 
-	public AmberTransaction getFirstTransaction(Long id, String type) {
-		String tableName = getTableForVertexType(type);
-
-		Handle h = getHandle();
-		String sql = String.format("select min(txn_start) as txn_id from %s_history where id = %s", tableName, id);
-		Long txnId = h.createQuery(sql).map(Long.class).first();
-
-		return getTransaction(txnId);
-	}
-
-	public AmberTransaction getLastTransaction(Long id, String type) {
-		String tableName = getTableForVertexType(type);
-
-		Handle h = getHandle();
-		String sql = String.format("select max(txn_start) as txn_id from %s_history where id = %s", tableName, id);
-		Long txnId = h.createQuery(sql).map(Long.class).first();
-
-		return getTransaction(txnId);
-	}
-
-
-	@SqlQuery("select tableName from vertex_map where vertexType = :vertexType")
-	public abstract String getTableForVertexType(@Bind("vertexType") String vertexType);
-
-	@SqlQuery("select tableName from edge_map where edgeType = :edgeType")
-	public abstract String getTableForEdgeType(@Bind("edgeType") String edgeType);
-
 }
 
