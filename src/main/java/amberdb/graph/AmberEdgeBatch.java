@@ -3,6 +3,7 @@ package amberdb.graph;
 
 import java.util.ArrayList;
 import java.util.List;
+import static amberdb.graph.State.DEL;
 
 
 public class AmberEdgeBatch {
@@ -26,7 +27,7 @@ public class AmberEdgeBatch {
         txnStart.add(edge.txnStart);
         txnEnd.add(edge.txnEnd);
         
-        if (state != null && state.equals("DEL")) {
+        if (state != null && state == DEL) {
             vertexOut.add(null);
             vertexIn.add(null);
         } else {
