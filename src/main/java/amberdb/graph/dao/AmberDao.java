@@ -38,7 +38,7 @@ import amberdb.graph.TransactionMapper;
 
 public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 	
-    public static final Map<String, String> fieldMapping        = new HashMap<>();
+    protected static final Map<String, String> fieldMapping        = new HashMap<>();
     public static final Map<String, String> fieldMappingReverse = new HashMap<>();
     static {
     	fieldMapping.put("constraint", "availabilityConstraint");
@@ -48,7 +48,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     		fieldMappingReverse.put(entry.getValue(), entry.getKey());
     	}
     }
-    public static final Set<String> nodeFields = new TreeSet<>();
+    protected static final Set<String> nodeFields = new TreeSet<>();
     static {
         nodeFields.add("accessConditions");
         nodeFields.add("alias");
