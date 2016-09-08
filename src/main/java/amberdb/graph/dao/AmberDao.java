@@ -1326,7 +1326,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             @Bind("inId")      List<Long>    inId,
             @Bind("label")     List<String>  label,
             @Bind("edgeOrder") List<Integer> edgeOrder,
-            @Bind("state")     List<State>   state);
+            @Bind("state")     List<String>   state);
 
 
     @SqlBatch("INSERT INTO sess_vertex (s_id, id, txn_start, txn_end, state) "
@@ -1336,7 +1336,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             @Bind("id")        List<Long>   id,
             @Bind("txnStart")  List<Long>   txnStart,
             @Bind("txnEnd")    List<Long>   txnEnd,
-            @Bind("state")     List<State>  state);
+            @Bind("state")     List<String>  state);
 
 
     @SqlBatch("INSERT INTO sess_property (s_id, id, name, type, value) "

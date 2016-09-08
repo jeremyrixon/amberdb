@@ -16,7 +16,7 @@ public class AmberEdgeBatch {
     List<Long>    vertexIn  = new ArrayList<Long>();
     List<String>  label     = new ArrayList<String>();
     List<Integer> order     = new ArrayList<Integer>();
-    List<State>   state     = new ArrayList<State>();
+    List<String>  state     = new ArrayList<String>();
     
     
     void add(AmberEdgeWithState wrapper) {
@@ -36,7 +36,7 @@ public class AmberEdgeBatch {
         }
         label.add(edge.getLabel());
         order.add(edge.order);
-        this.state.add(state);
+        this.state.add(state.name());
     }
     
     

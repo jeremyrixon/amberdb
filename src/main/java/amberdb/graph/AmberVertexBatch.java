@@ -11,8 +11,7 @@ public class AmberVertexBatch {
     List<Long>   id       = new ArrayList<Long>();
     List<Long>   txnStart = new ArrayList<Long>();
     List<Long>   txnEnd   = new ArrayList<Long>();
-    List<State>  state   = new ArrayList<State>();
-
+    List<String> state    = new ArrayList<String>();
     
     void add(AmberVertexWithState statefulVertex) {
         AmberVertex vertex = statefulVertex.vertex;
@@ -20,7 +19,7 @@ public class AmberVertexBatch {
         id.add((Long) vertex.getId());
         txnStart.add(vertex.txnStart);
         txnEnd.add(vertex.txnEnd);
-        state.add(statefulVertex.state);
+        state.add(statefulVertex.state.name());
     }
 
 
