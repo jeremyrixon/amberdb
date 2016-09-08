@@ -1537,7 +1537,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			if (state != DEL) {
 				for (String field: fields) {
 				    if (!nodeFields.contains(field)) {
-				        preparedBatchPart.bind(field,    v.getProperty(field));
+	                    bindField(v, preparedBatchPart, field);
 				    }
 				}
 			}
@@ -1545,7 +1545,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 		preparedBatch.execute();
 		
 	}
-	
+
 	public void suspendIntoNodeTable(Long sessId, State state, Set<AmberVertex> set) {
 		String sql = "INSERT INTO sess_node ( s_id,  state,  id,  txn_start,  txn_end,  type,  accessConditions,  alias,  commentsExternal,  commentsInternal,  expiryDate,  internalAccessConditions,  localSystemNumber,  name,  notes,  recordSource,  restrictionType) "
 				                  + "VALUES (:s_id, :state, :id, :txn_start, :txn_end, :type, :accessConditions, :alias, :commentsExternal, :commentsInternal, :expiryDate, :internalAccessConditions, :localSystemNumber, :name, :notes, :recordSource, :restrictionType)";
@@ -1566,10 +1566,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			preparedBatchPart.bind("type",       v.getProperty("type"));
 			if (state != DEL) {
 				for (String field: nodeFields) {
-					if (fieldMapping.containsKey(field)) {
-						field = fieldMapping.get(field);
-					}
-					preparedBatchPart.bind(field, v.getProperty(field));
+					bindField(v, preparedBatchPart, field);
 				}
 
 			}
@@ -1577,6 +1574,13 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 		preparedBatch.execute();
 		
 	}
+
+    private void bindField(AmberVertex v, PreparedBatchPart preparedBatchPart, String field) {
+        if (fieldMapping.containsKey(field)) {
+            field = fieldMapping.get(field);
+        }
+        preparedBatchPart.bind(field, v.getProperty(field));
+    }
 	
 	public void suspendIntoFlatEdgeTable(Long sessId, State state, Set<AmberEdge> set) {
 		String sql = "INSERT INTO sess_flatedge (s_id, state, id, txn_start, txn_end, v_out, v_in, edge_order, label) values (:s_id, :state, :id, :txn_start, :txn_end, :v_out, :v_in, :edge_order, :label)";
