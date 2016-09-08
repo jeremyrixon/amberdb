@@ -1576,10 +1576,11 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 	}
 
     private void bindField(AmberVertex v, PreparedBatchPart preparedBatchPart, String field) {
-        if (fieldMapping.containsKey(field)) {
-            field = fieldMapping.get(field);
+        String mappedField = field;
+        if (fieldMappingReverse.containsKey(field)) {
+            mappedField = fieldMappingReverse.get(field);
         }
-        preparedBatchPart.bind(field, v.getProperty(field));
+        preparedBatchPart.bind(field, v.getProperty(mappedField));
     }
 	
 	public void suspendIntoFlatEdgeTable(Long sessId, State state, Set<AmberEdge> set) {
@@ -1645,12 +1646,16 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 		Set<String> allFields = new HashSet<>();
 		if (state != DEL) {
 			for (BaseElement element: set) {
-				Set<String> fields = element.getPropertyKeys();
-				fields.remove("nextStep");
-				allFields.addAll(fields);
+			    for (String field: element.getPropertyKeys()) {
+			        if (fieldMapping.containsKey(field)) {
+			            field = fieldMapping.get(field);
+			        }
+			        allFields.add(field);
+			    }
 			}
 		}
 		allFields.removeAll(nodeFields);
+		allFields.remove("nextStep");
 		return allFields;
 	}
 
