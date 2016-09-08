@@ -1530,7 +1530,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 		for (AmberVertex v: set) {
 			PreparedBatchPart preparedBatchPart = preparedBatch.add();
 			preparedBatchPart.bind("s_id",       sessId);
-			preparedBatchPart.bind("state",      state);
+			preparedBatchPart.bind("state",      state.name());
 			preparedBatchPart.bind("id",         v.getId());
 			preparedBatchPart.bind("txn_start",  v.getTxnStart());
 			preparedBatchPart.bind("txn_end",    v.getTxnEnd());
@@ -1559,7 +1559,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 		for (AmberVertex v: set) {
 			PreparedBatchPart preparedBatchPart = preparedBatch.add();
 			preparedBatchPart.bind("s_id",       sessId);
-			preparedBatchPart.bind("state",      state.toString());
+			preparedBatchPart.bind("state",      state.name());
 			preparedBatchPart.bind("id",         v.getId());
 			preparedBatchPart.bind("txn_start",  v.getTxnStart());
 			preparedBatchPart.bind("txn_end",    v.getTxnEnd());
@@ -1586,7 +1586,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 		for (AmberEdge v: set) {
 			PreparedBatchPart preparedBatchPart = preparedBatch.add();
 			preparedBatchPart.bind("s_id",       sessId);
-			preparedBatchPart.bind("state",      state.toString());
+			preparedBatchPart.bind("state",      state.name());
 			preparedBatchPart.bind("id",         v.getId());
 			preparedBatchPart.bind("txn_start",  v.getTxnStart());
 			preparedBatchPart.bind("txn_end",    v.getTxnEnd());
@@ -1611,7 +1611,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 		for (AmberEdge v: set) {
 			PreparedBatchPart preparedBatchPart = preparedBatch.add();
 			preparedBatchPart.bind("s_id",       sessId);
-			preparedBatchPart.bind("state",      state.toString());
+			preparedBatchPart.bind("state",      state.name());
 			preparedBatchPart.bind("id",         v.getId());
 			preparedBatchPart.bind("txn_start",  v.getTxnStart());
 			preparedBatchPart.bind("txn_end",    v.getTxnEnd());
