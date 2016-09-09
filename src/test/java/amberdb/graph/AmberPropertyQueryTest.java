@@ -32,7 +32,7 @@ public class AmberPropertyQueryTest {
     @Before
     public void setup() throws MalformedURLException, IOException {
         String tempPath = tempFolder.getRoot().getAbsolutePath();
-        src = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"amber;auto_server=true;","sess","sess");
+        src = JdbcConnectionPool.create("jdbc:h2:"+tempPath+"amber;auto_server=true;DATABASE_TO_UPPER=false","sess","sess");
         graph = new AmberGraph(src);
     }
 

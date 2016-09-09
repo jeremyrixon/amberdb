@@ -26,7 +26,7 @@ public class LookupRefreshTest {
     @Test
     public void TestRefreshLookupData() throws IOException {
 
-        DataSource ds = JdbcConnectionPool.create("jdbc:h2:mem:amberdb", "amberdb", "amberdb");
+        DataSource ds = JdbcConnectionPool.create("jdbc:h2:mem:amberdb;DATABASE_TO_UPPER=false", "amberdb", "amberdb");
         
         try (AmberSession db = new AmberDb(ds, folder.getRoot().toPath()).begin()) {
             List<ListLu> srcLu = LookupRefresh.synchronizeLookups(db);

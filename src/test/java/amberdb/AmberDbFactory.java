@@ -32,7 +32,7 @@ public class AmberDbFactory {
             // This is for build integration site which does not have
             // direct access to the mysql data source.
             DriverManager.registerDriver(new org.h2.Driver());
-            dbUrl = "jdbc:h2:" + Paths.get(".").resolve("graph") + ";MVCC=true";
+            dbUrl = "jdbc:h2:" + Paths.get(".").resolve("graph") + ";MVCC=true;DATABASE_TO_UPPER=false";
             dbUser = "garfield";
             dbPassword = "odde";
             ds = JdbcConnectionPool.create(dbUrl, dbUser, dbPassword);
