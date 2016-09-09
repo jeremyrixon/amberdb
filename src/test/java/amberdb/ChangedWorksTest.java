@@ -46,7 +46,7 @@ public class ChangedWorksTest {
     public void setup() throws MalformedURLException, IOException, Exception {
         System.out.println("Setting up graph");
         tempPath = Paths.get(tempFolder.getRoot().getAbsolutePath());
-        src = JdbcConnectionPool.create("jdbc:h2:"+tempPath.toString()+"amber;auto_server=true","sess","sess");
+        src = JdbcConnectionPool.create("jdbc:h2:"+tempPath.toString()+"amber;auto_server=true;","sess","sess");
         sess = new AmberDb(src, tempPath).begin();
     }
 

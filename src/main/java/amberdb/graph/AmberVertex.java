@@ -145,5 +145,15 @@ public class AmberVertex extends BaseVertex {
 
         return root.toString();
     }
+
+
+	public Long getTxnStart() {
+		return txnStart;
+	}
+
+
+	public Long getTxnEnd() {
+		return txnEnd;
+	}
 }
 

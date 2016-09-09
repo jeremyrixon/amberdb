@@ -96,48 +96,37 @@ public class AmberEdgeQuery extends AmberQueryBase {
     /* edge AND queries can't include labels currently */ 
     protected String generateAndQuery() {
         StringBuilder s = new StringBuilder();
-        s.append("INSERT INTO ep (id) \n" 
-                + "SELECT p0.id \n"
-                + "FROM property p0 \n");
+        s.append("INSERT INTO ep (id) \n" +
+        		"select flatedge.id \n" +
+        		"from flatedge \n" +
+        		"left join acknowledge on flatedge.id = acknowledge.id \n" +
+        		"where \n");
         
-        for (int i = 1; i < properties.size(); i++) {
-            if (properties.get(i).getName().equals("label")) continue;
-            s.append(String.format("INNER JOIN property p%1$d ON (p0.id = p%1$d.id AND p0.txn_start = p%1$d.txn_start) \n", i));
+        for (int i = 0; i < properties.size(); i++) {
+        	String columnName = properties.get(i).getName().toLowerCase();
+        	if ("label".equals(columnName)) {
+        		columnName = "flatedge.label";  
+        	}
+        	s.append(columnName + " = :value"+ i + " \n and ");
         }
-        
-        s.append("WHERE p0.txn_end = 0 "
-                + "AND p0.name = :name0 "
-                + "AND p0.value = :value0 \n");
-        
-        for (int i = 1; i < properties.size(); i++) {
-            s.append(String.format("AND p%1$d.txn_end = 0 "
-                    + "AND p%1$d.name = :name%1$d "
-                    + "AND p%1$d.value = :value%1$d \n",
-                    i));
-        }
-        s.append(";\n");
+        s.setLength(s.length()-4);
         return s.toString();
     }
-    
 
     protected String generateOrQuery() {
         StringBuilder s = new StringBuilder();
         s.append("INSERT INTO ep (id) \n");
         for (int i = 0; i < properties.size(); i++) {
-            if (properties.get(i).getName().equals("label")) {
-                s.append("SELECT e.id \n"
-                        + "FROM edge e \n"
-                        + "WHERE e.txn_end = 0 \n"
-                        + "AND e.label = :value"+ i + " \n"
-                        + "UNION ALL \n");
-            } else {
-                s.append("SELECT p.id \n"
-                        + "FROM property p \n"
-                        + "WHERE p.txn_end = 0 \n"
-                        + "AND p.name = :name" + i + " " 
-                        + "AND p.value = :value"+ i + " \n"
-                        + "UNION ALL \n");
-            }
+        	String columnName = properties.get(i).getName().toLowerCase();
+        	if ("label".equals(columnName)) {
+        		columnName = "flatedge.label";  
+        	}
+            s.append(
+            		"select flatedge.id \n" +
+            		"from flatedge \n" +
+            		"left join acknowledge on flatedge.id = acknowledge.id \n" +
+            		"where " + columnName + " = :value"+ i + " \n"
+                    + "UNION ALL \n");
         }
         s.setLength(s.length()-13);
         s.append(";\n");
@@ -149,8 +138,7 @@ public class AmberEdgeQuery extends AmberQueryBase {
         StringBuilder s = new StringBuilder();
         s.append("INSERT INTO ep (id) \n"
                  + "SELECT e.id \n"
-                 + "FROM edge e \n"
-                 + "WHERE e.txn_end = 0 \n;");
+                 + "FROM flatedge e \n;");
         return s.toString();
     }
 
@@ -188,9 +176,9 @@ public class AmberEdgeQuery extends AmberQueryBase {
             q.execute();
             h.execute(
                     "INSERT INTO vp " +
-                    "SELECT v_in FROM edge e, ep WHERE e.txn_end = 0 AND e.id = ep.id " +
+                    "SELECT v_in FROM flatedge e, ep WHERE e.id = ep.id " +
                     "UNION " +
-                    "SELECT v_out FROM edge e, ep WHERE e.txn_end = 0 AND e.id = ep.id;");
+                    "SELECT v_out FROM flatedge e, ep WHERE e.id = ep.id;");
             h.commit();
 
             // and reap the rewards

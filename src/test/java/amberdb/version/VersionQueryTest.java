@@ -44,7 +44,7 @@ public class VersionQueryTest {
     @Before
     public void setup() throws MalformedURLException, IOException {
         tempPath = Paths.get(tempFolder.getRoot().getAbsolutePath());
-        src = JdbcConnectionPool.create("jdbc:h2:"+tempPath.toString()+"amber;auto_server=true","sess","sess");
+        src = JdbcConnectionPool.create("jdbc:h2:"+tempPath.toString()+"amber;auto_server=true;","sess","sess");
         graph = new AmberGraph(src);
         vGraph = new VersionedGraph(src);
     }
@@ -63,9 +63,9 @@ public class VersionQueryTest {
         // modify some bits
         Vertex book = graph.getVertices("title", title1).iterator().next();
         for (Vertex page : book.getVertices(Direction.IN, "isPartOf")) {
-            if ((Integer) page.getProperty("value") % 2 == 0)
-                page.setProperty("code", page.hashCode());
-            if ((Integer) page.getProperty("value") % 3 == 0)
+            if ((Integer) page.getProperty("subUnitNo") % 2 == 0)
+                page.setProperty("publisher", "Wolfenstein");
+            if ((Integer) page.getProperty("subUnitNo") % 3 == 0)
                 page.remove();            
         }
         Long txn2 = graph.commit("test", "modified book 1");
@@ -84,7 +84,7 @@ public class VersionQueryTest {
         // reorder some pages
         book = graph.getVertices("title", title2).iterator().next();
         for (Vertex page : book.getVertices(Direction.IN, "isPartOf")) {
-            if ((Integer) page.getProperty("value") % 20 == 0) {
+            if ((Integer) page.getProperty("subUnitNo") % 20 == 0) {
                 Edge e = page.getEdges(Direction.OUT, "isPartOf").iterator().next();
                 e.setProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME, 44);
             }
@@ -98,15 +98,15 @@ public class VersionQueryTest {
         // reorder some pages
         book = graph.getVertices("title", title3).iterator().next();
         for (Vertex page : book.getVertices(Direction.IN, "isPartOf")) {
-            if ((Integer) page.getProperty("value") % 3 == 0) {
+            if ((Integer) page.getProperty("subUnitNo") % 3 == 0) {
                 Edge e = page.getEdges(Direction.OUT, "isPartOf").iterator().next();
                 e.setProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME, 44);
             }
-            if (page.getProperty("value").equals(3)) {
+            if (page.getProperty("subUnitNo").equals(3)) {
                 page.remove();
             }
-            if (page.getProperty("value").equals(5)) {
-                page.setProperty("foo", "fum");
+            if (page.getProperty("subUnitNo").equals(5)) {
+                page.setProperty("publisher", "foo fum");
             }
         }
         Long txn7 = graph.commit("test", "modified book 3");
@@ -172,8 +172,8 @@ public class VersionQueryTest {
     private Vertex createPage(Vertex book, int pageNum) {
         Vertex page = graph.addVertex(null);
         
-        page.setProperty("name", "page " + pageNum);
-        page.setProperty("value", pageNum);
+        page.setProperty("title", "page " + pageNum);
+        page.setProperty("subUnitNo", pageNum);
         page.setProperty("type", "Page");
         page.setProperty("bibLevel", "Part");
         
@@ -198,7 +198,7 @@ public class VersionQueryTest {
     private Vertex createFile(Vertex copy) {
         Vertex file = graph.addVertex(null);
         file.setProperty("type", "File");
-        file.setProperty("path", "/fiddle/de/do");
+        file.setProperty("fileName", "fiddle-de.do");
         file.addEdge("isFileOf", copy);
         createDescription(file);
         return file;
@@ -208,7 +208,7 @@ public class VersionQueryTest {
     private Vertex createDescription(Vertex file) {
         Vertex desc = graph.addVertex(null);
         desc.setProperty("type", "Description");
-        desc.setProperty("note", "foo foo");
+        desc.setProperty("alternativeTitle", "foo foo");
         desc.addEdge("descriptionOf", file);
         return desc;
     }

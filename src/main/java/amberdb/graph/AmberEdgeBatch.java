@@ -3,6 +3,7 @@ package amberdb.graph;
 
 import java.util.ArrayList;
 import java.util.List;
+import static amberdb.graph.State.DEL;
 
 
 public class AmberEdgeBatch {
@@ -20,13 +21,13 @@ public class AmberEdgeBatch {
     
     void add(AmberEdgeWithState wrapper) {
         AmberEdge edge = wrapper.edge;
-        String state = wrapper.state;
+        State state = wrapper.state;
         
         id.add((Long) edge.getId());
         txnStart.add(edge.txnStart);
         txnEnd.add(edge.txnEnd);
         
-        if (state != null && state.equals("DEL")) {
+        if (state != null && state == DEL) {
             vertexOut.add(null);
             vertexIn.add(null);
         } else {
@@ -35,7 +36,7 @@ public class AmberEdgeBatch {
         }
         label.add(edge.getLabel());
         order.add(edge.order);
-        this.state.add(state);
+        this.state.add(state.name());
     }
     
     
