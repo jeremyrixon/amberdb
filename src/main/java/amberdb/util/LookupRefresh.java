@@ -20,7 +20,7 @@ public class LookupRefresh {
     static final Logger log = LoggerFactory.getLogger(LookupRefresh.class);
     public static List<ListLu> synchronizeLookups(AmberSession db) {
         Lookups destLookups = db.getLookups();
-        DataSource ds = JdbcConnectionPool.create("jdbc:h2:mem:cache", "store", "collection");
+        DataSource ds = JdbcConnectionPool.create("jdbc:h2:mem:cache;DATABASE_TO_UPPER=false", "store", "collection");
         DBI lookupsDbi = new DBI(ds);
         LookupsSchema luSchema = lookupsDbi.onDemand(LookupsSchema.class);
         if (!luSchema.schemaTablesExist()) {

@@ -36,7 +36,7 @@ public class VersionedGraph {
     private static final Logger log = LoggerFactory.getLogger(VersionedGraph.class);
     
     public static final DataSource DEFAULT_DATASOURCE = 
-            JdbcConnectionPool.create("jdbc:h2:mem:persist","pers","pers");
+            JdbcConnectionPool.create("jdbc:h2:mem:persist;DATABASE_TO_UPPER=false","pers","pers");
 
     protected final DBI dbi;
     protected final String tempTableEngine;
