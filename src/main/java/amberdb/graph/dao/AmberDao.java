@@ -48,8 +48,9 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     		fieldMappingReverse.put(entry.getValue(), entry.getKey());
     	}
     }
-    protected static final Set<String> nodeFields = new TreeSet<>();
+    public static final Set<String> nodeFields = new TreeSet<>();
     static {
+        nodeFields.add("type");
         nodeFields.add("accessConditions");
         nodeFields.add("alias");
         nodeFields.add("commentsExternal");
@@ -445,6 +446,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			+" issn VARCHAR(255),"
 			+" issueDate DATETIME,"
 			+" language VARCHAR(63),"
+            +" localSystemNumber VARCHAR(63),"
 			+" manipulation VARCHAR(63),"
 			+" materialFromMultipleSources BOOLEAN,"
 			+" materialType VARCHAR(63),"
@@ -603,6 +605,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			+" issn VARCHAR(255),"
 			+" issueDate DATETIME,"
 			+" language VARCHAR(63),"
+            +" localSystemNumber VARCHAR(63),"
 			+" manipulation VARCHAR(63),"
 			+" materialFromMultipleSources BOOLEAN,"
 			+" materialType VARCHAR(63),"
@@ -763,6 +766,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			+" issn VARCHAR(255),"
 			+" issueDate DATETIME,"
 			+" language VARCHAR(63),"
+            +" localSystemNumber VARCHAR(63),"
 			+" manipulation VARCHAR(63),"
 			+" materialFromMultipleSources BOOLEAN,"
 			+" materialType VARCHAR(63),"
@@ -1127,6 +1131,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			+" txn_end BIGINT DEFAULT 0 NOT NULL,"
 			+" type VARCHAR(15),"
 			+""
+            +" name VARCHAR(255),"
 			+" orgUrl VARCHAR(255),"
 			+" suppressed BOOLEAN,"
 			+" logoUrl VARCHAR(255));"
@@ -1139,6 +1144,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			+" txn_end BIGINT DEFAULT 0 NOT NULL,"
 			+" type VARCHAR(15),"
 			+""
+            +" name VARCHAR(255),"
 			+" orgUrl VARCHAR(255),"
 			+" suppressed BOOLEAN,"
 			+" logoUrl VARCHAR(255));"
@@ -1153,6 +1159,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			+" txn_end BIGINT DEFAULT 0 NOT NULL,"
 			+" type VARCHAR(15),"
 			+""
+            +" name VARCHAR(255),"
 			+" orgUrl VARCHAR(255),"
 			+" suppressed BOOLEAN,"
 			+" logoUrl VARCHAR(255));"
@@ -1165,6 +1172,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			+" txn_end BIGINT DEFAULT 0 NOT NULL,"
 			+" type VARCHAR(15),"
 			+""
+            +" name VARCHAR(255),"
 			+" description VARCHAR(255));"
 			+"CREATE INDEX tag_id ON tag (id);"
 			+"CREATE INDEX tag_txn_id ON tag (id, txn_start, txn_end);"
@@ -1175,6 +1183,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			+" txn_end BIGINT DEFAULT 0 NOT NULL,"
 			+" type VARCHAR(15),"
 			+""
+            +" name VARCHAR(255),"
 			+" description VARCHAR(255));"
 			+"CREATE INDEX tag_history_id ON tag_history (id);"
 			+"CREATE INDEX tag_history_txn_id ON tag_history (id, txn_start, txn_end);"
@@ -1187,6 +1196,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			+" txn_end BIGINT DEFAULT 0 NOT NULL,"
 			+" type VARCHAR(15),"
 			+""
+            +" name VARCHAR(255),"
 			+" description VARCHAR(255));"
 			+"CREATE INDEX sess_tag_id ON sess_tag (id);"
 			+"CREATE INDEX sess_tag_txn_id ON sess_tag (id, txn_start, txn_end);"
@@ -1533,9 +1543,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			preparedBatchPart.bind("txn_end",    v.getTxnEnd());
 			if (state != DEL) {
 				for (String field: fields) {
-				    if (!nodeFields.contains(field)) {
-	                    bindField(v, preparedBatchPart, field);
-				    }
+                    bindField(v, preparedBatchPart, field);
 				}
 			}
 		}
@@ -1651,7 +1659,6 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			    }
 			}
 		}
-		allFields.removeAll(nodeFields);
 		allFields.remove("nextStep");
 		return allFields;
 	}

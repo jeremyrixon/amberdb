@@ -17,6 +17,8 @@ import org.w3c.dom.Node;
 
 import com.tinkerpop.blueprints.Vertex;
 
+import amberdb.graph.dao.AmberDao;
+
 
 public class AmberVertexQuery extends AmberQueryBase {
 	
@@ -116,8 +118,8 @@ public class AmberVertexQuery extends AmberQueryBase {
         
         for (int i = 0; i < properties.size(); i++) {
         	String columnName = properties.get(i).getName();
-        	if ("type".equals(columnName)) {
-        		columnName = "node.type";
+        	if (AmberDao.nodeFields.contains(columnName)) {
+        	    columnName = "node." + columnName;
         	}
         	s.append(columnName + " = :value"+ i + " \n and ");
         }
@@ -130,9 +132,9 @@ public class AmberVertexQuery extends AmberQueryBase {
         StringBuilder s = new StringBuilder();
         for (int i = 0; i < properties.size(); i++) {
         	String columnName = properties.get(i).getName();
-        	if ("type".equals(columnName)) {
-        		columnName = "node.type";
-        	}
+            if (AmberDao.nodeFields.contains(columnName)) {
+                columnName = "node." + columnName;
+            }
             s.append(
             		"select * \n" +
             		"from node \n" +
