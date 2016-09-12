@@ -26,6 +26,8 @@ public class ObjectsQuery extends AmberQueryBase {
     }
 
     public ModifiedObjectsQueryResponse getArticlesForIndexing(ModifiedObjectsBetweenTransactionsQueryRequest request) {
+        long start = System.currentTimeMillis();
+
         LinkedHashMap<Long, String> modifiedObjects = new LinkedHashMap<Long, String>();
         LinkedHashMap<Long, String> reasons = new LinkedHashMap<Long, String>();
 
@@ -152,6 +154,8 @@ public class ObjectsQuery extends AmberQueryBase {
             boolean hasMore = (q.list().size() >= request.getTake());
 
             return new ModifiedObjectsQueryResponse(modifiedObjects, reasons, hasMore, hasMore ? request.getSkip() + request.getTake() : -1);
+        } finally {
+            System.err.println((System.currentTimeMillis() - start) / 1000f);
         }
     }
     
