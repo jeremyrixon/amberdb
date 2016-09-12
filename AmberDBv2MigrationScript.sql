@@ -198,6 +198,7 @@ CREATE TABLE IF NOT EXISTS work_history (
                               occupation                            VARCHAR(255),
                             otherNumbers                             VARCHAR(63),
                               otherTitle                                    TEXT,
+                        parentConstraint                             VARCHAR(63),
                        preferredCitation                                    TEXT,
                             preservicaId                             VARCHAR(63),
                           preservicaType                             VARCHAR(63),
@@ -351,6 +352,7 @@ update work_history t, property p set t.notes = convert(p.value using 'utf8mb4')
 update work_history t, property p set t.occupation = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'occupation';
 update work_history t, property p set t.otherNumbers = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'otherNumbers';
 update work_history t, property p set t.otherTitle = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'otherTitle';
+update work_history t, property p set t.parentConstraint = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'parentConstraint';
 update work_history t, property p set t.preferredCitation = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'preferredCitation';
 update work_history t, property p set t.preservicaId = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'preservicaId';
 update work_history t, property p set t.preservicaType = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'preservicaType';
@@ -516,6 +518,7 @@ CREATE TABLE IF NOT EXISTS work (
                               occupation                            VARCHAR(255),
                             otherNumbers                             VARCHAR(63),
                               otherTitle                                    TEXT,
+                        parentConstraint                             VARCHAR(63),
                        preferredCitation                                    TEXT,
                             preservicaId                             VARCHAR(63),
                           preservicaType                             VARCHAR(63),
@@ -684,6 +687,7 @@ CREATE TABLE IF NOT EXISTS sess_work (
                               occupation                            VARCHAR(255),
                             otherNumbers                             VARCHAR(63),
                               otherTitle                                    TEXT,
+                        parentConstraint                             VARCHAR(63),
                        preferredCitation                                    TEXT,
                             preservicaId                             VARCHAR(63),
                           preservicaType                             VARCHAR(63),
