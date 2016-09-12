@@ -219,6 +219,7 @@ CREATE TABLE IF NOT EXISTS work_history (
                             scopeContent                                    TEXT,
                         segmentIndicator                            VARCHAR(255),
                               sendToIlms                                 BOOLEAN,
+		              sendToIlmsDateTime                             VARCHAR(63),
                        sensitiveMaterial                             VARCHAR(63),
                          sensitiveReason                             VARCHAR(63),
                                   series                                    TEXT,
@@ -371,6 +372,7 @@ update work_history t, property p set t.scaleEtc = convert(p.value using 'utf8mb
 update work_history t, property p set t.scopeContent = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'scopeContent';
 update work_history t, property p set t.segmentIndicator = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'segmentIndicator';
 update work_history t, property p set t.sendToIlms = conv(hex(value),16,10) = 1  where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'sendToIlms';
+update work_history t, property p set t.sendToIlmsDateTime = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'sendToIlmsDateTime';
 update work_history t, property p set t.sensitiveMaterial = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'sensitiveMaterial';
 update work_history t, property p set t.sensitiveReason = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'sensitiveReason';
 update work_history t, property p set t.series = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'series';
@@ -535,6 +537,7 @@ CREATE TABLE IF NOT EXISTS work (
                             scopeContent                                    TEXT,
                         segmentIndicator                            VARCHAR(255),
                               sendToIlms                                 BOOLEAN,
+					  sendToIlmsDateTime                             VARCHAR(63),
                        sensitiveMaterial                             VARCHAR(63),
                          sensitiveReason                             VARCHAR(63),
                                   series                                    TEXT,
@@ -702,6 +705,7 @@ CREATE TABLE IF NOT EXISTS sess_work (
                             scopeContent                                    TEXT,
                         segmentIndicator                            VARCHAR(255),
                               sendToIlms                                 BOOLEAN,
+					  sendToIlmsDateTime                             VARCHAR(63),
                        sensitiveMaterial                             VARCHAR(63),
                          sensitiveReason                             VARCHAR(63),
                                   series                                    TEXT,

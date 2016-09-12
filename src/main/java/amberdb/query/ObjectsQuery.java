@@ -36,93 +36,103 @@ public class ObjectsQuery extends AmberQueryBase {
 
             Query<Map<String, Object>> q = h.createQuery(
                     "\n" + 
-                    "  (SELECT DISTINCT p.id AS id,\n" +
-                    "          'DELETED' AS transition,\n" +
-                    "          'PARENT_JOURNAL_RESTRICTED' AS reason\n" +
-                    "   FROM work_history p,\n" +
-                    "        flatedge_history e,\n" +
-                    "        work journal\n" +
-                    "   WHERE \n" +
-                    "     p.type='Section'\n" +
-                    "     and e.label = 'isPartOf'\n" +
-                    "     AND e.v_out = p.id\n" +
-                    "     AND (e.txn_start <= p.txn_end)\n" +
-                    "     AND (e.txn_end > p.txn_end)\n" +
-                    "     AND p.subType = 'article'\n" +
-                    "     and journal.form = 'Journal'\n" +
-                    "     and journal.id = e.v_in\n" +
-                    "     and journal.accessConditions = 'Restricted'\n" +
-                    "   ORDER BY p.id, p.txn_start ASC)\n" +
-                    "UNION\n" +
-                    "  (SELECT DISTINCT e.v_out AS id,\n" +
-                    "                   'DELETED' AS transition,\n" +
-                    "                   'RESTRICTED_PAGE' AS reason\n" +
-                    "   FROM work_history p,\n" +
-                    "        flatedge_history e\n" +
-                    "   WHERE \n" +
-                    "     p.type='Page'\n" +
-                    "     AND e.label='existsOn'\n" +
-                    "     AND e.v_in = p.id\n" +
-                    "     AND (e.txn_start <= p.txn_end)\n" +
-                    "     AND (e.txn_end > p.txn_end)\n" +
-                    "    \n" +
-                    "     AND\n" +
-                    "     \n" +
-                    "       (SELECT accessConditions\n" +
-                    "        FROM work_history pp\n" +
-                    "        WHERE pp.id = p.id\n" +
-                    "          AND pp.type = 'Page'\n" +
-                    "          AND (pp.txn_start <= p.txn_end)\n" +
-                    "        ORDER BY pp.txn_start DESC LIMIT 1) = 'Restricted'\n" +
-                    "     AND\n" +
-                    "       (SELECT subType\n" +
-                    "        FROM work_history pp\n" +
-                    "        WHERE pp.id = e.v_out\n" +
-                    "          AND pp.type='Section'\n" +
-                    "          AND (pp.txn_start <= e.txn_end)\n" +
-                    "        ORDER BY pp.txn_start DESC LIMIT 1) = 'article')\n" +
-                    "UNION\n" +
-                    "  (SELECT DISTINCT id,\n" +
-                    "          (CASE WHEN (txn_start < @start_transaction\n" +
-                    "                      AND txn_end <= @end_transaction\n" +
-                    "                     ) THEN 'DELETED' ELSE (CASE WHEN (v_count_before = 0) THEN 'NEW' ELSE 'MODIFIED' END) END) AS transition,\n" +
-                    "          'NEW_MODIFIED_DELETED' AS reason\n" +
-                    "   FROM (\n" +
-                    "           (SELECT DISTINCT p.id,\n" +
-                    "                   p.txn_start,\n" +
-                    "                   p.txn_end,\n" +
-                    "                   'subType',\n" +
-                    "                   'article',\n" +
-                    "\n" +
-                    "               (SELECT count(id)\n" +
-                    "                FROM vertex b\n" +
-                    "                WHERE p.id = b.id\n" +
-                    "                  AND b.txn_start < @start_transaction) AS v_count_before\n" +
-                    "             FROM work_history p\n" +
-                    "            WHERE p.subType = 'article'\n" +
-                    "               AND p.type = 'Section'\n" +
-                    "               AND ((p.txn_end >= @start_transaction\n" +
-                    "                     AND p.txn_end <= @end_transaction)\n" +
-                    "                    AND (p.txn_start < @start_transaction)))\n" +
-                    "         UNION\n" +
-                    "           (SELECT DISTINCT p.id,\n" +
-                    "                   p.txn_start,\n" +
-                    "                   p.txn_end,\n" +
-                    "                   'subType' as name,\n" +
-                    "                   'article' AS value,\n" +
-                    "\n" +
-                    "               (SELECT count(id)\n" +
-                    "                FROM vertex b\n" +
-                    "                WHERE p.id = b.id\n" +
-                    "                  AND b.txn_start < @start_transaction) AS v_count_before\n" +
-                    "             FROM work_history p\n" +
-                    "            WHERE p.subType = 'article'\n" +
-                    "                AND p.type='Section'\n" +
-                    "                AND ((p.txn_start >= @start_transaction\n" +
-                    "                    AND p.txn_start <= @end_transaction)\n" +
-                    "                   AND (p.txn_end > @end_transaction\n" +
-                    "                        )))\n" +
-                    "   ) AS articles\n" +
+                            " (SELECT DISTINCT p.id AS id,\n" +
+                            "          'DELETED' AS transition,\n" +
+                            "          'PARENT_JOURNAL_RESTRICTED' AS reason\n" +
+                            "   FROM work_history p,\n" +
+                            "        flatedge_history e\n" +
+                            "   WHERE e.label = \"isPartOf\"\n" +
+                            "     AND e.v_out = p.id\n" +
+                            "     AND (e.txn_start <= p.txn_end\n" +
+                            "          OR p.txn_end = 0)\n" +
+                            "     AND (e.txn_end > p.txn_end\n" +
+                            "          OR e.txn_end = 0)\n" +
+                            "     AND p.subType = 'article'\n" +
+                            "     AND\n" +
+                            "       (SELECT form\n" +
+                            "        FROM work_history pp\n" +
+                            "        WHERE pp.id = e.v_in\n" +
+                            "          AND (pp.txn_start <= e.txn_end\n" +
+                            "               OR e.txn_end = 0)\n" +
+                            "        ORDER BY pp.txn_start DESC LIMIT 1) = 'Journal'\n" +
+                            "     AND\n" +
+                            "       (SELECT accessConditions\n" +
+                            "        FROM work_history pp\n" +
+                            "        WHERE pp.id = e.v_in\n" +
+                            "          AND (pp.txn_start <= e.txn_end\n" +
+                            "               OR e.txn_end = 0)\n" +
+                            "        ORDER BY pp.txn_start DESC LIMIT 1) = 'Restricted'\n" +
+                            "   ORDER BY p.id,\n" +
+                            "            p.txn_start ASC)\n" +
+                            "UNION\n" +
+                            "  (SELECT DISTINCT e.v_out AS id,\n" +
+                            "                   'DELETED' AS transition,\n" +
+                            "                   'RESTRICTED_PAGE' AS reason\n" +
+                            "   FROM work_history p,\n" +
+                            "        flatedge_history e\n" +
+                            "   WHERE e.label = \"existsOn\"\n" +
+                            "     AND e.v_in = p.id\n" +
+                            "     AND (e.txn_start <= p.txn_end\n" +
+                            "          OR p.txn_end = 0)\n" +
+                            "     AND (e.txn_end > p.txn_end\n" +
+                            "          OR e.txn_end = 0)\n" +
+                            "     AND p.type = 'Page'\n" +
+                            "     AND\n" +
+                            "       (SELECT accessConditions\n" +
+                            "        FROM work_history pp\n" +
+                            "        WHERE pp.id = p.id\n" +
+                            "          AND (pp.txn_start <= p.txn_end\n" +
+                            "               OR p.txn_end = 0)\n" +
+                            "        ORDER BY pp.txn_start DESC LIMIT 1) = 'Restricted'\n" +
+                            "     AND\n" +
+                            "       (SELECT subType\n" +
+                            "        FROM work_history pp\n" +
+                            "        WHERE pp.id = e.v_out\n" +
+                            "          AND (pp.txn_start <= e.txn_end\n" +
+                            "               OR e.txn_end = 0)\n" +
+                            "        ORDER BY pp.txn_start DESC LIMIT 1) = 'article'\n" +
+                            "   ORDER BY p.id,\n" +
+                            "            p.txn_start ASC)\n" +
+                            "UNION\n" +
+                            "  (SELECT DISTINCT id,\n" +
+                            "          (CASE WHEN (txn_start < @start_transaction\n" +
+                            "                      AND txn_end <= @end_transaction\n" +
+                            "                      AND txn_end <> 0) THEN 'DELETED' ELSE (CASE WHEN (v_count_before = 0) THEN 'NEW' ELSE 'MODIFIED' END) END) AS transition,\n" +
+                            "          'NEW_MODIFIED_DELETED' AS reason\n" +
+                            "   FROM (\n" +
+                            "           (SELECT DISTINCT p.id,\n" +
+                            "                   p.txn_start,\n" +
+                            "                   p.txn_end,\n" +
+                            "                   'subType' as name,\n" +
+                            "                   p.subType,\n" +
+                            "\n" +
+                            "              (SELECT count(id)\n" +
+                            "               FROM node_history b\n" +
+                            "               WHERE p.id = b.id\n" +
+                            "                 AND b.txn_start < @start_transaction) AS v_count_before\n" +
+                            "            FROM work_history p\n" +
+                            "            WHERE p.subType = 'article'\n" +
+                            "              AND ((p.txn_end >= @start_transaction\n" +
+                            "                    AND p.txn_end <= @end_transaction)\n" +
+                            "                   AND (p.txn_start < @start_transaction)))\n" +
+                            "         UNION\n" +
+                            "           (SELECT DISTINCT p.id,\n" +
+                            "                   p.txn_start,\n" +
+                            "                   p.txn_end,\n" +
+                            "                   'subType' as name,\n" +
+                            "                   p.subType,\n" +
+                            "\n" +
+                            "              (SELECT count(id)\n" +
+                            "               FROM node_history b\n" +
+                            "               WHERE p.id = b.id\n" +
+                            "                 AND b.txn_start < @start_transaction) AS v_count_before\n" +
+                            "            FROM work_history p\n" +
+                            "            WHERE p.subType = 'article'\n" +
+                            "              AND ((p.txn_start >= @start_transaction\n" +
+                            "                    AND p.txn_start <= @end_transaction)\n" +
+                            "                   AND (p.txn_end > @end_transaction\n" +
+                            "                        OR p.txn_end = 0)))\n" +
+                            "   ) AS articles\n" +
                     "   ORDER BY id ASC) ORDER BY id ASC LIMIT :skip, :take");
 
             q.bind("skip", request.getSkip());
