@@ -1,9 +1,16 @@
 package amberdb.model;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
+import amberdb.DataIntegrityException;
 import amberdb.relation.ExistsOn;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
@@ -45,11 +52,31 @@ public interface Section extends Work {
 	@JavaHandler
 	public int countExistsOns();
 
-	@Property("captions")
-	public List<String> getCaptions();
+    /**
+     * This method handles the JSON deserialisation of the captions Property
+     */
+    @JavaHandler
+    List<String> getCaptions();
 
+    /**
+     * This method handles the JSON serialisation of the captions Property
+     */
+    @JavaHandler
+    void setCaptions(List<String> list) throws JsonProcessingException;
+    
+    /**
+     * This property is encoded as a JSON Array - You probably want to use
+     * getCaptions to get this property
+     */
 	@Property("captions")
-	public void setCaptions(List<String> captions);
+	public String getJSONCaptions();
+
+    /**
+     * This property is encoded as a JSON Array - You probably want to use
+     * setCaptions to set this property
+     */
+	@Property("captions")
+	public void setJSONCaptions(String captions);
 
 	@Property("advertising")
 	public Boolean isAdvertising();
@@ -69,7 +96,9 @@ public interface Section extends Work {
 	@Property("printedPageNumber")
 	public void setPrintedPageNumber(String printedPageNumber);
 	
-	abstract class Impl implements JavaHandlerContext<Vertex>, Section {
+	abstract class Impl extends Work.Impl implements JavaHandlerContext<Vertex>, Section {
+	    static ObjectMapper mapper = new ObjectMapper();
+	    
         public int countExistsOns() {
             return (existsOns() == null)? 0 : existsOns().size();
         }
@@ -77,5 +106,16 @@ public interface Section extends Work {
         private List<Edge> existsOns() {
             return (gremlin().outE(ExistsOn.label) == null)? null: gremlin().outE(ExistsOn.label).toList();
         }
+
+        @Override
+        public List<String> getCaptions() {
+            return deserialiseJSONString(getJSONCaptions());
+        }
+
+        @Override
+        public void setCaptions(List<String> list) throws JsonProcessingException {
+            setJSONCaptions(serialiseToJSON(list));
+        }
+
 	}
 }
