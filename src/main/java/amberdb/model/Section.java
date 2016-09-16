@@ -96,7 +96,7 @@ public interface Section extends Work {
 	@Property("printedPageNumber")
 	public void setPrintedPageNumber(String printedPageNumber);
 	
-	abstract class Impl implements JavaHandlerContext<Vertex>, Section {
+	abstract class Impl extends Work.Impl implements JavaHandlerContext<Vertex>, Section {
 	    static ObjectMapper mapper = new ObjectMapper();
 	    
         public int countExistsOns() {
@@ -105,28 +105,6 @@ public interface Section extends Work {
 	    
         private List<Edge> existsOns() {
             return (gremlin().outE(ExistsOn.label) == null)? null: gremlin().outE(ExistsOn.label).toList();
-        }
-        
-        protected List<String> deserialiseJSONString(String json) {
-            if (json == null || json.isEmpty())
-                return new ArrayList<>();
-            try {
-                return mapper.readValue(json, new TypeReference<List<String>>() {
-                });
-            }
-            catch (IOException e) {
-                throw new DataIntegrityException("Could not deserialize property", e);
-            }
-        }
-
-        protected String serialiseToJSON(Collection<String> list) throws JsonProcessingException {
-            if (list == null || list.isEmpty()) return null;
-            return mapper.writeValueAsString(list);
-        }
-
-        @Override
-        public List<String> getJsonList(String propertyName) {
-            return deserialiseJSONString((String) this.asVertex().getProperty(propertyName));
         }
 
         @Override
