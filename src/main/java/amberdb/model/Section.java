@@ -5,7 +5,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import amberdb.DataIntegrityException;
+import amberdb.graph.AmberGraph;
 import amberdb.relation.ExistsOn;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -62,7 +66,7 @@ public interface Section extends Work {
      * This method handles the JSON serialisation of the captions Property
      */
     @JavaHandler
-    void setCaptions(List<String> list) throws JsonProcessingException;
+    void setCaptions(List<String> list);
     
     /**
      * This property is encoded as a JSON Array - You probably want to use
@@ -97,6 +101,7 @@ public interface Section extends Work {
 	public void setPrintedPageNumber(String printedPageNumber);
 	
 	abstract class Impl extends Work.Impl implements JavaHandlerContext<Vertex>, Section {
+	    private static final Logger log = LoggerFactory.getLogger(Section.Impl.class);
 	    static ObjectMapper mapper = new ObjectMapper();
 	    
         public int countExistsOns() {
@@ -113,8 +118,12 @@ public interface Section extends Work {
         }
 
         @Override
-        public void setCaptions(List<String> list) throws JsonProcessingException {
-            setJSONCaptions(serialiseToJSON(list));
+        public void setCaptions(List<String> list) {
+            try {
+                setJSONCaptions(serialiseToJSON(list));
+            } catch (JsonProcessingException e) {
+                log.error("Error setting captions for section: " + getObjId(), e);
+            }
         }
 
 	}
