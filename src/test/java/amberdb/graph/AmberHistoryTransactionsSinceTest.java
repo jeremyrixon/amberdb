@@ -278,7 +278,9 @@ public class AmberHistoryTransactionsSinceTest {
         Vertex v1 = graph.addVertex(null);
         Vertex v2 = graph.addVertex(null);
         v1.setProperty("title", "t1");
+        v1.setProperty("type", "work");
         v2.setProperty("title", "t2");
+        v2.setProperty("type", "work");
 
         Edge e1 = graph.addEdge(null, v1, v2, "connect");
 

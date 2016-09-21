@@ -669,7 +669,6 @@ public class AmberGraph extends BaseGraph
         return getEdge(id, localMode);
     } 
     
-    
     protected Edge getEdge(Object id, boolean localOnly) {
         
         Edge edge = super.getEdge(id);
@@ -682,48 +681,24 @@ public class AmberGraph extends BaseGraph
         AmberEdge e;
         try (Handle h = dbi.open()) {
             AmberEdgeWithState es = h.createQuery(
-                "SELECT id, txn_start, txn_end, label, v_in, v_out, edge_order, 'AMB' state "
-                + "FROM edge " 
-                + "WHERE id = :id "
-                + "AND txn_end = 0")
+                "select *, 'AMB' state "
+                + "from flatedge " 
+                + "left join acknowledge on acknowledge.id = flatedge.id " 
+                + "where flatedge.id = :id")
                 .bind("id", parseId(id))
-                .map(new EdgeMapper(this, false)).first();
+                .map(new AmberEdgeWithStateMapper(this, false)).first();
 
             if (es == null) return null;
             edge = es.edge;
             if (removedEdges.containsKey(edge.getId())) return null;
         
             e = (AmberEdge) edge;
-            e.replaceProperties(getElementPropertyMap((Long) e.getId(), e.txnStart, h));
             addEdgeToGraph(e);
         }
 
         return e;
     } 
     
-    
-    protected Map<String, Object> getElementPropertyMap(Long elementId, Long txnStart, Handle h) {
-
-        Map<String, Object> propMap = new HashMap<String, Object>();
-
-        List<AmberProperty> propList = h.createQuery(
-                "SELECT id, name, type, value "
-                + "FROM property " 
-                + "WHERE id = :id "
-                + "AND txn_start = :txnStart "
-                + "AND txn_end = 0")
-                .bind("id", elementId)
-                .bind("txnStart", txnStart)
-                .map(new PropertyMapper()).list();
-        if (propList == null || propList.size() == 0) return propMap;
-        
-        for (AmberProperty p : propList) {
-            propMap.put(p.getName(), p.getValue());
-        }
-        return propMap;
-    }
-    
-
     /**
      * Notes on Tinkerpop Graph interface method implementations for
      * 
@@ -1104,15 +1079,16 @@ public class AmberGraph extends BaseGraph
 
 
     public List<AmberVertex> getVerticesByTransactionId(Long id) {
+        
         try (Handle h = dbi.open()) {
             List<AmberVertexWithState> vs = h.createQuery(
                 "(SELECT DISTINCT v.id, v.txn_start, v.txn_end, 'AMB' state "
-                + "FROM transaction t, vertex v "
+                + "FROM transaction t, node_history v "
                 + "WHERE t.id = :id "
                 + "AND v.txn_start = t.id) "
                 + "UNION "
                 + "(SELECT DISTINCT v.id, v.txn_start, v.txn_end, 'AMB' state "
-                + "FROM transaction t, vertex v "
+                + "FROM transaction t, node_history v "
                 + "WHERE t.id = :id "
                 + "AND v.txn_end = t.id) "
                 + "ORDER BY id")
@@ -1129,16 +1105,16 @@ public class AmberGraph extends BaseGraph
 
 
     public List<AmberEdge> getEdgesByTransactionId(Long id) {
-
+        
         try (Handle h = dbi.open()) {
             List<AmberEdgeWithState> es = h.createQuery(
                 "(SELECT DISTINCT e.id, e.txn_start, e.txn_end, e.v_out, e.v_in, e.label, e.edge_order, 'AMB' state "
-                + "FROM transaction t, edge e "
+                + "FROM transaction t, flatedge_history e "
                 + "WHERE t.id = :id "
                 + "AND e.txn_start = t.id) "
                 + "UNION "
                 + "(SELECT DISTINCT e.id, e.txn_start, e.txn_end, e.v_out, e.v_in, e.label, e.edge_order, 'AMB' state "
-                + "FROM transaction t, edge e "
+                + "FROM transaction t, flatedge_history e "
                 + "WHERE t.id = :id "
                 + "AND e.txn_end = t.id) "
                 + "ORDER BY id")
@@ -1206,8 +1182,8 @@ public class AmberGraph extends BaseGraph
         for (Entry<String, Set<AmberVertex>> entry: verticesByType.entrySet()) {
         	String vertexType = entry.getKey().toLowerCase();
         	String table = vertexToTableMap.get(vertexType);
+            dao.suspendIntoNodeTable(sessId, operation, entry.getValue());
         	if (StringUtils.isNotBlank(table)) {
-        		dao.suspendIntoNodeTable(sessId, operation, entry.getValue());
         		dao.suspendIntoFlatVertexTable(sessId, operation, "sess_" + table, entry.getValue());
         	}
         }
@@ -1217,11 +1193,9 @@ public class AmberGraph extends BaseGraph
         for (Entry<String, Set<AmberEdge>> entry: edgesByType.entrySet()) {
         	String edgeType = entry.getKey().toLowerCase();
         	String table = edgeToTableMap.get(edgeType);
-        	if (StringUtils.isNotBlank(table)) {
-        		dao.suspendIntoFlatEdgeTable(sessId, operation, entry.getValue());
-        		if (!"flatedge".equals(table)) {
-        			dao.suspendIntoFlatEdgeSpecificTable(sessId, operation, "sess_" + table, entry.getValue());
-        		}
+            dao.suspendIntoFlatEdgeTable(sessId, operation, entry.getValue());
+        	if (StringUtils.isNotBlank(table) && !"flatedge".equals(table)) {
+    			dao.suspendIntoFlatEdgeSpecificTable(sessId, operation, "sess_" + table, entry.getValue());
         	}
         }
 	}
