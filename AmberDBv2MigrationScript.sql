@@ -213,6 +213,7 @@ CREATE TABLE IF NOT EXISTS work_history (
                             recordSource                             VARCHAR(63),
                          relatedMaterial                                    TEXT,
                               repository                            VARCHAR(255),
+                        representativeId                             VARCHAR(63),
                     restrictionsOnAccess                                    TEXT,
                          restrictionType                            VARCHAR(255),
                                   rights                                    TEXT,
@@ -367,6 +368,7 @@ update work_history t, property p set t.rdsAcknowledgementType = convert(p.value
 update work_history t, property p set t.recordSource = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'recordSource';
 update work_history t, property p set t.relatedMaterial = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'relatedMaterial';
 update work_history t, property p set t.repository = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'repository';
+update work_history t, property p set t.representativeId = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'representativeId';
 update work_history t, property p set t.restrictionsOnAccess = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'restrictionsOnAccess';
 update work_history t, property p set t.restrictionType = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'restrictionType';
 update work_history t, property p set t.rights = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'rights';
@@ -533,6 +535,7 @@ CREATE TABLE IF NOT EXISTS work (
                             recordSource                             VARCHAR(63),
                          relatedMaterial                                    TEXT,
                               repository                            VARCHAR(255),
+                        representativeId                             VARCHAR(63),
                     restrictionsOnAccess                                    TEXT,
                          restrictionType                            VARCHAR(255),
                                   rights                                    TEXT,
@@ -702,6 +705,7 @@ CREATE TABLE IF NOT EXISTS sess_work (
                             recordSource                             VARCHAR(63),
                          relatedMaterial                                    TEXT,
                               repository                            VARCHAR(255),
+                        representativeId                             VARCHAR(63),
                     restrictionsOnAccess                                    TEXT,
                          restrictionType                            VARCHAR(255),
                                   rights                                    TEXT,
