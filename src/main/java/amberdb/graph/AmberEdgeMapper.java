@@ -54,8 +54,8 @@ public class AmberEdgeMapper implements ResultSetMapper<AmberEdge>  {
         AmberEdge edge = new AmberEdge(
                 rs.getLong("id"), 
                 rs.getString("label"),
-                out,
-                in,
+                (out == null) ? new AmberVertex(0, null, graph, 0L, 0L) : out, 
+                (in == null) ? new AmberVertex(0, null, graph, 0L, 0L) : in,
                 null,
                 graph,
                 rs.getLong("txn_start"),
