@@ -125,6 +125,23 @@ public class AmberQueryBase {
         }        
         return edges;
     }
+    
+    protected List<Edge> getEdges(List<AmberEdge> amberEdges) {
+        List<Edge> edges = new ArrayList<>();
+        for(AmberEdge amberEdge: amberEdges) {
+            if (graph.removedEdges.containsKey(amberEdge.getId())) {
+                continue;
+            }
+            if (graph.graphEdges.containsKey(amberEdge.getId())) {
+                edges.add(graph.graphEdges.get(amberEdge.getId()));
+            } else {
+                graph.addEdgeToGraph(amberEdge);
+                edges.add(amberEdge);
+            }
+        }
+        return edges;
+    }
+
 
     
     protected void getFillEdges(Handle h , AmberGraph graph, Map<Long, Map<String, Object>> propMaps,

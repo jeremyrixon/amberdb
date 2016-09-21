@@ -8,12 +8,16 @@ import java.util.List;
 import java.util.Map;
 
 import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.Query;
 import org.skife.jdbi.v2.Update;
 
 import com.tinkerpop.blueprints.Edge;
 
 
 public class AmberEdgeQuery extends AmberQueryBase {
+
+    // limit the number of edges returned by a query without criteria
+    static final int MAX_EDGES = 10000; 
 
     List<AmberProperty> properties = new ArrayList<AmberProperty>();
     /* whether to combine criteria using 'and' or 'or' */
@@ -96,11 +100,10 @@ public class AmberEdgeQuery extends AmberQueryBase {
     /* edge AND queries can't include labels currently */ 
     protected String generateAndQuery() {
         StringBuilder s = new StringBuilder();
-        s.append("INSERT INTO ep (id) \n" +
-        		"select flatedge.id \n" +
-        		"from flatedge \n" +
-        		"left join acknowledge on flatedge.id = acknowledge.id \n" +
-        		"where \n");
+        s.append("select * \n" +
+        		 "from flatedge \n" +
+        		 "left join acknowledge on flatedge.id = acknowledge.id \n" +
+        		 "where \n");
         
         for (int i = 0; i < properties.size(); i++) {
         	String columnName = properties.get(i).getName().toLowerCase();
@@ -115,14 +118,13 @@ public class AmberEdgeQuery extends AmberQueryBase {
 
     protected String generateOrQuery() {
         StringBuilder s = new StringBuilder();
-        s.append("INSERT INTO ep (id) \n");
         for (int i = 0; i < properties.size(); i++) {
         	String columnName = properties.get(i).getName().toLowerCase();
         	if ("label".equals(columnName)) {
         		columnName = "flatedge.label";  
         	}
             s.append(
-            		"select flatedge.id \n" +
+            		"select * \n" +
             		"from flatedge \n" +
             		"left join acknowledge on flatedge.id = acknowledge.id \n" +
             		"where " + columnName + " = :value"+ i + " \n"
@@ -136,9 +138,10 @@ public class AmberEdgeQuery extends AmberQueryBase {
 
     protected String generateAllQuery() {
         StringBuilder s = new StringBuilder();
-        s.append("INSERT INTO ep (id) \n"
-                 + "SELECT e.id \n"
-                 + "FROM flatedge e \n;");
+        s.append("select * \n"
+                 + "from flatedge \n"
+                 + "left join acknowledge on flatedge.id = acknowledge.id \n"
+                 + "limit " + MAX_EDGES);
         return s.toString();
     }
 
@@ -158,35 +161,16 @@ public class AmberEdgeQuery extends AmberQueryBase {
     
 
     public List<Edge> execute() {
-
-        List<Edge> edges;
         try (Handle h = graph.dbi().open()) {
 
             // run the generated query
             h.begin();
-            h.execute(
-                    "DROP " + graph.tempTableDrop + " TABLE IF EXISTS ep; CREATE TEMPORARY TABLE ep (id BIGINT) " + graph.tempTableEngine + ";" +
-                    "DROP " + graph.tempTableDrop + " TABLE IF EXISTS vp; CREATE TEMPORARY TABLE vp (id BIGINT) " + graph.tempTableEngine + ";");
-            Update q = h.createStatement(generateQuery());
-            
+            String sql = generateQuery();
+            Query<Map<String, Object>> q = h.createQuery(sql);
             for (int i = 0; i < properties.size(); i++) {
-                q.bind("name"+i, properties.get(i).getName());
-                q.bind("value"+i, AmberProperty.encode(properties.get(i).getValue()));
+                q.bind("value"+i, properties.get(i).getValue());
             }
-            q.execute();
-            h.execute(
-                    "INSERT INTO vp " +
-                    "SELECT v_in FROM flatedge e, ep WHERE e.id = ep.id " +
-                    "UNION " +
-                    "SELECT v_out FROM flatedge e, ep WHERE e.id = ep.id;");
-            h.commit();
-
-            // and reap the rewards
-            Map<Long, Map<String, Object>> vPropMaps = getElementPropertyMaps(h, "ep", "id");
-            getVertices(h, graph, vPropMaps, "vp", "id", "id");
-            Map<Long, Map<String, Object>> ePropMaps = getElementPropertyMaps(h, "ep", "id");
-            edges = getEdges(h, graph, ePropMaps, "ep", "id");
+            return getEdges(q.map(new AmberEdgeMapper(graph, false)).list());
         }
-        return edges;
     }
 }
