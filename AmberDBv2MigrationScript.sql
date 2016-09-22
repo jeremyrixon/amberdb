@@ -404,6 +404,8 @@ update work_history t, property p set t.workPid = convert(p.value using 'utf8mb4
                                  
 CREATE INDEX work_history_id ON work_history (id);
 CREATE INDEX work_history_txn_id ON work_history (id, txn_start, txn_end);
+CREATE INDEX work_history_restricted_child ON work_history (accessConditions, bibLevel);
+CREATE INDEX work_history_digitalStatus ON work_history (digitalStatus);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -573,6 +575,8 @@ insert into work select * from work_history where txn_end = 0;
                                  
 CREATE INDEX work_id ON work (id);
 CREATE INDEX work_txn_id ON work (id, txn_start, txn_end);
+CREATE INDEX work_history_restricted_child ON work_history (accessConditions, bibLevel);
+CREATE INDEX work_digitalStatus ON work_history (digitalStatus);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -740,6 +744,8 @@ CREATE TABLE IF NOT EXISTS sess_work (
                                  workPid                                    TEXT) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE INDEX sess_work_id ON sess_work (id);
 CREATE INDEX sess_work_txn_id ON sess_work (id, txn_start, txn_end);
+CREATE INDEX work_history_restricted_child ON work_history (accessConditions, bibLevel);
+CREATE INDEX sess_work_digitalStatus ON work_history (digitalStatus);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1287,6 +1293,7 @@ insert into flatedge_history (id, txn_start, txn_end, v_out, v_in, label, edge_o
                                    
 CREATE INDEX flatedge_history_id ON flatedge_history (id);
 CREATE INDEX flatedge_history_txn_id ON flatedge_history (id, txn_start, txn_end);
+CREATE INDEX flatedge_history_label_vertices ON flatedge_history (label, v_in, v_out);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1304,6 +1311,7 @@ insert into flatedge select * from flatedge_history where txn_end = 0;
 
 CREATE INDEX flatedge_id ON flatedge (id);
 CREATE INDEX flatedge_txn_id ON flatedge (id, txn_start, txn_end);
+CREATE INDEX flatedge_label_vertices ON flatedge (label, v_in, v_out);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 DROP TABLE IF EXISTS sess_flatedge;
@@ -1319,6 +1327,7 @@ CREATE TABLE IF NOT EXISTS sess_flatedge (
                                    label                             VARCHAR(16)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE INDEX sess_flatedge_id ON sess_flatedge (id);
 CREATE INDEX sess_flatedge_txn_id ON sess_flatedge (id, txn_start, txn_end);
+CREATE INDEX sess_flatedge_label_vertices ON flatedge (label, v_in, v_out);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 DROP TABLE IF EXISTS acknowledge_history;
