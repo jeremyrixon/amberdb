@@ -575,8 +575,8 @@ insert into work select * from work_history where txn_end = 0;
                                  
 CREATE INDEX work_id ON work (id);
 CREATE INDEX work_txn_id ON work (id, txn_start, txn_end);
-CREATE INDEX work_history_restricted_child ON work_history (accessConditions, bibLevel);
-CREATE INDEX work_digitalStatus ON work_history (digitalStatus);
+CREATE INDEX work_restricted_child ON work (accessConditions, bibLevel);
+CREATE INDEX work_digitalStatus ON work (digitalStatus);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -744,8 +744,8 @@ CREATE TABLE IF NOT EXISTS sess_work (
                                  workPid                                    TEXT) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE INDEX sess_work_id ON sess_work (id);
 CREATE INDEX sess_work_txn_id ON sess_work (id, txn_start, txn_end);
-CREATE INDEX work_history_restricted_child ON work_history (accessConditions, bibLevel);
-CREATE INDEX sess_work_digitalStatus ON work_history (digitalStatus);
+CREATE INDEX sess_work_restricted_child ON sess_work (accessConditions, bibLevel);
+CREATE INDEX sess_work_digitalStatus ON sess_work (digitalStatus);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
