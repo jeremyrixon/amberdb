@@ -135,9 +135,8 @@ public class AmberMultipartQuery extends AmberQueryBase implements AutoCloseable
         s.append(String.format(
                 "INSERT INTO v0 (step, vid, eid, label, edge_order) \n"
                 + "SELECT 0, id, 0, 'root', 0 \n"
-                + "FROM vertex \n"
-                + "WHERE id IN (%s) \n"
-                + "AND txn_end = 0; \n",
+                + "FROM node \n"
+                + "WHERE id IN (%s); \n",
                 numberListToStr(head)));
         
         s.append("INSERT INTO v1 (step, vid, eid, label, edge_order) \n"
@@ -158,9 +157,8 @@ public class AmberMultipartQuery extends AmberQueryBase implements AutoCloseable
             String beginQuery = 
                     "INSERT INTO v0 (step, vid, eid, label, edge_order) \n"
                     + "SELECT " + step + ", v.id, e.id, e.label, e.edge_order  \n"
-                    + "FROM vertex v, edge e, v1 \n"
-                    + "WHERE e.txn_end = 0 \n"
-                    + "AND v.txn_end = 0 \n";
+                    + "FROM node v, flatedge e, v1 \n"
+                    + "WHERE ";
 
             String inDirection = " AND (e.v_out = v.id AND e.v_in = v1.vid) \n";
             String outDirection = " AND (e.v_in = v.id AND e.v_out = v1.vid) \n";
@@ -181,7 +179,8 @@ public class AmberMultipartQuery extends AmberQueryBase implements AutoCloseable
                     + "FROM v0 \n"
                     + "WHERE v0.step = " + step + " ;\n");
         }
-        return s.toString();
+       
+        return s.toString().replaceAll("WHERE\\s*AND", "WHERE ");
         // Draw from v1 for results
     }
     
