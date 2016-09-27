@@ -22,16 +22,6 @@ import amberdb.graph.dao.AmberDao;
 
 public class AmberVertexQuery extends AmberQueryBase {
     
-    static final String VERTEX_QUERY_PREFIX =              
-            "select * \n" +
-            "from node \n" +
-            "left join work        on        work.id = node.id \n" +
-            "left join file        on        file.id = node.id \n" +
-            "left join description on description.id = node.id \n" +
-            "left join party       on       party.id = node.id \n" +
-            "left join tag         on         tag.id = node.id \n";
- 
-	
     // limit the number of vertices returned by a query without criteria
     static final int MAX_VERTICES = 10000; 
     

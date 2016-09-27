@@ -15,6 +15,14 @@ import com.tinkerpop.blueprints.Vertex;
 public class AmberQueryBase {
 
     
+    protected static final String VERTEX_QUERY_PREFIX = "select * \n" +
+                "from node \n" +
+                "left join work        on        work.id = node.id \n" +
+                "left join file        on        file.id = node.id \n" +
+                "left join description on description.id = node.id \n" +
+                "left join party       on       party.id = node.id \n" +
+                "left join tag         on         tag.id = node.id \n";
+    
     /** The graph associated with this query */
     protected AmberGraph graph;
     
@@ -23,24 +31,16 @@ public class AmberQueryBase {
         this.graph = graph;
     }
     
+
     
     protected Map<Long, Map<String, Object>> getElementPropertyMaps(Handle h, String elementIdTable, String elementIdColumn) {
         
-        List<AmberProperty> propList = h.createQuery(String.format(
-                "SELECT p.id, p.name, p.type, p.value "
-                + " FROM property p, %1$s "
-                + " WHERE "
-                + " p.txn_end = 0 AND p.id = %1$s.%2$s ",
-                elementIdTable, elementIdColumn))
-                .map(new PropertyMapper()).list();
+        List<AmberVertex> vertices = h.createQuery(
+                String.format("%1$s inner join %2$s on %2$s.%3$s = node.id %n", VERTEX_QUERY_PREFIX, elementIdTable, elementIdColumn)).map(new AmberVertexMapper(graph)).list();
 
         Map<Long, Map<String, Object>> propertyMaps = new HashMap<Long, Map<String, Object>>();
-        for (AmberProperty prop : propList) {
-            Long id = prop.getId();
-            if (propertyMaps.get(id) == null) {
-                propertyMaps.put(id, new HashMap<String, Object>());
-            }
-            propertyMaps.get(id).put(prop.getName(), prop.getValue());
+        for (AmberVertex vertex : vertices) {
+            propertyMaps.put((Long) vertex.getId(), vertex.getProperties());
         }
         return propertyMaps;
     }
@@ -76,6 +76,7 @@ public class AmberQueryBase {
         } 
         return vertices;
     }
+    
 
     protected List<Vertex> getVertices(List<AmberVertex> amberVertices) {
     	List<Vertex> vertices = new ArrayList<>();
