@@ -162,7 +162,7 @@ public class WorkChildrenQuery extends AmberQueryBase {
                     .execute();
             h.commit();
             
-            Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h, "v1", "id");
+            Map<Long, Map<String, Object>> propMaps = getVertexPropertyMaps(h, "v1", "id");
             vertices = getVertices(h, graph, propMaps, "v1", "id", "ord");
             
             for (Vertex v : vertices) {
@@ -239,7 +239,7 @@ public class WorkChildrenQuery extends AmberQueryBase {
             h.createStatement(s.toString()).execute();
             h.commit();
 
-            Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h, "v1", "id");
+            Map<Long, Map<String, Object>> propMaps = getVertexPropertyMaps(h, "v1", "id");
             vertices = getVertices(h, graph, propMaps, "v1", "id", "ord");
 
             for (Vertex v : vertices) {

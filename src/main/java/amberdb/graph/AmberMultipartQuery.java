@@ -213,11 +213,11 @@ public class AmberMultipartQuery extends AmberQueryBase implements AutoCloseable
     
     public List<Vertex> getResults(boolean fillEdges) {
         List<Vertex> vertices;
-        Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h, "v0", "vid");
+        Map<Long, Map<String, Object>> propMaps = getVertexPropertyMaps(h, "v0", "vid");
         vertices = getVertices(h, graph, propMaps, "v0", "vid", "edge_order");
 
         // Warning: Filled edge properties won't all be populated, only edges that were followed
-        propMaps = getElementPropertyMaps(h, "v0", "eid");
+        propMaps = getEdgePropertyMaps(h, "v0", "eid");
         if (fillEdges) {
             getFillEdges(h, graph, propMaps, "v0", "vid", "v1", "vid");
         } else {

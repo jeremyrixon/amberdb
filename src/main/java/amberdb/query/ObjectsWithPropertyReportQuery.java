@@ -67,7 +67,7 @@ public class ObjectsWithPropertyReportQuery extends AmberQueryBase {
             q.execute();
             h.commit();
 
-            Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h, "vp", "id");
+            Map<Long, Map<String, Object>> propMaps = getVertexPropertyMaps(h, "vp", "id");
             vertices = getVertices(h, graph, propMaps, "vp", "id", "id");
         }
         return vertices;
@@ -161,7 +161,7 @@ public class ObjectsWithPropertyReportQuery extends AmberQueryBase {
             q.execute();
             h.commit();
 
-            Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h,
+            Map<Long, Map<String, Object>> propMaps = getVertexPropertyMaps(h,
                     "er", "id");
             vertices = getVertices(h, graph, propMaps, "er", "id", "id");
 
