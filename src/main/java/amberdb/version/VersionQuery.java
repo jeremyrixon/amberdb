@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import amberdb.graph.AmberQueryBase;
+import amberdb.graph.AmberVertex;
 import org.skife.jdbi.v2.Handle;
 
 import com.google.common.collect.Lists;
@@ -99,7 +101,7 @@ public class VersionQuery {
 
         "INSERT INTO v0 (step, vid, eid, label, edge_order) \n"
         + "SELECT DISTINCT 0, id, 0, 'root', 0 \n"
-        + "FROM vertex \n"
+        + "FROM node \n"
         + "WHERE id IN (%s); \n",
         numberListToStr(head)));
         
@@ -117,7 +119,7 @@ public class VersionQuery {
                 s.append(String.format(
                 "INSERT INTO %1$s (step, vid, eid, label, edge_order) \n"
                 + "SELECT DISTINCT %3$d, v.id, e.id, e.label, e.edge_order  \n"
-                + "FROM vertex v, edge e, %2$s \n"
+                + "FROM node v, flatedge e, %2$s \n"
                 + "WHERE 1=1 "
                 + labelsClause
                 + " AND (e.v_out = v.id AND e.v_in = %2$s.vid) \n"
@@ -130,7 +132,7 @@ public class VersionQuery {
                 s.append(String.format(
                 "INSERT INTO %1$s (step, vid, eid, label, edge_order) \n"
                 + "SELECT DISTINCT %3$d, v.id, e.id, e.label, e.edge_order  \n"
-                + "FROM vertex v, edge e, %2$s \n"
+                + "FROM node v, flatedge e, %2$s \n"
                 + "WHERE 1=1 "
                 + labelsClause
                 + " AND (e.v_in = v.id AND e.v_out = %2$s.vid) \n"
@@ -195,19 +197,11 @@ public class VersionQuery {
     
     private Map<TId, Map<String, Object>> getVertexPropertyMaps(Handle h) {
         
-        List<TProperty> propList = h.createQuery(
-                "SELECT p.id, p.txn_start, p.txn_end, p.name, p.type, p.value "
-                + "FROM property p, v0 " 
-                + "WHERE p.id = v0.vid")
-                .map(new TPropertyMapper()).list();
+        List<TVertex> vertices = h.createQuery(AmberQueryBase.VERTEX_QUERY_PREFIX + "inner join v0 on v0.vid = node.id").map(new TVertexMapper()).list();
 
-        Map<TId, Map<String, Object>> propertyMaps = new HashMap<>();
-        for (TProperty prop : propList) {
-            TId id = prop.getId();
-            if (propertyMaps.get(id) == null) {
-                propertyMaps.put(id, new HashMap<String, Object>());
-            }
-            propertyMaps.get(id).put(prop.getName(), prop.getValue());
+        Map<TId, Map<String, Object>> propertyMaps = new HashMap<TId, Map<String, Object>>();
+        for (TVertex vertex : vertices) {
+            propertyMaps.put((TId) vertex.getId(), vertex.getProperties());
         }
         return propertyMaps;
     }
@@ -219,7 +213,7 @@ public class VersionQuery {
         
         List<TVertex> vertices = h.createQuery(
                 "SELECT v.id, v.txn_start, v.txn_end "
-                + "FROM vertex v, v0 "
+                + "FROM node v, v0 "
                 + "WHERE v.id = v0.vid")
                 .map(new TVertexMapper()).list();
 
@@ -245,7 +239,7 @@ public class VersionQuery {
         
         List<TEdge> edges = h.createQuery(
                 "SELECT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order "
-                + "FROM edge e, v0 "
+                + "FROM flatedge e, v0 "
                 + "WHERE e.id = v0.eid ")
                 .map(new TEdgeMapper()).list();
         

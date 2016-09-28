@@ -20,7 +20,7 @@ public class AmberVertexMapper implements ResultSetMapper<AmberVertex>  {
     
     private AmberGraph graph;
     
-    private static Set<String> skipProps = new HashSet<>();
+    public static Set<String> skipProps = new HashSet<>();
     static {
     	skipProps.add("id");
     	skipProps.add("txn_start");

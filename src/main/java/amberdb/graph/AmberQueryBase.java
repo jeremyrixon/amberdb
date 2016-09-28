@@ -15,7 +15,7 @@ import com.tinkerpop.blueprints.Vertex;
 public class AmberQueryBase {
 
     
-    protected static final String VERTEX_QUERY_PREFIX = "select * \n" +
+    public static final String VERTEX_QUERY_PREFIX = "select * \n" +
                 "from node \n" +
                 "left join work        on        work.id = node.id \n" +
                 "left join file        on        file.id = node.id \n" +
