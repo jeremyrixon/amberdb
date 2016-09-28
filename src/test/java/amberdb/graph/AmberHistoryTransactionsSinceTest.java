@@ -70,7 +70,8 @@ public class AmberHistoryTransactionsSinceTest {
         List<Long> vertIds = new ArrayList<Long>();
         for (int i=0; i < 100; i++) {
             Vertex v = graph.addVertex(null);
-            v.setProperty("name", "v"+i);
+            v.setProperty("title", "v"+i);
+            v.setProperty("type", "Work");
             vertIds.add((Long) v.getId());
         }
         // save 'em
@@ -92,13 +93,14 @@ public class AmberHistoryTransactionsSinceTest {
         
         // expect 20 mods
         for (int i = 50; i < 70; i++) {
-            graph.getVertex(vertIds.get(i)).setProperty("age", i);
+            graph.getVertex(vertIds.get(i)).setProperty("notes", i);
         }
         
         // expect 10 new
         for (int i = 0; i < 10; i++) {
             Vertex v = graph.addVertex(null);
-            v.setProperty("name", "v"+(100+i));
+            v.setProperty("title", "v"+(100+i));
+            v.setProperty("type", "Work");
             vertIds.add((Long) v.getId());
         }
 
@@ -232,12 +234,18 @@ public class AmberHistoryTransactionsSinceTest {
         Vertex e = aGraph.addVertex(null);
         Vertex f = aGraph.addVertex(null);
         
-        a.setProperty("name", "a");
-        b.setProperty("name", "b");
-        c.setProperty("name", "c");
-        d.setProperty("name", "d");
-        e.setProperty("name", "e");
-        f.setProperty("name", "f");
+        a.setProperty("title", "a");
+        a.setProperty("type", "work");
+        b.setProperty("title", "b");
+        b.setProperty("type", "work");
+        c.setProperty("title", "c");
+        c.setProperty("type", "work");
+        d.setProperty("title", "d");
+        d.setProperty("type", "work");
+        e.setProperty("title", "e");
+        e.setProperty("type", "work");
+        f.setProperty("title", "f");
+        f.setProperty("type", "work");
         
         aGraph.addEdge(null, a, b, "a-b");
         aGraph.addEdge(null, b, c, "b-c");

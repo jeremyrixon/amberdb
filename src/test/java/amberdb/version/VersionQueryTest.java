@@ -142,10 +142,10 @@ public class VersionQueryTest {
             }
         }
         assertEquals(1, works);
-        assertEquals(14, pages);
-        assertEquals(28, copies);
-        assertEquals(28, files);
-        assertEquals(28, descs);
+        assertEquals(15, pages);
+        assertEquals(30, copies);
+        assertEquals(30, files);
+        assertEquals(30, descs);
         
     }        
 
