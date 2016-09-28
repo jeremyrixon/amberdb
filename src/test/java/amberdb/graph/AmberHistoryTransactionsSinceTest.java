@@ -1,29 +1,5 @@
 package amberdb.graph;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import java.nio.file.Path;
-
-import javax.sql.DataSource;
-
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
-
-import org.junit.rules.TemporaryFolder;
-
 import amberdb.AmberDb;
 import amberdb.AmberSession;
 import amberdb.enums.CopyRole;
@@ -33,10 +9,29 @@ import amberdb.model.Page;
 import amberdb.model.Work;
 import amberdb.version.VersionedGraph;
 import amberdb.version.VersionedVertex;
-
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
+import org.h2.jdbcx.JdbcConnectionPool;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import javax.sql.DataSource;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 
 public class AmberHistoryTransactionsSinceTest {
@@ -45,7 +40,6 @@ public class AmberHistoryTransactionsSinceTest {
     public TemporaryFolder tempFolder = new TemporaryFolder();
     
     public AmberGraph graph;
-    public AmberGraph graph2;
 
     Path tempPath;
     DataSource src;
