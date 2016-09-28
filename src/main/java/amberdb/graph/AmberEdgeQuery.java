@@ -9,7 +9,6 @@ import java.util.Map;
 
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.Query;
-import org.skife.jdbi.v2.Update;
 
 import com.tinkerpop.blueprints.Edge;
 
@@ -100,9 +99,7 @@ public class AmberEdgeQuery extends AmberQueryBase {
     /* edge AND queries can't include labels currently */ 
     protected String generateAndQuery() {
         StringBuilder s = new StringBuilder();
-        s.append("select * \n" +
-        		 "from flatedge \n" +
-        		 "left join acknowledge on flatedge.id = acknowledge.id \n" +
+        s.append(EDGE_QUERY_PREFIX +
         		 "where \n");
         
         for (int i = 0; i < properties.size(); i++) {
@@ -123,12 +120,7 @@ public class AmberEdgeQuery extends AmberQueryBase {
         	if ("label".equals(columnName)) {
         		columnName = "flatedge.label";  
         	}
-            s.append(
-            		"select * \n" +
-            		"from flatedge \n" +
-            		"left join acknowledge on flatedge.id = acknowledge.id \n" +
-            		"where " + columnName + " = :value"+ i + " \n"
-                    + "UNION ALL \n");
+            s.append(EDGE_QUERY_PREFIX + "where " + columnName + " = :value"+ i + " \n UNION ALL \n");
         }
         s.setLength(s.length()-13);
         s.append(";\n");
@@ -138,10 +130,7 @@ public class AmberEdgeQuery extends AmberQueryBase {
 
     protected String generateAllQuery() {
         StringBuilder s = new StringBuilder();
-        s.append("select * \n"
-                 + "from flatedge \n"
-                 + "left join acknowledge on flatedge.id = acknowledge.id \n"
-                 + "limit " + MAX_EDGES);
+        s.append(EDGE_QUERY_PREFIX + "limit " + MAX_EDGES);
         return s.toString();
     }
 

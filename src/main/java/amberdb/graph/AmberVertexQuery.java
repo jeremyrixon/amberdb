@@ -21,7 +21,7 @@ import amberdb.graph.dao.AmberDao;
 
 
 public class AmberVertexQuery extends AmberQueryBase {
-	
+    
     // limit the number of vertices returned by a query without criteria
     static final int MAX_VERTICES = 10000; 
     
@@ -104,17 +104,7 @@ public class AmberVertexQuery extends AmberQueryBase {
     
     
     protected String generateAndQuery() {
-        StringBuilder s = new StringBuilder();
-        s.append(
-        		"select * \n" +
-        		"from node \n" +
-        		"left join work        on        work.id = node.id \n" +
-        		"left join file        on        file.id = node.id \n" +
-        		"left join description on description.id = node.id \n" +
-        		"left join party       on       party.id = node.id \n" +
-        		"left join tag         on         tag.id = node.id \n" +
-        		"where \n");
-        
+        StringBuilder s = new StringBuilder(VERTEX_QUERY_PREFIX + "where \n");
         
         for (int i = 0; i < properties.size(); i++) {
         	String columnName = properties.get(i).getName();
@@ -135,14 +125,7 @@ public class AmberVertexQuery extends AmberQueryBase {
             if (AmberDao.nodeFields.contains(columnName)) {
                 columnName = "node." + columnName;
             }
-            s.append(
-            		"select * \n" +
-            		"from node \n" +
-            		"left join work        on        work.id = node.id \n" +
-            		"left join file        on        file.id = node.id \n" +
-            		"left join description on description.id = node.id \n" +
-            		"left join party       on       party.id = node.id \n" +
-            		"left join tag         on         tag.id = node.id \n" +
+            s.append(VERTEX_QUERY_PREFIX +
             		"where " + columnName + " = :value"+ i + " \n"
                     + "UNION ALL \n");
         }
@@ -155,14 +138,7 @@ public class AmberVertexQuery extends AmberQueryBase {
     protected String generateAllQuery() {
         
         StringBuilder s = new StringBuilder();
-        s.append(
-        		"select * \n" +
-        		"from node \n" +
-        		"left join work        on        work.id = node.id \n" +
-        		"left join file        on        file.id = node.id \n" +
-        		"left join description on description.id = node.id \n" +
-        		"left join party       on       party.id = node.id \n" +
-        		"left join tag         on         tag.id = node.id \n" +
+        s.append(VERTEX_QUERY_PREFIX +
                 "LIMIT " + MAX_VERTICES);
         return s.toString();        
     }
@@ -193,38 +169,23 @@ public class AmberVertexQuery extends AmberQueryBase {
             return getVertices(q.map(new AmberVertexMapper(graph)).list());
         }
     }
-    
-    
-
-
+ 
 	public List<Vertex> executeJsonValSearch(String name, String value) {
         // quote any characters that could cause issues with the regex matching - assumes we are performing an exact match on value
         for (String quote : Arrays.asList(".", "(", ")", "[", "]", "{", "}")) {
             value = value.replace(quote, "\\" + quote);
         }
 
-        List<Vertex> vertices;
-        try (Handle h = graph.dbi().open()) {
-            h.begin();
-            h.setTransactionIsolation(TransactionIsolationLevel.READ_COMMITTED);
-            h.execute("DROP " + graph.tempTableDrop + " TABLE IF EXISTS vp; CREATE TEMPORARY TABLE vp (id BIGINT) " + graph.tempTableEngine + ";");
-            Update q = h.createStatement(
-                    "INSERT INTO vp (id) \n"
-                    + "SELECT p.id \n"
-                    + "FROM property p \n"
-                    + "WHERE p.txn_end = 0 \n"
-                    + "AND p.name = :name " 
-                    + "AND p.value REGEXP :value");
-            q.bind("name", name);
-            q.bind("value", AmberProperty.encode("\"" + value + "\""));
-            q.execute();
-            h.commit();
-
-            // and reap the rewards
-            Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h, "vp", "id");
-            vertices = getVertices(h, graph, propMaps, "vp", "id", "id");
+        String sql = VERTEX_QUERY_PREFIX + "where ";
+        if (AmberDao.nodeFields.contains(name)) {
+            sql += "node.";
         }
-        return vertices;
+        sql += name + " regexp :value";
+        
+        try (Handle h = graph.dbi().open()) {
+            Query<Map<String, Object>> q = h.begin().createQuery(sql).bind("value", value);
+            return getVertices(q.map(new AmberVertexMapper(graph)).list());
+        }
     }
 
 }

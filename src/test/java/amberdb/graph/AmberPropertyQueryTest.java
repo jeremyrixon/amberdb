@@ -227,18 +227,21 @@ public class AmberPropertyQueryTest {
     public void testJsonListValueQueries() throws Exception {
 
         Vertex v1 = graph.addVertex(null);
-        v1.setProperty("json-list", "[\"abba\",\"beta\",\"delta\",\"gama\"]");
+        v1.setProperty("type", "work");
+        v1.setProperty("contributor", "[\"abba\",\"beta\",\"delta\",\"gamma\"]");
 
         Vertex v2 = graph.addVertex(null);
-        v2.setProperty("json-list", "[\"babba\",\"beta\",\"delta\",\"gama\"]");
+        v2.setProperty("type", "work");
+        v2.setProperty("contributor", "[\"babba\",\"beta\",\"delta\",\"gamma\"]");
 
         Vertex v3 = graph.addVertex(null);
-        v3.setProperty("json-list", "[\"beta\",\"delta\",\"gama\", \"abba\"]");
+        v3.setProperty("type", "work");
+        v3.setProperty("contributor", "[\"beta\",\"delta\",\"gamma\", \"abba\"]");
 
         graph.commit("tester", "saving some vertices with properties");
 
         AmberVertexQuery avq = graph.newVertexQuery();
-        List<Vertex> results = avq.executeJsonValSearch("json-list", "abba");
+        List<Vertex> results = avq.executeJsonValSearch("contributor", "\"abba\"");
 
         assertEquals(2, results.size());
         assertTrue(results.remove(v1));

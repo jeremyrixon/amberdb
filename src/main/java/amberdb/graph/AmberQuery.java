@@ -150,9 +150,8 @@ public class AmberQuery extends AmberQueryBase {
         s.append(String.format(
                 "INSERT INTO v0 (step, vid, eid, label, edge_order) \n"
                 + "SELECT 0, id, 0, 'root', 0 \n"
-                + "FROM vertex \n"
-                + "WHERE id IN (%s) \n"
-                + "AND txn_end = 0; \n",
+                + "FROM node \n"
+                + "WHERE id IN (%s); \n",
                 numberListToStr(head)));
         
         s.append("INSERT INTO v1 (step, vid, eid, label, edge_order) \n"
@@ -170,9 +169,8 @@ public class AmberQuery extends AmberQueryBase {
                 s.append(String.format(
                 "INSERT INTO v0 (step, vid, eid, label, edge_order) \n"
                 + "SELECT %1$d, v.id, e.id, e.label, e.edge_order  \n"
-                + "FROM vertex v, edge e, v1 \n"
-                + "WHERE e.txn_end = 0 \n"
-                + " AND v.txn_end = 0 \n"
+                + "FROM node v, flatedge e, v1 \n"
+                + "WHERE "
                 + labelsClause
                 + " AND (e.v_out = v.id AND e.v_in = v1.vid)\n",
                 step));
@@ -185,9 +183,8 @@ public class AmberQuery extends AmberQueryBase {
                 s.append(String.format(
                 "INSERT INTO v0 (step, vid, eid, label, edge_order) \n"
                 + "SELECT %1$d, v.id, e.id, e.label, e.edge_order  \n"
-                + "FROM vertex v, edge e, v1 \n"
-                + "WHERE e.txn_end = 0 \n"
-                + " AND v.txn_end = 0 \n"
+                + "FROM node v, flatedge e, v1 \n"
+                + "WHERE \n"
                 + labelsClause
                 + " AND (e.v_in = v.id AND e.v_out = v1.vid) \n",
                 step));
@@ -205,7 +202,7 @@ public class AmberQuery extends AmberQueryBase {
             step));
         }
 
-        return s.toString();
+        return s.toString().replaceAll("WHERE\\s*AND", "WHERE ");
         // Draw from v1 for results
     }
 
@@ -263,11 +260,11 @@ public class AmberQuery extends AmberQueryBase {
             h.createStatement(generateFullSubGraphQuery()).execute();
             h.commit();
 
-            Map<Long, Map<String, Object>> propMaps = getElementPropertyMaps(h, "v0", "vid");
+            Map<Long, Map<String, Object>> propMaps = getVertexPropertyMaps(h, "v0", "vid");
             vertices = getVertices(h, graph, propMaps, "v0", "vid", "edge_order");
 
             // Warning: Filled edge properties won't all be populated 
-            propMaps = getElementPropertyMaps(h, "v0", "eid");
+            propMaps = getEdgePropertyMaps(h, "v0", "eid");
             if (fillEdges) {
                 getFillEdges(h, graph, propMaps, "v0", "vid", "v1", "vid");
             } else {

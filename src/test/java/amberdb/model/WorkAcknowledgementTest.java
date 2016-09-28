@@ -1,36 +1,26 @@
 package amberdb.model;
 
+import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.sql.DataSource;
-
-import amberdb.AbstractDatabaseIntegrationTest;
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import static org.junit.Assert.*;
-import static org.hamcrest.CoreMatchers.*;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 
-import amberdb.AmberDb;
+import amberdb.AbstractDatabaseIntegrationTest;
 import amberdb.AmberSession;
-import amberdb.cli.Main;
 import amberdb.relation.Acknowledge;
 
 public class WorkAcknowledgementTest extends AbstractDatabaseIntegrationTest {
@@ -59,7 +49,7 @@ public class WorkAcknowledgementTest extends AbstractDatabaseIntegrationTest {
                 assertEquals(ack.getAckType(), type);
                 assertEquals(ack.getKindOfSupport(), kindOfSupport);
                 assertEquals(ack.getWeighting(), weighting);
-                assertEquals(ack.getDate(), date);
+                assertTrue(Math.abs(ack.getDate().getTime() - date.getTime()) < 1000);
                 assertEquals(ack.getUrlToOriginal(), url);
             }
         }
