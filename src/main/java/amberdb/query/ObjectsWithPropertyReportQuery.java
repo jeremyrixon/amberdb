@@ -1,10 +1,5 @@
 package amberdb.query;
 
-import amberdb.graph.AmberGraph;
-import amberdb.graph.AmberProperty;
-import amberdb.graph.AmberQueryBase;
-
-import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +8,9 @@ import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.Update;
 
 import com.tinkerpop.blueprints.Vertex;
+
+import amberdb.graph.AmberGraph;
+import amberdb.graph.AmberQueryBase;
 
 
 public class ObjectsWithPropertyReportQuery extends AmberQueryBase {
@@ -57,18 +55,12 @@ public class ObjectsWithPropertyReportQuery extends AmberQueryBase {
         }
         return vertices;
     }
+    
 
     public List<Vertex> generateExpiryReport(Date expiryYear,
             String collectionName) {
 
         long datetime = expiryYear.getTime();
-
-        String compareStatement = "AND conv(hex(p.value), 16, 10) = :expiry ";
-
-        // compare statement for H2
-        if ("".equals(graph.getTempTableDrop())) {
-            compareStatement = "AND  CAST(CAST(p.value AS BINARY) AS BIGINT) = :expiry ";
-        }
 
         List<Vertex> vertices;
         try (Handle h = graph.dbi().open()) {
