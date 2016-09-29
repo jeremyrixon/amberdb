@@ -1,10 +1,5 @@
 package amberdb.query;
 
-import amberdb.graph.AmberGraph;
-import amberdb.graph.AmberProperty;
-import amberdb.graph.AmberQueryBase;
-
-import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +8,9 @@ import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.Update;
 
 import com.tinkerpop.blueprints.Vertex;
+
+import amberdb.graph.AmberGraph;
+import amberdb.graph.AmberQueryBase;
 
 
 public class ObjectsWithPropertyReportQuery extends AmberQueryBase {
@@ -23,7 +21,7 @@ public class ObjectsWithPropertyReportQuery extends AmberQueryBase {
     }
 
     
-    public List<Vertex> generateDuplicateAliasReport(String name, String collectionName) {
+    public List<Vertex> generateDuplicateAliasReport(String collectionName) {
 
         List<Vertex> vertices;
         try (Handle h = graph.dbi().open()) {
@@ -31,39 +29,24 @@ public class ObjectsWithPropertyReportQuery extends AmberQueryBase {
             h.execute("DROP " + graph.getTempTableDrop() + " TABLE IF EXISTS vp; CREATE TEMPORARY TABLE vp (id BIGINT) " + graph.getTempTableEngine() + ";");
             Update q = h.createStatement(
                     "INSERT INTO vp (id) \n"
-                            + "SELECT DISTINCT p.id \n"
-                            + "FROM property p, property cp, property tp \n"
-                            + "WHERE "
-                            + " tp.value in ( :type1, :type3, :type4, :type5) "
-                            + " AND cp.value = :value "
-                            + " AND p.name = :name "
-                            + " AND cp.name = :collection "
-                            + " AND tp.name= :typeName "
-                            + " AND p.txn_end = 0 AND cp.txn_end = 0 AND tp.txn_end = 0 "
-                            + " AND cp.id = p.id AND tp.id = p.id "
-                            + " UNION ALL \n"
-                            + " SELECT DISTINCT p.id \n"
-                            + " FROM property p, property cp, edge ed, property tp \n"
-                            + " WHERE "
-                            + " tp.value = :type2 "
-                            + " AND cp.value = :value "
-                            + " AND p.name = :name "
-                            + " AND cp.name = :collection "
-                            + " AND tp.name= :typeName "
-                            + " AND p.txn_end = 0 AND cp.txn_end = 0 AND tp.txn_end = 0 and ed.txn_end = 0 "
-                            + " AND p.id = ed.v_out AND tp.id = p.id and ed.v_in=cp.id "
-
+                            + " SELECT DISTINCT id \n"    
+                            + " FROM work \n"              
+                            + " WHERE \n"                 
+                            + " type in ( 'Work', 'EADWork', 'Section', 'Page') \n"
+                            + " AND collection = :collection \n"
+                            + " AND alias is not null \n"  
+                            + " UNION ALL \n"             
+                            + " SELECT DISTINCT p.id \n"  
+                            + " FROM work p, work cp, flatedge ed \n"
+                            + " WHERE \n"                 
+                            + " p.type = 'Copy' \n"        
+                            + " AND cp.collection = :collection \n"
+                            + " AND p.alias is not null"
+                            + " AND p.id = ed.v_out"    
+                            + " AND ed.v_in=cp.id "     
             );
 
-            q.bind("name", name);
-            q.bind("typeName", "type");
-            q.bind("type1", AmberProperty.encode("Work"));
-            q.bind("type2", AmberProperty.encode("Copy"));
-            q.bind("type3", AmberProperty.encode("EADWork"));
-            q.bind("type4", AmberProperty.encode("Section"));
-            q.bind("type5", AmberProperty.encode("Page"));
-            q.bind("collection", "collection");
-            q.bind("value", AmberProperty.encode(collectionName));
+            q.bind("collection", collectionName);
             q.execute();
             h.commit();
 
@@ -72,18 +55,12 @@ public class ObjectsWithPropertyReportQuery extends AmberQueryBase {
         }
         return vertices;
     }
+    
 
     public List<Vertex> generateExpiryReport(Date expiryYear,
             String collectionName) {
 
         long datetime = expiryYear.getTime();
-
-        String compareStatement = "AND conv(hex(p.value), 16, 10) = :expiry ";
-
-        // compare statement for H2
-        if ("".equals(graph.getTempTableDrop())) {
-            compareStatement = "AND  CAST(CAST(p.value AS BINARY) AS BIGINT) = :expiry ";
-        }
 
         List<Vertex> vertices;
         try (Handle h = graph.dbi().open()) {
@@ -94,70 +71,15 @@ public class ObjectsWithPropertyReportQuery extends AmberQueryBase {
                     + graph.getTempTableEngine() + ";");
             Update q = h
                     .createStatement("INSERT INTO er (id) \n"
-                            + "SELECT DISTINCT p.id  \n"
-                            + "FROM property p"
-                            + ", property cp, property tp, property iacp \n"
-                            + "WHERE p.txn_end = 0 AND cp.txn_end = 0 AND tp.txn_end=0 AND iacp.txn_end=0"
-                            + " AND cp.id = p.id AND tp.id = p.id AND iacp.id = p.id "
-                            + " AND tp.name= :typeName "
-                            + " AND iacp.name= :internalAccessConditions"
-                            + " AND tp.value = :type1 "
-                            + " AND iacp.value != :closed "
-                            + " AND cp.name = :collection "
-                            + " AND p.name = :name " + compareStatement
-                            + " AND cp.value = :value "
-                            + "UNION \n"
-                            + "SELECT DISTINCT p.id  \n"
-                            + "FROM property p"
-                            + ", property cp, property tp, property iacp \n"
-                            + "WHERE p.txn_end = 0 AND cp.txn_end = 0 AND tp.txn_end=0 AND iacp.txn_end=0"
-                            + " AND cp.id = p.id AND tp.id = p.id AND iacp.id = p.id "
-                            + " AND tp.name= :typeName "
-                            + " AND iacp.name= :internalAccessConditions"
-                            + " AND tp.value = :type2 "
-                            + " AND iacp.value != :closed "
-                            + " AND cp.name = :collection "
-                            + " AND p.name = :name " + compareStatement
-                            + " AND cp.value = :value "
-                            + "UNION \n"
-                            + "SELECT DISTINCT p.id  \n"
-                            + "FROM property p"
-                            + ", property cp, property tp, property iacp \n"
-                            + "WHERE p.txn_end = 0 AND cp.txn_end = 0 AND tp.txn_end=0 AND iacp.txn_end=0"
-                            + " AND cp.id = p.id AND tp.id = p.id AND iacp.id = p.id "
-                            + " AND tp.name= :typeName "
-                            + " AND iacp.name= :internalAccessConditions"
-                            + " AND tp.value = :type3 "
-                            + " AND iacp.value != :closed "
-                            + " AND cp.name = :collection "
-                            + " AND p.name = :name " + compareStatement
-                            + " AND cp.value = :value "
-                            + "UNION \n"
-                            + "SELECT DISTINCT p.id  \n"
-                            + "FROM property p"
-                            + ", property cp, property tp, property iacp \n"
-                            + "WHERE p.txn_end = 0 AND cp.txn_end = 0 AND tp.txn_end=0 AND iacp.txn_end=0"
-                            + " AND cp.id = p.id AND tp.id = p.id AND iacp.id = p.id "
-                            + " AND tp.name= :typeName "
-                            + " AND iacp.name= :internalAccessConditions"
-                            + " AND tp.value = :type4 "
-                            + " AND iacp.value != :closed "
-                            + " AND cp.name = :collection "
-                            + " AND p.name = :name " + compareStatement
-                            + " AND cp.value = :value "
-                            );
+                            + " SELECT DISTINCT p.id  \n"
+                            + " FROM work p \n"
+                            + " WHERE p.type in ('Work', 'EADWork', 'Section', 'Page') \n"
+                            + " AND internalAccessConditions != 'Closed'  \n"
+                            + " AND p.collection = :collection \n"
+                            + " AND p.expiryDate = :expiry \n");
 
             q.bind("expiry", datetime);
-            q.bind("name", "expiryDate");
-            q.bind("internalAccessConditions", "internalAccessConditions");
-            q.bind("closed", AmberProperty.encode("Closed"));
-            q.bind("typeName", "type");
-            q.bind("type1", AmberProperty.encode("Work"));
-            q.bind("type2", AmberProperty.encode("EADWork"));
-            q.bind("type3", AmberProperty.encode("Section"));
-            q.bind("type4", AmberProperty.encode("Page"));
-            q.bind("collection", "collection");
-            q.bind("value", AmberProperty.encode(collectionName));
+            q.bind("collection", collectionName);
             q.execute();
             h.commit();
 
