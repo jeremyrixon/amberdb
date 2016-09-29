@@ -26,6 +26,11 @@ public class AmberVertexMapper implements ResultSetMapper<AmberVertex>  {
     	skipProps.add("txn_start");
     	skipProps.add("txn_end");
     	skipProps.add("state");
+		skipProps.add("step");
+		skipProps.add("vid");
+		skipProps.add("eid");
+		skipProps.add("label");
+		skipProps.add("edge_order");
     }
 
     
