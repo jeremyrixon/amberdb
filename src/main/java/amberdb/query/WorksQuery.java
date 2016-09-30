@@ -1,24 +1,21 @@
 package amberdb.query;
 
-import java.util.*;
-
+import amberdb.AmberSession;
+import amberdb.enums.BibLevel;
 import amberdb.graph.*;
+import amberdb.model.Copy;
+import amberdb.model.Work;
 import amberdb.relation.*;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.skife.jdbi.v2.Handle;
-import org.skife.jdbi.v2.util.ByteArrayMapper;
-
 import com.google.common.base.Joiner;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
-
-import amberdb.AmberSession;
-import amberdb.enums.BibLevel;
-import amberdb.model.Copy;
-import amberdb.model.Work;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.util.LongMapper;
 import org.skife.jdbi.v2.util.StringMapper;
+
+import java.util.*;
 
 public class WorksQuery {
 
@@ -137,7 +134,8 @@ public class WorksQuery {
     
     private static Map<Long, AmberTransaction> getFirstTransactions(AmberSession sess, List<Long> workIds){
         if (CollectionUtils.isNotEmpty(workIds)) {
-            String sql = "SELECT t1.time, t1.user, t1.operation, t2.transaction_id, t2.vertex_id " +
+            String sql = "" +
+                    "SELECT t1.time, t1.user, t1.operation, t2.transaction_id, t2.vertex_id " +
                     "FROM transaction t1, " +
                     " (SELECT MIN(t.id) transaction_id, v.id vertex_id from transaction t, node_history v " +
                     " WHERE t.id = v.txn_start and v.id in (" + Joiner.on(",").join(workIds) + ") group by v.id) t2 " +
