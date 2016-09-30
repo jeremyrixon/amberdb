@@ -41,32 +41,13 @@ public class WorkChildrenQuery extends AmberQueryBase {
         this.sess = sess;
     }
 
-    /* the following static variables are used to provide the hex encoding for the different vertex
-     * types required by the child range query. This is required due to the following limitations:
-     *  
-     *  -- H2 requires blob strings to be encoded as hex strings (mysql does not).
-     *  -- JDBI cannot bind variables in multi-statement queries as used here.
-     *  
-     *  So to support testing on H2 with the multi-statement child range query used, we use the hex 
-     *  strings defined directly below. */
-    static Map<String, String> hex = new HashMap<>();
-    static String[] types = {
-        "Work", "Page", "EADWork", "Section",
-        "Copy",
-        "File", "ImageFile", "SoundFile", "MovingImageFile",
-        "Description", "CameraData", "EADEntity", "EADFeature", "GeoCoding", "IPTC"
-    };
     static String workNotSectionInList;
     static String fileInList;
     static String descInList;
     static {
-        for (String t : types) {
-            hex.put(t, Hex.encodeHexString(AmberProperty.encode(t)));
-        }
-        workNotSectionInList = "(X'" + StringUtils.join(new String[] {hex.get("Work"), hex.get("Page"), hex.get("EADWork")}, "', X'") + "')";
-        fileInList = "(X'" + StringUtils.join(new String[] {hex.get("File"), hex.get("ImageFile"), hex.get("SoundFile"), hex.get("MovingImageFile")}, "', X'") + "')";
-        descInList = "(X'" + StringUtils.join(new String[] {hex.get("Description"), hex.get("CameraData"), hex.get("EADEntity"), 
-                hex.get("EADFeature"), hex.get("GeoCoding"), hex.get("IPTC")}, "', X'") + "')";
+        workNotSectionInList = "('" + StringUtils.join(new String[] { "Work", "Page", "EADWork" }, "', '") + "')";
+        fileInList = "('" + StringUtils.join(new String[] { "File", "ImageFile", "SoundFile", "MovingImageFile" }, "', '") + "')";
+        descInList = "('" + StringUtils.join(new String[] { "Description", "CameraData", "EADEntity", "EADFeature", "GeoCoding", "IPTC" }, "', '") + "')";
     }
     
     public List<Work> getChildRangeSorted(Long workId, int start, int num, String sortPropertyName, boolean sortForward) {
@@ -92,73 +73,67 @@ public class WorkChildrenQuery extends AmberQueryBase {
         // create double buffered temp tables because mysql
         // can't open the same temp table twice in a query
         s.append(
-            "DROP " + tDrop + " TABLE IF EXISTS v1; \n" +
-            "DROP " + tDrop + " TABLE IF EXISTS v2; \n" +
-        	"CREATE TEMPORARY TABLE v1 (id BIGINT, obj_type CHAR(1), ord BIGINT)" + tEngine + "; \n" +
-            "CREATE TEMPORARY TABLE v2 (id BIGINT, obj_type CHAR(1), ord BIGINT)" + tEngine + "; \n");
+            "DROP " + tDrop + " TABLE IF EXISTS v1; " +
+            "DROP " + tDrop + " TABLE IF EXISTS v2; " +
+        	"CREATE TEMPORARY TABLE v1 (id BIGINT, obj_type CHAR(1), ord BIGINT)" + tEngine + "; " +
+            "CREATE TEMPORARY TABLE v2 (id BIGINT, obj_type CHAR(1), ord BIGINT)" + tEngine + "; ");
         
         // add children Works excluding Sections with the limits specified on the range returned
         s.append(addChildrenWorksSql);
         
         // get their copies
         s.append(
-            "INSERT INTO v2 (id, obj_type) \n" +
-            "SELECT DISTINCT v.id, 'C' \n" +
-            "FROM vertex v, edge e, property p, v1 \n" +
-            "WHERE v.txn_end = 0 AND e.txn_end = 0 AND p.txn_end = 0 \n" +
-            " AND e.v_in = v1.id \n" +
-            " AND e.v_out = v.id \n" +
-            " AND e.label = 'isCopyOf' \n" +
-            " AND p.id = v.id \n" +
-            " AND p.name = 'type' \n" + 
-            " AND p.value = X'" + hex.get("Copy") + "'; \n");
+            "INSERT INTO v2 (id, obj_type) " +
+            "SELECT DISTINCT v.id, 'C' " +
+            "FROM node v, flatedge e, work p, v1 " +
+            "WHERE e.v_in = v1.id " +
+            " AND e.v_out = v.id " +
+            " AND e.label = 'isCopyOf' " +
+            " AND p.id = v.id " +
+            " AND p.type = 'Copy'; ");
         
         // get files
         s.append(
-            "INSERT INTO v1 (id, obj_type) \n" +
-            "SELECT DISTINCT v.id, 'F' \n" +
-            "FROM vertex v, edge e, property p, v2 \n" +
-            "WHERE v.txn_end = 0 AND e.txn_end = 0 AND p.txn_end = 0 \n" +
-            " AND e.v_in = v2.id \n" +
-            " AND e.v_out = v.id \n" +
-            " AND e.label = 'isFileOf' \n" +
-            " AND p.id = v.id \n" +
-            " AND p.name = 'type' \n" + 
-            " AND p.value IN " + fileInList + "; \n");
+            "INSERT INTO v1 (id, obj_type) " +
+            "SELECT DISTINCT v.id, 'F' " +
+            "FROM node v, flatedge e, work p, v2 " +
+            "WHERE e.v_in = v2.id " +
+            " AND e.v_out = v.id " +
+            " AND e.label = 'isFileOf' " +
+            " AND p.id = v.id " +
+            " AND p.type IN " + fileInList + "; ");
 
         // move everything in v2 to v1
         s.append(
-            "INSERT INTO v1 (id, obj_type) \n" +
-            "SELECT v2.id, v2.obj_type \n" +
-            "FROM v2; \n" +
-            "DELETE FROM v2; \n");
+            "INSERT INTO v1 (id, obj_type) " +
+            "SELECT v2.id, v2.obj_type " +
+            "FROM v2; " +
+            "DELETE FROM v2; ");
  
         // get descriptions
         s.append(
-            "INSERT INTO v2 (id, obj_type) \n" +
-            "SELECT DISTINCT v.id, 'D' \n" +
-            "FROM vertex v, edge e, property p, v1 \n" +
-            "WHERE v.txn_end = 0 AND e.txn_end = 0 AND p.txn_end = 0 \n" +
-            " AND e.v_in = v1.id \n" +
-            " AND e.v_out = v.id \n" +
-            " AND e.label = 'descriptionOf' \n" +
-            " AND p.id = v.id \n" +
-            " AND p.name = 'type' \n" + 
-            " AND p.value IN " + descInList + "; \n");
+            "INSERT INTO v2 (id, obj_type) " +
+            "SELECT DISTINCT v.id, 'D' " +
+            "FROM node v, flatedge e, work p, v1 " +
+            "WHERE e.v_in = v1.id " +
+            " AND e.v_out = v.id " +
+            " AND e.label = 'descriptionOf' " +
+            " AND p.id = v.id " +
+            " AND p.type IN " + descInList + "; ");
 
         // finally move all the descriptions into v1 also
         s.append(
-            "INSERT INTO v1 (id, obj_type) \n" +
-            "SELECT v2.id, v2.obj_type \n" +
-            "FROM v2; \n");
+            "INSERT INTO v1 (id, obj_type) " +
+            "SELECT v2.id, v2.obj_type " +
+            "FROM v2; ");
 
         List<Vertex> vertices = null;
         try (Handle h = graph.dbi().open()) {
             h.begin();
             h.createStatement(s.toString())
-                    .bind("workVal", AmberProperty.encode("Work"))
-                    .bind("pageVal", AmberProperty.encode("Page"))
-                    .bind("eadWorkVal", AmberProperty.encode("EADWork"))
+                    .bind("workVal", "Work")
+                    .bind("pageVal", "Page")
+                    .bind("eadWorkVal", "EADWork")
                     .execute();
             h.commit();
             
@@ -176,35 +151,33 @@ public class WorkChildrenQuery extends AmberQueryBase {
     }
 
     private String getAddChildrenWorksSql(Long workId, int start, int num) {
-        return "INSERT INTO v1 (id, obj_type, ord) \n" +
-        "SELECT DISTINCT v.id, 'W', e.edge_order \n" +
-        "FROM vertex v, edge e, property p \n" +
-        "WHERE v.txn_end = 0 AND e.txn_end = 0 AND p.txn_end = 0 \n" +
-        " AND e.v_in = "+workId+" \n" +
-        " AND e.v_out = v.id \n" +
-        " AND e.label = 'isPartOf' \n" +
-        " AND p.id = v.id \n" +
-        " AND p.name = 'type' \n" + 
-        " AND p.value IN " + workNotSectionInList + " \n" +
-        " ORDER BY e.edge_order \n" +
-        " LIMIT "+start+","+num+"; \n";
+        return "INSERT INTO v1 (id, obj_type, ord) " +
+        "SELECT DISTINCT v.id, 'W', e.edge_order " +
+        "FROM node v, flatedge e, work p " +
+        "WHERE e.v_in = " + workId + " " +
+        " AND e.v_out = v.id " +
+        " AND e.label = 'isPartOf' " +
+        " AND p.id = v.id " +
+        " AND p.type IN " + workNotSectionInList + " " +
+        " ORDER BY e.edge_order " +
+        " LIMIT " + start + "," + num + "; ";
     }
     
     private String getAddChildrenWorkSortBySql(Long workId, int start, int num, String sortBy, boolean asc) {
         StringBuilder sb = new StringBuilder();
         sb.append("INSERT INTO v1 (id, obj_type, ord) "
-                + " SELECT DISTINCT v.id, 'W' obj_type, e.edge_order FROM vertex v "
-                + " INNER JOIN property p1 "
-                + " on v.txn_end = 0 AND p1.txn_end = 0 AND p1.id = v.id AND p1.name = 'type' AND p1.value IN " + workNotSectionInList
-                + " INNER JOIN edge e on e.txn_end = 0 AND e.v_out = v.id AND e.label = 'isPartOf' "
+                + " SELECT DISTINCT v.id, 'W' obj_type, e.edge_order FROM node v "
+                + " INNER JOIN work p1 "
+                + " ON p1.id = v.id AND p1.type IN " + workNotSectionInList
+                + " INNER JOIN edge e "
+                + " ON e.v_out = v.id AND e.label = 'isPartOf' "
                 + " LEFT JOIN property p2 "
-                + " on p2.txn_end = 0 and p2.id = v.id AND p2.name = '"+sortBy+"' "
-                + " and p2.value != '[]' " //empty list treated as null (e.g. when sorting by alias)
-                + " WHERE e.v_in = "+workId+" ORDER BY ISNULL(p2.value), p2.value "); //null always last whether asc or desc
+                + " ON p2.id = v.id AND p2." + sortBy + " != '[]' " //empty list treated as null (e.g. when sorting by alias)
+                + " WHERE e.v_in = " + workId + " ORDER BY ISNULL(p2." + sortBy + "), p2." + sortBy + " "); //null always last whether asc or desc
         if (!asc){
             sb.append(" desc ");
         }
-        sb.append(" LIMIT "+start+","+num+"; ");
+        sb.append(" LIMIT " + start + "," + num + "; ");
         return sb.toString();
     }
 
@@ -221,17 +194,15 @@ public class WorkChildrenQuery extends AmberQueryBase {
 
         // add children Sections
         s.append(
-            "INSERT INTO v1 (id, obj_type, ord) \n" +
-            "SELECT DISTINCT v.id, 'W', e.edge_order \n" +
-            "FROM vertex v, edge e, property p \n" +
-            "WHERE v.txn_end = 0 AND e.txn_end = 0 AND p.txn_end = 0 \n" +
-            " AND e.v_in = "+workId+" \n" +
-            " AND e.v_out = v.id \n" +
-            " AND e.label = 'isPartOf' \n" +
-            " AND p.id = v.id \n" +
-            " AND p.name = 'type' \n" +
-            " AND p.value = '" + Hex.encodeHexString(AmberProperty.encode("Section")) + "'\n" +
-            " ORDER BY e.edge_order; \n");
+            "INSERT INTO v1 (id, obj_type, ord) " +
+            "SELECT DISTINCT v.id, 'W', e.edge_order " +
+            "FROM node v, flatedge e, work p " +
+            "WHERE e.v_in = " + workId +
+            " AND e.v_out = v.id " +
+            " AND e.label = 'isPartOf' " +
+            " AND p.id = v.id " +
+            " AND p.type = 'Section' " +
+            " ORDER BY e.edge_order ");
 
         List<Vertex> vertices = null;
         try (Handle h = graph.dbi().open()) {
@@ -253,51 +224,45 @@ public class WorkChildrenQuery extends AmberQueryBase {
         Integer numChildren = new Integer(0);
         try (Handle h = graph.dbi().open()) {
             numChildren = h.createQuery(
-                    "SELECT COUNT(v_out) \n" + 
-                    "FROM vertex v, edge e, property p \n" +
-                    "WHERE v.txn_end = 0 AND e.txn_end = 0 AND p.txn_end = 0 \n" +
-                    " AND e.v_in = :workId \n" +
-                    " AND e.v_out = v.id \n" +
-                    " AND e.label = 'isPartOf' \n" +
-                    " AND p.id = v.id \n" +
-                    " AND p.name = 'type' \n" + 
-                    " AND p.value IN (:workVal, :pageVal, :eadWorkVal); \n")
+                    "SELECT COUNT(v_out) " +
+                    "FROM node v, flatedge e, work p " +
+                    "WHERE e.v_in = :workId " +
+                    " AND e.v_out = v.id " +
+                    " AND e.label = 'isPartOf' " +
+                    " AND p.id = v.id " +
+                    " AND p.type IN (:workVal, :pageVal, :eadWorkVal); ")
                     .bind("workId", workId)
-                    .bind("workVal", AmberProperty.encode("Work"))
-                    .bind("pageVal", AmberProperty.encode("Page"))
-                    .bind("eadWorkVal", AmberProperty.encode("EADWork"))
+                    .bind("workVal", "Work")
+                    .bind("pageVal", "Page")
+                    .bind("eadWorkVal", "EADWork")
                     .map(IntegerMapper.FIRST).first();
         }
         return numChildren;
     }
     
     public List<CopyRole> getAllChildCopyRoles(Long workId) {
-        List<byte[]> copyRoleCodes = new ArrayList<>();
+        List<String> copyRoleCodes = new ArrayList<>();
         try (Handle h = graph.dbi().open()) {
             copyRoleCodes = h.createQuery(
-                    "SELECT DISTINCT p2.value \n" + 
-                    "FROM vertex v, edge e, edge e2, property p, property p2 \n" +
-                    "WHERE v.txn_end = 0 AND e.txn_end = 0 AND e2.txn_end = 0 AND p.txn_end = 0 AND p2.txn_end = 0 \n" +
-                    " AND e.v_in = :workId \n" +
-                    " AND e.v_out = v.id \n" +
-                    " AND e.label = 'isPartOf' \n" +
-                    " AND p.id = v.id \n" +
-                    " AND p.name = 'type' \n" + 
-                    " AND p.value IN (:workVal, :pageVal, :eadWorkVal)" +
-                    " AND e2.v_in = p.id \n" +
-                    " AND e2.v_out = p2.id \n" +
-                    " AND e2.label = 'isCopyOf' \n" +
-                    " AND p2.name = 'copyRole'; \n")
+                    "SELECT DISTINCT p2.copyRole " +
+                    "FROM node v, flatedge e, flatedge e2, work p, work p2 " +
+                    "WHERE e.v_in = :workId " +
+                    " AND e.v_out = v.id " +
+                    " AND e.label = 'isPartOf' " +
+                    " AND p.id = v.id " +
+                    " AND p.type IN (:workVal, :pageVal, :eadWorkVal)" +
+                    " AND e2.v_in = p.id " +
+                    " AND e2.v_out = p2.id " +
+                    " AND e2.label = 'isCopyOf' ")
                     .bind("workId", workId)
-                    .bind("workVal", AmberProperty.encode("Work"))
-                    .bind("pageVal", AmberProperty.encode("Page"))
-                    .bind("eadWorkVal", AmberProperty.encode("EADWork"))
-                    .map(ByteArrayMapper.FIRST).list();
+                    .bind("workVal", "Work")
+                    .bind("pageVal", "Page")
+                    .bind("eadWorkVal", "EADWork")
+                    .map(StringMapper.FIRST).list();
         }
 
         List<CopyRole> copyRoles = new ArrayList<CopyRole>();
-        for (byte[] bytes : copyRoleCodes) {
-            String code = (String) AmberProperty.decode(bytes, DataType.STR);
+        for (String code : copyRoleCodes) {
             copyRoles.add(CopyRole.fromString(code));
         }
         return copyRoles;
@@ -306,18 +271,16 @@ public class WorkChildrenQuery extends AmberQueryBase {
     public List<CopyRole> getAllCopyRoles(List<Long> workIds){
         List<CopyRole> copyRoles = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(workIds)){
-            List<byte[]> copyRoleCodes;
+            List<String> copyRoleCodes;
             try (Handle h = graph.dbi().open()) {
                 copyRoleCodes = h.createQuery(
-                        "select distinct convert(value using utf8) " +
-                                "from property p, edge e, vertex v " +
-                                "where p.txn_end = 0 and e.txn_end = 0 and v.txn_end = 0 " +
-                                "and p.id = e.v_out and v.id = p.id " +
-                                "and e.label = 'isCopyOf' and p.name = 'copyRole' and e.v_in in (" + Joiner.on(",").join(workIds) + ")")
-                        .map(ByteArrayMapper.FIRST).list();
+                        "select distinct copyRole " +
+                                "from work p, flatedge e, node v " +
+                                "where p.id = e.v_out and v.id = p.id " +
+                                "and e.label = 'isCopyOf' and e.v_in in (" + Joiner.on(",").join(workIds) + ")")
+                        .map(StringMapper.FIRST).list();
             }
-            for (byte[] bytes : copyRoleCodes) {
-                String code = (String) AmberProperty.decode(bytes, DataType.STR);
+            for (String code : copyRoleCodes) {
                 CopyRole copyRole = CopyRole.fromString(code);
                 if (copyRole != null){
                     copyRoles.add(copyRole);
@@ -331,7 +294,7 @@ public class WorkChildrenQuery extends AmberQueryBase {
      * Retrieve children Ids of a list of parent Ids by the specified bib level and specified sub type
      * @param parentIds a list of parent Ids
      * @param bibLevel bibLevel of the child
-     * @param subType subtype of the child, can be null
+     * @param subTypes subtype of the child, can be null
      * @return a list of children Ids with the specified bib level and specified sub type
      */
     public List<Long> getChildrenIdsByBibLevelSubType(List<Long> parentIds, BibLevel bibLevel, List<String> subTypes){
@@ -353,22 +316,20 @@ public class WorkChildrenQuery extends AmberQueryBase {
             };
             String subTypeStr = Joiner.on(", ").join(Iterables.transform(subTypes, addQuotes));
             return h.createQuery(
-                    "select distinct v.id from property p1, property p2, edge e, vertex v " +
-                            "where p1.txn_end = 0 and e.txn_end = 0 and v.txn_end = 0 and p2.txn_end = 0 " +
-                            "and p1.id = e.v_out and p2.id = e.v_out and v.id = p1.id and v.id = p2.id " +
+                    "select distinct v.id from work p1, work p2, flatedge e, node v " +
+                            "where p1.id = e.v_out and p2.id = e.v_out and v.id = p1.id and v.id = p2.id " +
                             "and e.label = 'isPartOf' " +
-                            "and p1.name = 'bibLevel' and p1.value = :bibLevel " +
-                            "and p2.name = 'subType' and p2.value in ("+ subTypeStr + ") " +
+                            "and p1.bibLevel = :bibLevel " +
+                            "and p2.subType in ("+ subTypeStr + ") " +
                             "and e.v_in in (" + Joiner.on(",").join(parentIds) + ")")
                     .bind("bibLevel", bibLevel.code())
                     .map(LongMapper.FIRST);
         }
         return h.createQuery(
-                "select distinct v.id from property p1, edge e, vertex v " +
-                        "where p1.txn_end = 0 and e.txn_end = 0 and v.txn_end = 0 " +
-                        "and p1.id = e.v_out and v.id = p1.id " +
+                "select distinct v.id from work p1, flatedge e, node v " +
+                        "where p1.id = e.v_out and v.id = p1.id " +
                         "and e.label = 'isPartOf' " +
-                        "and p1.name = 'bibLevel' and p1.value = :bibLevel " +
+                        "and p1.bibLevel = :bibLevel " +
                         "and e.v_in in (" + Joiner.on(",").join(parentIds) + ")")
                 .bind("bibLevel", bibLevel.code())
                 .map(LongMapper.FIRST);
@@ -381,9 +342,8 @@ public class WorkChildrenQuery extends AmberQueryBase {
     public int getMaxEdgeOrder(Long parentId){
         try (Handle h = graph.dbi().open()) {
             List<Integer> maxEdgeOrder = h.createQuery(
-                    "select max(e.edge_order) from edge e, vertex v " +
-                            "where e.txn_end = 0 and v.txn_end = 0 " +
-                            "and v.id = e.v_out " +
+                    "select max(e.edge_order) from flatedge e, node v " +
+                            "where v.id = e.v_out " +
                             "and e.v_in = :parentId ")
                     .bind("parentId", parentId)
                     .map(IntegerMapper.FIRST).list();
@@ -396,7 +356,7 @@ public class WorkChildrenQuery extends AmberQueryBase {
     
     public List<String> getChildPIs(String workId) {
         try (Handle h = graph.dbi().open()) {
-        	List<Long> objIds = h.createQuery("select v_out from edge where v_in = :workId and label = 'isPartOf' and txn_end = 0")
+        	List<Long> objIds = h.createQuery("select v_out from flatedge where v_in = :workId and label = 'isPartOf'")
         		.bind("workId", PIUtil.parse(workId))
         		.map(LongMapper.FIRST)
         		.list();
