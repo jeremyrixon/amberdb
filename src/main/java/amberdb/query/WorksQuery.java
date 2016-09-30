@@ -18,6 +18,7 @@ import amberdb.enums.BibLevel;
 import amberdb.model.Copy;
 import amberdb.model.Work;
 import org.skife.jdbi.v2.util.LongMapper;
+import org.skife.jdbi.v2.util.StringMapper;
 
 public class WorksQuery {
 
@@ -97,9 +98,12 @@ public class WorksQuery {
      * Find the distinct bib levels of all the parents of the specified list of work ids
      */
     public static Set<BibLevel> getDistinctParentBibLevels(AmberSession sess, List<Long> workIds){
-        String sql = "SELECT DISTINCT p.value from property p, edge e where e.v_in=p.id "
-                + "and e.txn_end = 0 and e.label = 'isPartOf' "
-                + "and p.name = 'bibLevel' and p.txn_end = 0 and e.v_out in ("+Joiner.on(",").join(workIds)+"); ";
+        String sql = "" +
+                "SELECT DISTINCT bibLevel " +
+                "FROM work w, flatedge e " +
+                "WHERE e.v_in = w.id " +
+                "AND e.label = 'isPartOf' " +
+                "AND e.v_out IN (" + Joiner.on(",").join(workIds) + ") ";
         return getDistinctBibLevels(sess, sql);
     }
     
@@ -107,23 +111,25 @@ public class WorksQuery {
      * Find the distinct bib levels of all the children of the specified list of work ids
      */
     public static Set<BibLevel> getDistinctChildrenBibLevels(AmberSession sess, List<Long> workIds){
-        String sql = "SELECT DISTINCT p.value from property p, edge e where e.v_out=p.id "
-                + "and e.txn_end = 0 and e.label = 'isPartOf' "
-                + "and p.name = 'bibLevel' and p.txn_end = 0 and e.v_in in ("+Joiner.on(",").join(workIds)+"); ";
+        String sql = "" +
+                "SELECT DISTINCT bibLevel " +
+                "FROM work w, flatedge e " +
+                "WHERE e.v_out = w.id " +
+                "AND e.label = 'isPartOf' " +
+                "AND e.v_in in (" + Joiner.on(",").join(workIds) + ") ";
         return getDistinctBibLevels(sess, sql);
     }
     
     private static Set<BibLevel> getDistinctBibLevels(AmberSession sess, final String sql){
-        List<byte[]> bibLevelCodes = new ArrayList<>();
+        List<String> bibLevelCodes = new ArrayList<>();
         try (Handle h = sess.getAmberGraph().dbi().open()) {
-            bibLevelCodes = h.createQuery(sql).map(ByteArrayMapper.FIRST).list();
+            bibLevelCodes = h.createQuery(sql).map(StringMapper.FIRST).list();
         }
         Set<BibLevel> bibLevels = new HashSet<>();
-        for (byte[] bytes : bibLevelCodes) {
-            String code = (String) AmberProperty.decode(bytes, DataType.STR);
+        for (String code : bibLevelCodes) {
             BibLevel bibLevel = BibLevel.fromString(code);
             if (bibLevel != null){
-                bibLevels.add(bibLevel);    
+                bibLevels.add(bibLevel);
             }
         }
         return bibLevels;
@@ -131,10 +137,11 @@ public class WorksQuery {
     
     private static Map<Long, AmberTransaction> getFirstTransactions(AmberSession sess, List<Long> workIds){
         if (CollectionUtils.isNotEmpty(workIds)) {
-            String sql = "select t1.time, t1.user, t1.operation, t2.transaction_id, t2.vertex_id " +
-                    "from transaction t1, (select min(t.id) transaction_id, v.id vertex_id from transaction t, vertex v " +
-                    "where t.id = v.txn_start and v.id in (" + Joiner.on(",").join(workIds) + ") group by v.id) " +
-                    "as t2 where t1.id = t2.transaction_id";
+            String sql = "SELECT t1.time, t1.user, t1.operation, t2.transaction_id, t2.vertex_id " +
+                    "FROM transaction t1, " +
+                    " (SELECT MIN(t.id) transaction_id, v.id vertex_id from transaction t, node_history v " +
+                    " WHERE t.id = v.txn_start and v.id in (" + Joiner.on(",").join(workIds) + ") group by v.id) t2 " +
+                    "WHERE t1.id = t2.transaction_id ";
             return getTransactions(sess, sql);
         }
         return new HashMap<>();
@@ -142,10 +149,12 @@ public class WorksQuery {
 
     private static Map<Long, AmberTransaction> getLastTransactions(AmberSession sess, List<Long> workIds){
         if (CollectionUtils.isNotEmpty(workIds)) {
-            String sql = "select t1.time, t1.user, t1.operation, t2.transaction_id, t2.vertex_id " +
-                    "from transaction t1, (select max(t.id) transaction_id, v.id vertex_id from transaction t, vertex v " +
-                    "where t.id = v.txn_start and v.id in (" + Joiner.on(",").join(workIds) + ") group by v.id) " +
-                    "as t2 where t1.id = t2.transaction_id";
+            String sql = "" +
+                    "SELECT t1.time, t1.user, t1.operation, t2.transaction_id, t2.vertex_id " +
+                    "FROM transaction t1, " +
+                    " (SELECT MAX(t.id) transaction_id, v.id vertex_id from transaction t, node v " +
+                    " WHERE t.id = v.txn_start and v.id in (" + Joiner.on(",").join(workIds) + ") group by v.id) t2 " +
+                    "WHERE t1.id = t2.transaction_id ";
             return getTransactions(sess, sql);
         }
         return new HashMap<>();
@@ -170,7 +179,7 @@ public class WorksQuery {
      */
     public static List<Long> getNLastCreatedVertexIds(AmberSession sess, List<Long> vertexIds, long n){
         if (CollectionUtils.isNotEmpty(vertexIds)){
-            String sql = "select id from vertex where id in (" + Joiner.on(",").join(vertexIds) + ") group by id order by min(txn_start) desc limit :n";
+            String sql = "SELECT id FROM vertex WHERE id IN (" + Joiner.on(",").join(vertexIds) + ") GROUP BY id ORDER BY MIN(txn_start) DESC LIMIT :n";
             try (Handle h = sess.getAmberGraph().dbi().open()) {
                 return h.createQuery(sql).bind("n", n).map(LongMapper.FIRST).list();
             }
