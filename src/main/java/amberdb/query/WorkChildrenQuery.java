@@ -4,33 +4,26 @@ import amberdb.AmberSession;
 import amberdb.PIUtil;
 import amberdb.enums.BibLevel;
 import amberdb.enums.CopyRole;
-import amberdb.enums.SubType;
-import amberdb.graph.AmberProperty;
 import amberdb.graph.AmberQueryBase;
-import amberdb.graph.DataType;
 import amberdb.model.Section;
 import amberdb.model.Work;
-
-import java.util.*;
-
 import amberdb.model.sort.WorkComparator;
-import amberdb.util.WorkUtils;
-
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
+import com.tinkerpop.blueprints.Vertex;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.Query;
-import org.skife.jdbi.v2.util.ByteArrayMapper;
 import org.skife.jdbi.v2.util.IntegerMapper;
-
-import com.tinkerpop.blueprints.Vertex;
-
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang.StringUtils;
 import org.skife.jdbi.v2.util.LongMapper;
 import org.skife.jdbi.v2.util.StringMapper;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class WorkChildrenQuery extends AmberQueryBase {
 
