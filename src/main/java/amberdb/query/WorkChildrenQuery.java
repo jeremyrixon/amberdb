@@ -230,11 +230,8 @@ public class WorkChildrenQuery extends AmberQueryBase {
                     " AND e.v_out = v.id " +
                     " AND e.label = 'isPartOf' " +
                     " AND p.id = v.id " +
-                    " AND p.type IN (:workVal, :pageVal, :eadWorkVal); ")
+                    " AND p.type IN ('Work', 'Page', 'EADWork'); ")
                     .bind("workId", workId)
-                    .bind("workVal", "Work")
-                    .bind("pageVal", "Page")
-                    .bind("eadWorkVal", "EADWork")
                     .map(IntegerMapper.FIRST).first();
         }
         return numChildren;
@@ -250,14 +247,11 @@ public class WorkChildrenQuery extends AmberQueryBase {
                     " AND e.v_out = v.id " +
                     " AND e.label = 'isPartOf' " +
                     " AND p.id = v.id " +
-                    " AND p.type IN (:workVal, :pageVal, :eadWorkVal)" +
+                    " AND p.type IN ('Work', 'Page', 'EADWork')" +
                     " AND e2.v_in = p.id " +
                     " AND e2.v_out = p2.id " +
                     " AND e2.label = 'isCopyOf' ")
                     .bind("workId", workId)
-                    .bind("workVal", "Work")
-                    .bind("pageVal", "Page")
-                    .bind("eadWorkVal", "EADWork")
                     .map(StringMapper.FIRST).list();
         }
 
