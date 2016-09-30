@@ -62,19 +62,19 @@ public class WorksQueryTest extends AbstractDatabaseIntegrationTest {
     public void getDistinctChildrenBibLevels(){
         Work work1 = amberSession.addWork();
         Work child1 = amberSession.addWork();
-        child1.setBibLevel("item");
+        child1.setBibLevel("Item");
         Work child2 = amberSession.addWork();
-        child2.setBibLevel("set");
+        child2.setBibLevel("Set");
         Work child3 = amberSession.addWork();
         Work child4 = amberSession.addWork();
-        child4.setBibLevel("item,item");
+        child4.setBibLevel("Item, Item");
         work1.addChild(child1);
         work1.addChild(child2);
         work1.addChild(child3);
         work1.addChild(child4);
         Work work2 = amberSession.addWork();
         Work child5 = amberSession.addWork();
-        child5.setBibLevel("part");
+        child5.setBibLevel("Part");
         work2.addChild(child5);
         Work work3 = amberSession.addWork();
         amberSession.commit();
