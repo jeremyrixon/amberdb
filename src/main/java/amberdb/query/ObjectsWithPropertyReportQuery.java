@@ -57,10 +57,7 @@ public class ObjectsWithPropertyReportQuery extends AmberQueryBase {
     }
     
 
-    public List<Vertex> generateExpiryReport(Date expiryYear,
-            String collectionName) {
-
-        long datetime = expiryYear.getTime();
+    public List<Vertex> generateExpiryReport(Date expiryYear, String collectionName) {
 
         List<Vertex> vertices;
         try (Handle h = graph.dbi().open()) {
@@ -78,7 +75,7 @@ public class ObjectsWithPropertyReportQuery extends AmberQueryBase {
                             + " AND p.collection = :collection \n"
                             + " AND p.expiryDate = :expiry \n");
 
-            q.bind("expiry", datetime);
+            q.bind("expiry", expiryYear);
             q.bind("collection", collectionName);
             q.execute();
             h.commit();
