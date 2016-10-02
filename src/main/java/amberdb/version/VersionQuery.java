@@ -10,10 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import amberdb.graph.AmberQueryBase;
-import amberdb.graph.AmberVertex;
-import jeremy.DumpQuery;
-
 import org.skife.jdbi.v2.Handle;
 
 import com.google.common.collect.Lists;
