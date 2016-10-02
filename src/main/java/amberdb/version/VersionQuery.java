@@ -12,6 +12,8 @@ import java.util.Set;
 
 import amberdb.graph.AmberQueryBase;
 import amberdb.graph.AmberVertex;
+import jeremy.DumpQuery;
+
 import org.skife.jdbi.v2.Handle;
 
 import com.google.common.collect.Lists;
@@ -25,13 +27,13 @@ public class VersionQuery {
     List<QueryClause> clauses = new ArrayList<QueryClause>();
     private VersionedGraph graph;
 
-    protected static final String VERTEX_QUERY_PREFIX = "select * \n" +
+    protected static final String VERTEX_HISTORY_QUERY_PREFIX = "select * \n" +
             "from node_history \n" +
-            "left join work_history        on        work_history.id = node_history.id \n" +
-            "left join file_history        on        file_history.id = node_history.id \n" +
-            "left join description_history on description_history.id = node_history.id \n" +
-            "left join party_history       on       party_history.id = node_history.id \n" +
-            "left join tag_history         on         tag_history.id = node_history.id \n";
+            "left join work_history        on        work_history.id = node_history.id and        work_history.txn_start = node_history.txn_start and        work_history.txn_end = node_history.txn_end \n" +
+            "left join file_history        on        file_history.id = node_history.id and        file_history.txn_start = node_history.txn_start and        file_history.txn_end = node_history.txn_end \n" +
+            "left join description_history on description_history.id = node_history.id and description_history.txn_start = node_history.txn_start and description_history.txn_end = node_history.txn_end \n" +
+            "left join party_history       on       party_history.id = node_history.id and       party_history.txn_start = node_history.txn_start and       party_history.txn_end = node_history.txn_end \n" +
+            "left join tag_history         on         tag_history.id = node_history.id and         tag_history.txn_start = node_history.txn_start and         tag_history.txn_end = node_history.txn_end \n";
 
     protected VersionQuery(Long head, VersionedGraph graph) {
 
@@ -205,7 +207,7 @@ public class VersionQuery {
     
     private Map<TId, Map<String, Object>> getVertexPropertyMaps(Handle h) {
         
-        List<TVertex> vertices = h.createQuery(VERTEX_QUERY_PREFIX + "inner join v0 on v0.vid = node_history.id ").map(new TVertexMapper()).list();
+        List<TVertex> vertices = h.createQuery(VERTEX_HISTORY_QUERY_PREFIX + "inner join v0 on v0.vid = node_history.id ").map(new TVertexMapper()).list();
 
         Map<TId, Map<String, Object>> propertyMaps = new HashMap<TId, Map<String, Object>>();
         for (TVertex vertex : vertices) {
