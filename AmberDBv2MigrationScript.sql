@@ -1339,9 +1339,9 @@ CREATE TABLE IF NOT EXISTS acknowledge_history (
                                     v_in                                  BIGINT,
                               edge_order                                  BIGINT,
                                    label                             VARCHAR(16),
-                                 ackType                             VARCHAR(28),
+                                 ackType                                    TEXT,
                                     date                                DATETIME,
-                           kindOfSupport                             VARCHAR(11),
+                           kindOfSupport                                    TEXT,
                                weighting                                  DOUBLE,
                            urlToOriginal                                    TEXT) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -1365,9 +1365,9 @@ CREATE TABLE IF NOT EXISTS acknowledge (
                                     v_in                                  BIGINT,
                               edge_order                                  BIGINT,
                                    label                             VARCHAR(16),
-                                 ackType                             VARCHAR(28),
+                                 ackType                                    TEXT,
                                     date                                DATETIME,
-                           kindOfSupport                             VARCHAR(11),
+                           kindOfSupport                                    TEXT,
                                weighting                                  DOUBLE,
                            urlToOriginal                                    TEXT) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -1388,9 +1388,9 @@ CREATE TABLE IF NOT EXISTS sess_acknowledge (
                                     v_in                                  BIGINT,
                               edge_order                                  BIGINT,
                                    label                             VARCHAR(16),
-                                 ackType                             VARCHAR(28),
+                                 ackType                                    TEXT,
                                     date                                DATETIME,
-                           kindOfSupport                             VARCHAR(11),
+                           kindOfSupport                                    TEXT,
                                weighting                                  DOUBLE,
                            urlToOriginal                                    TEXT) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE INDEX sess_acknowledge_id ON sess_acknowledge (id);
