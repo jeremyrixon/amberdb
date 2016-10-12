@@ -99,7 +99,7 @@ public abstract class AmberDaoMySql extends AmberDao {
 			 + "WHERE c.txn_end = 0 "
 			 + "AND c.id = s.id "
 			 + "AND s.s_id = @txn "
-			 + "AND s.state = 'DEL';")
+			 + "AND s.state in ('DEL', 'NEW');")
 			public abstract void endNodes(
 			@Bind("txnId") Long txnId);
 
@@ -143,7 +143,7 @@ public abstract class AmberDaoMySql extends AmberDao {
 			 + "WHERE c.txn_end = 0 "
 			 + "AND c.id = s.id "
 			 + "AND s.s_id = @txn "
-			 + "AND s.state = 'DEL';")
+			 + "AND s.state in ('DEL', 'NEW');")
 			public abstract void endWorks(
 			@Bind("txnId") Long txnId);
 
@@ -187,7 +187,7 @@ public abstract class AmberDaoMySql extends AmberDao {
 			 + "WHERE c.txn_end = 0 "
 			 + "AND c.id = s.id "
 			 + "AND s.s_id = @txn "
-			 + "AND s.state = 'DEL';")
+			 + "AND s.state in ('DEL', 'NEW');")
 			public abstract void endFiles(
 			@Bind("txnId") Long txnId);
 
@@ -231,7 +231,7 @@ public abstract class AmberDaoMySql extends AmberDao {
 			 + "WHERE c.txn_end = 0 "
 			 + "AND c.id = s.id "
 			 + "AND s.s_id = @txn "
-			 + "AND s.state = 'DEL';")
+			 + "AND s.state in ('DEL', 'NEW');")
 			public abstract void endDescriptions(
 			@Bind("txnId") Long txnId);
 
@@ -275,7 +275,7 @@ public abstract class AmberDaoMySql extends AmberDao {
 			 + "WHERE c.txn_end = 0 "
 			 + "AND c.id = s.id "
 			 + "AND s.s_id = @txn "
-			 + "AND s.state = 'DEL';")
+			 + "AND s.state in ('DEL', 'NEW');")
 			public abstract void endParties(
 			@Bind("txnId") Long txnId);
 
@@ -319,7 +319,7 @@ public abstract class AmberDaoMySql extends AmberDao {
 			 + "WHERE c.txn_end = 0 "
 			 + "AND c.id = s.id "
 			 + "AND s.s_id = @txn "
-			 + "AND s.state = 'DEL';")
+			 + "AND s.state in ('DEL', 'NEW');")
 			public abstract void endTags(
 			@Bind("txnId") Long txnId);
 
@@ -363,7 +363,7 @@ public abstract class AmberDaoMySql extends AmberDao {
 			 + "WHERE c.txn_end = 0 "
 			 + "AND c.id = s.id "
 			 + "AND s.s_id = @txn "
-			 + "AND s.state = 'DEL';")
+			 + "AND s.state in ('DEL', 'NEW');")
 			public abstract void endFlatedges(
 			@Bind("txnId") Long txnId);
 
@@ -407,7 +407,7 @@ public abstract class AmberDaoMySql extends AmberDao {
 			 + "WHERE c.txn_end = 0 "
 			 + "AND c.id = s.id "
 			 + "AND s.s_id = @txn "
-			 + "AND s.state = 'DEL';")
+			 + "AND s.state in ('DEL', 'NEW');")
 			public abstract void endAcknowledgements(
 			@Bind("txnId") Long txnId);
 
