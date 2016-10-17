@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS node (
 insert into node select * from node_history where txn_end = 0;
 CREATE INDEX node_id ON node (id);
 CREATE INDEX node_txn_id ON node (id, txn_start, txn_end);
+CREATE INDEX node_type ON node (type);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
