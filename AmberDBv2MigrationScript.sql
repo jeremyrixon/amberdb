@@ -1328,7 +1328,7 @@ CREATE TABLE IF NOT EXISTS sess_flatedge (
                                    label                             VARCHAR(16)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE INDEX sess_flatedge_id ON sess_flatedge (id);
 CREATE INDEX sess_flatedge_txn_id ON sess_flatedge (id, txn_start, txn_end);
-CREATE INDEX sess_flatedge_label_vertices ON flatedge (label, v_in, v_out);
+CREATE INDEX sess_flatedge_label_vertices ON sess_flatedge (label, v_in, v_out);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 DROP TABLE IF EXISTS acknowledge_history;
