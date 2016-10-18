@@ -96,6 +96,7 @@ CREATE TABLE IF NOT EXISTS work_history (
 
                                 abstract                                    TEXT,
                                   access                                    TEXT,
+                         accessAgreement                             VARCHAR(63),
                         accessConditions                             VARCHAR(63),
                      acquisitionCategory                             VARCHAR(63),
                        acquisitionStatus                             VARCHAR(63),
@@ -252,6 +253,7 @@ insert into work_history (id, txn_start, txn_end, type) select id, txn_start, tx
 update work_history t, property p set t.type = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'type';
 update work_history t, property p set t.abstract = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'abstract';
 update work_history t, property p set t.access = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'access';
+update work_history t, property p set t.accessAgreement = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'accessAgreement';
 update work_history t, property p set t.accessConditions = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'accessConditions';
 update work_history t, property p set t.acquisitionCategory = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'acquisitionCategory';
 update work_history t, property p set t.acquisitionStatus = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'acquisitionStatus';
@@ -420,6 +422,7 @@ CREATE TABLE IF NOT EXISTS work (
 
                                 abstract                                    TEXT,
                                   access                                    TEXT,
+                         accessAgreement                             VARCHAR(63),
                         accessConditions                             VARCHAR(63),
                      acquisitionCategory                             VARCHAR(63),
                        acquisitionStatus                             VARCHAR(63),
@@ -592,6 +595,7 @@ CREATE TABLE IF NOT EXISTS sess_work (
 
                                 abstract                                    TEXT,
                                   access                                    TEXT,
+                         accessAgreement                             VARCHAR(63),
                         accessConditions                             VARCHAR(63),
                      acquisitionCategory                             VARCHAR(63),
                        acquisitionStatus                             VARCHAR(63),
