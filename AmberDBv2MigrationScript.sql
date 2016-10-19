@@ -1317,6 +1317,7 @@ insert into flatedge select * from flatedge_history where txn_end = 0;
 CREATE INDEX flatedge_id ON flatedge (id);
 CREATE INDEX flatedge_txn_id ON flatedge (id, txn_start, txn_end);
 CREATE INDEX flatedge_label_vertices ON flatedge (label, v_in, v_out);
+CREATE INDEX flatedge_label_vout ON flatedge (label, v_out);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 DROP TABLE IF EXISTS sess_flatedge;
