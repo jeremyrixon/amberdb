@@ -1160,6 +1160,7 @@ public abstract class LookupsSchema {
         seedDataValidationMsgs();
         seedCollectionList();
         seedCommercialStatusList();
+        seedAccessAgreementList();
         seedCopyTypeList();
         seedTiffMetaLuList();
         seedValuesForKeyList();
