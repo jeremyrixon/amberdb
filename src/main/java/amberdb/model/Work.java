@@ -288,6 +288,12 @@ public interface Work extends Node {
     @Property("commercialStatus")
     void setCommercialStatus(String commercialStatus);
 
+    @Property("accessAgreement")
+    String getAccessAgreement();
+
+    @Property("accessAgreement")
+    void setAccessAgreement(String accessAgreement);
+
     @Property("firstPart")
     @Deprecated
     String getFirstPart();

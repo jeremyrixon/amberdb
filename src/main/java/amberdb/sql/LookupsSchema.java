@@ -1041,6 +1041,12 @@ public abstract class LookupsSchema {
             + "('commercialStatus', 'NonCommerc', 'Non-commercial')")
     public abstract void seedCommercialStatusList();
 
+    @SqlUpdate("INSERT INTO lookups (name, code, value, deleted) values " +
+            "('accessAgreement', 'OpenAccessImmediately', 'Open access immediately', 'N')," +
+            "('accessAgreement', 'OpenAccessEmbargoed', 'Open access (embargoed)', 'N')," +
+            "('accessAgreement', 'BasicAccess', 'Basic access (as per Copyright Act)', 'N')")
+    public abstract void seedAccessAgreementList();
+
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
             + "('depositType', 'OnlineLegal', 'Online legal deposit'),"
             + "('depositType', 'OnlineGovernment', 'Online government deposit'),"
@@ -1154,6 +1160,7 @@ public abstract class LookupsSchema {
         seedDataValidationMsgs();
         seedCollectionList();
         seedCommercialStatusList();
+        seedAccessAgreementList();
         seedCopyTypeList();
         seedTiffMetaLuList();
         seedValuesForKeyList();
