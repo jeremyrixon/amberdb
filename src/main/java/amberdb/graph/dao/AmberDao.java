@@ -25,7 +25,9 @@ import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.sqlobject.mixins.GetHandle;
 import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
+import org.skife.jdbi.v2.util.IntegerColumnMapper;
 
+import amberdb.AmberSession;
 import amberdb.graph.AmberEdge;
 import amberdb.graph.AmberProperty;
 import amberdb.graph.AmberTransaction;
@@ -34,6 +36,7 @@ import amberdb.graph.BaseElement;
 import amberdb.graph.PropertyMapper;
 import amberdb.graph.State;
 import amberdb.graph.TransactionMapper;
+import amberdb.model.Work;
 
 
 public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
@@ -1671,6 +1674,15 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 		allFields.remove("nextStep");
 		return allFields;
 	}
+
+    public Integer getFirstPageNumberZeroBased(Work work) {
+        return getHandle().createQuery(
+                        "select min(is_part_of.edge_order) \n" +
+                        "from flatedge exists_on, flatedge is_part_of \n" +
+                        "where exists_on.label = 'existsOn' and is_part_of.label = 'isPartOf' \n" +
+                        "and exists_on.v_out = :id and is_part_of.v_out = exists_on.v_in")
+                .bind("id", work.getId()).map(IntegerColumnMapper.PRIMITIVE).list().get(0);
+    }
 
 
 	// The following queries intentionally left blank. They are implemented in the db specific AmberDao sub classes (h2 or MySql)
