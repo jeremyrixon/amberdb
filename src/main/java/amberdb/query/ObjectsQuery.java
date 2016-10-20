@@ -116,7 +116,7 @@ public class ObjectsQuery extends AmberQueryBase {
             for (Map<String, Object> row : q.list()) {
                 Long id = (Long)row.get("article_id");
                 String[] status = ((String)row.get("article_status")).split(",");
-                String accessConditions = (String)row.get("accessCOnditions");
+                String accessConditions = (String)row.get("accessConditions");
                 
                 String transition = status[0];
                 String reason = status.length > 1 ? status[1] : "";
