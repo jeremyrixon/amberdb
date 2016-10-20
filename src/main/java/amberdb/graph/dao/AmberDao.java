@@ -1678,7 +1678,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 
     public Map<String, Object> getFirstPageNumberAndId(Work work) {
          return getHandle().createQuery(
-                        "select (is_part_of.edge_order + 1) number, is_part_of.v_in id \n" +
+                        "select (is_part_of.edge_order + 1) number, exists_on.v_in id \n" +
                         "from flatedge exists_on \n" +
                         "join flatedge is_part_of on is_part_of.label = 'isPartOf' and is_part_of.v_out = exists_on.v_in \n" +
                         "where exists_on.label = 'existsOn' \n" +
