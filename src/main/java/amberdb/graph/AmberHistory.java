@@ -23,7 +23,6 @@ import amberdb.version.TVertexDiff;
 import amberdb.version.VersionedEdge;
 import amberdb.version.VersionedGraph;
 import amberdb.version.VersionedVertex;
-import amberdb.query.ModifiedObjectsQueryResponse.ModifiedObject;
 
 public class AmberHistory {
 
