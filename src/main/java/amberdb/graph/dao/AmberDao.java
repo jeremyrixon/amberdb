@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.PreparedBatch;
 import org.skife.jdbi.v2.PreparedBatchPart;
@@ -1675,13 +1676,15 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 		return allFields;
 	}
 
-    public Integer getFirstPageNumberZeroBased(Work work) {
-        return getHandle().createQuery(
-                        "select min(is_part_of.edge_order) \n" +
-                        "from flatedge exists_on, flatedge is_part_of \n" +
-                        "where exists_on.label = 'existsOn' and is_part_of.label = 'isPartOf' \n" +
-                        "and exists_on.v_out = :id and is_part_of.v_out = exists_on.v_in")
-                .bind("id", work.getId()).map(IntegerColumnMapper.PRIMITIVE).list().get(0);
+    public Map<String, Object> getFirstPageNumberAndId(Work work) {
+         return getHandle().createQuery(
+                        "select (is_part_of.edge_order + 1) number, is_part_of.v_in id \n" +
+                        "from flatedge exists_on \n" +
+                        "join flatedge is_part_of on is_part_of.label = 'isPartOf' and is_part_of.v_out = exists_on.v_in \n" +
+                        "where exists_on.label = 'existsOn' \n" +
+                        "and exists_on.v_out = :id \n" +
+                        "order by is_part_of.edge_order limit 1")
+                .bind("id", work.getId()).list().get(0);
     }
 
 
