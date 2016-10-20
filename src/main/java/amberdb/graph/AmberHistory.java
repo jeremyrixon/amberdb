@@ -24,7 +24,6 @@ import amberdb.version.VersionedEdge;
 import amberdb.version.VersionedGraph;
 import amberdb.version.VersionedVertex;
 
-
 public class AmberHistory {
 
     private VersionedGraph vGraph;
