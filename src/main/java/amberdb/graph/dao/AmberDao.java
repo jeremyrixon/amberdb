@@ -1691,7 +1691,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     public Map<String, Set<AliasItem>> getDuplicateAliases(String collection) {
         Map<String, Set<AliasItem>> results = new HashMap<>();
         for (Map<String, Object> row: getHandle().createQuery(
-                "select a.obj_id oid, a.legacy_id lid, p.title \n" +
+                "select a.obj_id oid, a.legacy_id lid, p.title, p.type \n" +
                 "from alternate_pi a, work p \n" +
                 "where a.name = 'alias'  \n" +
                 "and a.legacy_id in (select legacy_id from alternate_pi where name = 'alias' group by legacy_id having count(legacy_id) > 1) \n" +
@@ -1699,7 +1699,14 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
                 "and p.type in ('Work','Page','Section','EADWork') \n" +
                 "and p.collection = 'nla.oh'; \n")
         .bind("id", collection).list()) {
-            // TODO
+            AliasItem aliasItem = new AliasItem((String) row.get("oid"), (String) row.get("type"), (String) row.get("title"));
+            String lid = (String) row.get("lid");
+            Set<AliasItem> aliasItems = results.get(lid);
+            if (aliasItems == null) {
+                aliasItems = new HashSet<>();
+                results.put(lid, aliasItems);
+            }
+            aliasItems.add(aliasItem);
         }
         return results;
     }
