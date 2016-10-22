@@ -37,6 +37,7 @@ import amberdb.graph.BaseElement;
 import amberdb.graph.PropertyMapper;
 import amberdb.graph.State;
 import amberdb.graph.TransactionMapper;
+import amberdb.model.AliasItem;
 import amberdb.model.Work;
 
 
@@ -1686,7 +1687,29 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
                         "order by is_part_of.edge_order limit 1")
                 .bind("id", work.getId()).list().get(0);
     }
-
+    
+    public Map<String, Set<AliasItem>> getDuplicateAliases(String collection) {
+        Map<String, Set<AliasItem>> results = new HashMap<>();
+        for (Map<String, Object> row: getHandle().createQuery(
+                "select a.obj_id oid, a.legacy_id lid, p.title, p.type \n" +
+                "from alternate_pi a, work p \n" +
+                "where a.name = 'alias'  \n" +
+                "and a.legacy_id in (select legacy_id from alternate_pi where name = 'alias' group by legacy_id having count(legacy_id) > 1) \n" +
+                "and a.obj_id = p.id \n" +
+                "and p.type in ('Work','Page','Section','EADWork') \n" +
+                "and p.collection = 'nla.oh'; \n")
+        .bind("id", collection).list()) {
+            AliasItem aliasItem = new AliasItem((String) row.get("oid"), (String) row.get("type"), (String) row.get("title"));
+            String lid = (String) row.get("lid");
+            Set<AliasItem> aliasItems = results.get(lid);
+            if (aliasItems == null) {
+                aliasItems = new HashSet<>();
+                results.put(lid, aliasItems);
+            }
+            aliasItems.add(aliasItem);
+        }
+        return results;
+    }
 
 	// The following queries intentionally left blank. They are implemented in the db specific AmberDao sub classes (h2 or MySql)
 	@SqlUpdate("")
@@ -1752,6 +1775,8 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 	@SqlUpdate("")
 	public abstract void startAcknowledgements(
 	@Bind("txnId") Long txnId);
+
+
 
 }
 
