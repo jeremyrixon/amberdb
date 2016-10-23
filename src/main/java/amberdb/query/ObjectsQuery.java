@@ -35,80 +35,58 @@ public class ObjectsQuery extends AmberQueryBase {
             h.execute("SET @from_transaction = ?", request.getFromTxn());
 
             Query<Map<String, Object>> q = h.createQuery(
-                    "SELECT *\n" + 
-                    "FROM\n" + 
-                    "  (SELECT DISTINCT article.id AS article_id,\n" + 
-                    "                   CASE\n" + 
-                    "                       WHEN article.accessConditions = 'Restricted' THEN 'Restricted'\n" + 
-                    "                       WHEN parent.accessConditions IS NULL\n" + 
-                    "                            OR parent.accessConditions = 'Restricted' THEN 'Restricted'\n" + 
-                    "                       WHEN page.accessConditions IS NULL\n" + 
-                    "                            OR page.accessConditions = 'Restricted' THEN 'Restricted'\n" + 
-                    "                       ELSE article.accessConditions\n" + 
-                    "                   END AS accessConditions,\n" + 
-                    "                   CASE\n" + 
-                    "                       WHEN article.txn_end >= @from_transaction THEN 'DELETED'\n" + 
-                    "                       WHEN parent.accessConditions IS NULL\n" + 
-                    "                            OR parent.accessConditions = 'Restricted' THEN 'DELETED,PARENT_JOURNAL_RESTRICTED'\n" + 
-                    "                       WHEN page.accessConditions IS NULL\n" + 
-                    "                            OR page.accessConditions = 'Restricted' THEN 'DELETED,RESTRICTED_PAGE'\n" + 
-                    "                       WHEN article.accessConditions = 'Restricted' THEN 'DELETED,RESTRICTED'\n" + 
-                    "                       WHEN (parent.txn_start >= @from_transaction\n" + 
-                    "                             AND\n" + 
-                    "                               (SELECT count(*)\n" + 
-                    "                                FROM work_history\n" + 
-                    "                                WHERE id = parent.id) > 1) THEN 'MODIFIED,PARENT_MODIFIED'\n" + 
-                    "                       WHEN parent.txn_start >= @from_transaction THEN 'NEW,PARENT_NEW'\n" + 
-                    "                       WHEN (page.txn_start >= @from_transaction\n" + 
-                    "                             AND\n" + 
-                    "                               (SELECT count(*)\n" + 
-                    "                                FROM work_history\n" + 
-                    "                                WHERE id = page.id) > 1) THEN 'MODIFIED,PAGE_MODIFIED'\n" + 
-                    "                       WHEN page.txn_start >= @from_transaction THEN 'NEW,PAGE_NEW'\n" + 
-                    "                       WHEN\n" + 
-                    "                              (SELECT count(*)\n" + 
-                    "                               FROM work_history\n" + 
-                    "                               WHERE id = article.id) > 1 THEN 'MODIFIED'\n" + 
-                    "                       ELSE 'NEW'\n" + 
-                    "                   END AS article_status\n" + 
-                    "   FROM work_history AS article,\n" + 
-                    "        edge AS article_parent_edge,\n" + 
-                    "   work AS parent,\n" + 
-                    "           edge AS article_page_edge,\n" + 
-                    "   work AS page\n" + 
-                    "   WHERE (article.txn_end = 0\n" + 
-                    "          OR -- current\n" + 
-                    " article.txn_end >= @from_transaction)\n" + 
-                    "     AND -- deleted\n" + 
-                    "article.subType = 'article'\n" + 
-                    "     AND article_parent_edge.label = 'isPartOf'\n" + 
-                    "     AND -- parent join\n" + 
-                    "article.id = article_parent_edge.v_out\n" + 
-                    "     AND parent.id = article_parent_edge.v_in\n" + 
-                    "     AND article_page_edge.label = 'existsOn'\n" + 
-                    "     AND -- page join\n" + 
-                    "article.id = article_page_edge.v_out\n" + 
-                    "     AND page.id = article_page_edge.v_in\n" + 
-                    "     AND page.subType = 'page'\n" + 
-                    "     AND ( article.txn_start >= @from_transaction\n" + 
-                    "          OR -- new/modified\n" + 
-                    " article.accessConditions = 'Restricted'\n" + 
-                    "          OR -- deleted\n" + 
-                    " (parent.accessConditions IS NULL\n" + 
-                    "  OR parent.accessConditions = 'Restricted')\n" + 
-                    "          OR -- deleted\n" + 
-                    " (page.accessConditions IS NULL\n" + 
-                    "  OR page.accessConditions = 'Restricted')\n" + 
-                    "          OR -- deleted\n" + 
-                    " parent.txn_start >= @from_transaction\n" + 
-                    "          OR -- parent new/modified\n" + 
-                    " page.txn_start >= @from_transaction -- page new/modified\n" + 
-                    ") ) AS articles\n" + 
-                    "WHERE article_status LIKE 'DELETED%'\n" + 
-                    "  OR article_status IN ('NEW',\n" + 
-                    "                        'MODIFIED')\n" + 
-                    "ORDER BY article_id LIMIT :skip,\n" + 
-                    "                          :take;\n");
+                    "select * from\n" + 
+                    "(\n" + 
+                    "select distinct article.id as article_id,\n" + 
+                    "       @from_transaction,\n" + 
+                    "       article.txn_start,\n" + 
+                    "       article.txn_end,\n" + 
+                    "       article.accessConditions as a_access,\n" + 
+                    "       parent.accessConditions as p_access,\n" + 
+                    "       page.accessConditions as page_access,\n" + 
+                    "       case\n" + 
+                    "         when article.accessConditions = 'Restricted' then 'Restricted'\n" + 
+                    "         when parent.accessConditions is null or parent.accessConditions = 'Restricted' then 'Restricted'\n" + 
+                    "         when page.accessConditions is null or page.accessConditions = 'Restricted' then 'Restricted'\n" + 
+                    "         when article.accessConditions is null then parent.accessConditions\n" + 
+                    "         else article.accessConditions\n" + 
+                    "       end as accessConditions,\n" + 
+                    "       case\n" + 
+                    "         when article.txn_end >= @from_transaction then 'DELETED,NEW_MODIFIED_DELETED'\n" + 
+                    "         when parent.accessConditions is null or parent.accessConditions = 'Restricted' then 'DELETED,PARENT_JOURNAL_RESTRICTED'\n" + 
+                    "         when page.accessConditions is null or page.accessConditions = 'Restricted' then 'DELETED,RESTRICTED_PAGE'\n" + 
+                    "         when article.accessConditions = 'Restricted' then 'DELETED,RESTRICTED'\n" + 
+                    "         when (article.txn_start >= @from_transaction and (select count(*) from work_history where id = article.id) > 1) then 'MODIFIED,NEW_MODIFIED_DELETED'\n" + 
+                    "         when (article.txn_start >= @from_transaction and (select count(*) from work_history where id = article.id) = 1) then 'NEW,NEW_MODIFIED_DELETED'\n" + 
+                    "         when (parent.txn_start >= @from_transaction and (select count(*) from work_history where id = parent.id) > 1) then 'MODIFIED,PARENT_MODIFIED'\n" + 
+                    "         when (parent.txn_start >= @from_transaction and (select count(*) from work_history where id = parent.id) = 1) then 'NEW,PARENT_NEW'\n" + 
+                    "         when (page.txn_start >= @from_transaction and (select count(*) from work_history where id = page.id) > 1) then 'MODIFIED,PAGE_MODIFIED'\n" + 
+                    "         when (page.txn_start >= @from_transaction and (select count(*) from work_history where id = page.id) = 1) then 'NEW,PAGE_NEW'\n" + 
+                    "         else 'UNKNOWN'\n" + 
+                    "       end as article_status\n" + 
+                    "from\n" + 
+                    "  work_history as article\n" + 
+                    "left join edge as article_parent_edge on article.id = article_parent_edge.v_out\n" + 
+                    "left join work as parent on parent.id = article_parent_edge.v_in\n" + 
+                    "left join edge as article_page_edge on article.id = article_page_edge.v_out\n" + 
+                    "left join work as page on page.id = article_parent_edge.v_in\n" + 
+                    "where\n" + 
+                    " article.subType = 'article' and\n" + 
+                    " article_parent_edge.label = 'isPartOf' and -- parent join\n" + 
+                    " article_page_edge.label = 'existsOn' and -- page join\n" + 
+                    " (\n" + 
+                    "    article.accessConditions = 'Restricted' or -- deleted\n" + 
+                    "    (parent.accessConditions is null or parent.accessConditions = 'Restricted') or -- deleted\n" + 
+                    "    (page.accessConditions is null or page.accessConditions = 'Restricted') or -- deleted\n" + 
+                    "    article.txn_start >= @from_transaction or -- new/modified\n" + 
+                    "    parent.txn_start >= @from_transaction or -- parent new/modified\n" + 
+                    "    page.txn_start >= @from_transaction or -- page new/modified\n" + 
+                    "    article.txn_end = 0 or -- current\n" + 
+                    "    article.txn_end >= @from_transaction -- deleted\n" + 
+                    " )\n" + 
+                    ") as articles\n" + 
+                    "where article_status like 'DELETED%' or article_status in ('NEW,NEW_MODIFIED_DELETED', 'MODIFIED,NEW_MODIFIED_DELETED')\n" + 
+                    "order by article_id limit :skip, :take;");
 
             q.bind("skip", request.getSkip());
             q.bind("take", request.getTake());
@@ -121,9 +99,7 @@ public class ObjectsQuery extends AmberQueryBase {
                 String transition = status[0];
                 String reason = status.length > 1 ? status[1] : "";
 
-                if (!modifiedObjects.containsKey(id) || !"DELETED".equals(modifiedObjects.get(id).transition)) {
-                    modifiedObjects.put(id, new ModifiedObjectsQueryResponse.ModifiedObject(transition, reason, accessConditions));
-                }
+                modifiedObjects.put(id, new ModifiedObjectsQueryResponse.ModifiedObject(transition, reason, accessConditions));
             }
 
             boolean hasMore = (q.list().size() >= request.getTake());
