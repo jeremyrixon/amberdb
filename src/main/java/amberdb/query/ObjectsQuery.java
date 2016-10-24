@@ -75,14 +75,15 @@ public class ObjectsQuery extends AmberQueryBase {
                     " article_parent_edge.label = 'isPartOf' and -- parent join\n" + 
                     " article_page_edge.label = 'existsOn' and -- page join\n" + 
                     " (\n" + 
-                    "    article.accessConditions = 'Restricted' or -- deleted\n" + 
-                    "    (parent.accessConditions is null or parent.accessConditions = 'Restricted') or -- deleted\n" + 
-                    "    (page.accessConditions is null or page.accessConditions = 'Restricted') or -- deleted\n" + 
                     "    article.txn_start >= @from_transaction or -- new/modified\n" + 
                     "    parent.txn_start >= @from_transaction or -- parent new/modified\n" + 
                     "    page.txn_start >= @from_transaction or -- page new/modified\n" + 
-                    "    article.txn_end = 0 or -- current\n" + 
                     "    article.txn_end >= @from_transaction -- deleted\n" + 
+                    " ) and\n" + 
+                    " (\n" + 
+                    "    article.accessConditions = 'Restricted' or -- deleted\n" + 
+                    "    (parent.accessConditions is null or parent.accessConditions = 'Restricted') or -- deleted\n" + 
+                    "    (page.accessConditions is null or page.accessConditions = 'Restricted') -- deleted\n" + 
                     " )\n" + 
                     ") as articles\n" + 
                     "where article_status like 'DELETED%' or article_status in ('NEW,NEW_MODIFIED_DELETED', 'MODIFIED,NEW_MODIFIED_DELETED')\n" + 
