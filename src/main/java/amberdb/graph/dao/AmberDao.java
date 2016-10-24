@@ -1,8 +1,9 @@
 package amberdb.graph.dao;
 
 
-import static amberdb.graph.State.*;
+import static amberdb.graph.State.DEL;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -26,8 +27,11 @@ import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.sqlobject.mixins.GetHandle;
 import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
 import org.skife.jdbi.v2.util.IntegerColumnMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import amberdb.AmberSession;
+import com.mysql.jdbc.Clob;
+
 import amberdb.graph.AmberEdge;
 import amberdb.graph.AmberProperty;
 import amberdb.graph.AmberTransaction;
@@ -36,11 +40,14 @@ import amberdb.graph.BaseElement;
 import amberdb.graph.PropertyMapper;
 import amberdb.graph.State;
 import amberdb.graph.TransactionMapper;
+import amberdb.model.AliasItem;
 import amberdb.model.Work;
 
 
 public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 	
+    private static final Logger log = LoggerFactory.getLogger(AmberDao.class);
+    
     protected static final Map<String, String> fieldMapping        = new HashMap<>();
     public static final Map<String, String> fieldMappingReverse = new HashMap<>();
     static {
@@ -1305,7 +1312,13 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 			+" weighting DOUBLE,"
 			+" urlToOriginal VARCHAR(255));"
 			+"CREATE INDEX sess_acknowledge_id ON sess_acknowledge (id);"
-			+"CREATE INDEX sess_acknowledge_txn_id ON sess_acknowledge (id, txn_start, txn_end);")
+			+"CREATE INDEX sess_acknowledge_txn_id ON sess_acknowledge (id, txn_start, txn_end);"
+	        +"CREATE TABLE IF NOT EXISTS alternate_pi ("
+            +" id BIGINT,"
+            +" obj_id BIGINT,"
+            +" name VARCHAR(100),"
+            +" legacy_id VARCHAR(50));"
+            )
     public abstract void createV2Tables();
 
     @SqlQuery(
@@ -1678,15 +1691,48 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 		return allFields;
 	}
 
-    public Integer getFirstPageNumberZeroBased(Work work) {
-        return getHandle().createQuery(
-                        "select min(is_part_of.edge_order) \n" +
-                        "from flatedge exists_on, flatedge is_part_of \n" +
-                        "where exists_on.label = 'existsOn' and is_part_of.label = 'isPartOf' \n" +
-                        "and exists_on.v_out = :id and is_part_of.v_out = exists_on.v_in")
-                .bind("id", work.getId()).map(IntegerColumnMapper.PRIMITIVE).list().get(0);
+    public Map<String, Object> getFirstPageNumberAndId(Work work) {
+         return getHandle().createQuery(
+                        "select (is_part_of.edge_order + 1) number, exists_on.v_in id \n" +
+                        "from flatedge exists_on \n" +
+                        "join flatedge is_part_of on is_part_of.label = 'isPartOf' and is_part_of.v_out = exists_on.v_in \n" +
+                        "where exists_on.label = 'existsOn' \n" +
+                        "and exists_on.v_out = :id \n" +
+                        "order by is_part_of.edge_order limit 1")
+                .bind("id", work.getId()).list().get(0);
     }
-
+    
+    public Map<String, Set<AliasItem>> getDuplicateAliases(String collection) {
+        Map<String, Set<AliasItem>> results = new HashMap<>();
+        try {
+            for (Map<String, Object> row: getHandle().createQuery(
+                    "select a.obj_id oid, a.legacy_id lid, p.title, p.type \n" +
+                    "from alternate_pi a, work p \n" +
+                    "where a.name = 'alias'  \n" +
+                    "and a.legacy_id in (select legacy_id from alternate_pi where name = 'alias' group by legacy_id having count(legacy_id) > 1) \n" +
+                    "and a.obj_id = p.id \n" +
+                    "and p.type in ('Work','Page','Section','EADWork') \n" +
+                    "and p.collection = :collection; \n")
+            .bind("collection", collection).list()) {
+                Long oid = (Long) row.get("oid");
+                Clob titleClob = (Clob) row.get("title");
+                String title = titleClob.getSubString(1,  (int) titleClob.length());
+                String type = (String) row.get("type");
+                
+                AliasItem aliasItem = new AliasItem(Long.toString(oid), type, title);
+                String lid = (String) row.get("lid");
+                Set<AliasItem> aliasItems = results.get(lid);
+                if (aliasItems == null) {
+                    aliasItems = new HashSet<>();
+                    results.put(lid, aliasItems);
+                }
+                aliasItems.add(aliasItem);
+            }
+        } catch (SQLException e) {
+            log.error("Error getting duplicate aliases: ", e);
+        }
+        return results;
+    }
 
 	// The following queries intentionally left blank. They are implemented in the db specific AmberDao sub classes (h2 or MySql)
 	@SqlUpdate("")
