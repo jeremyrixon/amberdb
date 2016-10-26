@@ -19,7 +19,6 @@ import org.apache.commons.lang.StringUtils;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.PreparedBatch;
 import org.skife.jdbi.v2.PreparedBatchPart;
-import org.skife.jdbi.v2.ResultIterator;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlBatch;

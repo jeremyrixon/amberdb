@@ -20,7 +20,6 @@ import org.apache.commons.lang.StringUtils;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
-import org.skife.jdbi.v2.ResultIterator;
 import org.skife.jdbi.v2.Transaction;
 import org.skife.jdbi.v2.TransactionStatus;
 import org.slf4j.Logger;
