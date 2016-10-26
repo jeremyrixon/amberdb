@@ -121,8 +121,13 @@ public class Jp2Converter extends ExternalToolConverter {
                 // Colour image with 16 or 24 bit depth - convert to 8 bit depth
                 convertBitdepth(srcFilePath, tmpFilePath, 8);
             } else if (imgInfo.photometric > 2) {
-                // Image has colour palette - Convert to 3 TrueColor
-                convertTrueColour(srcFilePath, tmpFilePath);
+                if (imgInfo.photometric == 6) {
+                    // YCbCr image - simply uncompress it and by doing so, make it RGB!
+                    convertUncompress(srcFilePath, tmpFilePath);
+                } else {
+                    // Image has colour palette - Convert to 3 TrueColor
+                    convertTrueColour(srcFilePath, tmpFilePath);
+                }
             } else if (imgInfo.compression > 1) {
                 // Uncompress image as the demo app kdu_compress can't process compressed tiff
                 convertUncompress(srcFilePath, tmpFilePath);
