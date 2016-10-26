@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -18,6 +19,7 @@ import org.apache.commons.lang.StringUtils;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.PreparedBatch;
 import org.skife.jdbi.v2.PreparedBatchPart;
+import org.skife.jdbi.v2.ResultIterator;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlBatch;
@@ -1384,12 +1386,12 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             @Bind("value")     List<byte[]> value);
 
 
+
     @SqlQuery("SELECT id, name, type, value "
             + "FROM sess_property "
             + "WHERE s_id = :sessId")
     @Mapper(PropertyMapper.class)
-    public abstract  List<AmberProperty> resumeProperties(@Bind("sessId") Long sessId);
-
+    public abstract Iterator<AmberProperty> resumeProperties(@Bind("sessId") Long sessId);
 
     /* Transaction operations */
 

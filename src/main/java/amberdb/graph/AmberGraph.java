@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -19,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.ResultIterator;
 import org.skife.jdbi.v2.Transaction;
 import org.skife.jdbi.v2.TransactionStatus;
 import org.slf4j.Logger;
@@ -467,9 +469,10 @@ public class AmberGraph extends BaseGraph
         clear();
         
         // get, then separate the properties into the maps for their elements
-        List<AmberProperty> properties = dao.resumeProperties(sessId);
+        Iterator<AmberProperty> properties = dao.resumeProperties(sessId);
         Map<Long, Map<String, Object>> propertyMaps = new HashMap<>();
-        for (AmberProperty prop : properties) {
+        while (properties.hasNext()) {
+            AmberProperty prop = properties.next();
             Long id = prop.getId();
             if (propertyMaps.get(id) == null) {
                 propertyMaps.put(id, new HashMap<String, Object>());
