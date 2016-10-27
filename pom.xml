@@ -25,11 +25,11 @@
     <distributionManagement>
         <repository>
             <id>nla-public-releases</id>
-            <url>scp://spitfire.nla.gov.au/www/prod/maven/htdocs/releases</url>
+            <url>scp://maven.nla.gov.au/releases</url>
         </repository>
         <snapshotRepository>
             <id>nla-public-snapshots</id>
-            <url>scp://spitfire.nla.gov.au/www/prod/maven/htdocs/snapshots</url>
+            <url>scp://maven.nla.gov.au/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
     
