@@ -1051,6 +1051,7 @@ public abstract class LookupsSchema {
             + "('depositType', 'OnlineLegal', 'Online legal deposit'),"
             + "('depositType', 'OnlineGovernment', 'Online government deposit'),"
             + "('depositType', 'OnlineVoluntary', 'Online voluntary deposit'),"
+            + "('depositType', 'OnlineSpecialCollection', 'Online special collection deposit'),"
             + "('depositType', 'OfflineVoluntary', 'Offline voluntary deposit')")
     public abstract void seedDepositTypeList();
     
