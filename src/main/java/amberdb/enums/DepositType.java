@@ -7,8 +7,8 @@ public enum DepositType {
 	OnlineLegal("Online legal deposit"),
 	OnlineGovernment("Online government deposit"),
 	OnlineVoluntary("Online voluntary deposit"),
-	OfflineVoluntary("Offline voluntary deposit");
-	
+	OfflineVoluntary("Offline voluntary deposit"),
+	OnlineSpecialCollection("Online special collection deposit");
     
     private String code;
     
