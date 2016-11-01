@@ -1374,6 +1374,9 @@ CREATE TABLE IF NOT EXISTS sess_acknowledge (
                            urlToOriginal                                    TEXT) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE INDEX sess_acknowledge_id ON sess_acknowledge (s_id);
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- additional indexes
+CREATE INDEX flatedge_in_idx ON flatedge (v_in);
+CREATE INDEX flatedge_out_idx ON flatedge (v_out);
 
 
 
