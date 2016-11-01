@@ -1278,6 +1278,9 @@ insert into flatedge_history (id, txn_start, txn_end, v_out, v_in, label, edge_o
                                    
 CREATE INDEX flatedge_history_id ON flatedge_history (id);
 CREATE INDEX flatedge_history_label_vertices ON flatedge_history (label, v_in, v_out);
+CREATE INDEX flatedge_history_label ON flatedge (label);
+CREATE INDEX flatedge_history_in ON flatedge (v_in);
+CREATE INDEX flatedge_history_out ON flatedge (v_out);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1295,6 +1298,9 @@ insert into flatedge select * from flatedge_history where txn_end = 0;
 
 CREATE INDEX flatedge_txn_id ON flatedge (id, txn_start, txn_end);
 CREATE INDEX flatedge_label_vertices ON flatedge (label, v_in, v_out);
+CREATE INDEX flatedge_label ON flatedge (label);
+CREATE INDEX flatedge_in ON flatedge (v_in);
+CREATE INDEX flatedge_out ON flatedge (v_out);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 DROP TABLE IF EXISTS sess_flatedge;
@@ -1374,9 +1380,6 @@ CREATE TABLE IF NOT EXISTS sess_acknowledge (
                            urlToOriginal                                    TEXT) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE INDEX sess_acknowledge_id ON sess_acknowledge (s_id);
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
--- additional indexes
-CREATE INDEX flatedge_in_idx ON flatedge (v_in);
-CREATE INDEX flatedge_out_idx ON flatedge (v_out);
 
 
 
