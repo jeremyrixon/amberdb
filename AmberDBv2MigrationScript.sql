@@ -1278,9 +1278,9 @@ insert into flatedge_history (id, txn_start, txn_end, v_out, v_in, label, edge_o
                                    
 CREATE INDEX flatedge_history_id ON flatedge_history (id);
 CREATE INDEX flatedge_history_label_vertices ON flatedge_history (label, v_in, v_out);
-CREATE INDEX flatedge_history_label ON flatedge (label);
-CREATE INDEX flatedge_history_in ON flatedge (v_in);
-CREATE INDEX flatedge_history_out ON flatedge (v_out);
+CREATE INDEX flatedge_history_label ON flatedge_history (label);
+CREATE INDEX flatedge_history_in ON flatedge_history (v_in);
+CREATE INDEX flatedge_history_out ON flatedge_history (v_out);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
