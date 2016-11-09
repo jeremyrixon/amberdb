@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.joda.time.LocalDate;
 
+import amberdb.enums.AccessAgreement;
 import amberdb.enums.AccessCondition;
 import amberdb.enums.CopyrightPolicy;
 import amberdb.enums.DepositType;
@@ -49,6 +50,7 @@ public class WorkUtils {
         boolean highResDownload;
         boolean allowOnsiteAccess = true;
         Set<String> constraint = new LinkedHashSet<String>();
+        AccessAgreement accessAgreement = AccessAgreement.BASIC_ACCESS;
         
         if (openAccess) {
             accessConditions = AccessCondition.UNRESTRICTED;
@@ -57,12 +59,14 @@ public class WorkUtils {
         } else if (freelyAvailable) {
             accessConditions = AccessCondition.METADATA_ONLY;
             internalAccessConditions = AccessCondition.OPEN;
+            accessAgreement = AccessAgreement.OPEN_ACCESS_IMMEDIATELY;
             expiryDate = new LocalDate(2016, 4, 17).toDate();
             constraint.add("edeposit online access coming soon");
             highResDownload = true;
         } else {
             accessConditions =  AccessCondition.METADATA_ONLY;
             internalAccessConditions = AccessCondition.RESTRICTED;
+            accessAgreement = AccessAgreement.OPEN_ACCESS_EMBARGOED;
             highResDownload = false;
             
             if (restriction.matches("[0-9]+months")) {
@@ -81,6 +85,7 @@ public class WorkUtils {
         work.setCopyrightPolicy(CopyrightPolicy.INCOPYRIGHT.code());
         work.setAccessConditions(accessConditions.code());
         work.setInternalAccessConditions(internalAccessConditions.code());
+        work.setAccessAgreement(accessAgreement.code());
         work.setExpiryDate(expiryDate);
         try { work.setConstraint(constraint); } catch (IOException e) { throw new RuntimeException(e); /* should never occur */ }
         
