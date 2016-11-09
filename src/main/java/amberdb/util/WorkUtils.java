@@ -59,19 +59,19 @@ public class WorkUtils {
         } else if (freelyAvailable) {
             accessConditions = AccessCondition.METADATA_ONLY;
             internalAccessConditions = AccessCondition.OPEN;
-            accessAgreement = AccessAgreement.OPEN_ACCESS_IMMEDIATELY;
             expiryDate = new LocalDate(2016, 4, 17).toDate();
             constraint.add("edeposit online access coming soon");
+            accessAgreement = AccessAgreement.OPEN_ACCESS_IMMEDIATELY;
             highResDownload = true;
         } else {
             accessConditions =  AccessCondition.METADATA_ONLY;
             internalAccessConditions = AccessCondition.RESTRICTED;
-            accessAgreement = AccessAgreement.OPEN_ACCESS_EMBARGOED;
             highResDownload = false;
             
             if (restriction.matches("[0-9]+months")) {
                 expiryDate = new LocalDate().plusMonths(Integer.parseInt(restriction.replace("months", ""))).toDate();
                 constraint.add("edeposit online access after embargo");
+                accessAgreement = AccessAgreement.OPEN_ACCESS_EMBARGOED;
             } else {
                 if (DepositType.OnlineGovernment.toString().equalsIgnoreCase(work.getDepositType())) {
                     expiryDate = new LocalDate(work.getStartDate()).plusYears(50).toDate();
