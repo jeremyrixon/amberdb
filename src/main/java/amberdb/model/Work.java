@@ -294,6 +294,24 @@ public interface Work extends Node {
     @Property("accessAgreement")
     void setAccessAgreement(String accessAgreement);
 
+    @Property("commercialStatusReasonForChange")
+    String getCommercialStatusReasonForChange();
+
+    @Property("commercialStatusReasonForChange")
+    void setCommercialStatusReasonForChange(String commercialStatusReasonForChange);
+
+    @Property("accessAgreementReasonForChange")
+    String getAccessAgreementReasonForChange();
+
+    @Property("accessAgreementReasonForChange")
+    void setAccessAgreementReasonForChange(String accessAgreementReasonForChange);
+
+    @Property("accessConditionReasonForChange")
+    String getAccessConditionReasonForChange();
+
+    @Property("accessConditionReasonForChange")
+    void setAccessConditionReasonForChange(String accessConditionReasonForChange);
+
     @Property("firstPart")
     @Deprecated
     String getFirstPart();
@@ -803,6 +821,12 @@ public interface Work extends Node {
 
     @Property("tilePosition")
     void setTilePosition(String tilePosition);
+
+    @Property("accessComments")
+    String getAccessComments();
+
+    @Property("accessComments")
+    String setAccessComments(String accessComments);
 
     @Property("workPid")
     String getWorkPid();
