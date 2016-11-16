@@ -300,17 +300,35 @@ public interface Work extends Node {
     @Property("commercialStatusReasonForChange")
     void setCommercialStatusReasonForChange(String commercialStatusReasonForChange);
 
+    @Property("commercialStatusReasonForChangeSum")
+    String getCommercialStatusReasonForChangeSum();
+
+    @Property("commercialStatusReasonForChangeSum")
+    void setCommercialStatusReasonForChangeSum(String commercialStatusReasonForChangeSum);
+
     @Property("accessAgreementReasonForChange")
     String getAccessAgreementReasonForChange();
 
     @Property("accessAgreementReasonForChange")
     void setAccessAgreementReasonForChange(String accessAgreementReasonForChange);
 
+    @Property("accessAgreementReasonForChangeSum")
+    String getAccessAgreementReasonForChangeSum();
+
+    @Property("accessAgreementReasonForChangeSum")
+    void setAccessAgreementReasonForChangeSum(String accessAgreementReasonForChangeSum);
+
     @Property("accessConditionReasonForChange")
     String getAccessConditionReasonForChange();
 
     @Property("accessConditionReasonForChange")
     void setAccessConditionReasonForChange(String accessConditionReasonForChange);
+
+    @Property("accessConditionReasonForChangeSum")
+    String getAccessConditionReasonForChangeSum();
+
+    @Property("accessConditionReasonForChangeSum")
+    void setAccessConditionReasonForChangeSum(String accessConditionReasonForChangeSum);
 
     @Property("firstPart")
     @Deprecated
