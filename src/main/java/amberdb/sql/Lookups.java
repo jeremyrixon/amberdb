@@ -74,14 +74,7 @@ public abstract class Lookups extends Tools {
             return deletedLookups.get(0);
         return null;
     }
-    
-    /*
-     * Returns a specific ordering of the 'accessCondition' lookup for displaying in the UI.
-     */
-    public List<ListLu> findSortedAccessConditionLookups() {
-    	return findSortedAccessConditionLookup();
-    }
-    
+        
     /*
      * Find a list of active values in the named lookups for reference when creating a new record
      */
