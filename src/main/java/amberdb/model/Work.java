@@ -294,6 +294,42 @@ public interface Work extends Node {
     @Property("accessAgreement")
     void setAccessAgreement(String accessAgreement);
 
+    @Property("commercialStatusReasonForChange")
+    String getCommercialStatusReasonForChange();
+
+    @Property("commercialStatusReasonForChange")
+    void setCommercialStatusReasonForChange(String commercialStatusReasonForChange);
+
+    @Property("commercialStatusReasonForChangeSum")
+    String getCommercialStatusReasonForChangeSum();
+
+    @Property("commercialStatusReasonForChangeSum")
+    void setCommercialStatusReasonForChangeSum(String commercialStatusReasonForChangeSum);
+
+    @Property("accessAgreementReasonForChange")
+    String getAccessAgreementReasonForChange();
+
+    @Property("accessAgreementReasonForChange")
+    void setAccessAgreementReasonForChange(String accessAgreementReasonForChange);
+
+    @Property("accessAgreementReasonForChangeSum")
+    String getAccessAgreementReasonForChangeSum();
+
+    @Property("accessAgreementReasonForChangeSum")
+    void setAccessAgreementReasonForChangeSum(String accessAgreementReasonForChangeSum);
+
+    @Property("accessConditionReasonForChange")
+    String getAccessConditionReasonForChange();
+
+    @Property("accessConditionReasonForChange")
+    void setAccessConditionReasonForChange(String accessConditionReasonForChange);
+
+    @Property("accessConditionReasonForChangeSum")
+    String getAccessConditionReasonForChangeSum();
+
+    @Property("accessConditionReasonForChangeSum")
+    void setAccessConditionReasonForChangeSum(String accessConditionReasonForChangeSum);
+
     @Property("firstPart")
     @Deprecated
     String getFirstPart();
@@ -803,6 +839,12 @@ public interface Work extends Node {
 
     @Property("tilePosition")
     void setTilePosition(String tilePosition);
+
+    @Property("accessComments")
+    String getAccessComments();
+
+    @Property("accessComments")
+    String setAccessComments(String accessComments);
 
     @Property("workPid")
     String getWorkPid();

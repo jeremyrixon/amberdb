@@ -97,7 +97,12 @@ CREATE TABLE IF NOT EXISTS work_history (
                                 abstract                                    TEXT,
                                   access                                    TEXT,
                          accessAgreement                             VARCHAR(63),
+          accessAgreementReasonForChange                             VARCHAR(63),
+       accessAgreementReasonForChangeSum                             VARCHAR(255),
+                          accessComments                             VARCHAR(63),
                         accessConditions                             VARCHAR(63),
+          accessConditionReasonForChange                             VARCHAR(63),
+       accessConditionReasonForChangeSum                             VARCHAR(255),
                      acquisitionCategory                             VARCHAR(63),
                        acquisitionStatus                             VARCHAR(63),
                    additionalContributor                                    TEXT,
@@ -130,6 +135,8 @@ CREATE TABLE IF NOT EXISTS work_history (
                         commentsExternal                                    TEXT,
                         commentsInternal                                    TEXT,
                         commercialStatus                             VARCHAR(63),
+         commercialStatusReasonForChange                             VARCHAR(63),
+      commercialStatusReasonForChangeSum                             VARCHAR(255),
                            copyCondition                                    TEXT,
                   availabilityConstraint                                    TEXT,
                              contributor                                    TEXT,
@@ -254,7 +261,12 @@ update work_history t, property p set t.type = convert(p.value using 'utf8mb4') 
 update work_history t, property p set t.abstract = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'abstract';
 update work_history t, property p set t.access = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'access';
 update work_history t, property p set t.accessAgreement = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'accessAgreement';
+update work_history t, property p set t.accessAgreementReasonForChange = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'accessAgreementReasonForChange';
+update work_history t, property p set t.accessAgreementReasonForChangeSum = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'accessAgreementReasonForChangeSum';
+update work_history t, property p set t.accessComments = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'accessComments';
 update work_history t, property p set t.accessConditions = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'accessConditions';
+update work_history t, property p set t.accessConditionReasonForChange = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'accessConditionReasonForChange';
+update work_history t, property p set t.accessConditionReasonForChangeSum = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'accessConditionReasonForChangeSum';
 update work_history t, property p set t.acquisitionCategory = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'acquisitionCategory';
 update work_history t, property p set t.acquisitionStatus = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'acquisitionStatus';
 update work_history t, property p set t.additionalContributor = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'additionalContributor';
@@ -286,6 +298,8 @@ update work_history t, property p set t.collectionNumber = convert(p.value using
 update work_history t, property p set t.commentsExternal = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'commentsExternal';
 update work_history t, property p set t.commentsInternal = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'commentsInternal';
 update work_history t, property p set t.commercialStatus = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'commercialStatus';
+update work_history t, property p set t.commercialStatusReasonForChange = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'commercialStatusReasonForChange';
+update work_history t, property p set t.commercialStatusReasonForChangeSum = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'commercialStatusReasonForChangeSum';
 update work_history t, property p set t.copyCondition = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'condition';
 update work_history t, property p set t.availabilityConstraint = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'constraint';
 update work_history t, property p set t.contributor = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'contributor';
@@ -423,7 +437,12 @@ CREATE TABLE IF NOT EXISTS work (
                                 abstract                                    TEXT,
                                   access                                    TEXT,
                          accessAgreement                             VARCHAR(63),
+          accessAgreementReasonForChange                             VARCHAR(63),
+       accessAgreementReasonForChangeSum                             VARCHAR(255),
+                          accessComments                             VARCHAR(63),
                         accessConditions                             VARCHAR(63),
+          accessConditionReasonForChange                             VARCHAR(63),
+       accessConditionReasonForChangeSum                             VARCHAR(255),
                      acquisitionCategory                             VARCHAR(63),
                        acquisitionStatus                             VARCHAR(63),
                    additionalContributor                                    TEXT,
@@ -456,6 +475,8 @@ CREATE TABLE IF NOT EXISTS work (
                         commentsExternal                                    TEXT,
                         commentsInternal                                    TEXT,
                         commercialStatus                             VARCHAR(63),
+         commercialStatusReasonForChange                             VARCHAR(63),
+      commercialStatusReasonForChangeSum                             VARCHAR(255),
                            copyCondition                                    TEXT,
                   availabilityConstraint                                    TEXT,
                              contributor                                    TEXT,
@@ -596,7 +617,12 @@ CREATE TABLE IF NOT EXISTS sess_work (
                                 abstract                                    TEXT,
                                   access                                    TEXT,
                          accessAgreement                             VARCHAR(63),
+          accessAgreementReasonForChange                             VARCHAR(63),
+       accessAgreementReasonForChangeSum                             VARCHAR(255),
+                          accessComments                             VARCHAR(63),
                         accessConditions                             VARCHAR(63),
+          accessConditionReasonForChange                             VARCHAR(63),
+       accessConditionReasonForChangeSum                             VARCHAR(255),
                      acquisitionCategory                             VARCHAR(63),
                        acquisitionStatus                             VARCHAR(63),
                    additionalContributor                                    TEXT,
@@ -629,6 +655,8 @@ CREATE TABLE IF NOT EXISTS sess_work (
                         commentsExternal                                    TEXT,
                         commentsInternal                                    TEXT,
                         commercialStatus                             VARCHAR(63),
+         commercialStatusReasonForChange                             VARCHAR(63),
+      commercialStatusReasonForChangeSum                             VARCHAR(255),
                            copyCondition                                    TEXT,
                   availabilityConstraint                                    TEXT,
                              contributor                                    TEXT,
