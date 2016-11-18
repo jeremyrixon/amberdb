@@ -54,6 +54,17 @@ public abstract class Lookups extends Tools {
     @SqlQuery("select id, name, value, code, deleted from lookups where id = :id")
     public abstract ListLu findLookup(@Bind("id")Long id);
     
+    @RegisterMapper(Lookups.ListLuMapper.class)
+    @SqlQuery("select id, name, value, code, deleted "
+    		+ "from lookups where name = 'accessCondition' and deleted = 'N' "
+    		+ "order by (CASE code WHEN 'Unrestricted' THEN 1 "
+    							+ "WHEN 'View Only'	THEN 2 "
+    							+ "WHEN 'Onsite Only'THEN 3 "
+    							+ "WHEN 'Metadata Only' THEN 4 "
+    							+ "WHEN 'Restricted' THEN 5 "
+    							+ "ELSE 100 END) ASC")
+    public abstract List<ListLu> findSortedAccessConditionLookup();
+    
     public ListLu findLookup(String name, String code) {
         List<ListLu> activeLookups = findActiveLookup(name, code);
         if (activeLookups != null && activeLookups.size() > 0)
@@ -63,7 +74,7 @@ public abstract class Lookups extends Tools {
             return deletedLookups.get(0);
         return null;
     }
-    
+        
     /*
      * Find a list of active values in the named lookups for reference when creating a new record
      */
