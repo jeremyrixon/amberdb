@@ -22,6 +22,7 @@ import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.Transaction;
 import org.skife.jdbi.v2.TransactionStatus;
+import org.skife.jdbi.v2.logging.PrintStreamLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -830,6 +831,10 @@ public class AmberGraph extends BaseGraph
         retryLoop: while (true) {
             try {
                 dao.begin();
+                String sqllog = System.getProperty("sqllog");
+                if (sqllog != null) {
+                    dao.getHandle().setSQLLog(new PrintStreamLog());
+                }
                 // End current elements where this transaction modifies or deletes them.
                 // Additionally, end edges orphaned by this procedure.
                 log.debug("ending elements");
