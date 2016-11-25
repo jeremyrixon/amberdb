@@ -605,7 +605,7 @@ public class AmberSession implements AutoCloseable {
      * edge has been modified, then both its connected objects (vertices) are
      * returned
      *
-     * @param when
+     * @param from
      *            time of first modifications to be included
      * @return a map of object ids and how they changed
      */
@@ -643,15 +643,28 @@ public class AmberSession implements AutoCloseable {
 
 
     /**
-     * Removes a suspended session from the database.
+     * Removes a suspended session from the database. Note: this can be a session other than this current one.
      *
      * @param sessId
      *            The id of the session to be removed.
      */
-    public void removeSession(Long sessId) {
+    public void removePersistedSession(Long sessId) {
         getAmberGraph().destroySession(sessId);
     }
 
+    /**
+     * Commits the persisted session with the given id. Note: this can be a session other than this current one.
+     *
+     * @param sessId
+     *            The id of the session to be committed.
+     * @param user
+     *            Who is committing the session
+     * @param operation
+     *            The purpose of why the session has been committed
+     */
+    public void commitPersistedSession(Long sessId, String user, String operation) {
+        getAmberGraph().commitPersistedSession(sessId, user, operation);
+    }
 
     public Tag addTag() {
         return graph.addVertex(null, Tag.class);
@@ -983,14 +996,4 @@ public class AmberSession implements AutoCloseable {
     public List<Vertex> loadMultiLevelWorks(final List<Long> ids) {
         return loadMultiLevelWorks(ids.toArray(new Long[ids.size()]));
     }
-
-
-
-
-
-
-
-
-
-
 }
