@@ -47,6 +47,9 @@ public class AmberGraph extends BaseGraph
 
     private static final int COMMIT_BATCH_SIZE = 4000;
     private static final int BIG_COMMIT_THRESHOLD = 20000;
+    private static final int DEFAULT_RETRIES = 4;
+    private static final int DEFAULT_BACKOFF_MILLIS = 300;
+
     private static final Logger log = LoggerFactory.getLogger(AmberGraph.class);
     
     public static final DataSource DEFAULT_DATASOURCE = 
@@ -460,7 +463,10 @@ public class AmberGraph extends BaseGraph
 
     public void destroySession(Long sessId) {
         log.debug("removing session {} from the session tables", sessId);
+        dao.begin();
         dao.clearSession(sessId);
+        dao.clearFlatSession(sessId);
+        dao.commit();
     }
     
     
@@ -577,7 +583,7 @@ public class AmberGraph extends BaseGraph
         }
         
         Long txnId = suspend();
-        commitSqlWrappedWithRetry(txnId, user, operation, 4, 300);
+        commitSqlWrappedWithRetry(txnId, user, operation, DEFAULT_RETRIES, DEFAULT_BACKOFF_MILLIS);
         clearChangeSets();
         return txnId;
     }
@@ -825,6 +831,10 @@ public class AmberGraph extends BaseGraph
     }
 
 
+    public void commitPersistedSession(Long txnId, String user, String operation) {
+        commitSqlWrappedWithRetry(txnId, user, operation, DEFAULT_RETRIES, DEFAULT_BACKOFF_MILLIS);
+    }
+
     private void commitSqlWrappedWithRetry(Long txnId, String user, String operation, int retries, int backoffDelay) {
         int tryCount = 0;
         int backoff = backoffDelay;
@@ -1070,7 +1080,7 @@ public class AmberGraph extends BaseGraph
     public Long commitBig(String user, String operation) {
 
         Long txnId = suspendBig();
-        commitSqlWrappedWithRetry(txnId, user, operation, 4, 300);
+        commitSqlWrappedWithRetry(txnId, user, operation, DEFAULT_RETRIES, DEFAULT_BACKOFF_MILLIS);
         log.debug("Commence clearing session");
         dao.clearSession(txnId);
         log.debug("Finished clearing session");
