@@ -307,7 +307,7 @@ public abstract class Lookups extends Tools {
     
     public synchronized void migrate() {
     	
-    	ListLu commercialStatusLu = findLookup("commercialStatus", "Non-commercial");
+    	ListLu commercialStatusLu = findLookup("commercialStatus", "Noncommerc");
     	if (commercialStatusLu != null) {
     		updateLookup(commercialStatusLu.id, commercialStatusLu.getValue(), "Noncommerc");
     	}
