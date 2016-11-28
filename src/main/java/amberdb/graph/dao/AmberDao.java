@@ -5,6 +5,7 @@ import static amberdb.graph.State.DEL;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1690,6 +1691,9 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 
     public void suspendIntoFlatEdgeSpecificTable(Long sessId, State state, String table, Set<AmberEdge> set) {
         Set<String> fields = getFields(set, state);
+        
+        fields.removeAll(Arrays.asList("eid", "vid", "step")); // DSCS-2447
+        
         String sql = String.format("INSERT INTO %s (s_id, state, id, txn_start, txn_end, v_out, v_in, edge_order, label %s) values (:s_id, :state, :id, :txn_start, :txn_end, :v_out, :v_in, :edge_order, :label %s)",
                 table,
                 StringUtils.join(format(fields, ", %s"), ' '),
