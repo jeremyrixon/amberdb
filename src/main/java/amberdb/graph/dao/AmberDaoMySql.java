@@ -324,19 +324,19 @@ public abstract class AmberDaoMySql extends AmberDao {
 			@Bind("txnId") Long txnId);
 
 			@SqlUpdate("SET @txn = :txnId;"
-			 + "INSERT INTO flatedge_history (id, txn_start, txn_end, label, v_out,v_in,edge_order) "
+			 + "REPLACE INTO flatedge_history (id, txn_start, txn_end, label, v_out,v_in,edge_order) "
 			 + "SELECT distinct id, s_id, 0, label, v_out,v_in,edge_order "
 			 + "FROM sess_flatedge "
 			 + "WHERE s_id = @txn "
 			 + "AND state = 'NEW'; "
 
-			 + "INSERT INTO flatedge_history (id, txn_start, txn_end, label, v_out,v_in,edge_order) "
+			 + "REPLACE INTO flatedge_history (id, txn_start, txn_end, label, v_out,v_in,edge_order) "
 			 + "SELECT distinct id, s_id, 0, label, v_out,v_in,edge_order "
 			 + "FROM sess_flatedge "
 			 + "WHERE s_id = @txn "
 			 + "AND state = 'MOD'; "
 
-			 + "INSERT INTO flatedge (id, txn_start, txn_end, label, v_out,v_in,edge_order) "
+			 + "REPLACE INTO flatedge (id, txn_start, txn_end, label, v_out,v_in,edge_order) "
 			 + "SELECT distinct id, s_id, 0, label, v_out,v_in,edge_order "
 			 + "FROM sess_flatedge "
 			 + "WHERE s_id = @txn "
@@ -368,19 +368,19 @@ public abstract class AmberDaoMySql extends AmberDao {
 			@Bind("txnId") Long txnId);
 
 			@SqlUpdate("SET @txn = :txnId;"
-			 + "INSERT INTO acknowledge_history (id, txn_start, txn_end, v_out,v_in,edge_order,ackType,date,kindOfSupport,weighting,urlToOriginal) "
+			 + "REPLACE INTO acknowledge_history (id, txn_start, txn_end, v_out,v_in,edge_order,ackType,date,kindOfSupport,weighting,urlToOriginal) "
 			 + "SELECT id, s_id, 0, v_out,v_in,edge_order,ackType,date,kindOfSupport,weighting,urlToOriginal "
 			 + "FROM sess_acknowledge "
 			 + "WHERE s_id = @txn "
 			 + "AND state = 'NEW'; "
 
-			 + "INSERT INTO acknowledge_history (id, txn_start, txn_end, v_out,v_in,edge_order,ackType,date,kindOfSupport,weighting,urlToOriginal) "
+			 + "REPLACE INTO acknowledge_history (id, txn_start, txn_end, v_out,v_in,edge_order,ackType,date,kindOfSupport,weighting,urlToOriginal) "
 			 + "SELECT id, s_id, 0, v_out,v_in,edge_order,ackType,date,kindOfSupport,weighting,urlToOriginal "
 			 + "FROM sess_acknowledge "
 			 + "WHERE s_id = @txn "
 			 + "AND state = 'MOD'; "
 
-			 + "INSERT INTO acknowledge (id, txn_start, txn_end, v_out,v_in,edge_order,ackType,date,kindOfSupport,weighting,urlToOriginal) "
+			 + "REPLACE INTO acknowledge (id, txn_start, txn_end, v_out,v_in,edge_order,ackType,date,kindOfSupport,weighting,urlToOriginal) "
 			 + "SELECT id, s_id, 0, v_out,v_in,edge_order,ackType,date,kindOfSupport,weighting,urlToOriginal "
 			 + "FROM sess_acknowledge "
 			 + "WHERE s_id = @txn "
