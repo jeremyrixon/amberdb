@@ -289,29 +289,22 @@ public class AmberQuery extends AmberQueryBase {
         
         // We only handle one clause
         if (clauses.size() != 1) {
-            System.err.println("executeSimpleQuery() bailing out because clauses.size() == " + clauses.size());
-            Thread.dumpStack();
             return null;
         }
         
         // We don't handle branchList
         QueryClause clause = clauses.get(0);
         if (clause.branchList != null && clause.branchList.size() > 0) {
-            System.err.println("executeSimpleQuery() bailing out because clause.branchList.size() == " + clause.branchList.size());
-            Thread.dumpStack();
             return null;
         }
 
         // We only handle Direction.IN or Direction.OUT
         if (clause.direction == Direction.BOTH) {
-            System.err.println("executeSimpleQuery() bailing out because clause.direction == Direction.BOTH)");
-            Thread.dumpStack();
             return null;
         }
         
         // We only handle BRANCH_FROM_PREVIOUS
         if (BranchType.BRANCH_FROM_PREVIOUS != clause.branchType) {
-            System.err.println("executeSimpleQuery() bailing out because BranchType.BRANCH_FROM_PREVIOUS != clause.branchType");
             return null;
         }
         
