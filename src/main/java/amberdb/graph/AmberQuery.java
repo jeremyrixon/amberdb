@@ -321,7 +321,7 @@ public class AmberQuery extends AmberQueryBase {
             List<Vertex> vertices = getVertices(h.begin().createQuery(vertexSql).map(new AmberVertexMapper(graph)).list());
             for (AmberVertex vertex: h.begin().createQuery(vertexSql).map(new AmberVertexMapper(graph)).list()) {
                 Long vertexId = (Long) vertex.getId();
-                if (graph.graphVertices.containsKey(vertexId) || graph.removedEdges.containsKey(vertexId)) {
+                if (graph.graphVertices.containsKey(vertexId) || graph.removedVertices.containsKey(vertexId)) {
                     continue;
                 } 
                 graph.addVertexToGraph(vertex);
