@@ -69,6 +69,8 @@ public class AmberProperty {
             ByteBuffer bb = ByteBuffer.allocate(8);
             bb.putLong(((Date) value).getTime());
             return bb.array();
+        } else if (value instanceof char[]) {
+            return (new String((char[]) value)).getBytes(Charset.forName("UTF-8"));
         } else if (value instanceof Serializable) {
             try {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
