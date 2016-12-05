@@ -10,9 +10,12 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Date;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public class AmberProperty {
-
+    private static final Logger log = LoggerFactory.getLogger(AmberProperty.class);
     
     private long id;
     private String name; 
@@ -69,6 +72,9 @@ public class AmberProperty {
             ByteBuffer bb = ByteBuffer.allocate(8);
             bb.putLong(((Date) value).getTime());
             return bb.array();
+        } else if (value instanceof Object[]) {
+            log.info("value {} is instance of Object[]", value);
+            return ((String) value).getBytes(Charset.forName("UTF-8"));
         } else if (value instanceof char[]) {
             return (new String((char[]) value)).getBytes(Charset.forName("UTF-8"));
         } else if (value instanceof Serializable) {

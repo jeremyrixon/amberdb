@@ -341,7 +341,11 @@ public class AmberGraph extends BaseGraph
             dao.suspendEdges(sessId, e.id, e.txnStart, e.txnEnd, e.vertexOut,
                     e.vertexIn, e.label, e.order, e.state);
             dao.suspendVertices(sessId, v.id, v.txnStart, v.txnEnd, v.state);
-            dao.suspendProperties(sessId, p.id, p.name, p.type, p.value);
+            try {
+                dao.suspendProperties(sessId, p.id, p.name, p.type, p.value);
+            } catch (Exception ex) {
+                log.error("Failed to suspend properties...: sessId: {}, id: {}, name: {}, type: {}, value: {}", sessId, p.id, p.name, p.type, p.value);
+            }
 
             suspendIntoFlatVertexTables(sessId, newVerticesByType,      NEW);
             suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, MOD);
