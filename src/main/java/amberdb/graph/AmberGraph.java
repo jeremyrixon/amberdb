@@ -18,6 +18,7 @@ import javax.sql.DataSource;
 
 import org.apache.commons.lang.StringUtils;
 import org.h2.jdbcx.JdbcConnectionPool;
+import org.h2.value.Value;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.Transaction;
@@ -345,17 +346,11 @@ public class AmberGraph extends BaseGraph
                 dao.suspendProperties(sessId, p.id, p.name, p.type, p.value);
             } catch (Exception ex) {
                 log.error("Failed to suspend properties...: sessId: {}", sessId);
+                int i = 0;
                 for (Long l : p.id) {
-                    log.error("id: {}", l);
-                }
-                for (String name : p.name) {
-                    log.error("name: {}", name);
-                }
-                for (String typ : p.type) {
-                    log.error("type: {}", typ);
-                }
-                for (byte[] val : p.value) {
-                    log.error("value: {}", AmberProperty.encode(val));
+                    
+                    log.error("id: {}, name: {}, type: {}, value: {}", l, p.name.get(i), p.type.get(i), new String(p.value.get(i)));
+                    i++;
                 }
             }
 
