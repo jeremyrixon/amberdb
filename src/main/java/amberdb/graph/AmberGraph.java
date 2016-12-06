@@ -344,7 +344,19 @@ public class AmberGraph extends BaseGraph
             try {
                 dao.suspendProperties(sessId, p.id, p.name, p.type, p.value);
             } catch (Exception ex) {
-                log.error("Failed to suspend properties...: sessId: {}, id: {}, name: {}, type: {}, value: {}", sessId, p.id, p.name, p.type, p.value);
+                log.error("Failed to suspend properties...: sessId: {}", sessId);
+                for (Long l : p.id) {
+                    log.error("id: {}", l);
+                }
+                for (String name : p.name) {
+                    log.error("name: {}", name);
+                }
+                for (String typ : p.type) {
+                    log.error("type: {}", typ);
+                }
+                for (byte[] val : p.value) {
+                    log.error("value: {}", AmberProperty.encode(val));
+                }
             }
 
             suspendIntoFlatVertexTables(sessId, newVerticesByType,      NEW);
