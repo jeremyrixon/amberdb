@@ -347,12 +347,14 @@ public class AmberGraph extends BaseGraph
             try {
                 dao.suspendProperties(sessId, p.id, p.name, p.type, p.value);
             } catch (org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException err) {
-                try {
-                    String largestRecord = logLargestRecordInSession(sessId, p);
-                    largestRecord = (largestRecord == null || largestRecord.isEmpty())? "" : "Failed as record is too big: " + largestRecord;
-                    throw new org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException(largestRecord, err);
-                } catch (JsonProcessingException pe) {
-                    throw err;
+                if (err.getMessage().contains("Data truncation: Data too long for column ")) {
+                    try {
+                        String largestRecord = logLargestRecordInSession(sessId, p);
+                        largestRecord = (largestRecord == null || largestRecord.isEmpty())? "" : "Failed as record is too big: " + largestRecord;
+                        throw new org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException(largestRecord, err);
+                    } catch (JsonProcessingException pe) {
+                        throw err;
+                    }
                 }
             }
 
@@ -371,6 +373,12 @@ public class AmberGraph extends BaseGraph
         return sessId;
     }
 
+    /**
+     * logLargestRecordInSession: this method extracts and logs the object record from the specified session (i.e sessId)
+     * containing the largest value in a specific property.  The method is called to write to application log when
+     * java.sql.BatchUpdateException: Data truncation: Data too long for column (wrapped in the org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException) 
+     * is encountered.  This method requires refactoring after transition to the flat schema.
+     */
     private String logLargestRecordInSession(Long sessId, AmberPropertyBatch p) throws JsonProcessingException {
         int i = 0;
         int maxValueLength = 0;
@@ -393,9 +401,13 @@ public class AmberGraph extends BaseGraph
         }
         log.error("Failed to suspend due to properties in session: {}", sessId);
         if (recordToLog != null) {
+            StringBuilder record = new StringBuilder();
             for (String field : recordToLog.keySet()) {
-                log.error("Values of largest record in session {} : {} : {}", sessId, field, recordToLog.get(field));
+                String val = recordToLog.get(field);
+                val = val == null? "" : val.length() > 500? val.substring(0, 500) : val;
+                record.append(field + ": " + val);
             }
+            log.error("Values of largest record in session {} : {}", sessId, record.toString());
         }
         return (new ObjectMapper()).writeValueAsString(recordToLog);
     }

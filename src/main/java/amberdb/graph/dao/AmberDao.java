@@ -1633,7 +1633,9 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
         try {
             preparedBatch.execute();
         } catch (org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException err) {
-            logLargestFieldsInSession(sessId, set, fields);
+            if (err.getMessage().contains("Data truncation: Data too long for column ")) {
+                logLargestFieldsInSession(sessId, set, fields);
+            }
             throw err;
         }       
     }
@@ -1701,7 +1703,9 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
         try {
             preparedBatch.execute();
         } catch (org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException err) {
-            logLargestFieldsInSession(sessId, set, nodeFields);
+            if (err.getMessage().contains("Data truncation: Data too long for column ")) {
+                logLargestFieldsInSession(sessId, set, nodeFields);
+            }
             throw err;
         }
     }
