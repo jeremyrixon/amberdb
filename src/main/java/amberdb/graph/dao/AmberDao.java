@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -32,6 +33,8 @@ import org.skife.jdbi.v2.util.IntegerColumnMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mysql.jdbc.Clob;
 
 import amberdb.graph.AmberEdge;
@@ -1627,8 +1630,47 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
                 }
             }
         }
-        preparedBatch.execute();
+        try {
+            preparedBatch.execute();
+        } catch (org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException err) {
+            logLargestFieldsInSession(sessId, set, fields);
+            throw err;
+        }       
+    }
+    
+    private void logLargestFieldsInSession(Long sessId, Set<AmberVertex> set, Set<String> fields) {
+        Map<String, Integer> maxValueLength = new LinkedHashMap<>();
+        for (String field : fields) {
+            maxValueLength.put(field, 0);
+        }
         
+        Map<String, String> currentRecord = new LinkedHashMap<>();
+        Map<String, Map<String, String>> recordsToLog = new LinkedHashMap<>();
+        for (AmberVertex v: set) {
+            Long l = (v.getId() == null)? 0L : (Long) v.getId();
+            currentRecord = new LinkedHashMap<>();
+            currentRecord.put("id", "" + l);
+            for (String field : fields) {
+                String value = v.getProperty(field).toString();
+                currentRecord.put(field, value);
+                int maxLength = maxValueLength.get(field);
+                if (value.length() > maxLength) {
+                    recordsToLog.put(field, currentRecord);
+                }
+            }
+        }
+        log.error("Failed to suspend due to properties in session: {}", sessId);
+        ObjectMapper mapper = new ObjectMapper();
+        if (recordsToLog.size() > 0) {
+            for (String field : fields) {
+                Map<String, String> record = recordsToLog.get(field);
+                try {
+                    log.error("Record contain largest {} field: {}", field, mapper.writeValueAsString(record));
+                } catch (JsonProcessingException e) {
+                    log.error("unable to print the records corresponding to the largest field values.", e);
+                }
+            }
+        }
     }
 
     public void suspendIntoNodeTable(Long sessId, State state, Set<AmberVertex> set) {
@@ -1656,8 +1698,12 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 
             }
         }
-        preparedBatch.execute();
-        
+        try {
+            preparedBatch.execute();
+        } catch (org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException err) {
+            logLargestFieldsInSession(sessId, set, nodeFields);
+            throw err;
+        }
     }
 
     private void bindField(AmberVertex v, PreparedBatchPart preparedBatchPart, String field) {
