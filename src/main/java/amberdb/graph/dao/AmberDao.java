@@ -1633,46 +1633,41 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
         try {
             preparedBatch.execute();
         } catch (org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException err) {
-            if (err.getMessage().contains("Data truncation: Data too long for column ")) {
-                logLargestFieldsInSession(sessId, set, fields);
+            try {
+                if (err.getMessage().contains("Data truncation: Data too long for column ")) {
+                    String largeRecord = logLargestRecordInSession(sessId, set, fields);
+                    throw new org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException("Failed due to data too big for column in record: " + largeRecord, err);
+                }
+            } catch (JsonProcessingException pe) {
+                log.error("unable to provide the largest record for data too long for column exception.", pe);
             }
             throw err;
         }       
     }
     
-    private void logLargestFieldsInSession(Long sessId, Set<AmberVertex> set, Set<String> fields) {
-        Map<String, Integer> maxValueLength = new LinkedHashMap<>();
-        for (String field : fields) {
-            maxValueLength.put(field, 0);
-        }
-        
-        Map<String, String> currentRecord = new LinkedHashMap<>();
-        Map<String, Map<String, String>> recordsToLog = new LinkedHashMap<>();
+    private String logLargestRecordInSession(Long sessId, Set<AmberVertex> set, Set<String> fields) throws JsonProcessingException {
+        AmberVertex recordToLog = null;
+        String largeFieldName = "";
+        int maxLength = 0;
         for (AmberVertex v: set) {
-            Long l = (v.getId() == null)? 0L : (Long) v.getId();
-            currentRecord = new LinkedHashMap<>();
-            currentRecord.put("id", "" + l);
             for (String field : fields) {
                 String value = v.getProperty(field).toString();
-                currentRecord.put(field, value);
-                int maxLength = maxValueLength.get(field);
-                if (value.length() > maxLength) {
-                    recordsToLog.put(field, currentRecord);
+                int length = value.length();
+                if (length > maxLength) {
+                    recordToLog = v;
+                    maxLength = length;
+                    largeFieldName = field;
                 }
             }
         }
-        log.error("Failed to suspend due to properties in session: {}", sessId);
-        ObjectMapper mapper = new ObjectMapper();
-        if (recordsToLog.size() > 0) {
-            for (String field : fields) {
-                Map<String, String> record = recordsToLog.get(field);
-                try {
-                    log.error("Record contain largest {} field: {}", field, mapper.writeValueAsString(record));
-                } catch (JsonProcessingException e) {
-                    log.error("unable to print the records corresponding to the largest field values.", e);
-                }
-            }
+        StringBuilder bld = new StringBuilder();
+        for (String field : fields) {
+            String value = recordToLog.getProperty(field) == null? null : recordToLog.getProperty(field).toString();
+            value = value != null && value.length() > 500 && largeFieldName.equals(field)? value.substring(0, 500) : value;
+            bld.append(field + ":" + value);
         }
+        log.error("Failed to suspend session: {} due to large value in field: {}, fragment from largest record in session: {}", sessId, largeFieldName, bld.toString());
+        return (new ObjectMapper()).writeValueAsString(recordToLog);
     }
 
     public void suspendIntoNodeTable(Long sessId, State state, Set<AmberVertex> set) {
@@ -1703,8 +1698,13 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
         try {
             preparedBatch.execute();
         } catch (org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException err) {
-            if (err.getMessage().contains("Data truncation: Data too long for column ")) {
-                logLargestFieldsInSession(sessId, set, nodeFields);
+            try {
+                if (err.getMessage().contains("Data truncation: Data too long for column ")) {
+                    String largeRecord = logLargestRecordInSession(sessId, set, nodeFields);
+                    throw new org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException("Failed due to data too big for column in record: " + largeRecord, err);
+                }
+            } catch (JsonProcessingException pe) {
+                log.error("unable to provide the largest record for data too long for column exception.", pe);
             }
             throw err;
         }

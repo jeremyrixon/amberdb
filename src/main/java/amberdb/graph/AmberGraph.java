@@ -340,30 +340,19 @@ public class AmberGraph extends BaseGraph
             Map<String, Set<AmberEdge>>   removedEdgesByType     = getEdgesByType(removedEdges.values());
             
             dao.begin();
+
+            suspendIntoFlatVertexTables(sessId, newVerticesByType, NEW);
+            suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, MOD);
+            suspendIntoFlatVertexTables(sessId, removedVerticesByType, DEL);
+
+            suspendIntoFlatEdgeTables(sessId, newEdgesByType, NEW);
+            suspendIntoFlatEdgeTables(sessId, modifiedEdgesByType, MOD);
+            suspendIntoFlatEdgeTables(sessId, removedEdgesByType, DEL);
             
             dao.suspendEdges(sessId, e.id, e.txnStart, e.txnEnd, e.vertexOut,
                     e.vertexIn, e.label, e.order, e.state);
             dao.suspendVertices(sessId, v.id, v.txnStart, v.txnEnd, v.state);
-            try {
-                dao.suspendProperties(sessId, p.id, p.name, p.type, p.value);
-            } catch (org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException err) {
-                if (err.getMessage().contains("Data truncation: Data too long for column ")) {
-                    try {
-                        String largestRecord = logLargestRecordInSession(sessId, p);
-                        largestRecord = (largestRecord == null || largestRecord.isEmpty())? "" : "Failed as record is too big: " + largestRecord;
-                        throw new org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException(largestRecord, err);
-                    } catch (JsonProcessingException pe) {
-                        throw err;
-                    }
-                }
-            }
-
-            suspendIntoFlatVertexTables(sessId, newVerticesByType,      NEW);
-            suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, MOD);
-            suspendIntoFlatVertexTables(sessId, removedVerticesByType , DEL);
-            suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         NEW);
-            suspendIntoFlatEdgeTables(  sessId, modifiedEdgesByType,    MOD);
-            suspendIntoFlatEdgeTables(  sessId, removedEdgesByType ,    DEL);
+            dao.suspendProperties(sessId, p.id, p.name, p.type, p.value);
             
             dao.commit();
         }
@@ -372,46 +361,6 @@ public class AmberGraph extends BaseGraph
 
         return sessId;
     }
-
-    /**
-     * logLargestRecordInSession: this method extracts and logs the object record from the specified session (i.e sessId)
-     * containing the largest value in a specific property.  The method is called to write to application log when
-     * java.sql.BatchUpdateException: Data truncation: Data too long for column (wrapped in the org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException) 
-     * is encountered.  This method requires refactoring after transition to the flat schema.
-     */
-    private String logLargestRecordInSession(Long sessId, AmberPropertyBatch p) throws JsonProcessingException {
-        int i = 0;
-        int maxValueLength = 0;
-        Long pid = 0L;
-        Map<String, String> currentRecord = new LinkedHashMap<>();
-        Map<String, String> recordToLog = null;
-        for (Long l : p.id) {
-            if (pid != l) {
-                currentRecord = new LinkedHashMap<>();
-                pid = l;
-            }
-            currentRecord.put("id", "" + l);
-            currentRecord.put(p.name.get(i), new String(p.value.get(i)));
-            int valueLength = (new String(p.value.get(i))).length();
-            if (valueLength > maxValueLength) {
-                maxValueLength = valueLength;
-                recordToLog = currentRecord;
-            }
-            i++;
-        }
-        log.error("Failed to suspend due to properties in session: {}", sessId);
-        if (recordToLog != null) {
-            StringBuilder record = new StringBuilder();
-            for (String field : recordToLog.keySet()) {
-                String val = recordToLog.get(field);
-                val = val == null? "" : val.length() > 500? val.substring(0, 500) : val;
-                record.append(field + ": " + val);
-            }
-            log.error("Values of largest record in session {} : {}", sessId, record.toString());
-        }
-        return (new ObjectMapper()).writeValueAsString(recordToLog);
-    }
-
     
 	private Map<String, Set<AmberVertex>> getVerticesByType(Collection<Vertex> vertices) {
 		Map<String, Set<AmberVertex>> verticesByType = new HashMap<>();
@@ -518,8 +467,8 @@ public class AmberGraph extends BaseGraph
     public void destroySession(Long sessId) {
         log.debug("removing session {} from the session tables", sessId);
         dao.begin();
-        dao.clearSession(sessId);
         dao.clearFlatSession(sessId);
+        dao.clearSession(sessId);
         dao.commit();
     }
     
@@ -986,9 +935,8 @@ public class AmberGraph extends BaseGraph
             if (batchLimit >= COMMIT_BATCH_SIZE) {
                 log.debug("Batched vertex marshalling");
                 
-                dao.suspendVertices(sessId, vertices.id, vertices.txnStart, vertices.txnEnd, vertices.state);
-                
                 suspendIntoFlatVertexTables(sessId, removedVerticesByType , DEL);
+                dao.suspendVertices(sessId, vertices.id, vertices.txnStart, vertices.txnEnd, vertices.state);            
                 
                 vertices.clear();
                 batchLimit = 0;
@@ -1012,12 +960,12 @@ public class AmberGraph extends BaseGraph
             batchLimit += (av.getProperties() == null) ? 0 : av.getProperties().size();
             if (batchLimit >= COMMIT_BATCH_SIZE) {
                 log.debug("Batched vertex marshalling");
+                
+                suspendIntoFlatVertexTables(sessId, newVerticesByType,      NEW);
+                suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, MOD);
 
                 dao.suspendVertices(sessId, vertices.id, vertices.txnStart, vertices.txnEnd, vertices.state);
                 dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
-
-                suspendIntoFlatVertexTables(sessId, newVerticesByType,      NEW);
-                suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, MOD);
                 
                 vertices.clear();
                 properties.clear();
@@ -1027,13 +975,12 @@ public class AmberGraph extends BaseGraph
             }
         }
         
-        dao.suspendVertices(sessId, vertices.id, vertices.txnStart, vertices.txnEnd, vertices.state);
-        dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
-        
         suspendIntoFlatVertexTables(sessId, newVerticesByType,      NEW);
         suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, MOD);
         suspendIntoFlatVertexTables(sessId, removedVerticesByType , DEL);
-
+        
+        dao.suspendVertices(sessId, vertices.id, vertices.txnStart, vertices.txnEnd, vertices.state);
+        dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
     }
 
 
@@ -1060,10 +1007,9 @@ public class AmberGraph extends BaseGraph
             batchLimit++;
             if (batchLimit >= COMMIT_BATCH_SIZE) {
                 log.debug("Batched edge marshalling");
+                suspendIntoFlatEdgeTables(  sessId, removedEdgesByType ,    DEL);
                 dao.suspendEdges(sessId, edges.id, edges.txnStart, edges.txnEnd, 
                         edges.vertexOut, edges.vertexIn, edges.label, edges.order, edges.state);
-                
-                suspendIntoFlatEdgeTables(  sessId, removedEdgesByType ,    DEL);
 
                 edges.clear();
                 batchLimit = 0;
@@ -1087,12 +1033,11 @@ public class AmberGraph extends BaseGraph
             batchLimit += (ae.getProperties() == null) ? 0 : ae.getProperties().size();
             if (batchLimit >= COMMIT_BATCH_SIZE) {
                 log.debug("Batched edge marshalling");
-
+                suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         NEW);
+                suspendIntoFlatEdgeTables(  sessId, modifiedEdgesByType,    MOD);
                 dao.suspendEdges(sessId, edges.id, edges.txnStart, edges.txnEnd, 
                         edges.vertexOut, edges.vertexIn, edges.label, edges.order, edges.state);
                 dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
-                suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         NEW);
-                suspendIntoFlatEdgeTables(  sessId, modifiedEdgesByType,    MOD);
 
                 edges.clear();
                 properties.clear();
@@ -1102,13 +1047,12 @@ public class AmberGraph extends BaseGraph
 
             }
         }
-        dao.suspendEdges(sessId, edges.id, edges.txnStart, edges.txnEnd, 
-                edges.vertexOut, edges.vertexIn, edges.label, edges.order, edges.state);
-        dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
-
         suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         NEW);
         suspendIntoFlatEdgeTables(  sessId, modifiedEdgesByType,    MOD);
         suspendIntoFlatEdgeTables(  sessId, removedEdgesByType ,    DEL);
+        dao.suspendEdges(sessId, edges.id, edges.txnStart, edges.txnEnd, 
+                edges.vertexOut, edges.vertexIn, edges.label, edges.order, edges.state);
+        dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
     }
 
 
