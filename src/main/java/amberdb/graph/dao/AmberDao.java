@@ -1639,13 +1639,16 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
                     log.error("Failed to suspend due to data too large for column exception with the following records for verification...");
                     for (String field : fields) {
                         AmberVertex v = checklist.get(field);
+                        // concat all fields in a record from checklist for logging
                         StringBuilder record = new StringBuilder();
                         for (String recordfield : fields) {
-                            String value = v.getProperty(field) == null? null : v.getProperty(field).toString();
-                            value = value != null && value.length() > 500 && recordfield.equals(field)? value.substring(0, 500) : value;
+                            String value = v.getProperty(recordfield) == null? null : v.getProperty(recordfield).toString();
+                            value = value != null && value.length() > 500? value.substring(0, 500) : value;
                             record.append(field + ":" + value);
                         }
-                        log.error("record with largest value in field {}: {}", field, record);
+                        // calculate the max length of "field" value within the AmberVertex set
+                        int lengthOfLargestValueInThisField = v.getProperty(field) == null? 0 : v.getProperty(field).toString().length();
+                        log.error("record with largest field {} of length {} (note: all field values are truncated to max of 500 chars in this entry): {}", field, lengthOfLargestValueInThisField, record);
                     }
                 }
             }
@@ -1729,13 +1732,16 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
                     log.error("Failed to suspend due to data too large for column exception with the following records for verification...");
                     for (String field : nodeFields) {
                         AmberVertex v = checklist.get(field);
+                        // concat all fields in a record from checklist for logging
                         StringBuilder record = new StringBuilder();
                         for (String recordfield : nodeFields) {
-                            String value = v.getProperty(field) == null? null : v.getProperty(field).toString();
-                            value = value != null && value.length() > 500 && recordfield.equals(field)? value.substring(0, 500) : value;
+                            String value = v.getProperty(recordfield) == null? null : v.getProperty(recordfield).toString();
+                            value = value != null && value.length() > 500? value.substring(0, 500) : value;
                             record.append(field + ":" + value);
                         }
-                        log.error("record with largest value in field {}: {}", field, record);
+                        // calculate the max length of "field" value within the AmberVertex set
+                        int lengthOfLargestValueInThisField = v.getProperty(field) == null? 0 : v.getProperty(field).toString().length();
+                        log.error("record with largest field {} of length {} (note: all field values are truncated to max of 500 chars in this entry): {}", field, lengthOfLargestValueInThisField, record);
                     }
                 }
             }
