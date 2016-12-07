@@ -27,6 +27,8 @@ import org.skife.jdbi.v2.logging.PrintStreamLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.tinkerpop.blueprints.Direction;
@@ -345,8 +347,12 @@ public class AmberGraph extends BaseGraph
             try {
                 dao.suspendProperties(sessId, p.id, p.name, p.type, p.value);
             } catch (org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException err) {
-                logLargestRecordInSession(sessId, p);
-                throw err;
+                try {
+                    String largestRecord = logLargestRecordInSession(sessId, p);
+                    throw new org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException(largestRecord, err);
+                } catch (JsonProcessingException pe) {
+                    throw err;
+                }
             }
 
             suspendIntoFlatVertexTables(sessId, newVerticesByType,      NEW);
@@ -364,7 +370,7 @@ public class AmberGraph extends BaseGraph
         return sessId;
     }
 
-    private void logLargestRecordInSession(Long sessId, AmberPropertyBatch p) {
+    private String logLargestRecordInSession(Long sessId, AmberPropertyBatch p) throws JsonProcessingException {
         int i = 0;
         int maxValueLength = 0;
         Long pid = 0L;
@@ -390,6 +396,7 @@ public class AmberGraph extends BaseGraph
                 log.error("Values of largest record in session {} : {} : {}", sessId, field, recordToLog.get(field));
             }
         }
+        return (new ObjectMapper()).writeValueAsString(recordToLog);
     }
 
     
