@@ -344,10 +344,8 @@ public class AmberGraph extends BaseGraph
             dao.suspendVertices(sessId, v.id, v.txnStart, v.txnEnd, v.state);
             try {
                 dao.suspendProperties(sessId, p.id, p.name, p.type, p.value);
-            } catch (Exception err) {
-                if (err instanceof java.sql.BatchUpdateException) {
-                    logLargestRecordInSession(sessId, p);
-                }
+            } catch (org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException err) {
+                logLargestRecordInSession(sessId, p);
                 throw err;
             }
 
