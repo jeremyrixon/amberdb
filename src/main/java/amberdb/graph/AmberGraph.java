@@ -349,6 +349,7 @@ public class AmberGraph extends BaseGraph
             } catch (org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException err) {
                 try {
                     String largestRecord = logLargestRecordInSession(sessId, p);
+                    largestRecord = (largestRecord == null || largestRecord.isEmpty())? "" : "Failed as record is too big: " + largestRecord;
                     throw new org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException(largestRecord, err);
                 } catch (JsonProcessingException pe) {
                     throw err;
