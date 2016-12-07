@@ -1650,7 +1650,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
         int maxLength = 0;
         for (AmberVertex v: set) {
             for (String field : fields) {
-                String value = v.getProperty(field).toString();
+                String value = v.getProperty(field) == null? null : v.getProperty(field).toString();
                 int length = value == null? 0: value.length();
                 if (length > maxLength) {
                     recordToLog = v;
