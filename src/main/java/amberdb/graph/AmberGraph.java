@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -341,7 +342,14 @@ public class AmberGraph extends BaseGraph
             dao.suspendEdges(sessId, e.id, e.txnStart, e.txnEnd, e.vertexOut,
                     e.vertexIn, e.label, e.order, e.state);
             dao.suspendVertices(sessId, v.id, v.txnStart, v.txnEnd, v.state);
-            dao.suspendProperties(sessId, p.id, p.name, p.type, p.value);
+            try {
+                dao.suspendProperties(sessId, p.id, p.name, p.type, p.value);
+            } catch (Exception err) {
+                if (err instanceof java.sql.BatchUpdateException) {
+                    logLargestRecordInSession(sessId, p);
+                }
+                throw err;
+            }
 
             suspendIntoFlatVertexTables(sessId, newVerticesByType,      NEW);
             suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, MOD);
@@ -356,6 +364,34 @@ public class AmberGraph extends BaseGraph
         
 
         return sessId;
+    }
+
+    private void logLargestRecordInSession(Long sessId, AmberPropertyBatch p) {
+        int i = 0;
+        int maxValueLength = 0;
+        Long pid = 0L;
+        Map<String, String> currentRecord = new LinkedHashMap<>();
+        Map<String, String> recordToLog = null;
+        for (Long l : p.id) {
+            if (pid != l) {
+                currentRecord = new LinkedHashMap<>();
+                pid = l;
+            }
+            currentRecord.put("id", "" + l);
+            currentRecord.put(p.name.get(i), new String(p.value.get(i)));
+            int valueLength = (new String(p.value.get(i))).length();
+            if (valueLength > maxValueLength) {
+                maxValueLength = valueLength;
+                recordToLog = currentRecord;
+            }
+            i++;
+        }
+        log.error("Failed to suspend due to properties in session: {}", sessId);
+        if (recordToLog != null) {
+            for (String field : recordToLog.keySet()) {
+                log.error("Values of largest record in session {} : {} : {}", sessId, field, recordToLog.get(field));
+            }
+        }
     }
 
     
