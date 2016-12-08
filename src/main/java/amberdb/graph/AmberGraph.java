@@ -337,18 +337,19 @@ public class AmberGraph extends BaseGraph
             Map<String, Set<AmberEdge>>   removedEdgesByType     = getEdgesByType(removedEdges.values());
             
             dao.begin();
+
+            suspendIntoFlatVertexTables(sessId, newVerticesByType, NEW);
+            suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, MOD);
+            suspendIntoFlatVertexTables(sessId, removedVerticesByType, DEL);
+
+            suspendIntoFlatEdgeTables(sessId, newEdgesByType, NEW);
+            suspendIntoFlatEdgeTables(sessId, modifiedEdgesByType, MOD);
+            suspendIntoFlatEdgeTables(sessId, removedEdgesByType, DEL);
             
             dao.suspendEdges(sessId, e.id, e.txnStart, e.txnEnd, e.vertexOut,
                     e.vertexIn, e.label, e.order, e.state);
             dao.suspendVertices(sessId, v.id, v.txnStart, v.txnEnd, v.state);
             dao.suspendProperties(sessId, p.id, p.name, p.type, p.value);
-
-            suspendIntoFlatVertexTables(sessId, newVerticesByType,      NEW);
-            suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, MOD);
-            suspendIntoFlatVertexTables(sessId, removedVerticesByType , DEL);
-            suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         NEW);
-            suspendIntoFlatEdgeTables(  sessId, modifiedEdgesByType,    MOD);
-            suspendIntoFlatEdgeTables(  sessId, removedEdgesByType ,    DEL);
             
             dao.commit();
         }
@@ -357,7 +358,6 @@ public class AmberGraph extends BaseGraph
 
         return sessId;
     }
-
     
 	private Map<String, Set<AmberVertex>> getVerticesByType(Collection<Vertex> vertices) {
 		Map<String, Set<AmberVertex>> verticesByType = new HashMap<>();
@@ -464,8 +464,8 @@ public class AmberGraph extends BaseGraph
     public void destroySession(Long sessId) {
         log.debug("removing session {} from the session tables", sessId);
         dao.begin();
-        dao.clearSession(sessId);
         dao.clearFlatSession(sessId);
+        dao.clearSession(sessId);
         dao.commit();
     }
     
@@ -932,9 +932,8 @@ public class AmberGraph extends BaseGraph
             if (batchLimit >= COMMIT_BATCH_SIZE) {
                 log.debug("Batched vertex marshalling");
                 
-                dao.suspendVertices(sessId, vertices.id, vertices.txnStart, vertices.txnEnd, vertices.state);
-                
                 suspendIntoFlatVertexTables(sessId, removedVerticesByType , DEL);
+                dao.suspendVertices(sessId, vertices.id, vertices.txnStart, vertices.txnEnd, vertices.state);            
                 
                 vertices.clear();
                 batchLimit = 0;
@@ -958,12 +957,12 @@ public class AmberGraph extends BaseGraph
             batchLimit += (av.getProperties() == null) ? 0 : av.getProperties().size();
             if (batchLimit >= COMMIT_BATCH_SIZE) {
                 log.debug("Batched vertex marshalling");
+                
+                suspendIntoFlatVertexTables(sessId, newVerticesByType,      NEW);
+                suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, MOD);
 
                 dao.suspendVertices(sessId, vertices.id, vertices.txnStart, vertices.txnEnd, vertices.state);
                 dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
-
-                suspendIntoFlatVertexTables(sessId, newVerticesByType,      NEW);
-                suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, MOD);
                 
                 vertices.clear();
                 properties.clear();
@@ -973,13 +972,12 @@ public class AmberGraph extends BaseGraph
             }
         }
         
-        dao.suspendVertices(sessId, vertices.id, vertices.txnStart, vertices.txnEnd, vertices.state);
-        dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
-        
         suspendIntoFlatVertexTables(sessId, newVerticesByType,      NEW);
         suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, MOD);
         suspendIntoFlatVertexTables(sessId, removedVerticesByType , DEL);
-
+        
+        dao.suspendVertices(sessId, vertices.id, vertices.txnStart, vertices.txnEnd, vertices.state);
+        dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
     }
 
 
@@ -1006,10 +1004,9 @@ public class AmberGraph extends BaseGraph
             batchLimit++;
             if (batchLimit >= COMMIT_BATCH_SIZE) {
                 log.debug("Batched edge marshalling");
+                suspendIntoFlatEdgeTables(  sessId, removedEdgesByType ,    DEL);
                 dao.suspendEdges(sessId, edges.id, edges.txnStart, edges.txnEnd, 
                         edges.vertexOut, edges.vertexIn, edges.label, edges.order, edges.state);
-                
-                suspendIntoFlatEdgeTables(  sessId, removedEdgesByType ,    DEL);
 
                 edges.clear();
                 batchLimit = 0;
@@ -1033,12 +1030,11 @@ public class AmberGraph extends BaseGraph
             batchLimit += (ae.getProperties() == null) ? 0 : ae.getProperties().size();
             if (batchLimit >= COMMIT_BATCH_SIZE) {
                 log.debug("Batched edge marshalling");
-
+                suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         NEW);
+                suspendIntoFlatEdgeTables(  sessId, modifiedEdgesByType,    MOD);
                 dao.suspendEdges(sessId, edges.id, edges.txnStart, edges.txnEnd, 
                         edges.vertexOut, edges.vertexIn, edges.label, edges.order, edges.state);
                 dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
-                suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         NEW);
-                suspendIntoFlatEdgeTables(  sessId, modifiedEdgesByType,    MOD);
 
                 edges.clear();
                 properties.clear();
@@ -1048,13 +1044,12 @@ public class AmberGraph extends BaseGraph
 
             }
         }
-        dao.suspendEdges(sessId, edges.id, edges.txnStart, edges.txnEnd, 
-                edges.vertexOut, edges.vertexIn, edges.label, edges.order, edges.state);
-        dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
-
         suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         NEW);
         suspendIntoFlatEdgeTables(  sessId, modifiedEdgesByType,    MOD);
         suspendIntoFlatEdgeTables(  sessId, removedEdgesByType ,    DEL);
+        dao.suspendEdges(sessId, edges.id, edges.txnStart, edges.txnEnd, 
+                edges.vertexOut, edges.vertexIn, edges.label, edges.order, edges.state);
+        dao.suspendProperties(sessId, properties.id, properties.name, properties.type, properties.value);
     }
 
 

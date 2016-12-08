@@ -1627,8 +1627,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
                 }
             }
         }
-        preparedBatch.execute();
-        
+        preparedBatch.execute();   
     }
 
     public void suspendIntoNodeTable(Long sessId, State state, Set<AmberVertex> set) {
@@ -1657,7 +1656,6 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             }
         }
         preparedBatch.execute();
-        
     }
 
     private void bindField(AmberVertex v, PreparedBatchPart preparedBatchPart, String field) {
