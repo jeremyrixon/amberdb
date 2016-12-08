@@ -32,8 +32,6 @@ import org.skife.jdbi.v2.util.IntegerColumnMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mysql.jdbc.Clob;
 
 import amberdb.graph.AmberEdge;
