@@ -1629,73 +1629,8 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
                 }
             }
         }
-        try {
-            preparedBatch.execute();
-        } catch (org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException err) {
-            if (err.getMessage().contains("Data truncation: Data too long for column ")) {
-                Map<String, AmberVertex> checklist = new HashMap<>();
-                findRecordsWithALargestProperty(set, fields, checklist);
-                if (!checklist.isEmpty()) {
-                    log.error("Failed to suspend due to data too large for column exception with the following records for verification...");
-                    for (String field : fields) {
-                        AmberVertex v = checklist.get(field);
-                        // concat all fields in a record from checklist for logging
-                        StringBuilder record = new StringBuilder();
-                        for (String recordfield : fields) {
-                            String value = v.getProperty(recordfield) == null? null : v.getProperty(recordfield).toString();
-                            value = value != null && value.length() > 500? value.substring(0, 500) : value;
-                            record.append(field + ":" + value);
-                        }
-                        // calculate the max length of "field" value within the AmberVertex set
-                        int lengthOfLargestValueInThisField = v.getProperty(field) == null? 0 : v.getProperty(field).toString().length();
-                        log.error("record with largest field {} of length {} (note: all field values are truncated to max of 500 chars in this entry): {}", field, lengthOfLargestValueInThisField, record);
-                    }
-                }
-            }
-            throw err;
-        }     
+        preparedBatch.execute();   
     }
-    
-    private void findRecordsWithALargestProperty(Set<AmberVertex> set, Set<String> fields, Map<String, AmberVertex> checklist) {
-        Map<String, Integer> maxLengthMap = new HashMap<>();
-        for (AmberVertex v: set) {
-            for (String field : fields) {
-                String value = v.getProperty(field) == null? null : v.getProperty(field).toString();
-                Integer maxLength = maxLengthMap.get(field) == null? 0 : maxLengthMap.get(field);
-                int length = value == null? 0: value.length();
-                if (length > maxLength) {
-                    checklist.put(field, v);
-                    maxLengthMap.put(field, length);
-                }
-            }
-        }
-    }
-    /*
-    private String logLargestRecordInSession(Long sessId, Set<AmberVertex> set, Set<String> fields) throws JsonProcessingException {
-        AmberVertex recordToLog = null;
-        String largeFieldName = "";
-        int maxLength = 0;
-        for (AmberVertex v: set) {
-            for (String field : fields) {
-                String value = v.getProperty(field) == null? null : v.getProperty(field).toString();
-                int length = value == null? 0: value.length();
-                if (length > maxLength) {
-                    recordToLog = v;
-                    maxLength = length;
-                    largeFieldName = field;
-                }
-            }
-        }
-        StringBuilder bld = new StringBuilder();
-        for (String field : fields) {
-            String value = recordToLog.getProperty(field) == null? null : recordToLog.getProperty(field).toString();
-            value = value != null && value.length() > 500 && largeFieldName.equals(field)? value.substring(0, 500) : value;
-            bld.append(field + ":" + value);
-        }
-        log.error("Failed to suspend session: {} due to large value in field: {}, fragment from largest record in session: {}", sessId, largeFieldName, bld.toString());
-        return (new ObjectMapper()).writeValueAsString(recordToLog);
-    }
-    */
 
     public void suspendIntoNodeTable(Long sessId, State state, Set<AmberVertex> set) {
         String sql = "INSERT INTO sess_node ( s_id,  state,  id,  txn_start,  txn_end,  type,  accessConditions,  alias,  commentsExternal,  commentsInternal,  expiryDate,  internalAccessConditions,  localSystemNumber,  name,  notes,  recordSource,  restrictionType) "
@@ -1722,31 +1657,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 
             }
         }
-        try {
-            preparedBatch.execute();
-        } catch (org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException err) {
-            if (err.getMessage().contains("Data truncation: Data too long for column ")) {
-                Map<String, AmberVertex> checklist = new HashMap<>();
-                findRecordsWithALargestProperty(set, nodeFields, checklist);
-                if (!checklist.isEmpty()) {
-                    log.error("Failed to suspend due to data too large for column exception with the following records for verification...");
-                    for (String field : nodeFields) {
-                        AmberVertex v = checklist.get(field);
-                        // concat all fields in a record from checklist for logging
-                        StringBuilder record = new StringBuilder();
-                        for (String recordfield : nodeFields) {
-                            String value = v.getProperty(recordfield) == null? null : v.getProperty(recordfield).toString();
-                            value = value != null && value.length() > 500? value.substring(0, 500) : value;
-                            record.append(field + ":" + value);
-                        }
-                        // calculate the max length of "field" value within the AmberVertex set
-                        int lengthOfLargestValueInThisField = v.getProperty(field) == null? 0 : v.getProperty(field).toString().length();
-                        log.error("record with largest field {} of length {} (note: all field values are truncated to max of 500 chars in this entry): {}", field, lengthOfLargestValueInThisField, record);
-                    }
-                }
-            }
-            throw err;
-        }
+        preparedBatch.execute();
     }
 
     private void bindField(AmberVertex v, PreparedBatchPart preparedBatchPart, String field) {
