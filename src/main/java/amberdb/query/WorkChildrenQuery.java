@@ -68,8 +68,8 @@ public class WorkChildrenQuery extends AmberQueryBase {
         s.append(
             "DROP " + tDrop + " TABLE IF EXISTS v1; " +
             "DROP " + tDrop + " TABLE IF EXISTS v2; " +
-        	"CREATE TEMPORARY TABLE v1 (id BIGINT, obj_type CHAR(1), ord BIGINT)" + tEngine + "; " +
-            "CREATE TEMPORARY TABLE v2 (id BIGINT, obj_type CHAR(1), ord BIGINT)" + tEngine + "; ");
+        	"CREATE TEMPORARY TABLE v1 (id BIGINT, obj_type CHAR(1), ord BIGINT, nullOrder BIGINT, sortField VARCHAR)" + tEngine + "; " +
+            "CREATE TEMPORARY TABLE v2 (id BIGINT, obj_type CHAR(1), ord BIGINT, nullOrder BIGINT, sortField VARCHAR)" + tEngine + "; ");
         
         // add children Works excluding Sections with the limits specified on the range returned
         s.append(addChildrenWorksSql);
@@ -158,15 +158,16 @@ public class WorkChildrenQuery extends AmberQueryBase {
     
     private String getAddChildrenWorkSortBySql(Long workId, int start, int num, String sortBy, boolean asc) {
         StringBuilder sb = new StringBuilder();
-        sb.append("INSERT INTO v1 (id, obj_type, ord) "
-                + " SELECT DISTINCT v.id, 'W' obj_type, e.edge_order FROM node v "
+        sb.append("INSERT INTO v1 (id, obj_type, ord, nullOrder, sortField) "
+                + " SELECT DISTINCT v.id, 'W' obj_type, e.edge_order, case when " + sortBy + " is null then 1 else 0 end, p1." + sortBy
+                + " FROM node v "
                 + " INNER JOIN work p1 "
                 + " ON p1.id = v.id AND p1.type IN " + workNotSectionInList
-                + " INNER JOIN edge e "
+                + " INNER JOIN flatedge e "
                 + " ON e.v_out = v.id AND e.label = 'isPartOf' "
-                + " LEFT JOIN property p2 "
-                + " ON p2.id = v.id AND p2." + sortBy + " != '[]' " //empty list treated as null (e.g. when sorting by alias)
-                + " WHERE e.v_in = " + workId + " ORDER BY ISNULL(p2." + sortBy + "), p2." + sortBy + " "); //null always last whether asc or desc
+                + " WHERE e.v_in = " + workId
+                + " ORDER BY case when " + sortBy + " is null then 1 else 0 end, p1." + sortBy + " "
+        ); //null always last whether asc or desc
         if (!asc){
             sb.append(" desc ");
         }
