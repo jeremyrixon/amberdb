@@ -68,8 +68,8 @@ public class WorkChildrenQuery extends AmberQueryBase {
         s.append(
             "DROP " + tDrop + " TABLE IF EXISTS v1; " +
             "DROP " + tDrop + " TABLE IF EXISTS v2; " +
-        	"CREATE TEMPORARY TABLE v1 (id BIGINT, obj_type CHAR(1), ord BIGINT, nullOrder BIGINT, sortField VARCHAR)" + tEngine + "; " +
-            "CREATE TEMPORARY TABLE v2 (id BIGINT, obj_type CHAR(1), ord BIGINT, nullOrder BIGINT, sortField VARCHAR)" + tEngine + "; ");
+        	"CREATE TEMPORARY TABLE v1 (id BIGINT, obj_type CHAR(1), ord BIGINT, nullOrder BIGINT, sortField VARCHAR(4000))" + tEngine + "; " +
+            "CREATE TEMPORARY TABLE v2 (id BIGINT, obj_type CHAR(1), ord BIGINT, nullOrder BIGINT, sortField VARCHAR(4000))" + tEngine + "; ");
         
         // add children Works excluding Sections with the limits specified on the range returned
         s.append(addChildrenWorksSql);
