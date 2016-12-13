@@ -177,7 +177,7 @@ public class WorksQuery {
      */
     public static List<Long> getNLastCreatedVertexIds(AmberSession sess, List<Long> vertexIds, long n){
         if (CollectionUtils.isNotEmpty(vertexIds)){
-            String sql = "SELECT id FROM vertex WHERE id IN (" + Joiner.on(",").join(vertexIds) + ") GROUP BY id ORDER BY MIN(txn_start) DESC LIMIT :n";
+            String sql = "SELECT id FROM node WHERE id IN (" + Joiner.on(",").join(vertexIds) + ") GROUP BY id ORDER BY MIN(txn_start) DESC LIMIT :n";
             try (Handle h = sess.getAmberGraph().dbi().open()) {
                 return h.createQuery(sql).bind("n", n).map(LongMapper.FIRST).list();
             }

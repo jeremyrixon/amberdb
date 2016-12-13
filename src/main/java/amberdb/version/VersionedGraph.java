@@ -168,22 +168,13 @@ public class VersionedGraph {
         if (localOnly) return null;
         
         try (Handle h = dbi.open()) {
-            List<TEdge> edges = h.createQuery(
-                "SELECT id, txn_start, txn_end, label, v_in, v_out, edge_order, "
-                + "FROM edge " 
-                + "WHERE id = :id ")
+            List<TEdge> edges = h.createQuery(VersionQuery.EDGE_HISTORY_QUERY_PREFIX
+                + "WHERE flatedge_history.id = :id ")
                 .bind("id", eId)
                 .map(new TEdgeMapper()).list();
 
             if (edges == null) return null;
-            
-            Map<TId, Map<String, Object>> propMap = getElementPropertyMap(eId, h);
-            for (TEdge te : edges) {
-                Map<String, Object> props = propMap.get(te.id);
-                if (props != null) {
-                    te.replaceProperties(props);
-                }
-            }    
+
             Set<TEdge> eSet = new HashSet<>();
             eSet.addAll(edges);
             edge = new VersionedEdge(eSet, this);
@@ -191,30 +182,7 @@ public class VersionedGraph {
         }
         return edge;
     } 
-    
-    
-    protected Map<TId, Map<String, Object>> getElementPropertyMap(Long pId, Handle h) {
 
-        Map<TId, Map<String, Object>> propMap = new HashMap<>();
-
-        List<TProperty> propList = h.createQuery(
-                "SELECT id, txn_start, txn_end, name, type, value "
-                + "FROM property " 
-                + "WHERE id = :id")
-                .bind("id", pId)
-                .map(new TPropertyMapper()).list();
-        if (propList == null || propList.size() == 0) return propMap;
-        
-        for (TProperty p : propList) {
-            TId id = p.getId();
-            if (propMap.get(id) == null) {
-                propMap.put(id, new HashMap<String, Object>());
-            }
-            propMap.get(id).put(p.getName(), p.getValue());
-        }
-        return propMap;
-    }
-    
     
     public Iterable<VersionedEdge> getEdges() {
         List<VersionedEdge> edges = Lists.newArrayList(graphEdges.values());
@@ -270,21 +238,12 @@ public class VersionedGraph {
         
         try (Handle h = dbi.open()) {
             List<TVertex> vertices = h.createQuery(
-                "SELECT id, txn_start, txn_end "
-                + "FROM vertex " 
-                + "WHERE id = :id ")
+                VersionQuery.VERTEX_HISTORY_QUERY_PREFIX + "WHERE node_history.id = :id ")
                 .bind("id", vId)
                 .map(new TVertexMapper()).list();
 
             if (CollectionUtils.isEmpty(vertices)) return null;
             
-            Map<TId, Map<String, Object>> propMap = getElementPropertyMap(vId, h);
-            for (TVertex tv : vertices) {
-                Map<String, Object> props = propMap.get(tv.id);
-                if (props != null) {
-                    tv.replaceProperties(props);
-                }
-            }
             Set<TVertex> vSet = new HashSet<>();
             vSet.addAll(vertices);
             vertex = new VersionedVertex(vSet, this);

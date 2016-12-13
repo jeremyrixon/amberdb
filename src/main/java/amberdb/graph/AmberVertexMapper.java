@@ -31,7 +31,8 @@ public class AmberVertexMapper implements ResultSetMapper<AmberVertex>  {
 		skipProps.add("eid");
 		skipProps.add("label");
 		skipProps.add("edge_order");
-    }
+		skipProps.add("s_id");
+	}
 
     
     public AmberVertexMapper(AmberGraph graph) {

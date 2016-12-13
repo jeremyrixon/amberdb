@@ -49,13 +49,17 @@ public class TransactionsTest {
         Vertex v2 = graph.addVertex(null);
         Vertex v3 = graph.addVertex(null);
         
+        v1.setProperty("type", "Work");
+        v2.setProperty("type", "Work");
+        v3.setProperty("type", "Work");
+
         v1.setProperty("title", "v1");
         v2.setProperty("title", "v2");
         v3.setProperty("title", "v3");
         
-        v1.setProperty("value", 1);
-        v2.setProperty("value", 2);
-        v3.setProperty("value", 3);
+        v1.setProperty("bibId", 1);
+        v2.setProperty("bibId", 2);
+        v3.setProperty("bibId", 3);
         
         v1.addEdge("links", v2);
         v2.addEdge("links", v3);
@@ -66,7 +70,7 @@ public class TransactionsTest {
         
         // do some things
         v1.setProperty("title", "vertex 1");
-        v2.setProperty("value", 100);
+        v2.setProperty("bibId", 100);
         Edge e4 = graph.addEdge(null, v1, v2, "ordered");
         
         // commit

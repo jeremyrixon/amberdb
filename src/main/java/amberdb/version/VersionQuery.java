@@ -31,6 +31,10 @@ public class VersionQuery {
             "left join party_history       on       party_history.id = node_history.id and       party_history.txn_start = node_history.txn_start and       party_history.txn_end = node_history.txn_end \n" +
             "left join tag_history         on         tag_history.id = node_history.id and         tag_history.txn_start = node_history.txn_start and         tag_history.txn_end = node_history.txn_end \n";
 
+    protected static final String EDGE_HISTORY_QUERY_PREFIX = "select * \n" +
+            "from flatedge_history \n" +
+            "left join acknowledge_history on acknowledge_history.id = flatedge_history.id and acknowledge_history.txn_start = flatedge_history.txn_start and acknowledge_history.txn_end = flatedge_history.txn_end \n";
+
     protected VersionQuery(Long head, VersionedGraph graph) {
 
         // guard
