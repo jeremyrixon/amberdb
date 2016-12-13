@@ -26,7 +26,7 @@ public class ObjectsQuery extends AmberQueryBase {
 
     public ModifiedObjectsQueryResponse getArticlesForIndexing(ModifiedObjectsBetweenTransactionsQueryRequest request) {
 
-        LinkedHashMap<Long, ModifiedObjectsQueryResponse.ModifiedObject> modifiedObjects = new LinkedHashMap<Long, ModifiedObjectsQueryResponse.ModifiedObject>();
+        LinkedHashMap<Long, ModifiedObjectsQueryResponse.ModifiedObject> modifiedObjects = new LinkedHashMap<>();
 
         try (Handle h = graph.dbi().open()) {
             h.begin();
@@ -103,7 +103,7 @@ public class ObjectsQuery extends AmberQueryBase {
     }
 
     public ModifiedObjectsQueryResponse getModifiedObjectIds(ModifiedObjectsBetweenTransactionsQueryRequest request) {
-        LinkedHashMap<Long, ModifiedObjectsQueryResponse.ModifiedObject> modifiedObjects = new LinkedHashMap<Long, ModifiedObjectsQueryResponse.ModifiedObject>();
+        LinkedHashMap<Long, ModifiedObjectsQueryResponse.ModifiedObject> modifiedObjects = new LinkedHashMap<>();
         
         if (!request.hasTransactions()) {
             return new ModifiedObjectsQueryResponse();
@@ -115,7 +115,7 @@ public class ObjectsQuery extends AmberQueryBase {
             h.execute("SET @start_transaction = ?", request.getFromTxn());
             h.execute("SET @end_transaction = ?", request.getToTxn());
 
-            Update insert = createInsertStatement(h, request.getPropertyFilters(), request.isOnlyPropertiesWithinTransactionRange(), request.getSkip(), request.getTake());
+            Update insert = createInsertStatement(h, request.getPropertyFilters(), request.getSkip(), request.getTake());
             insert.execute();
 
             Query<Map<String, Object>> q = h.createQuery(
@@ -171,74 +171,72 @@ public class ObjectsQuery extends AmberQueryBase {
         }
     }
 
-    private Update createInsertStatement(Handle h, List<WorkProperty> propertyFilters, boolean onlyPropertiesWithinTransactionRange, long skip, long take) {
+    private Update createInsertStatement(Handle h, List<WorkProperty> propertyFilters, long skip, long take) {
         if (propertyFilters == null) {
-            propertyFilters = new ArrayList<WorkProperty>();
+            propertyFilters = new ArrayList<>();
         }
 
         String insert =
                 "INSERT INTO v0 (id)\n" + 
                 "SELECT DISTINCT v.id\n" + 
                 "FROM\n" + 
-                "  ( SELECT id\n" + 
+                "  ( SELECT id\n" +
                 "   FROM node_history\n" +
-                "   WHERE (txn_start >= @start_transaction\n" + 
-                "          AND txn_start <= @end_transaction)\n" + 
-                "     AND (txn_end > @end_transaction\n" + 
-                "          OR txn_end = 0)\n" + 
-                "   UNION SELECT id\n" + 
+                "   WHERE (txn_start >= @start_transaction\n" +
+                "          AND txn_start <= @end_transaction)\n" +
+                "     AND (txn_end > @end_transaction\n" +
+                "          OR txn_end = 0)\n" +
+                "   UNION SELECT id\n" +
                 "   FROM node_history\n" +
-                "   WHERE (txn_end >= @start_transaction\n" + 
-                "          AND txn_end <= @end_transaction)\n" + 
-                "     AND (txn_start < @start_transaction)\n" + 
-                "   UNION SELECT v_in AS id\n" + 
+                "   WHERE (txn_end >= @start_transaction\n" +
+                "          AND txn_end <= @end_transaction)\n" +
+                "     AND (txn_start < @start_transaction)\n" +
+                "   UNION SELECT v_in AS id\n" +
                 "   FROM flatedge_history\n" +
-                "   WHERE (txn_start >= @start_transaction\n" + 
-                "          AND txn_start <= @end_transaction)\n" + 
-                "     AND (txn_end > @end_transaction\n" + 
-                "          OR txn_end = 0)\n" + 
-                "   UNION SELECT v_in AS id\n" + 
+                "   WHERE (txn_start >= @start_transaction\n" +
+                "          AND txn_start <= @end_transaction)\n" +
+                "     AND (txn_end > @end_transaction\n" +
+                "          OR txn_end = 0)\n" +
+                "   UNION SELECT v_in AS id\n" +
                 "   FROM flatedge_history\n" +
-                "   WHERE (txn_end >= @start_transaction\n" + 
-                "          AND txn_end <= @end_transaction)\n" + 
-                "     AND (txn_start < @start_transaction)\n" + 
-                "   UNION SELECT v_out AS id\n" + 
+                "   WHERE (txn_end >= @start_transaction\n" +
+                "          AND txn_end <= @end_transaction)\n" +
+                "     AND (txn_start < @start_transaction)\n" +
+                "   UNION SELECT v_out AS id\n" +
                 "   FROM flatedge_history\n" +
-                "   WHERE (txn_start >= @start_transaction\n" + 
-                "          AND txn_start <= @end_transaction)\n" + 
-                "     AND (txn_end > @end_transaction\n" + 
-                "          OR txn_end = 0)\n" + 
-                "   UNION SELECT v_out AS id\n" + 
+                "   WHERE (txn_start >= @start_transaction\n" +
+                "          AND txn_start <= @end_transaction)\n" +
+                "     AND (txn_end > @end_transaction\n" +
+                "          OR txn_end = 0)\n" +
+                "   UNION SELECT v_out AS id\n" +
                 "   FROM flatedge_history\n" +
-                "   WHERE (txn_end >= @start_transaction\n" + 
-                "          AND txn_end <= @end_transaction)\n" + 
+                "   WHERE (txn_end >= @start_transaction\n" +
+                "          AND txn_end <= @end_transaction)\n" +
                 "     AND (txn_start < @start_transaction)) AS v\n";
 
-        if (propertyFilters.size() > 0) {
-            insert +=
-                "    , property p\n" +
-                "    WHERE v.id = p.id\n";
-                        if (onlyPropertiesWithinTransactionRange) {
-                            insert += "      AND p.txn_end >= @start_transaction AND (p.txn_end <= @end_transaction OR p.txn_end = 0)\n";
-                        }
-            insert +=
-                "      AND ( \n";
-
+        if (!propertyFilters.isEmpty()) {
+            insert += " left join node_history on v.id = node_history.id \n" +
+                    "left join work_history        on        work_history.id = node_history.id and        work_history.txn_start = node_history.txn_start and        work_history.txn_end = node_history.txn_end \n" +
+                    "left join file_history        on        file_history.id = node_history.id and        file_history.txn_start = node_history.txn_start and        file_history.txn_end = node_history.txn_end \n" +
+                    "left join description_history on description_history.id = node_history.id and description_history.txn_start = node_history.txn_start and description_history.txn_end = node_history.txn_end \n" +
+                    "left join party_history       on       party_history.id = node_history.id and       party_history.txn_start = node_history.txn_start and       party_history.txn_end = node_history.txn_end \n" +
+                    "left join tag_history         on         tag_history.id = node_history.id and         tag_history.txn_start = node_history.txn_start and         tag_history.txn_end = node_history.txn_end \n";
+            insert += "WHERE (" ;
             for (int i = 0; i < propertyFilters.size(); i++) {
-                insert += "        (p.name = :name_" + i + " AND CAST(p.value AS char) = :value_" + i + ")\n";
+                insert += "CAST(" + propertyFilters.get(i).getName() + " AS char) = :value_" + i + "\n";
                 if (i < propertyFilters.size() - 1) {
                     insert += "        OR\n";
                 }
             }
-            insert += "    )\n";
+            insert += ")";
         }
+
 
         insert += "ORDER BY v.id ASC LIMIT :skip,:take;";
 
         Update u = h.createStatement(insert);
-
+        
         for (int i = 0; i < propertyFilters.size(); i++) {
-            u.bind("name_" + i, propertyFilters.get(i).getName());
             u.bind("value_" + i, propertyFilters.get(i).getValue());
         }
 
