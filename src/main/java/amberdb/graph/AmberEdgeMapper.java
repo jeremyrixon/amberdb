@@ -21,7 +21,7 @@ public class AmberEdgeMapper implements ResultSetMapper<AmberEdge>  {
     private AmberGraph graph;
     private boolean localOnly; 
     
-    private static Set<String> skipProps = new HashSet<>();
+    public static Set<String> skipProps = new HashSet<>();
     static {
     	skipProps.add("id");
         skipProps.add("label");
@@ -31,6 +31,7 @@ public class AmberEdgeMapper implements ResultSetMapper<AmberEdge>  {
         skipProps.add("v_out");
         skipProps.add("edge_order");
     	skipProps.add("state");
+    	skipProps.add("s_id");
     }
 
     

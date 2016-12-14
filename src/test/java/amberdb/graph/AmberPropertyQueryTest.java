@@ -227,15 +227,15 @@ public class AmberPropertyQueryTest {
     public void testJsonListValueQueries() throws Exception {
 
         Vertex v1 = graph.addVertex(null);
-        v1.setProperty("type", "work");
+        v1.setProperty("type", "Work");
         v1.setProperty("contributor", "[\"abba\",\"beta\",\"delta\",\"gamma\"]");
 
         Vertex v2 = graph.addVertex(null);
-        v2.setProperty("type", "work");
+        v2.setProperty("type", "Work");
         v2.setProperty("contributor", "[\"babba\",\"beta\",\"delta\",\"gamma\"]");
 
         Vertex v3 = graph.addVertex(null);
-        v3.setProperty("type", "work");
+        v3.setProperty("type", "Work");
         v3.setProperty("contributor", "[\"beta\",\"delta\",\"gamma\", \"abba\"]");
 
         graph.commit("tester", "saving some vertices with properties");

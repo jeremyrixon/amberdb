@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 import org.junit.After;
@@ -93,8 +94,103 @@ public class WorkChildrenQueryTest {
         sess.setLocalMode(true);
         assertEquals(sections.size(), 7);
         sess.setLocalMode(false);
-    }        
-    
+    }
+
+    @Test
+    public void testGetChildRangeSorted() throws Exception {
+        // create a test work with children with properties to sort by
+        Work parent = sess.addWork();
+
+        // add children with properties that are not in the same sort order as the Order property or each other
+        Work child1 = sess.addWork();
+        child1.setOrder(1);
+        child1.setTitle("title5"); 
+        child1.setBibId("bibId2");
+        parent.addChild(child1);
+        
+        Work child2 = sess.addWork();
+        child2.setOrder(2);
+        child2.setTitle("title4");
+        child2.setBibId("bibId5");
+        parent.addChild(child2);
+        
+        Work child3 = sess.addWork();
+        child3.setOrder(3);
+        child3.setTitle("title3");
+        child3.setBibId("bibId1");
+        parent.addChild(child3);
+        
+        Work child4 = sess.addWork();
+        child4.setOrder(4);
+        child4.setTitle("title2");
+        child4.setBibId("bibId4");
+        parent.addChild(child4);
+        
+        Work child5 = sess.addWork();
+        child5.setOrder(5);
+        child5.setTitle("title1");
+        child5.setBibId("bibId3");
+        child5.setEndDate(new Date());
+        child5.setIsMissingPage(true);
+        parent.addChild(child5);
+
+        sess.commit();
+
+        WorkChildrenQuery wcq = new WorkChildrenQuery(sess);
+
+        // sort by Title should be child 5, 4, 3, 2, 1
+        List<Work> sortedByTitle = wcq.getChildRangeSorted(parent.getId(), 0, 10, "title", true);
+        assertEquals(child5.getId(), sortedByTitle.get(0).getId());
+        assertEquals(child4.getId(), sortedByTitle.get(1).getId());
+        assertEquals(child3.getId(), sortedByTitle.get(2).getId());
+        assertEquals(child2.getId(), sortedByTitle.get(3).getId());
+        assertEquals(child1.getId(), sortedByTitle.get(4).getId());
+
+        // sort by bibId should be child 3, 1, 5, 4, 2
+        List<Work> sortedByBibId = wcq.getChildRangeSorted(parent.getId(), 0, 10, "bibId", true);
+        assertEquals(child3.getId(), sortedByBibId.get(0).getId());
+        assertEquals(child1.getId(), sortedByBibId.get(1).getId());
+        assertEquals(child5.getId(), sortedByBibId.get(2).getId());
+        assertEquals(child4.getId(), sortedByBibId.get(3).getId());
+        assertEquals(child2.getId(), sortedByBibId.get(4).getId());
+    }
+
+    @Test
+    public void testNullShouldAlwaysBeLastInGetChildRangeSorted() throws Exception {
+        // create a test work with children with properties to sort by
+        Work parent = sess.addWork();
+
+        // add children with properties that are not in the same sort order as the Order property or each other
+        Work child1 = sess.addWork();
+        child1.setOrder(1);
+        child1.setTitle("title5");
+        parent.addChild(child1);
+
+        Work child2 = sess.addWork();
+        child2.setOrder(2);
+        child2.setTitle("title4");
+        parent.addChild(child2);
+
+        Work child3 = sess.addWork();
+        child3.setOrder(3);
+        child3.setTitle(null);
+        child3.setBibId("bibId1");
+        parent.addChild(child3);
+
+        sess.commit();
+
+        WorkChildrenQuery wcq = new WorkChildrenQuery(sess);
+
+        List<Work> sortedByTitle = wcq.getChildRangeSorted(parent.getId(), 0, 10, "title", true); // ascending
+        assertEquals(child2.getId(), sortedByTitle.get(0).getId());
+        assertEquals(child1.getId(), sortedByTitle.get(1).getId());
+        assertEquals(child3.getId(), sortedByTitle.get(2).getId()); // null title
+
+        sortedByTitle = wcq.getChildRangeSorted(parent.getId(), 0, 10, "title", false); // descending
+        assertEquals(child1.getId(), sortedByTitle.get(0).getId());
+        assertEquals(child2.getId(), sortedByTitle.get(1).getId());
+        assertEquals(child3.getId(), sortedByTitle.get(2).getId()); // null title
+    }
 
     private Work buildWork() {
         Work parent = sess.addWork();

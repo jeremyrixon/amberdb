@@ -53,23 +53,24 @@ public class TDiffTest {
         
         // vertex
         Vertex v = graph.addVertex(null);
+        v.setProperty("type", "Work");
 
         Long id = (Long) v.getId();
         
-        v.setProperty("prop1", "v1");
-        v.setProperty("prop2", "v2");
-        v.setProperty("prop3", "v3");
-        v.setProperty("prop4", "v4");
+        v.setProperty("title", "v1");
+        v.setProperty("form", "v2");
+        v.setProperty("recordSource", "v3");
+        v.setProperty("bibId", "v4");
         
         // commit
         long txn1 = graph.commit("test", "c1");
         //s("txn " + txn1);
         
         // modify vertex
-        v.setProperty("prop1", "v5");
-        v.setProperty("prop3", "v6");
-        v.removeProperty("prop4");
-        v.setProperty("prop5", "v7");
+        v.setProperty("title", "v5");
+        v.setProperty("recordSource", "v6");
+        v.removeProperty("bibId");
+        v.setProperty("collection", "v7");
         
         // commit
         long txn2 = graph.commit("test", "c2");
@@ -103,73 +104,73 @@ public class TDiffTest {
         //s("--NEW transitions:");
         //printDiffMap(new1);
         diffs = new1.getDiffMap();
-        assertNull(diffs.get("prop1")[0]);
-        assertNull(diffs.get("prop2")[0]);
-        assertNull(diffs.get("prop3")[0]);
-        assertNull(diffs.get("prop4")[0]);
-        assertEquals("v1", diffs.get("prop1")[1]);
-        assertEquals("v2", diffs.get("prop2")[1]);
-        assertEquals("v3", diffs.get("prop3")[1]);
-        assertEquals("v4", diffs.get("prop4")[1]);
+        assertNull(diffs.get("title")[0]);
+        assertNull(diffs.get("form")[0]);
+        assertNull(diffs.get("recordSource")[0]);
+        assertNull(diffs.get("bibId")[0]);
+        assertEquals("v1", diffs.get("title")[1]);
+        assertEquals("v2", diffs.get("form")[1]);
+        assertEquals("v3", diffs.get("recordSource")[1]);
+        assertEquals("v4", diffs.get("bibId")[1]);
 
         //s("\n");
         //printDiffMap(new2);        
         diffs = new2.getDiffMap();
-        assertNull(diffs.get("prop1")[0]);
-        assertNull(diffs.get("prop2")[0]);
-        assertNull(diffs.get("prop3")[0]);
-        assertNull(diffs.get("prop5")[0]);
-        assertEquals("v5", diffs.get("prop1")[1]);
-        assertEquals("v2", diffs.get("prop2")[1]);
-        assertEquals("v6", diffs.get("prop3")[1]);
-        assertEquals("v7", diffs.get("prop5")[1]);
+        assertNull(diffs.get("title")[0]);
+        assertNull(diffs.get("form")[0]);
+        assertNull(diffs.get("recordSource")[0]);
+        assertNull(diffs.get("collection")[0]);
+        assertEquals("v5", diffs.get("title")[1]);
+        assertEquals("v2", diffs.get("form")[1]);
+        assertEquals("v6", diffs.get("recordSource")[1]);
+        assertEquals("v7", diffs.get("collection")[1]);
 
         //s("\n--DELETED transitions:");
         //printDiffMap(del1);
         diffs = del1.getDiffMap();
-        assertNull(diffs.get("prop1")[1]);
-        assertNull(diffs.get("prop2")[1]);
-        assertNull(diffs.get("prop3")[1]);
-        assertNull(diffs.get("prop4")[1]);
-        assertEquals("v1", diffs.get("prop1")[0]);
-        assertEquals("v2", diffs.get("prop2")[0]);
-        assertEquals("v3", diffs.get("prop3")[0]);
-        assertEquals("v4", diffs.get("prop4")[0]);
+        assertNull(diffs.get("title")[1]);
+        assertNull(diffs.get("form")[1]);
+        assertNull(diffs.get("recordSource")[1]);
+        assertNull(diffs.get("bibId")[1]);
+        assertEquals("v1", diffs.get("title")[0]);
+        assertEquals("v2", diffs.get("form")[0]);
+        assertEquals("v3", diffs.get("recordSource")[0]);
+        assertEquals("v4", diffs.get("bibId")[0]);
         
         //s("\n");
         //printDiffMap(del2);        
         diffs = del2.getDiffMap();
-        assertNull(diffs.get("prop1")[1]);
-        assertNull(diffs.get("prop2")[1]);
-        assertNull(diffs.get("prop3")[1]);
-        assertNull(diffs.get("prop5")[1]);
-        assertEquals("v5", diffs.get("prop1")[0]);
-        assertEquals("v2", diffs.get("prop2")[0]);
-        assertEquals("v6", diffs.get("prop3")[0]);
-        assertEquals("v7", diffs.get("prop5")[0]);
+        assertNull(diffs.get("title")[1]);
+        assertNull(diffs.get("form")[1]);
+        assertNull(diffs.get("recordSource")[1]);
+        assertNull(diffs.get("collection")[1]);
+        assertEquals("v5", diffs.get("title")[0]);
+        assertEquals("v2", diffs.get("form")[0]);
+        assertEquals("v6", diffs.get("recordSource")[0]);
+        assertEquals("v7", diffs.get("collection")[0]);
 
         //s("\n--MODIFIED transitions:");
         //printDiffMap(mod1);
         diffs = mod1.getDiffMap();
-        assertEquals("v1", diffs.get("prop1")[0]);
-        assertEquals("v2", diffs.get("prop2")[0]);
-        assertEquals("v3", diffs.get("prop3")[0]);
-        assertEquals("v4", diffs.get("prop4")[0]);
-        assertNull(diffs.get("prop5")[0]);
+        assertEquals("v1", diffs.get("title")[0]);
+        assertEquals("v2", diffs.get("form")[0]);
+        assertEquals("v3", diffs.get("recordSource")[0]);
+        assertEquals("v4", diffs.get("bibId")[0]);
+        assertNull(diffs.get("collection")[0]);
 
-        assertEquals("v5", diffs.get("prop1")[1]);
-        assertEquals("v2", diffs.get("prop2")[1]);
-        assertEquals("v6", diffs.get("prop3")[1]);
-        assertEquals("v7", diffs.get("prop5")[1]);
-        assertNull(diffs.get("prop4")[1]);
+        assertEquals("v5", diffs.get("title")[1]);
+        assertEquals("v2", diffs.get("form")[1]);
+        assertEquals("v6", diffs.get("recordSource")[1]);
+        assertEquals("v7", diffs.get("collection")[1]);
+        assertNull(diffs.get("bibId")[1]);
 
         //s("\n--UNCHANGED transitions:");
         //printDiffMap(un1);
         diffs = un1.getDiffMap();
-        assertEquals(diffs.get("prop1")[0], diffs.get("prop1")[1]);
-        assertEquals(diffs.get("prop2")[0], diffs.get("prop2")[1]);
-        assertEquals(diffs.get("prop3")[0], diffs.get("prop3")[1]);
-        assertEquals(diffs.get("prop4")[0], diffs.get("prop4")[1]);
+        assertEquals(diffs.get("title")[0], diffs.get("title")[1]);
+        assertEquals(diffs.get("form")[0], diffs.get("form")[1]);
+        assertEquals(diffs.get("recordSource")[0], diffs.get("recordSource")[1]);
+        assertEquals(diffs.get("bibId")[0], diffs.get("bibId")[1]);
         
         //s("\n");
         //printDiffMap(un2);        
@@ -184,11 +185,12 @@ public class TDiffTest {
         long txn0 = graph.commit("test", "c0");
         
         Vertex v = graph.addVertex(null);
+        v.setProperty("type", "Work");
         Long id = (Long) v.getId();
-        v.setProperty("prop1", "v1");
-        v.setProperty("prop2", "v2");
-        v.setProperty("prop3", "v3");
-        v.setProperty("prop4", "v4");
+        v.setProperty("title", "v1");
+        v.setProperty("form", "v2");
+        v.setProperty("recordSource", "v3");
+        v.setProperty("bibId", "v4");
         
         // on creation
         long txn1 = graph.commit("test", "c1");

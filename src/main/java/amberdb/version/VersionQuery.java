@@ -23,13 +23,19 @@ public class VersionQuery {
     List<QueryClause> clauses = new ArrayList<QueryClause>();
     private VersionedGraph graph;
 
-    protected static final String VERTEX_HISTORY_QUERY_PREFIX = "select * \n" +
-            "from node_history \n" +
+    public static final String VERTEX_HISTORY_FROM_TABLE_LIST =
+            "node_history \n" +
             "left join work_history        on        work_history.id = node_history.id and        work_history.txn_start = node_history.txn_start and        work_history.txn_end = node_history.txn_end \n" +
             "left join file_history        on        file_history.id = node_history.id and        file_history.txn_start = node_history.txn_start and        file_history.txn_end = node_history.txn_end \n" +
             "left join description_history on description_history.id = node_history.id and description_history.txn_start = node_history.txn_start and description_history.txn_end = node_history.txn_end \n" +
             "left join party_history       on       party_history.id = node_history.id and       party_history.txn_start = node_history.txn_start and       party_history.txn_end = node_history.txn_end \n" +
             "left join tag_history         on         tag_history.id = node_history.id and         tag_history.txn_start = node_history.txn_start and         tag_history.txn_end = node_history.txn_end \n";
+
+    public static final String VERTEX_HISTORY_QUERY_PREFIX = "select * \n from " + VERTEX_HISTORY_FROM_TABLE_LIST;
+
+    protected static final String EDGE_HISTORY_QUERY_PREFIX = "select * \n" +
+            "from flatedge_history \n" +
+            "left join acknowledge_history on acknowledge_history.id = flatedge_history.id and acknowledge_history.txn_start = flatedge_history.txn_start and acknowledge_history.txn_end = flatedge_history.txn_end \n";
 
     protected VersionQuery(Long head, VersionedGraph graph) {
 

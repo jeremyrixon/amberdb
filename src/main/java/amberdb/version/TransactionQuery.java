@@ -1,15 +1,13 @@
 package amberdb.version;
 
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.ResultIterator;
+
+import java.util.*;
+
+import static amberdb.version.VersionQuery.VERTEX_HISTORY_QUERY_PREFIX;
+import static amberdb.version.VersionQuery.EDGE_HISTORY_QUERY_PREFIX;
 
 
 public class TransactionQuery {
@@ -54,54 +52,17 @@ public class TransactionQuery {
             h.commit();
 
             // and reap the rewards
-            vertices = getVertices(h, graph, getPropertyMaps(h, "v0"), "v0");
-            getEdges(h, graph, getPropertyMaps(h, "e0"), "e0");
+            vertices = getVertices(h, graph, "v0");
+            getEdges(h, graph, "e0");
         }
         return vertices;
     }
-    
 
-    private Map<TId, Map<String, Object>> getPropertyMaps(Handle h, String idTable) {
-        
-        try (ResultIterator<TProperty> iter = h.createQuery(
-                "SELECT p.id, p.txn_start, p.txn_end, p.name, p.type, p.value "
-                + "FROM property p, " + idTable + " " 
-                + "WHERE p.id = " + idTable + ".id")
-                .map(new TPropertyMapper()).iterator()) {
+    private List<VersionedVertex> getVertices(Handle h , VersionedGraph graph, String tableId) {
 
-	        Map<TId, Map<String, Object>> propertyMaps = new HashMap<>();
-	        Map<String, String> internedStrings = new HashMap<>();
-	        
-	        while (iter.hasNext()) {
-	        	TProperty prop = iter.next();
-	            TId id = prop.getId();
-	            if (propertyMaps.get(id) == null) {
-	                propertyMaps.put(id, new HashMap<String, Object>());
-	            }
-	            Object value = prop.getValue();
-	            if (value instanceof String) {
-	            	String s = (String) value;
-	            	String interned = internedStrings.get(s);
-	            	if (interned == null) {
-	            		internedStrings.put(s, s);
-	            		value = s;
-	            	} else {
-	            		value = interned;
-	            	}
-	            }
-	            propertyMaps.get(id).put(prop.getName().intern(), value);
-	        }
-	        
-	        return propertyMaps;
-        }
-    }
+        String query = VERTEX_HISTORY_QUERY_PREFIX +
+                " left join " + tableId + " on node_history.id = " + tableId + ".id";
 
-    
-    private List<VersionedVertex> getVertices(Handle h , VersionedGraph graph, Map<TId, Map<String, Object>> propMaps, String tableId) {
-
-    	String query =  "SELECT v.id, v.txn_start, v.txn_end "
-                      + "FROM vertex v, " + tableId + " "
-                      + "WHERE v.id = " + tableId + ".id";
     	try (ResultIterator<TVertex> vertexIter = h.createQuery(query).map(new TVertexMapper()).iterator()) {
 
 	        List<VersionedVertex> gotVertices = new ArrayList<>(); 
@@ -111,29 +72,27 @@ public class TransactionQuery {
 	        while (vertexIter.hasNext()) {
 	        	TVertex vertex = vertexIter.next();
 	            Long versId = vertex.getId().id;
-	            if (vertexSets.get(versId) == null) 
-	                vertexSets.put(versId, new HashSet<TVertex>()); 
+	            if (vertexSets.get(versId) == null) {
+                    vertexSets.put(versId, new HashSet<TVertex>());
+                }
 	            vertexSets.get(versId).add(vertex); 
-	            Map<String, Object> props = propMaps.get(vertex.getId());
-	            if (props != null) {
-	                vertex.replaceProperties(props);
-	            }
 	        }
+
 	        for (Set<TVertex> vSet : vertexSets.values()) {
 	            VersionedVertex v = new VersionedVertex(vSet, graph);
 	            graph.addVertexToGraph(v);
 	            gotVertices.add(v);
 	        }
+
 	        return gotVertices;
     	}
     }
     
     
-    private void getEdges(Handle h , VersionedGraph graph, Map<TId, Map<String, Object>> propMaps, String tableId) {
-    	String query = "SELECT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order "
-    			     + "FROM edge e, " + tableId + " "
-                     + "WHERE e.id = " + tableId + ".id ";
-        
+    private void getEdges(Handle h , VersionedGraph graph, String tableId) {
+        String query = EDGE_HISTORY_QUERY_PREFIX +
+                " left join " + tableId + " on flatedge_history.id = " + tableId + ".id";
+
          try (ResultIterator<TEdge> iter = h.createQuery(query).map(new TEdgeMapper()).iterator()) {
         
 	        // add them to the graph
@@ -149,10 +108,6 @@ public class TransactionQuery {
 	            if (edgeSets.get(versId) == null) 
 	                edgeSets.put(versId, new HashSet<TEdge>()); 
 	            edgeSets.get(versId).add(edge);
-	            Map<String, Object> props = propMaps.get(edge.getId());
-	            if (props != null) {
-	                edge.replaceProperties(props);
-	            }
 	        }
 	        for (Set<TEdge> eSet : edgeSets.values()) {
 	            VersionedEdge e = new VersionedEdge(eSet, graph);
@@ -184,20 +139,20 @@ public class TransactionQuery {
         
         s.append("INSERT INTO v0 (id) \n"
                + "SELECT DISTINCT id \n"
-               + "FROM vertex \n"
+               + "FROM node_history \n"
                + txnWhereClause1 + ";\n");
         s.append("INSERT INTO v0 (id) \n"
                + "SELECT DISTINCT id \n"
-               + "FROM vertex \n"
+               + "FROM node_history \n"
                + txnWhereClause2 + ";\n");
         
         s.append("INSERT INTO e0 (id) \n"
                + "SELECT DISTINCT id \n"
-               + "FROM edge \n" 
+               + "FROM flatedge_history \n"
                + txnWhereClause1 + ";\n");
         s.append("INSERT INTO e0 (id) \n"
                + "SELECT DISTINCT id \n"
-               + "FROM edge \n" 
+               + "FROM flatedge_history \n"
                + txnWhereClause2 + ";\n");
 
         return s.toString();
@@ -234,27 +189,23 @@ public class TransactionQuery {
         StringBuilder s = new StringBuilder();
         s.append("INSERT INTO d0 (id) \n"
                + "SELECT DISTINCT v.id \n"
-               + "FROM vertex v, property p \n"
+               + "FROM node_history v\n"
                +  txnWhereClause1 
-               + "AND v.id = p.id \n"
-               + "AND p.name = 'type' \n"
-               + "AND p.value IN (" 
-               + toHex("Description") + ", " 
-               + toHex("IPTC") + ", " 
-               + toHex("GeoCoding") + ", " 
-               + toHex("CameraData") + "); \n");
+               + "AND v.type IN ("
+               + "'Description'" + ", "
+               + "'IPTC'" + ", "
+               + "'GeoCoding'" + ", "
+               + "'CameraData'" + "); \n");
         
         s.append("INSERT INTO d0 (id) \n"
                + "SELECT DISTINCT v.id \n"
-               + "FROM vertex v, property p \n"
+               + "FROM node_history v \n"
                +  txnWhereClause2 
-               + "AND v.id = p.id \n"
-               + "AND p.name = 'type' \n"
-               + "AND p.value IN (" 
-               + toHex("Description") + ", " 
-               + toHex("IPTC") + ", " 
-               + toHex("GeoCoding") + ", " 
-               + toHex("CameraData") +"); \n");
+               + "AND v.type IN ("
+               + "'Description'" + ", "
+               + "'IPTC'" + ", "
+               + "'GeoCoding'" + ", "
+               + "'CameraData'" +"); \n");
         return s.toString();
     }
 
@@ -275,27 +226,23 @@ public class TransactionQuery {
         StringBuilder s = new StringBuilder();
         s.append("INSERT INTO f0 (id) \n"
                + "SELECT DISTINCT v.id \n"
-               + "FROM vertex v, property p \n"
+               + "FROM node_history v \n"
                +  txnWhereClause1
-               + "AND v.id = p.id \n"
-               + "AND p.name = 'type' \n"
-               + "AND cast(p.value as char(100)) IN ("
-               + toHex("File") + ", "
-               + toHex("ImageFile") + ", "
-               + toHex("SoundFile") + ", "
-               + toHex("MovingImageFile") + "); \n");
+               + "AND v.type IN ("
+               + "'File'" + ", "
+               + "'ImageFile'" + ", "
+               + "'SoundFile'" + ", "
+               + "'MovingImageFile'" + "); \n");
         
         s.append("INSERT INTO f0 (id) \n"
                + "SELECT DISTINCT v.id \n"
-               + "FROM vertex v, property p \n"
+               + "FROM node_history v \n"
                +  txnWhereClause2
-               + "AND v.id = p.id \n"
-               + "AND p.name = 'type' \n"
-               + "AND cast(p.value as char(100)) IN ("
-               + toHex("File") + ", "
-               + toHex("ImageFile") + ", "
-               + toHex("SoundFile") + ", "
-               + toHex("MovingImageFile") + "); \n");
+               + "AND v.type IN ("
+               + "'File'" + ", "
+               + "'ImageFile'" + ", "
+               + "'SoundFile'" + ", "
+               + "'MovingImageFile'" + "); \n");
         return s.toString();
     }
 
@@ -306,14 +253,14 @@ public class TransactionQuery {
         s.append(
                 "INSERT INTO f0 (id) \n"
               + "SELECT DISTINCT e.v_in \n"
-              + "FROM edge e, d0 \n"
+              + "FROM flatedge_history e, d0 \n"
               + "WHERE d0.id = e.v_out \n"
               + "AND e.label = 'descriptionOf'; \n");
         // get copies from files and add to 
         s.append(
                 "INSERT INTO c0 (id) \n"
               + "SELECT DISTINCT e.v_in \n"
-              + "FROM edge e, f0 \n"
+              + "FROM flatedge_history e, f0 \n"
               + "WHERE f0.id = e.v_out \n"
               + "AND e.label = 'isFileOf'; \n");
         return s.toString();
@@ -330,7 +277,7 @@ public class TransactionQuery {
             h.createStatement(makeDescriptFilesCopiesQuery()).execute();
             h.commit();            
             // and reap the rewards
-            copyVertices = getVertices(h, graph, getPropertyMaps(h, "c0"), "c0");
+            copyVertices = getVertices(h, graph, "c0");
         }
         return copyVertices;
     }
