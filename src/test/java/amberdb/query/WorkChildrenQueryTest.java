@@ -1,62 +1,43 @@
 package amberdb.query;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import amberdb.AbstractDatabaseIntegrationTest;
+import amberdb.enums.CopyRole;
+import amberdb.model.*;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Test;
+import org.skife.jdbi.v2.DBI;
+import org.skife.jdbi.v2.Handle;
 
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.*;
 
-import doss.CorruptBlobStoreException;
-import amberdb.enums.CopyRole;
-import amberdb.model.CameraData;
-import amberdb.model.Copy;
-import amberdb.model.File;
-import amberdb.model.GeoCoding;
-import amberdb.model.Page;
-import amberdb.model.Section;
-import amberdb.model.Work;
-import amberdb.AmberSession;
+public class WorkChildrenQueryTest extends AbstractDatabaseIntegrationTest {
 
-public class WorkChildrenQueryTest {
-
-    public AmberSession sess;
-    
-    @Before
-    public void setup() throws CorruptBlobStoreException, IOException {
-        sess = new AmberSession();
-    }
-
-    @After
-    public void tearDown() throws IOException {
-        if (sess != null) sess.close();
-    }
 
     @Test
     public void testGetWorkChildren() throws IOException {
 
         // create a test work with children
         Work parent = buildWork();
-        sess.commit();
+        amberSession.commit();
 
-        WorkChildrenQuery wcq = new WorkChildrenQuery(sess);
+        WorkChildrenQuery wcq = new WorkChildrenQuery(amberSession);
         List<Work> children = wcq.getChildRange(parent.getId(), 0, 5);
         assertEquals(children.size(), 5);
         for (int i = 0; i < 5; i++) {
             assertEquals(children.get(i).getTitle(),"page " + i);
         }
         
-        sess.setLocalMode(true); 
+        amberSession.setLocalMode(true); 
         for (int i = 0; i < 5; i++) {
             assertEquals(children.get(i).getCopy(CopyRole.MASTER_COPY)
                     .getFile().getDevice(),"device " + i);
         }
-        sess.setLocalMode(false);
+        amberSession.setLocalMode(false);
         
         children = wcq.getChildRange(parent.getId(), 5, 5);
         assertEquals(children.size(), 5);
@@ -78,9 +59,9 @@ public class WorkChildrenQueryTest {
         assertTrue(roles.contains(CopyRole.MASTER_COPY));
         assertTrue(roles.contains(CopyRole.ACCESS_COPY));
 
-        sess.getAmberGraph().clear();
+        amberSession.getAmberGraph().clear();
         children = wcq.getChildRange(parent.getId(), 5, 5);
-        sess.setLocalMode(true);
+        amberSession.setLocalMode(true);
         assertEquals(children.size(), 5);
         Work c1 = children.get(0);
         for (Copy c : c1.getCopies()) {
@@ -88,45 +69,45 @@ public class WorkChildrenQueryTest {
             File f = c.getFile();
             assertNotNull(f);
         }
-        sess.setLocalMode(false);
+        amberSession.setLocalMode(false);
 
         List<Section> sections = wcq.getSections(parent.getId());
-        sess.setLocalMode(true);
+        amberSession.setLocalMode(true);
         assertEquals(sections.size(), 7);
-        sess.setLocalMode(false);
+        amberSession.setLocalMode(false);
     }
 
     @Test
     public void testGetChildRangeSorted() throws Exception {
         // create a test work with children with properties to sort by
-        Work parent = sess.addWork();
+        Work parent = amberSession.addWork();
 
         // add children with properties that are not in the same sort order as the Order property or each other
-        Work child1 = sess.addWork();
+        Work child1 = amberSession.addWork();
         child1.setOrder(1);
         child1.setTitle("title5"); 
         child1.setBibId("bibId2");
         parent.addChild(child1);
         
-        Work child2 = sess.addWork();
+        Work child2 = amberSession.addWork();
         child2.setOrder(2);
         child2.setTitle("title4");
         child2.setBibId("bibId5");
         parent.addChild(child2);
         
-        Work child3 = sess.addWork();
+        Work child3 = amberSession.addWork();
         child3.setOrder(3);
         child3.setTitle("title3");
         child3.setBibId("bibId1");
         parent.addChild(child3);
         
-        Work child4 = sess.addWork();
+        Work child4 = amberSession.addWork();
         child4.setOrder(4);
         child4.setTitle("title2");
         child4.setBibId("bibId4");
         parent.addChild(child4);
         
-        Work child5 = sess.addWork();
+        Work child5 = amberSession.addWork();
         child5.setOrder(5);
         child5.setTitle("title1");
         child5.setBibId("bibId3");
@@ -134,9 +115,9 @@ public class WorkChildrenQueryTest {
         child5.setIsMissingPage(true);
         parent.addChild(child5);
 
-        sess.commit();
+        amberSession.commit();
 
-        WorkChildrenQuery wcq = new WorkChildrenQuery(sess);
+        WorkChildrenQuery wcq = new WorkChildrenQuery(amberSession);
 
         // sort by Title should be child 5, 4, 3, 2, 1
         List<Work> sortedByTitle = wcq.getChildRangeSorted(parent.getId(), 0, 10, "title", true);
@@ -158,28 +139,28 @@ public class WorkChildrenQueryTest {
     @Test
     public void testNullShouldAlwaysBeLastInGetChildRangeSorted() throws Exception {
         // create a test work with children with properties to sort by
-        Work parent = sess.addWork();
+        Work parent = amberSession.addWork();
 
         // add children with properties that are not in the same sort order as the Order property or each other
-        Work child1 = sess.addWork();
+        Work child1 = amberSession.addWork();
         child1.setOrder(1);
         child1.setTitle("title5");
         parent.addChild(child1);
 
-        Work child2 = sess.addWork();
+        Work child2 = amberSession.addWork();
         child2.setOrder(2);
         child2.setTitle("title4");
         parent.addChild(child2);
 
-        Work child3 = sess.addWork();
+        Work child3 = amberSession.addWork();
         child3.setOrder(3);
         child3.setTitle(null);
         child3.setBibId("bibId1");
         parent.addChild(child3);
 
-        sess.commit();
+        amberSession.commit();
 
-        WorkChildrenQuery wcq = new WorkChildrenQuery(sess);
+        WorkChildrenQuery wcq = new WorkChildrenQuery(amberSession);
 
         List<Work> sortedByTitle = wcq.getChildRangeSorted(parent.getId(), 0, 10, "title", true); // ascending
         assertEquals(child2.getId(), sortedByTitle.get(0).getId());
@@ -191,9 +172,33 @@ public class WorkChildrenQueryTest {
         assertEquals(child2.getId(), sortedByTitle.get(1).getId());
         assertEquals(child3.getId(), sortedByTitle.get(2).getId()); // null title
     }
+    
+    @Test
+    public void longSortByFieldsShouldBeTruncated() throws Exception {
+        // create a test work with children with properties to sort by
+        Work parent = amberSession.addWork();
+
+        // add children with properties that are not in the same sort order as the Order property or each other
+        Work child1 = amberSession.addWork();
+        child1.setOrder(1);
+        String title = StringUtils.leftPad("", WorkChildrenQuery.TEMP_TABLE_SORT_FIELD_LENGTH + 20, "a");
+        child1.setTitle(title);
+        parent.addChild(child1);
+
+        amberSession.commit();
+
+        WorkChildrenQuery wcq = new WorkChildrenQuery(amberSession);
+
+        wcq.getChildRangeSorted(parent.getId(), 0, 10, "title", true);
+
+        try (Handle handle = new DBI(amberSrc).open()) {
+            List<Map<String, Object>> tempTableContents = handle.select("select * from v1");
+            assertEquals("The sort field should be truncated", WorkChildrenQuery.TEMP_TABLE_SORT_FIELD_LENGTH, ((String) tempTableContents.get(0).get("sortfield")).length());
+        }
+    }
 
     private Work buildWork() {
-        Work parent = sess.addWork();
+        Work parent = amberSession.addWork();
         
         for (int i = 0; i < 20; i++) {
             
@@ -215,7 +220,7 @@ public class WorkChildrenQueryTest {
 
         for (int i = 20; i < 30; i++) {
             
-            Work w = sess.addWork();
+            Work w = amberSession.addWork();
             parent.addChild(w);
             w.setTitle("work " + i);
             w.setOrder(i);

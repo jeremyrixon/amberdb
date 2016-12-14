@@ -228,7 +228,7 @@ public class ObjectsQuery extends AmberQueryBase {
                     insert += "        OR\n";
                 }
             }
-            insert += ")";
+            insert += ") ";
         }
 
 

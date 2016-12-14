@@ -27,16 +27,18 @@ import java.util.Map;
 
 public class WorkChildrenQuery extends AmberQueryBase {
 
-    AmberSession sess;
-    
+    private AmberSession sess;
+
+    static final int TEMP_TABLE_SORT_FIELD_LENGTH = 256;
+
     public WorkChildrenQuery(AmberSession sess) {
         super(sess.getAmberGraph());
         this.sess = sess;
     }
 
-    static String workNotSectionInList;
-    static String fileInList;
-    static String descInList;
+    private static String workNotSectionInList;
+    private static String fileInList;
+    private static String descInList;
     static {
         workNotSectionInList = "('" + StringUtils.join(new String[] { "Work", "Page", "EADWork" }, "', '") + "')";
         fileInList = "('" + StringUtils.join(new String[] { "File", "ImageFile", "SoundFile", "MovingImageFile" }, "', '") + "')";
@@ -62,14 +64,14 @@ public class WorkChildrenQuery extends AmberQueryBase {
         List<Work> children =  new ArrayList<>();
         String tDrop = graph.getTempTableDrop();
         String tEngine = graph.getTempTableEngine();
-        
+        String charset = graph.getTempTableCharSet();
         // create double buffered temp tables because mysql
         // can't open the same temp table twice in a query
         s.append(
-            "DROP " + tDrop + " TABLE IF EXISTS v1; " +
-            "DROP " + tDrop + " TABLE IF EXISTS v2; " +
-        	"CREATE TEMPORARY TABLE v1 (id BIGINT, obj_type CHAR(1), ord BIGINT, nullOrder BIGINT, sortField VARCHAR(4000))" + tEngine + "; " +
-            "CREATE TEMPORARY TABLE v2 (id BIGINT, obj_type CHAR(1), ord BIGINT, nullOrder BIGINT, sortField VARCHAR(4000))" + tEngine + "; ");
+        "DROP " + tDrop + " TABLE IF EXISTS v1; " +
+                "DROP " + tDrop + " TABLE IF EXISTS v2; " +
+                "CREATE TEMPORARY TABLE v1 (id BIGINT, obj_type CHAR(1), ord BIGINT, nullOrder BIGINT, sortField VARCHAR(" + TEMP_TABLE_SORT_FIELD_LENGTH + ")) " + tEngine + " " + charset + ";" +
+                "CREATE TEMPORARY TABLE v2 (id BIGINT, obj_type CHAR(1), ord BIGINT, nullOrder BIGINT, sortField VARCHAR(" + TEMP_TABLE_SORT_FIELD_LENGTH + ")) " + tEngine + " " + charset + ";");
         
         // add children Works excluding Sections with the limits specified on the range returned
         s.append(addChildrenWorksSql);
@@ -159,14 +161,14 @@ public class WorkChildrenQuery extends AmberQueryBase {
     private String getAddChildrenWorkSortBySql(Long workId, int start, int num, String sortBy, boolean asc) {
         StringBuilder sb = new StringBuilder();
         sb.append("INSERT INTO v1 (id, obj_type, ord, nullOrder, sortField) "
-                + " SELECT DISTINCT v.id, 'W' obj_type, e.edge_order, case when " + sortBy + " is null then 1 else 0 end, p1." + sortBy
+                + " SELECT DISTINCT v.id, 'W' obj_type, e.edge_order, case when " + sortBy + " is null then 1 else 0 end, substring(p1." + sortBy + ", 1, " + TEMP_TABLE_SORT_FIELD_LENGTH + ")"
                 + " FROM node v "
                 + " INNER JOIN work p1 "
                 + " ON p1.id = v.id AND p1.type IN " + workNotSectionInList
                 + " INNER JOIN flatedge e "
                 + " ON e.v_out = v.id AND e.label = 'isPartOf' "
                 + " WHERE e.v_in = " + workId
-                + " ORDER BY case when " + sortBy + " is null then 1 else 0 end, p1." + sortBy + " "
+                + " ORDER BY case when " + sortBy + " is null then 1 else 0 end, substring(p1." + sortBy + ", 1, " + TEMP_TABLE_SORT_FIELD_LENGTH + ") "
         ); //null always last whether asc or desc
         if (!asc){
             sb.append(" desc ");
