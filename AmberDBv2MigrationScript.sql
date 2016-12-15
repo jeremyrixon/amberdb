@@ -1430,6 +1430,3 @@ CREATE TABLE IF NOT EXISTS sess_acknowledge (
 CREATE INDEX sess_acknowledge_id ON sess_acknowledge (id);
 CREATE INDEX sess_acknowledge_txn_id ON sess_acknowledge (id, txn_start, txn_end);
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
