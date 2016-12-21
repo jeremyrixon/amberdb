@@ -28,7 +28,7 @@ public class AmberGraphSuspendResumeTest {
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
-    
+
     public AmberGraph graph;
     public AmberGraph graph2;
     
@@ -209,6 +209,53 @@ public class AmberGraphSuspendResumeTest {
         assertEquals(v2, v); 
         Vertex v3 = graph1.getVertex(v1Id);
         assertEquals(v3, v1); 
+    }
+    @Test
+    public void testSuspendResumeWithMultipleSessions() throws Exception {
+        // ensures that when suspending and resuming several sessions with multiple items (e.g. during a long running,
+        // multi-step process) the correct session AND the correct item state are being resumed each time. Without this,
+        // old state from an items could be picked up when restoring a more recent session.
+        // This tests that the AmberQueryBase.SESS_VERTEX_QUERY_PREFIX is correctly joining the sess_xyz tables on both
+        // the session id and the item id.
+
+        Vertex v = graph.addVertex(null);
+        v.setProperty("type", "Work");
+        v.setProperty("dateCreated", new Date());
+        Long vId = (Long) v.getId();
+
+        Vertex v1 = graph.addVertex(null);
+        v1.setProperty("type", "Work");
+        v1.setProperty("dateCreated", new Date());
+        Long v1Id = (Long) v1.getId();
+
+        graph.addEdge(null, v, v1, "link");
+
+        Long sessId = graph.suspend();
+        graph.resume(sessId);
+
+        graph.getVertex(v1Id).setProperty("subUnitNo", "1");
+
+        sessId = graph.suspend();
+        graph.resume(sessId);
+
+        graph.getVertex(v1Id).setProperty("subUnitNo", "2");
+
+        sessId = graph.suspend();
+        graph.resume(sessId);
+
+        graph.getVertex(v1Id).setProperty("subUnitNo", "3");
+
+        sessId = graph.suspend();
+        graph.resume(sessId);
+
+        AmberGraph graph1 = new AmberGraph(src);
+
+        graph1.resume(sessId);
+
+        Vertex v2 = graph1.getVertex(vId);
+        assertEquals(v2, v);
+        Vertex v3 = graph1.getVertex(v1Id);
+        assertEquals("3", v3.getProperty("subUnitNo"));
     }
     
     

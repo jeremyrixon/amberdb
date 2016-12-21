@@ -392,14 +392,7 @@ public class AmberGraph extends BaseGraph
         List<AmberVertexWithState> vertices;
 
         try (Handle h = dbi.open()) {
-            String sql = "select * " +
-                    " from sess_node" +
-                    " left join sess_work        on        sess_work.id = sess_node.id " +
-                    " left join sess_file        on        sess_file.id = sess_node.id " +
-                    " left join sess_description on sess_description.id = sess_node.id " +
-                    " left join sess_party       on       sess_party.id = sess_node.id " +
-                    " left join sess_tag         on         sess_tag.id = sess_node.id " +
-                    " where sess_node.s_id = :sessId";
+            String sql = AmberQueryBase.SESS_VERTEX_QUERY_PREFIX + " where sess_node.s_id = :sessId";
 
             vertices = h.createQuery(sql)
                 .bind("sessId", sessId)
@@ -413,10 +406,7 @@ public class AmberGraph extends BaseGraph
         List<AmberEdgeWithState> edges;
         try (Handle h = dbi.open()) {
             edges = h.createQuery(
-                    "select * "
-                            + " from sess_flatedge f "
-                            + " left join sess_acknowledge on sess_acknowledge.id = f.id "
-                            + " where f.s_id = :sessId ")
+                    AmberQueryBase.SESS_EDGE_QUERY_PREFIX + " where f.s_id = :sessId ")
                 .bind("sessId", sessId)
                 .map(new EdgeMapper(this, false)).list();
         }
