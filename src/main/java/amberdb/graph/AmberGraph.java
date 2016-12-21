@@ -79,6 +79,7 @@ public class AmberGraph extends BaseGraph
 
     private String dbProduct;
     protected String tempTableEngine = "";
+    protected String tempTableCharSet = "";
     protected String tempTableDrop = "";
     
     protected Map<Object, Edge> removedEdges = new HashMap<>();
@@ -143,6 +144,7 @@ public class AmberGraph extends BaseGraph
 
         if (dbProduct.equals("MySQL")) {
             tempTableEngine = "ENGINE=memory";
+            tempTableCharSet = "CHARACTER SET utf8mb4";
             tempTableDrop = "TEMPORARY";
             return dbi.onDemand(AmberDaoMySql.class);
         } else if (dbProduct.equals("H2")) {
@@ -735,6 +737,10 @@ public class AmberGraph extends BaseGraph
 
     public String getTempTableEngine() {
         return tempTableEngine;
+    }
+
+    public String getTempTableCharSet() {
+        return tempTableCharSet;
     }
 
     private void bigSuspendVertices(Long sessId) {

@@ -191,8 +191,7 @@ public class AmberQueryTest extends AbstractDatabaseIntegrationTest {
                     + "FROM flatedge, v1 "
                     + "WHERE v1.step = %d " 
                     + "AND v1.vid = flatedge.v_in "
-                    + "AND flatedge.label = 'isPartOf' "
-                    + "AND flatedge.txn_end = 0";
+                    + "AND flatedge.label = 'isPartOf' ";
 
             QueryClause qc = q.new QueryClause(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf" }, Direction.IN);
 
