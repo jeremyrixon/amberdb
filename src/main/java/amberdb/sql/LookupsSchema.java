@@ -1041,10 +1041,37 @@ public abstract class LookupsSchema {
             + "('commercialStatus', 'NonCommerc', 'Non-commercial')")
     public abstract void seedCommercialStatusList();
 
+    @SqlUpdate("INSERT INTO lookups (name, code, value, deleted) values " +
+            "('accessAgreement', 'OpenAccessImmediately', 'Open access immediately', 'N')," +
+            "('accessAgreement', 'OpenAccessEmbargoed', 'Open access (embargoed)', 'N')," +
+            "('accessAgreement', 'BasicAccess', 'Basic access (as per Copyright Act)', 'N')")
+    public abstract void seedAccessAgreementList();
+
+    @SqlUpdate("INSERT INTO lookups (name, code, value, deleted) values " +
+            "('accessAgreementReasonForChange', 'Publisher request', 'Publisher request', 'N')," +
+            "('accessAgreementReasonForChange', 'Change of rights owner', 'Change of rights owner', 'N')," +
+            "('accessAgreementReasonForChange', 'Disputed rights owner', 'Disputed rights owner', 'N')," +
+            "('accessAgreementReasonForChange', 'Other', 'Other', 'N')")
+    public abstract void seedAccessAgreementReasonForChangeList();
+
+    @SqlUpdate("INSERT INTO lookups (name, code, value, deleted) values " +
+            "('accessConditionReasonForChange', 'End of embargo', 'End of embargo', 'N')," +
+            "('accessConditionReasonForChange', 'Change to Commercial Status or Access Agreement', 'Change to Commercial Status or Access Agreement', 'N'),")
+    public abstract void seedAccessConditionReasonForChangeList();
+
+    @SqlUpdate("INSERT INTO lookups (name, code, value, deleted) values " +
+            "('commercialStatusReasonForChange', 'No longer commercially available (NLA assessment)', 'No longer commercially available (NLA assessment)', 'N')," +
+            "('commercialStatusReasonForChange', 'No longer commercially available (Publisher advice)', 'No longer commercially available (Publisher advice)', 'N')," +
+            "('commercialStatusReasonForChange', 'Became commercially available (NLA assessment)', 'Became commercially available (NLA assessment)', 'N')," +
+            "('commercialStatusReasonForChange', 'Became commercially available (Publisher advice)', 'Became commercially available (Publisher advice)', 'N')," +
+            "('commercialStatusReasonForChange', 'Other', 'Other', 'N')")
+    public abstract void seedCommercialStatusReasonForChangeList();
+
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
             + "('depositType', 'OnlineLegal', 'Online legal deposit'),"
             + "('depositType', 'OnlineGovernment', 'Online government deposit'),"
             + "('depositType', 'OnlineVoluntary', 'Online voluntary deposit'),"
+            + "('depositType', 'OnlineSpecialCollection', 'Online special collection deposit'),"
             + "('depositType', 'OfflineVoluntary', 'Offline voluntary deposit')")
     public abstract void seedDepositTypeList();
     
@@ -1154,6 +1181,7 @@ public abstract class LookupsSchema {
         seedDataValidationMsgs();
         seedCollectionList();
         seedCommercialStatusList();
+        seedAccessAgreementList();
         seedCopyTypeList();
         seedTiffMetaLuList();
         seedValuesForKeyList();
@@ -1163,6 +1191,9 @@ public abstract class LookupsSchema {
         seedMaterialTypesLookups();
         seedDepositTypeList();
         seedManipulationLookups();
+        seedAccessAgreementReasonForChangeList();
+        seedAccessConditionReasonForChangeList();
+        seedCommercialStatusReasonForChangeList();
     }
     
     public void setupToolsAssociations(List<ListLu> lookups) {

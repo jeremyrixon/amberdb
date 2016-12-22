@@ -1,32 +1,24 @@
 package amberdb;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.TransactionalGraph;
-import com.tinkerpop.blueprints.Vertex;
-
 import amberdb.enums.CopyRole;
 import amberdb.model.Copy;
 import amberdb.model.File;
 import amberdb.model.Page;
 import amberdb.model.Work;
+import amberdb.NoSuchObjectException;
 
 public class AmberDbTest {
 
@@ -132,8 +124,79 @@ public class AmberDbTest {
             db.close();
         }
     }
-    
-    
+
+    @Test
+    public void testCommitPersistedSession() throws IOException {
+        Work w1, w2;
+        Long id;
+        Long sessId;
+
+        // Suspend a session with a work
+        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()))) {
+            w1 = session.addWork();
+            id = w1.getId();
+            sessId = session.suspend();
+        }
+
+        // Check it's not in amber
+        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()))) {
+            boolean thrown = false;
+            try {
+                session.findWork(id);
+            } catch (NoSuchObjectException e) {
+                thrown = true;
+            }
+            assertTrue(thrown);
+        }
+
+        // Commit from separate session
+        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()))) {
+            session.commitPersistedSession(sessId, "user", "testing");
+        }
+
+        // Check it's now in amber
+        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()))) {
+            w2 = session.findWork(id);
+            assertEquals(w1, w2);
+        }
+    }
+
+    @Test
+    public void testRemovePersistedSession() throws IOException {
+        Work w1, w2;
+        Long id;
+        Long sessId;
+
+        // Suspend a session with a work
+        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()))) {
+            w1 = session.addWork();
+            id = w1.getId();
+            sessId = session.suspend();
+        }
+
+        // Check it can be resumed (and its contents found)
+        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()), sessId)) {
+            w2 = session.findWork(id);
+            assertEquals(w1, w2);
+        }
+
+        // Remove the session
+        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()))) {
+            session.removePersistedSession(sessId);
+        }
+
+        // Check that it's gone (nothing restored)
+        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()), sessId)) {
+            boolean thrown = false;
+            try {
+                session.findWork(id);
+            } catch (NoSuchObjectException e) {
+                thrown = true;
+            }
+            assertTrue(thrown);
+        }
+    }
+
     void s(String s) {
     	System.out.println(s);
     }

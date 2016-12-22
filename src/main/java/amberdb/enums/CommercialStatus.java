@@ -5,7 +5,7 @@ import java.util.List;
 
 public enum CommercialStatus {
     COMMERCIAL("Commercial"),
-    NONCOMMERCIAL("NonCommerc");
+    NONCOMMERCIAL("Noncommerc");
     
     private String code;
     

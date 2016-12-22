@@ -17,12 +17,9 @@ CREATE TABLE IF NOT EXISTS node_history (
                                     name                            VARCHAR(255),
                                    notes                            VARCHAR(255),
                             recordSource                             VARCHAR(63),
-                         restrictionType                            VARCHAR(255),
-PRIMARY KEY (id,txn_start,txn_end)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-                         
+                         restrictionType                            VARCHAR(255)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 insert into node_history (id, txn_start, txn_end, type) select id, txn_start, txn_end, convert(value using 'utf8mb4') FROM property where name='type';
-CREATE INDEX node_history_type   ON node_history (type);
-CREATE INDEX node_history_id     ON node_history (id);
 update node_history t, property p set t.accessConditions = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'accessConditions';
 update node_history t, property p set t.alias = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'alias';
 update node_history t, property p set t.commentsExternal = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'commentsExternal';
@@ -34,12 +31,15 @@ update node_history t, property p set t.name = convert(p.value using 'utf8mb4') 
 update node_history t, property p set t.notes = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'notes';
 update node_history t, property p set t.recordSource = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'recordSource';
 update node_history t, property p set t.restrictionType = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'restrictionType';
+CREATE INDEX node_history_type   ON node_history (type);
+CREATE INDEX node_history_id     ON node_history (id);
+CREATE INDEX node_history_txn_id ON node_history (id, txn_start, txn_end);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 DROP TABLE IF EXISTS node;
 CREATE TABLE IF NOT EXISTS node (
-                                      id                                  BIGINT PRIMARY KEY,
+                                      id                                  BIGINT,
                                txn_start               BIGINT DEFAULT 0 NOT NULL,
                                  txn_end               BIGINT DEFAULT 0 NOT NULL,
                                     type                             VARCHAR(15),
@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS node (
                             recordSource                             VARCHAR(63),
                          restrictionType                            VARCHAR(255)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 insert into node select * from node_history where txn_end = 0;
+CREATE INDEX node_id ON node (id);
 CREATE INDEX node_txn_id ON node (id, txn_start, txn_end);
 CREATE INDEX node_type ON node (type);
 
@@ -81,7 +82,8 @@ CREATE TABLE IF NOT EXISTS sess_node (
                                    notes                            VARCHAR(255),
                             recordSource                             VARCHAR(63),
                          restrictionType                            VARCHAR(255)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE INDEX sess_node_id ON sess_node (s_id);
+CREATE INDEX sess_node_id ON sess_node (id);
+CREATE INDEX sess_node_txn_id ON sess_node (id, txn_start, txn_end);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -94,7 +96,13 @@ CREATE TABLE IF NOT EXISTS work_history (
 
                                 abstract                                    TEXT,
                                   access                                    TEXT,
+                         accessAgreement                             VARCHAR(63),
+          accessAgreementReasonForChange                             VARCHAR(63),
+       accessAgreementReasonForChangeSum                                    TEXT,
+                          accessComments                                    TEXT,
                         accessConditions                             VARCHAR(63),
+          accessConditionReasonForChange                             VARCHAR(63),
+       accessConditionReasonForChangeSum                                    TEXT,
                      acquisitionCategory                             VARCHAR(63),
                        acquisitionStatus                             VARCHAR(63),
                    additionalContributor                                    TEXT,
@@ -127,6 +135,8 @@ CREATE TABLE IF NOT EXISTS work_history (
                         commentsExternal                                    TEXT,
                         commentsInternal                                    TEXT,
                         commercialStatus                             VARCHAR(63),
+         commercialStatusReasonForChange                             VARCHAR(63),
+      commercialStatusReasonForChangeSum                                    TEXT,
                            copyCondition                                    TEXT,
                   availabilityConstraint                                    TEXT,
                              contributor                                    TEXT,
@@ -244,15 +254,19 @@ CREATE TABLE IF NOT EXISTS work_history (
                                 vendorId                             VARCHAR(63),
                            versionNumber                              VARCHAR(1),
               workCreatedDuringMigration                                 BOOLEAN,
-                                 workPid                            VARCHAR(255),
-PRIMARY KEY (id,txn_start,txn_end)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+                                 workPid                            VARCHAR(255)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
                                  
 insert into work_history (id, txn_start, txn_end, type) select id, txn_start, txn_end, type from node_history where type='Work' or type='EADWork' or type='Page' or type='Copy' or type='Section';
-CREATE INDEX work_history_id ON work_history (id);
 update work_history t, property p set t.type = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'type';
 update work_history t, property p set t.abstract = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'abstract';
 update work_history t, property p set t.access = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'access';
+update work_history t, property p set t.accessAgreement = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'accessAgreement';
+update work_history t, property p set t.accessAgreementReasonForChange = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'accessAgreementReasonForChange';
+update work_history t, property p set t.accessAgreementReasonForChangeSum = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'accessAgreementReasonForChangeSum';
+update work_history t, property p set t.accessComments = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'accessComments';
 update work_history t, property p set t.accessConditions = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'accessConditions';
+update work_history t, property p set t.accessConditionReasonForChange = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'accessConditionReasonForChange';
+update work_history t, property p set t.accessConditionReasonForChangeSum = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'accessConditionReasonForChangeSum';
 update work_history t, property p set t.acquisitionCategory = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'acquisitionCategory';
 update work_history t, property p set t.acquisitionStatus = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'acquisitionStatus';
 update work_history t, property p set t.additionalContributor = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'additionalContributor';
@@ -284,6 +298,8 @@ update work_history t, property p set t.collectionNumber = convert(p.value using
 update work_history t, property p set t.commentsExternal = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'commentsExternal';
 update work_history t, property p set t.commentsInternal = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'commentsInternal';
 update work_history t, property p set t.commercialStatus = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'commercialStatus';
+update work_history t, property p set t.commercialStatusReasonForChange = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'commercialStatusReasonForChange';
+update work_history t, property p set t.commercialStatusReasonForChangeSum = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'commercialStatusReasonForChangeSum';
 update work_history t, property p set t.copyCondition = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'condition';
 update work_history t, property p set t.availabilityConstraint = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'constraint';
 update work_history t, property p set t.contributor = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'contributor';
@@ -402,23 +418,31 @@ update work_history t, property p set t.vendorId = convert(p.value using 'utf8mb
 update work_history t, property p set t.versionNumber = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'versionNumber';
 update work_history t, property p set t.workCreatedDuringMigration = conv(hex(value),16,10) = 1  where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'workCreatedDuringMigration';
 update work_history t, property p set t.workPid = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'workPid';
+                                 
+CREATE INDEX work_history_id ON work_history (id);
+CREATE INDEX work_history_txn_id ON work_history (id, txn_start, txn_end);
 CREATE INDEX work_history_restricted_child ON work_history (accessConditions, bibLevel);
 CREATE INDEX work_history_digitalStatus ON work_history (digitalStatus);
-                                 
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 DROP TABLE IF EXISTS work;
 CREATE TABLE IF NOT EXISTS work (
-                                      id                                  BIGINT PRIMARY KEY,
+                                      id                                  BIGINT,
                                txn_start               BIGINT DEFAULT 0 NOT NULL,
                                  txn_end               BIGINT DEFAULT 0 NOT NULL,
                                     type                             VARCHAR(15),
 
                                 abstract                                    TEXT,
                                   access                                    TEXT,
+                         accessAgreement                             VARCHAR(63),
+          accessAgreementReasonForChange                             VARCHAR(63),
+       accessAgreementReasonForChangeSum                             VARCHAR(255),
+                          accessComments                                    TEXT,
                         accessConditions                             VARCHAR(63),
+          accessConditionReasonForChange                             VARCHAR(63),
+       accessConditionReasonForChangeSum                                    TEXT,
                      acquisitionCategory                             VARCHAR(63),
                        acquisitionStatus                             VARCHAR(63),
                    additionalContributor                                    TEXT,
@@ -451,6 +475,8 @@ CREATE TABLE IF NOT EXISTS work (
                         commentsExternal                                    TEXT,
                         commentsInternal                                    TEXT,
                         commercialStatus                             VARCHAR(63),
+         commercialStatusReasonForChange                             VARCHAR(63),
+      commercialStatusReasonForChangeSum                                    TEXT,
                            copyCondition                                    TEXT,
                   availabilityConstraint                                    TEXT,
                              contributor                                    TEXT,
@@ -572,6 +598,7 @@ CREATE TABLE IF NOT EXISTS work (
                                  
 insert into work select * from work_history where txn_end = 0;
                                  
+CREATE INDEX work_id ON work (id);
 CREATE INDEX work_txn_id ON work (id, txn_start, txn_end);
 CREATE INDEX work_restricted_child ON work (accessConditions, bibLevel);
 CREATE INDEX work_digitalStatus ON work (digitalStatus);
@@ -589,7 +616,13 @@ CREATE TABLE IF NOT EXISTS sess_work (
 
                                 abstract                                    TEXT,
                                   access                                    TEXT,
+                         accessAgreement                             VARCHAR(63),
+          accessAgreementReasonForChange                             VARCHAR(63),
+       accessAgreementReasonForChangeSum                                    TEXT,
+                          accessComments                                    TEXT,
                         accessConditions                             VARCHAR(63),
+          accessConditionReasonForChange                             VARCHAR(63),
+       accessConditionReasonForChangeSum                                    TEXT,
                      acquisitionCategory                             VARCHAR(63),
                        acquisitionStatus                             VARCHAR(63),
                    additionalContributor                                    TEXT,
@@ -622,6 +655,8 @@ CREATE TABLE IF NOT EXISTS sess_work (
                         commentsExternal                                    TEXT,
                         commentsInternal                                    TEXT,
                         commercialStatus                             VARCHAR(63),
+         commercialStatusReasonForChange                             VARCHAR(63),
+      commercialStatusReasonForChangeSum                                    TEXT,
                            copyCondition                                    TEXT,
                   availabilityConstraint                                    TEXT,
                              contributor                                    TEXT,
@@ -740,7 +775,10 @@ CREATE TABLE IF NOT EXISTS sess_work (
                            versionNumber                              VARCHAR(1),
               workCreatedDuringMigration                                 BOOLEAN,
                                  workPid                                    TEXT) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE INDEX sess_work_id ON sess_work (s_id);
+CREATE INDEX sess_work_id ON sess_work (id);
+CREATE INDEX sess_work_txn_id ON sess_work (id, txn_start, txn_end);
+CREATE INDEX sess_work_restricted_child ON sess_work (accessConditions, bibLevel);
+CREATE INDEX sess_work_digitalStatus ON sess_work (digitalStatus);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -804,11 +842,9 @@ CREATE TABLE IF NOT EXISTS file_history (
                                  surface                             VARCHAR(63),
                                thickness                             VARCHAR(63),
                                   toolId                             VARCHAR(63),
-                               zoomLevel                            VARCHAR(255),
-PRIMARY KEY (id,txn_start,txn_end)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+                               zoomLevel                            VARCHAR(255)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
                                
 insert into file_history (id, txn_start, txn_end, type) select id, txn_start, txn_end, type from node_history where type='File' or type='ImageFile' or type='SoundFile' or type='MovingImageFile';
-CREATE INDEX file_history_id ON file_history (id);
 update file_history t, property p set t.application = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'application';
 update file_history t, property p set t.applicationDateCreated = from_unixtime(conv(hex(value),16,10) / 1000) where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'applicationDateCreated' and p.type = 'DTE';
 update file_history t, property p set t.applicationDateCreated = str_to_date(value,'%Y:%m:%d %H:%i:%s')       where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'applicationDateCreated' and p.type = 'STR' and p.value like '%:%:% %:%:%';
@@ -870,12 +906,14 @@ update file_history t, property p set t.thickness = convert(p.value using 'utf8m
 update file_history t, property p set t.toolId = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'toolId';
 update file_history t, property p set t.zoomLevel = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'zoomLevel';
 
+CREATE INDEX file_history_id ON file_history (id);
+CREATE INDEX file_history_txn_id ON file_history (id, txn_start, txn_end);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 DROP TABLE IF EXISTS file;
 CREATE TABLE IF NOT EXISTS file (
-                                      id                                  BIGINT PRIMARY KEY,
+                                      id                                  BIGINT,
                                txn_start               BIGINT DEFAULT 0 NOT NULL,
                                  txn_end               BIGINT DEFAULT 0 NOT NULL,
                                     type                             VARCHAR(15),
@@ -937,6 +975,7 @@ CREATE TABLE IF NOT EXISTS file (
                                
 insert into file select * from file_history where txn_end = 0;
 
+CREATE INDEX file_id ON file (id);
 CREATE INDEX file_txn_id ON file (id, txn_start, txn_end);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1004,7 +1043,8 @@ CREATE TABLE IF NOT EXISTS sess_file (
                                thickness                             VARCHAR(63),
                                   toolId                             VARCHAR(63),
                                zoomLevel                            VARCHAR(255)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE INDEX sess_file_id ON sess_file (s_id);
+CREATE INDEX sess_file_id ON sess_file (id);
+CREATE INDEX sess_file_txn_id ON sess_file (id, txn_start, txn_end);
 
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1042,11 +1082,9 @@ CREATE TABLE IF NOT EXISTS description_history (
                              subLocation                            VARCHAR(255),
                                timestamp                                DATETIME,
                             whiteBalance                             VARCHAR(63),
-                             worldRegion                            VARCHAR(255),
-PRIMARY KEY (id,txn_start,txn_end)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+                             worldRegion                            VARCHAR(255)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
                              
 insert into description_history (id, txn_start, txn_end, type) select id, txn_start, txn_end, type from node_history where type='CameraData' or type='GeoCoding' or type='IPTC';
-CREATE INDEX description_history_id ON description_history (id);
 update description_history t, property p set t.alternativeTitle = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'alternativeTitle';
 update description_history t, property p set t.city = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'city';
 update description_history t, property p set t.country = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'country';
@@ -1075,12 +1113,14 @@ update description_history t, property p set t.timestamp = from_unixtime(conv(he
 update description_history t, property p set t.whiteBalance = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'whiteBalance';
 update description_history t, property p set t.worldRegion = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'worldRegion';
                              
+CREATE INDEX description_history_id ON description_history (id);
+CREATE INDEX description_history_txn_id ON description_history (id, txn_start, txn_end);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 DROP TABLE IF EXISTS description;
 CREATE TABLE IF NOT EXISTS description (
-                                      id                                  BIGINT PRIMARY KEY,
+                                      id                                  BIGINT,
                                txn_start               BIGINT DEFAULT 0 NOT NULL,
                                  txn_end               BIGINT DEFAULT 0 NOT NULL,
                                     type                             VARCHAR(15),
@@ -1115,6 +1155,7 @@ CREATE TABLE IF NOT EXISTS description (
                              
 insert into description select * from description_history where txn_end = 0;
 
+CREATE INDEX description_id ON description (id);
 CREATE INDEX description_txn_id ON description (id, txn_start, txn_end);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1155,7 +1196,8 @@ CREATE TABLE IF NOT EXISTS sess_description (
                                timestamp                                DATETIME,
                             whiteBalance                             VARCHAR(63),
                              worldRegion                            VARCHAR(255)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE INDEX sess_description_id ON sess_description (s_id);
+CREATE INDEX sess_description_id ON sess_description (id);
+CREATE INDEX sess_description_txn_id ON sess_description (id, txn_start, txn_end);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1169,23 +1211,23 @@ CREATE TABLE IF NOT EXISTS party_history (
                                     name                            VARCHAR(255),
                                   orgUrl                            VARCHAR(255),
                               suppressed                                 BOOLEAN,
-                                 logoUrl                            VARCHAR(255),
-PRIMARY KEY (id,txn_start,txn_end)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+                                 logoUrl                            VARCHAR(255)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
                                  
 insert into party_history (id, txn_start, txn_end, type) select id, txn_start, txn_end, type from node_history where type='Party';
-CREATE INDEX party_history_id ON party_history (id);
 update party_history t, property p set t.orgUrl = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'orgUrl';
 update party_history t, property p set t.suppressed = conv(hex(value),16,10) = 1  where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'suppressed';
 update party_history t, property p set t.logoUrl = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'logoUrl';
 update party_history t, property p set t.name = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'name';
 
 
+CREATE INDEX party_history_id ON party_history (id);
+CREATE INDEX party_history_txn_id ON party_history (id, txn_start, txn_end);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 DROP TABLE IF EXISTS party;
 CREATE TABLE IF NOT EXISTS party (
-                                      id                                  BIGINT PRIMARY KEY,
+                                      id                                  BIGINT,
                                txn_start               BIGINT DEFAULT 0 NOT NULL,
                                  txn_end               BIGINT DEFAULT 0 NOT NULL,
                                     type                             VARCHAR(15),
@@ -1197,6 +1239,7 @@ CREATE TABLE IF NOT EXISTS party (
                                  
 insert into party select * from party_history where txn_end = 0;
                                  
+CREATE INDEX party_id ON party (id);
 CREATE INDEX party_txn_id ON party (id, txn_start, txn_end);
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 DROP TABLE IF EXISTS sess_party;
@@ -1212,7 +1255,8 @@ CREATE TABLE IF NOT EXISTS sess_party (
                                   orgUrl                            VARCHAR(255),
                               suppressed                                 BOOLEAN,
                                  logoUrl                            VARCHAR(255)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE INDEX sess_party_id ON sess_party (s_id);
+CREATE INDEX sess_party_id ON sess_party (id);
+CREATE INDEX sess_party_txn_id ON sess_party (id, txn_start, txn_end);
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 DROP TABLE IF EXISTS tag_history;
@@ -1223,19 +1267,22 @@ CREATE TABLE IF NOT EXISTS tag_history (
                                     type                             VARCHAR(15),
 
                                     name                            VARCHAR(255),
-                             description                            VARCHAR(255),
-PRIMARY KEY (id,txn_start,txn_end)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+                             description                            VARCHAR(255)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 insert into tag_history (id, txn_start, txn_end, type) select id, txn_start, txn_end, type from node_history where type='Tag';
-CREATE INDEX tag_history_id ON tag_history (id);
 update tag_history t, property p set t.description = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'description';
 update tag_history t, property p set t.name = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'name';
+
+                             
+                             
+CREATE INDEX tag_history_id ON tag_history (id);
+CREATE INDEX tag_history_txn_id ON tag_history (id, txn_start, txn_end);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 DROP TABLE IF EXISTS tag;
 CREATE TABLE IF NOT EXISTS tag (
-                                      id                                  BIGINT PRIMARY KEY,
+                                      id                                  BIGINT,
                                txn_start               BIGINT DEFAULT 0 NOT NULL,
                                  txn_end               BIGINT DEFAULT 0 NOT NULL,
                                     type                             VARCHAR(15),
@@ -1245,6 +1292,7 @@ CREATE TABLE IF NOT EXISTS tag (
                              
 insert into tag select * from tag_history where txn_end = 0;
                              
+CREATE INDEX tag_id ON tag (id);
 CREATE INDEX tag_txn_id ON tag (id, txn_start, txn_end);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1260,7 +1308,8 @@ CREATE TABLE IF NOT EXISTS sess_tag (
 
                                     name                            VARCHAR(255),
                              description                            VARCHAR(255)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE INDEX sess_tag_id ON sess_tag (s_id);
+CREATE INDEX sess_tag_id ON sess_tag (id);
+CREATE INDEX sess_tag_txn_id ON sess_tag (id, txn_start, txn_end);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 DROP TABLE IF EXISTS flatedge_history;
@@ -1271,22 +1320,19 @@ CREATE TABLE IF NOT EXISTS flatedge_history (
                                    v_out                                  BIGINT,
                                     v_in                                  BIGINT,
                               edge_order                                  BIGINT,
-                                   label                             VARCHAR(16),
-PRIMARY KEY (id,txn_start,txn_end)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+                                   label                             VARCHAR(16)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
                                    
 insert into flatedge_history (id, txn_start, txn_end, v_out, v_in, label, edge_order) select id, txn_start, txn_end, v_out, v_in, label, edge_order from edge;
                                    
 CREATE INDEX flatedge_history_id ON flatedge_history (id);
+CREATE INDEX flatedge_history_txn_id ON flatedge_history (id, txn_start, txn_end);
 CREATE INDEX flatedge_history_label_vertices ON flatedge_history (label, v_in, v_out);
-CREATE INDEX flatedge_history_label ON flatedge_history (label);
-CREATE INDEX flatedge_history_in ON flatedge_history (v_in);
-CREATE INDEX flatedge_history_out ON flatedge_history (v_out);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 DROP TABLE IF EXISTS flatedge;
 CREATE TABLE IF NOT EXISTS flatedge (
-                                      id                                  BIGINT PRIMARY KEY,
+                                      id                                  BIGINT,
                                txn_start               BIGINT DEFAULT 0 NOT NULL,
                                  txn_end               BIGINT DEFAULT 0 NOT NULL,
                                    v_out                                  BIGINT,
@@ -1296,11 +1342,10 @@ CREATE TABLE IF NOT EXISTS flatedge (
                                    
 insert into flatedge select * from flatedge_history where txn_end = 0;
 
+CREATE INDEX flatedge_id ON flatedge (id);
 CREATE INDEX flatedge_txn_id ON flatedge (id, txn_start, txn_end);
 CREATE INDEX flatedge_label_vertices ON flatedge (label, v_in, v_out);
-CREATE INDEX flatedge_label ON flatedge (label);
-CREATE INDEX flatedge_in ON flatedge (v_in);
-CREATE INDEX flatedge_out ON flatedge (v_out);
+CREATE INDEX flatedge_label_vout ON flatedge (label, v_out);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 DROP TABLE IF EXISTS sess_flatedge;
@@ -1314,7 +1359,9 @@ CREATE TABLE IF NOT EXISTS sess_flatedge (
                                     v_in                                  BIGINT,
                               edge_order                                  BIGINT,
                                    label                             VARCHAR(16)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE INDEX sess_flatedge_id ON sess_flatedge (s_id);
+CREATE INDEX sess_flatedge_id ON sess_flatedge (id);
+CREATE INDEX sess_flatedge_txn_id ON sess_flatedge (id, txn_start, txn_end);
+CREATE INDEX sess_flatedge_label_vertices ON sess_flatedge (label, v_in, v_out);
 
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 DROP TABLE IF EXISTS acknowledge_history;
@@ -1330,21 +1377,22 @@ CREATE TABLE IF NOT EXISTS acknowledge_history (
                                     date                                DATETIME,
                            kindOfSupport                                    TEXT,
                                weighting                                  DOUBLE,
-                           urlToOriginal                                    TEXT,
-PRIMARY KEY (id,txn_start,txn_end)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+                           urlToOriginal                                    TEXT) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 insert into acknowledge_history (id, txn_start, txn_end, v_out, v_in, edge_order, label) select id, txn_start, txn_end, v_out, v_in, edge_order, label from flatedge_history where label = 'Acknowledge';
-CREATE INDEX acknowledge_history_id ON acknowledge_history (id);
 update acknowledge_history t, property p set t.ackType = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'ackType';
 update acknowledge_history t, property p set t.date = from_unixtime(conv(hex(value),16,10) / 1000)  where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'date';
 update acknowledge_history t, property p set t.kindOfSupport = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'kindOfSupport';
 update acknowledge_history t, property p set t.urlToOriginal = convert(p.value using 'utf8mb4') where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'urlToOriginal';
 update acknowledge_history t, property p set t.weighting = pow(2,conv(substring(hex(value),1,3),16,10) - 1023) * (1 + conv(substring(hex(value),4,14),16,10)) where t.id = p.id and t.txn_start = p.txn_start and t.txn_end = p.txn_end and p.name = 'weighting'; -- Doesn't handle negative numbers 
 
+CREATE INDEX acknowledge_history_id ON acknowledge_history (id);
+CREATE INDEX acknowledge_history_txn_id ON acknowledge_history (id, txn_start, txn_end);
+
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 DROP TABLE IF EXISTS acknowledge;
 CREATE TABLE IF NOT EXISTS acknowledge (
-                                      id                                  BIGINT PRIMARY KEY,
+                                      id                                  BIGINT,
                                txn_start               BIGINT DEFAULT 0 NOT NULL,
                                  txn_end               BIGINT DEFAULT 0 NOT NULL,
                                    v_out                                  BIGINT,
@@ -1359,6 +1407,7 @@ CREATE TABLE IF NOT EXISTS acknowledge (
 
 insert into acknowledge select * from acknowledge_history where txn_end = 0;
                            
+CREATE INDEX acknowledge_id ON acknowledge (id);
 CREATE INDEX acknowledge_txn_id ON acknowledge (id, txn_start, txn_end);
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1378,7 +1427,8 @@ CREATE TABLE IF NOT EXISTS sess_acknowledge (
                            kindOfSupport                                    TEXT,
                                weighting                                  DOUBLE,
                            urlToOriginal                                    TEXT) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE INDEX sess_acknowledge_id ON sess_acknowledge (s_id);
+CREATE INDEX sess_acknowledge_id ON sess_acknowledge (id);
+CREATE INDEX sess_acknowledge_txn_id ON sess_acknowledge (id, txn_start, txn_end);
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 

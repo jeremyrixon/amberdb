@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.skife.jdbi.v2.Handle;
 
 import com.tinkerpop.blueprints.Direction;
@@ -254,7 +255,14 @@ public class AmberQuery extends AmberQueryBase {
 
         List<Vertex> vertices;
         try (Handle h = graph.dbi().open()) {
-
+            
+            // See if executeSimpleQuery() can handle the query
+            vertices = executeSimpleQuery();
+            
+            if (vertices != null) {
+                return vertices;
+            }
+            
             // run the generated query
             h.begin();
             h.createStatement(generateFullSubGraphQuery()).execute();
@@ -270,7 +278,66 @@ public class AmberQuery extends AmberQueryBase {
             } else {
                 getEdges(h, graph, propMaps, "v0", "eid");
             }
+
         }
         return vertices;
+    }
+
+
+    // Attempt to handle the query simply. Returns null if it can't handle the query.
+    private List<Vertex> executeSimpleQuery() {
+        
+        // We only handle one clause
+        if (clauses.size() != 1) {
+            return null;
+        }
+        
+        // We don't handle branchList
+        QueryClause clause = clauses.get(0);
+        if (clause.branchList != null && clause.branchList.size() > 0) {
+            return null;
+        }
+
+        // We only handle Direction.IN or Direction.OUT
+        if (clause.direction == Direction.BOTH) {
+            return null;
+        }
+        
+        // We only handle BRANCH_FROM_PREVIOUS
+        if (BranchType.BRANCH_FROM_PREVIOUS != clause.branchType) {
+            return null;
+        }
+        
+        String headList = StringUtils.join(head, ',');
+        String labelList = "'" + StringUtils.join(clause.labels, "','") + "'";
+        String headCol = clause.direction == Direction.OUT ? "v_out" : "v_in";
+        String tailCol = clause.direction == Direction.OUT ? "v_in" : "v_out";
+
+        try (Handle h = graph.dbi().open()) {
+            
+            // Vertices
+            String vertexSql = VERTEX_QUERY_PREFIX + "where node.id in \n"
+                    + " (select " + tailCol + " from flatedge where flatedge.label in (" + labelList + ") and " + headCol + " in (" + headList + "))";
+            List<Vertex> vertices = getVertices(h.begin().createQuery(vertexSql).map(new AmberVertexMapper(graph)).list());
+            for (AmberVertex vertex: h.begin().createQuery(vertexSql).map(new AmberVertexMapper(graph)).list()) {
+                Long vertexId = (Long) vertex.getId();
+                if (graph.graphVertices.containsKey(vertexId) || graph.removedVertices.containsKey(vertexId)) {
+                    continue;
+                } 
+                graph.addVertexToGraph(vertex);
+            }
+            
+            // Edges
+            String edgeSql = EDGE_QUERY_PREFIX + " where flatedge.label in (" + labelList + ") and flatedge." + headCol + " in (" + headList + ")";
+            for (AmberEdge edge: h.begin().createQuery(edgeSql).map(new AmberEdgeMapper(graph, false)).list()) {
+                Long edgeId = (Long) edge.getId();
+                if (graph.graphEdges.containsKey(edgeId) || graph.removedEdges.containsKey(edgeId)) {
+                    continue;
+                } 
+                graph.addEdgeToGraph(edge);
+            }
+            
+            return vertices;
+        }
     }
 }
