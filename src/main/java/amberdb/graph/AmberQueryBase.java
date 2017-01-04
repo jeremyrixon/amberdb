@@ -47,7 +47,12 @@ public class AmberQueryBase {
         this.graph = graph;
     }
     
-
+    /**
+     * getElementPropertyMaps: this method is required to provide compatibility for service that extends AmberQueryBase.
+     */
+    protected Map<Long, Map<String, Object>> getElementPropertyMaps(Handle h, String elementIdTable, String elementIdColumn) {
+        return getVertexPropertyMaps(h, elementIdTable, elementIdColumn);
+    }
     
     protected Map<Long, Map<String, Object>> getVertexPropertyMaps(Handle h, String elementIdTable, String elementIdColumn) {
         
