@@ -289,8 +289,15 @@ public class AmberSession implements AutoCloseable {
                     " from work child \n" +
                     "   left join flatedge e on child.id = e.v_out and e.label = 'isPartOf' \n" +
                     "   left join work parent on e.v_in = parent.id \n" +
-                    "   left join (select count(*) childCount, e2.v_in from flatedge e2 where e2.v_in = :id and e2.label = 'isPartOf' group by e2.v_in) children on children.v_in = child.id \n" +
-                    " where child.id = :id ";
+                    "   left join node n on n.id = child.id \n" +
+                    "   left join (\n" +
+                    "       select count(*) childCount, e2.v_in \n" +
+                    "       from flatedge e2 inner join node n2 on n2.id = e2.v_out \n" +
+                    "       where e2.v_in = :id \n" +
+                    "           and e2.label = 'isPartOf' \n" +
+                    "           and n2.type != 'Section' \n" +
+                    "       group by e2.v_in) children on children.v_in = child.id \n" +
+                    " where n.type != 'Section' and child.id = :id ";
 
             Query query = handle.createQuery(sql);
 
@@ -317,32 +324,34 @@ public class AmberSession implements AutoCloseable {
 
         Map<String, Object> work = (Map<String, Object>) query.first();
 
-        WorkSummary summary = new WorkSummary();
-        summary.setId(id);
-        summary.setParentId((Long) work.get("parentId"));
-        summary.setTitle((String) work.get("title"));
-        summary.setCollectionCode((String) work.get("collection"));
-        summary.setForm((String) work.get("form"));
-        summary.setCreator((String) work.get("creator"));
-        summary.setAccessConditions((String) work.get("accessConditions"));
-        summary.setInternalAccessConditions((String) work.get("internalAccessConditions"));
-        summary.setDigitalStatus((String) work.get("digitalStatus"));
-        summary.setDigitalStatusDate((Date) work.get("digitalStatusDate"));
-        summary.setDateCreated((Date) work.get("dateCreated"));
-        summary.setRecordSource((String) work.get("recordSource"));
-        summary.setLocalSystemNumber((String) work.get("localSystemNumber"));
-        summary.setBibLevel((String) work.get("bibLevel"));
-        summary.setBibId((String) work.get("bibId"));
-        summary.setSubUnitType((String) work.get("subUnitType"));
-        summary.setSubUnitNumber((String) work.get("subUnitNo"));
-        summary.setSensitiveMaterial((String) work.get("sensitiveMaterial"));
-        summary.setObjectId(PIUtil.format((Long) work.get("childId")));
-        summary.setChildCount(work.get("childCount") == null ? 0 : (Long) work.get("childCount"));
+        if (work != null) {
+            WorkSummary summary = new WorkSummary();
+            summary.setId(id);
+            summary.setParentId((Long) work.get("parentId"));
+            summary.setTitle((String) work.get("title"));
+            summary.setCollectionCode((String) work.get("collection"));
+            summary.setForm((String) work.get("form"));
+            summary.setCreator((String) work.get("creator"));
+            summary.setAccessConditions((String) work.get("accessConditions"));
+            summary.setInternalAccessConditions((String) work.get("internalAccessConditions"));
+            summary.setDigitalStatus((String) work.get("digitalStatus"));
+            summary.setDigitalStatusDate((Date) work.get("digitalStatusDate"));
+            summary.setDateCreated((Date) work.get("dateCreated"));
+            summary.setRecordSource((String) work.get("recordSource"));
+            summary.setLocalSystemNumber((String) work.get("localSystemNumber"));
+            summary.setBibLevel((String) work.get("bibLevel"));
+            summary.setBibId((String) work.get("bibId"));
+            summary.setSubUnitType((String) work.get("subUnitType"));
+            summary.setSubUnitNumber((String) work.get("subUnitNo"));
+            summary.setSensitiveMaterial((String) work.get("sensitiveMaterial"));
+            summary.setObjectId(PIUtil.format((Long) work.get("childId")));
+            summary.setChildCount(work.get("childCount") == null ? 0 : (Long) work.get("childCount"));
 
-        summaries.add(summary);
+            summaries.add(summary);
 
-        if (summary.getParentId() != null) {
-            addSummary(query, summary.getParentId(), summaries);
+            if (summary.getParentId() != null) {
+                addSummary(query, summary.getParentId(), summaries);
+            }
         }
     }
 
