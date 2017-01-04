@@ -101,6 +101,30 @@ public class AmberSessionTest {
     }
 
     @Test
+    public void getHierarchySummaryForWorkShouldReturnTheRequestedWorkEvenIfItHasNoParent() throws Exception {
+        Work work = sessionWithLookups.addWork();
+
+        sessionWithLookups.commit();
+
+        List<WorkSummary> hierarchy = sessionWithLookups.getHierarchySummaryForWork(work.getId());
+
+        assertEquals(1, hierarchy.size());
+        assertEquals("The work should be first", work.getId(), hierarchy.get(0).getId());
+    }
+
+    @Test
+    public void getHierarchySummaryForWorkShouldReturnAnEmptyListIfTheWorkDoesNotExist() throws Exception {
+        sessionWithLookups.addWork();
+        sessionWithLookups.addWork();
+
+        sessionWithLookups.commit();
+
+        List<WorkSummary> hierarchy = sessionWithLookups.getHierarchySummaryForWork(666L);
+
+        assertEquals(0, hierarchy.size());
+    }
+
+    @Test
     public void testDeleteWorkWithAudit() throws IOException {
 
         // create a test work and delete it
