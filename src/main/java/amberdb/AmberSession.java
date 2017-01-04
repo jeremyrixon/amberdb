@@ -7,15 +7,12 @@ import static amberdb.graph.BranchType.BRANCH_FROM_PREVIOUS;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.sql.DataSource;
 
+import amberdb.model.*;
+import amberdb.sql.ListLu;
 import org.apache.commons.lang.StringUtils;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
@@ -45,26 +42,13 @@ import amberdb.graph.AmberMultipartQuery.QueryClause;
 import amberdb.graph.AmberPreCommitHook;
 import amberdb.graph.AmberQuery;
 import amberdb.graph.AmberTransaction;
-import amberdb.model.CameraData;
-import amberdb.model.Copy;
-import amberdb.model.Description;
-import amberdb.model.EADWork;
-import amberdb.model.File;
-import amberdb.model.GeoCoding;
-import amberdb.model.IPTC;
-import amberdb.model.ImageFile;
-import amberdb.model.MovingImageFile;
-import amberdb.model.Page;
-import amberdb.model.Party;
-import amberdb.model.Section;
-import amberdb.model.SoundFile;
-import amberdb.model.Tag;
-import amberdb.model.Work;
 import amberdb.query.ModifiedObjectsQueryRequest;
 import amberdb.query.ModifiedObjectsQueryResponse;
 import amberdb.sql.Lookups;
 import amberdb.version.VersionedVertex;
 import doss.BlobStore;
+import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.Query;
 
 
 public class AmberSession implements AutoCloseable {
@@ -269,6 +253,105 @@ public class AmberSession implements AutoCloseable {
             return findWork(Long.parseLong(idOrAlias));
         } catch (NumberFormatException e) {
             return findWork(PIUtil.parse(idOrAlias));
+        }
+    }
+
+    /**
+     * Retrieves the hierarchy of works that leads to the specified object. Only retrieves basic summary information for
+     * performance reasons.
+     *
+     * @param workId The work to retrieve the hierarchy for. This will be the LAST step in the hierarchy.
+     * @return Ordered list of WorkSummaries for each step in the hierarchy that leads to the specified object.
+     */
+    public List<WorkSummary> getHierarchySummaryForWork(long workId) {
+        List<WorkSummary> summaries = new ArrayList<>();
+
+        try (Handle handle = lookupsDbi.open()) {
+            String sql = "select parent.id parentId,  \n" +
+                    "           child.id childId,  \n" +
+                    "           child.title,  \n" +
+                    "           child.bibLevel,  \n" +
+                    "           child.bibId,  \n" +
+                    "           child.collection,  \n" +
+                    "           child.form,  \n" +
+                    "           child.recordSource,  \n" +
+                    "           child.localSystemNumber,  \n" +
+                    "           child.accessConditions,  \n" +
+                    "           child.internalAccessConditions,  \n" +
+                    "           child.creator,  \n" +
+                    "           child.dateCreated,  \n" +
+                    "           child.subUnitType,  \n" +
+                    "           child.subUnitNo,  \n" +
+                    "           child.sensitiveMaterial,  \n" +
+                    "           child.digitalStatus,  \n" +
+                    "           child.digitalStatusDate, \n" +
+                    "           children.childCount \n" +
+                    " from work child \n" +
+                    "   left join flatedge e on child.id = e.v_out and e.label = 'isPartOf' \n" +
+                    "   left join work parent on e.v_in = parent.id \n" +
+                    "   left join node n on n.id = child.id \n" +
+                    "   left join (\n" +
+                    "       select count(*) childCount, e2.v_in \n" +
+                    "       from flatedge e2 inner join node n2 on n2.id = e2.v_out \n" +
+                    "       where e2.v_in = :id \n" +
+                    "           and e2.label = 'isPartOf' \n" +
+                    "           and n2.type != 'Section' \n" +
+                    "       group by e2.v_in) children on children.v_in = child.id \n" +
+                    " where n.type != 'Section' and child.id = :id ";
+
+            Query query = handle.createQuery(sql);
+
+            addSummary(query, workId, summaries);
+
+            Map<String, String> collections = new HashMap<>();
+
+            for (ListLu item : getLookups().findLookupsFor("collection", "n")) {
+                collections.put(item.getCode(), item.getValue());
+            }
+
+            for (WorkSummary summary : summaries) {
+                summary.setCollectionName(collections.get(summary.getCollectionCode()));
+            }
+
+            Collections.reverse(summaries);
+        }
+
+        return summaries;
+    }
+
+    private void addSummary(Query query, Long id, List<WorkSummary> summaries) {
+        query.bind("id", id);
+
+        Map<String, Object> work = (Map<String, Object>) query.first();
+
+        if (work != null) {
+            WorkSummary summary = new WorkSummary();
+            summary.setId(id);
+            summary.setParentId((Long) work.get("parentId"));
+            summary.setTitle((String) work.get("title"));
+            summary.setCollectionCode((String) work.get("collection"));
+            summary.setForm((String) work.get("form"));
+            summary.setCreator((String) work.get("creator"));
+            summary.setAccessConditions((String) work.get("accessConditions"));
+            summary.setInternalAccessConditions((String) work.get("internalAccessConditions"));
+            summary.setDigitalStatus((String) work.get("digitalStatus"));
+            summary.setDigitalStatusDate((Date) work.get("digitalStatusDate"));
+            summary.setDateCreated((Date) work.get("dateCreated"));
+            summary.setRecordSource((String) work.get("recordSource"));
+            summary.setLocalSystemNumber((String) work.get("localSystemNumber"));
+            summary.setBibLevel((String) work.get("bibLevel"));
+            summary.setBibId((String) work.get("bibId"));
+            summary.setSubUnitType((String) work.get("subUnitType"));
+            summary.setSubUnitNumber((String) work.get("subUnitNo"));
+            summary.setSensitiveMaterial((String) work.get("sensitiveMaterial"));
+            summary.setObjectId(PIUtil.format((Long) work.get("childId")));
+            summary.setChildCount(work.get("childCount") == null ? 0 : (Long) work.get("childCount"));
+
+            summaries.add(summary);
+
+            if (summary.getParentId() != null) {
+                addSummary(query, summary.getParentId(), summaries);
+            }
         }
     }
 
