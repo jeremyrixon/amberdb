@@ -259,6 +259,20 @@ public class AmberSession implements AutoCloseable {
 
     /**
      * Retrieves the hierarchy of works that leads to the specified object. Only retrieves basic summary information for
+     * performance reasons. Invokes {@link #getHierarchySummaryForWork(long, Integer)}.
+     *
+     * This method limits the hierarchy depth to {@link #DEFAULT_MAX_HIERARCHY_DEPTH}.
+     *
+     * @param workId The work to retrieve the hierarchy for. This will be the LAST step in the hierarchy.
+     * @return Ordered list of WorkSummaries for each step in the hierarchy that leads to the specified object.
+     * @see #getHierarchySummaryForWork(long, Integer)
+     */
+    public List<WorkSummary> getHierarchySummaryForWork(long workId) {
+        return getHierarchySummaryForWork(workId, null);
+    }
+
+    /**
+     * Retrieves the hierarchy of works that leads to the specified object. Only retrieves basic summary information for
      * performance reasons.
      *
      * If the actual hierarchy depth exceeds the maxAncestors parameter, then the parentId of the first item will not be
