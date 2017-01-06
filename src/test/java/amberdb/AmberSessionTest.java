@@ -68,7 +68,7 @@ public class AmberSessionTest {
 
         sessionWithLookups.commit();
 
-        List<WorkSummary> hierarchy = sessionWithLookups.getHierarchySummaryForWork(work.getId(), null);
+        List<WorkSummary> hierarchy = sessionWithLookups.getHierarchySummaryForWork(work.getId());
 
         assertEquals("The hierarchy should not include siblings or uncles, cousins, etc", 4, hierarchy.size());
         assertEquals("The great grandparent should be first", greatGrandParent.getId(), hierarchy.get(0).getId());
@@ -106,7 +106,7 @@ public class AmberSessionTest {
 
         sessionWithLookups.commit();
 
-        List<WorkSummary> hierarchy = sessionWithLookups.getHierarchySummaryForWork(work.getId(), null);
+        List<WorkSummary> hierarchy = sessionWithLookups.getHierarchySummaryForWork(work.getId());
 
         assertEquals(1, hierarchy.size());
         assertEquals("The work should be first", work.getId(), hierarchy.get(0).getId());
@@ -119,7 +119,7 @@ public class AmberSessionTest {
 
         sessionWithLookups.commit();
 
-        List<WorkSummary> hierarchy = sessionWithLookups.getHierarchySummaryForWork(666L, null);
+        List<WorkSummary> hierarchy = sessionWithLookups.getHierarchySummaryForWork(666L);
 
         assertEquals(0, hierarchy.size());
     }
