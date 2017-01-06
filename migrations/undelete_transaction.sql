@@ -170,14 +170,15 @@ CREATE PROCEDURE undelete_graph_table(IN txnId BIGINT, IN tableName CHAR(50))
   END //
 DELIMITER ;
 
-
+-- ======================================================
+-- MAIN PROCEDURE (this is the one you call)
 -- ======================================================
 -- Un-deletes all objects deleted in a single transaction
 --
 -- Wraps entire un-delete in transaction with rollback.
 --
 -- Unfortunately, no indication when it fails - the
--- objects just wont have been deleted.
+-- objects just won't have been deleted.
 --
 -- Can remove graph table portion once graph tables are
 -- removed.
@@ -188,14 +189,14 @@ CREATE PROCEDURE undelete_by_txn(IN txnId BIGINT)
 
   BEGIN
 
-	DECLARE EXIT HANDLER FOR SQLEXCEPTION, SQLWARNING
-	BEGIN
-	  ROLLBACK;
-	END;
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION, SQLWARNING
+  BEGIN
+    ROLLBACK;
+  END;
 
-	START TRANSACTION;
+  START TRANSACTION;
 
-	    -- un-delete nodes
+      -- un-delete nodes
       CALL undelete_node(txnId);
 
       -- un-delete flatedges
@@ -205,12 +206,12 @@ CREATE PROCEDURE undelete_by_txn(IN txnId BIGINT)
       -- un-delete remaining flat tables
       CALL undelete_flat_table(txnId, 'acknowledge');
       CALL undelete_flat_table(txnId, 'description');
-	    CALL undelete_flat_table(txnId, 'file');
+      CALL undelete_flat_table(txnId, 'file');
       CALL undelete_flat_table(txnId, 'party');
       CALL undelete_flat_table(txnId, 'tag');
       CALL undelete_flat_table(txnId, 'work');
 
-	    -- un-delete from graph tables
+      -- un-delete from graph tables
       CALL undelete_graph_table(txnId, 'vertex');
       CALL undelete_graph_table(txnId, 'edge');
       CALL undelete_graph_table(txnId, 'property');
