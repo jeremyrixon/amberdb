@@ -104,7 +104,7 @@ DELIMITER ;
 
 
 -- =============================================
--- Un-delete flat table objects
+-- Un-delete flatedge objects
 --
 -- Only run after node table un-deletion so it
 -- can check for broken end points
