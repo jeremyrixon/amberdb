@@ -68,7 +68,7 @@ public class AmberSessionTest {
 
         sessionWithLookups.commit();
 
-        List<WorkSummary> hierarchy = sessionWithLookups.getHierarchySummaryForWork(work.getId());
+        List<WorkSummary> hierarchy = sessionWithLookups.getHierarchySummaryForWork(work.getId(), null);
 
         assertEquals("The hierarchy should not include siblings or uncles, cousins, etc", 4, hierarchy.size());
         assertEquals("The great grandparent should be first", greatGrandParent.getId(), hierarchy.get(0).getId());
@@ -78,26 +78,26 @@ public class AmberSessionTest {
     }
 
     @Test
-    public void getHierarchySummaryForWorkShouldNotCountSectionsAsChildren() throws Exception {
+    public void getHierarchySummaryForWorkShouldLimitTheDepth() throws Exception {
         Work work1 = sessionWithLookups.addWork();
         Work work2 = sessionWithLookups.addWork();
-        Work parent = sessionWithLookups.addWork();
-        work1.setParent(parent);
-        work2.setParent(parent);
-
-        parent.addSection();
-        parent.addPage();
-        work1.addSection();
-        work1.addCopy();
+        work2.setParent(work1);
+        Work work3 = sessionWithLookups.addWork();
+        work3.setParent(work2);
+        Work work4 = sessionWithLookups.addWork();
+        work4.setParent(work3);
+        Work work5 = sessionWithLookups.addWork();
+        work5.setParent(work4);
+        Work work6 = sessionWithLookups.addWork();
+        work6.setParent(work5);
 
         sessionWithLookups.commit();
 
-        List<WorkSummary> hierarchy = sessionWithLookups.getHierarchySummaryForWork(work1.getId());
+        List<WorkSummary> hierarchy = sessionWithLookups.getHierarchySummaryForWork(work6.getId(), 3);
 
-        assertEquals("The parent should be first", parent.getId(), hierarchy.get(0).getId());
-        assertEquals("The parent should have 3 children (the two works and the page, but not the section)", 3, hierarchy.get(0).getChildCount());
-        assertEquals("The requested work should be last", work1.getId(), hierarchy.get(1).getId());
-        assertEquals("The work should have 0 children (ignore the section and copy)", 0, hierarchy.get(1).getChildCount());
+        assertEquals(3, hierarchy.size());
+        assertEquals("The 3rd ancestor should be first", work4.getId(), hierarchy.get(0).getId());
+        assertEquals("The requested work should be last", work6.getId(), hierarchy.get(2).getId());
     }
 
     @Test
@@ -106,7 +106,7 @@ public class AmberSessionTest {
 
         sessionWithLookups.commit();
 
-        List<WorkSummary> hierarchy = sessionWithLookups.getHierarchySummaryForWork(work.getId());
+        List<WorkSummary> hierarchy = sessionWithLookups.getHierarchySummaryForWork(work.getId(), null);
 
         assertEquals(1, hierarchy.size());
         assertEquals("The work should be first", work.getId(), hierarchy.get(0).getId());
@@ -119,7 +119,7 @@ public class AmberSessionTest {
 
         sessionWithLookups.commit();
 
-        List<WorkSummary> hierarchy = sessionWithLookups.getHierarchySummaryForWork(666L);
+        List<WorkSummary> hierarchy = sessionWithLookups.getHierarchySummaryForWork(666L, null);
 
         assertEquals(0, hierarchy.size());
     }

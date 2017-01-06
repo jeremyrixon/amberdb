@@ -52,6 +52,7 @@ import org.skife.jdbi.v2.Query;
 
 
 public class AmberSession implements AutoCloseable {
+    private static final int DEFAULT_MAX_HIERARCHY_DEPTH = 50;
     private final FramedGraph<TransactionalGraph> graph;
     private final BlobStore blobStore;
     private DBI lookupsDbi;
@@ -260,10 +261,19 @@ public class AmberSession implements AutoCloseable {
      * Retrieves the hierarchy of works that leads to the specified object. Only retrieves basic summary information for
      * performance reasons.
      *
+     * If the actual hierarchy depth exceeds the maxAncestors parameter, then the parentId of the first item will not be
+     * null, indicating that it has a parent and therefore there is more to the hierarchy. Otherwise, the first item's
+     * parent will always be null to indicate that it is the root of the hierarchy.
+     *
      * @param workId The work to retrieve the hierarchy for. This will be the LAST step in the hierarchy.
+     * @param maxAncestors The maximum number of ancestors to include in the hierarchy. This limits the depth of the
+     *                     hierarchy, but always operates in REVERSE - i.e. the requested work plus (maxAncestors - 1)
+     *                     ancestors. Defaults to {@link #DEFAULT_MAX_HIERARCHY_DEPTH} if not specified.
      * @return Ordered list of WorkSummaries for each step in the hierarchy that leads to the specified object.
      */
-    public List<WorkSummary> getHierarchySummaryForWork(long workId) {
+    public List<WorkSummary> getHierarchySummaryForWork(long workId, Integer maxAncestors) {
+        int maxDepth = maxAncestors == null ? DEFAULT_MAX_HIERARCHY_DEPTH : maxAncestors;
+
         List<WorkSummary> summaries = new ArrayList<>();
 
         try (Handle handle = lookupsDbi.open()) {
@@ -284,24 +294,16 @@ public class AmberSession implements AutoCloseable {
                     "           child.subUnitNo,  \n" +
                     "           child.sensitiveMaterial,  \n" +
                     "           child.digitalStatus,  \n" +
-                    "           child.digitalStatusDate, \n" +
-                    "           children.childCount \n" +
+                    "           child.digitalStatusDate \n" +
                     " from work child \n" +
                     "   left join flatedge e on child.id = e.v_out and e.label = 'isPartOf' \n" +
                     "   left join work parent on e.v_in = parent.id \n" +
                     "   left join node n on n.id = child.id \n" +
-                    "   left join (\n" +
-                    "       select count(*) childCount, e2.v_in \n" +
-                    "       from flatedge e2 inner join node n2 on n2.id = e2.v_out \n" +
-                    "       where e2.v_in = :id \n" +
-                    "           and e2.label = 'isPartOf' \n" +
-                    "           and n2.type != 'Section' \n" +
-                    "       group by e2.v_in) children on children.v_in = child.id \n" +
                     " where n.type != 'Section' and child.id = :id ";
 
             Query query = handle.createQuery(sql);
 
-            addSummary(query, workId, summaries);
+            addSummary(query, workId, summaries, 1, maxDepth);
 
             Map<String, String> collections = new HashMap<>();
 
@@ -319,7 +321,7 @@ public class AmberSession implements AutoCloseable {
         return summaries;
     }
 
-    private void addSummary(Query query, Long id, List<WorkSummary> summaries) {
+    private void addSummary(Query query, Long id, List<WorkSummary> summaries, int currentDepth, int maxDepth) {
         query.bind("id", id);
 
         Map<String, Object> work = (Map<String, Object>) query.first();
@@ -345,12 +347,11 @@ public class AmberSession implements AutoCloseable {
             summary.setSubUnitNumber((String) work.get("subUnitNo"));
             summary.setSensitiveMaterial((String) work.get("sensitiveMaterial"));
             summary.setObjectId(PIUtil.format((Long) work.get("childId")));
-            summary.setChildCount(work.get("childCount") == null ? 0 : (Long) work.get("childCount"));
 
             summaries.add(summary);
 
-            if (summary.getParentId() != null) {
-                addSummary(query, summary.getParentId(), summaries);
+            if (summary.getParentId() != null && currentDepth < maxDepth) {
+                addSummary(query, summary.getParentId(), summaries, currentDepth + 1, maxDepth);
             }
         }
     }
