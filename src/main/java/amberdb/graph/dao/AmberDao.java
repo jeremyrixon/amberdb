@@ -314,6 +314,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             +" workPid VARCHAR(255));"
             +"CREATE INDEX work_id ON work (id);"
             +"CREATE INDEX work_txn_id ON work (id, txn_start, txn_end);"
+            +"CREATE INDEX work_bib_id ON work (bibId);"
             +"DROP TABLE IF EXISTS work_history;"
             +"CREATE TABLE IF NOT EXISTS work_history ("
             +" id BIGINT,"
