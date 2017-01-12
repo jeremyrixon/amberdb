@@ -1055,8 +1055,7 @@ public abstract class LookupsSchema {
     public abstract void seedAccessAgreementReasonForChangeList();
 
     @SqlUpdate("INSERT INTO lookups (name, code, value, deleted) values " +
-            "('accessConditionReasonForChange', 'End of embargo', 'End of embargo', 'N')," +
-            "('accessConditionReasonForChange', 'Change to Commercial Status or Access Agreement', 'Change to Commercial Status or Access Agreement', 'N')")
+            "('accessConditionReasonForChange', 'End of embargo', 'End of embargo', 'N')")
     public abstract void seedAccessConditionReasonForChangeList();
 
     @SqlUpdate("INSERT INTO lookups (name, code, value, deleted) values " +
