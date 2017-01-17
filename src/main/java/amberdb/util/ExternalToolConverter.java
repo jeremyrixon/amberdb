@@ -1,13 +1,13 @@
 package amberdb.util;
 
 
-import java.io.IOException;
-import java.lang.ProcessBuilder.Redirect;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.tika.Tika;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.lang.ProcessBuilder.Redirect;
 
 
 public class ExternalToolConverter {
@@ -30,7 +30,7 @@ public class ExternalToolConverter {
      */
     protected void executeCmd(String... cmd) throws ExternalToolException {
         // Log command
-        log.debug("Run command: ", StringUtils.join(cmd, ' '));
+        log.debug("Run command: {}", StringUtils.join(cmd, ' '));
     
         // Execute command
         ProcessBuilder builder = new ProcessBuilder(cmd);

@@ -6,6 +6,7 @@ import amberdb.enums.CopyRole;
 import amberdb.enums.MaterialType;
 import amberdb.relation.*;
 import amberdb.util.EPubConverter;
+import amberdb.util.ImageUtils;
 import amberdb.util.Jp2Converter;
 import amberdb.util.PdfTransformerFop;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -442,7 +443,7 @@ public interface Copy extends Node {
             String mimeType = imgFile.getMimeType();
 
             // Do we need to check?
-            if (!(mimeType.equals("image/tiff") || mimeType.equals("image/jpeg"))) {
+            if (!(mimeType.equals("image/tiff") || mimeType.equals("image/jpeg") || ImageUtils.isDngFile(mimeType, imgFile.getFileName()))) {
                 throw new IllegalStateException(this.getWork().getObjId() + " master is not a tiff or jpeg. You may not generate a jpeg2000 from anything but a tiff or a jpeg");
             }
 
@@ -768,7 +769,7 @@ public interface Copy extends Node {
             return epubPath;
         }
 
-        private Path generateJp2Image(BlobStore doss, Path jp2Converter, Path imgConverter, Path stage, Long imgBlobId) throws IOException, InterruptedException, NoSuchCopyException, Exception {
+        private Path generateJp2Image(BlobStore doss, Path jp2Converter, Path imgConverter, Path stage, Long imgBlobId) throws Exception {
             if (imgBlobId == null) {
                 throw new NoSuchCopyException(this.getWork().getId(), CopyRole.fromString(this.getCopyRole()));
             }
@@ -781,14 +782,17 @@ public interface Copy extends Node {
             // This is to prevent kdu_compress from failing when a tif file is named as .jpg, etc.
             Tika tika = new Tika();
             String mimeType = tika.detect(tmpPath.toFile());
-            String fileExtension = null;
-            if ("image/tiff".equals(mimeType)) {
+            String fileExtension;
+            boolean isDngImage = ImageUtils.isDngFile(mimeType, getImageFile().getFileName());
+            if ("image/tiff".equals(mimeType) && !isDngImage) {
                 fileExtension = ".tif";
             } else if ("image/jpeg".equals(mimeType)) {
                 fileExtension = ".jpg";
+            } else if (isDngImage) {
+                fileExtension = ".dng";
             } else {
                 // Will add support for other mime types (eg. raw) later
-                throw new RuntimeException("Not a tiff or a jpeg file");
+                throw new RuntimeException("Not a tiff, dng or a jpeg file");
             }
 
             // Rename the file
@@ -805,14 +809,14 @@ public interface Copy extends Node {
             // Otherwise, let Jp2Converter find out from the source file.
             Map<String, String> imgInfoMap = null;
             ImageFile imgFile = this.getImageFile();
-            if (imgFile != null && "image/tiff".equals(imgFile.getMimeType())) {
-                // Only check image properties for tiff files
+            if (imgFile != null && ("image/tiff".equals(imgFile.getMimeType()) || ImageUtils.isDngFile(imgFile.getMimeType(), imgFile.getFileName()))) {
+                // Only check image properties for tiff and dng files
                 int compression = parseIntFromStr(imgFile.getCompression());
                 int samplesPerPixel = parseIntFromStr(imgFile.getSamplesPerPixel());
                 int bitsPerSample = parseIntFromStr(imgFile.getBitDepth());
                 int photometric = parseIntFromStr(imgFile.getPhotometric());
                 if (compression >= 0 && samplesPerPixel >= 0 && bitsPerSample >= 0 && photometric >= 0) {
-                    imgInfoMap = new HashMap<String, String>();
+                    imgInfoMap = new HashMap<>();
                     imgInfoMap.put("mimeType", imgFile.getMimeType());
                     imgInfoMap.put("compression", "" + compression);
                     imgInfoMap.put("samplesPerPixel", "" + samplesPerPixel);
@@ -821,15 +825,15 @@ public interface Copy extends Node {
                 }
             }
 
-            Path jp2ImgPath = null;
+            Path jp2ImgPath;
             // Try to convert it to .jp2
             try {
                 jp2ImgPath = stage.resolve(imgBlobId + ".jp2"); // name the jpeg2000 derivative after the original uncompressed blob
-                jp2c.convertFile(srcImgPath, jp2ImgPath, imgInfoMap);
+                jp2c.convertFile(srcImgPath, jp2ImgPath, imgInfoMap, imgFile == null ? "" : imgFile.getFileName());
             } catch (Exception e1) {
                 // If failed, try to convert it to .jpx
                 jp2ImgPath = stage.resolve(imgBlobId + ".jpx");
-                jp2c.convertFile(srcImgPath, jp2ImgPath, imgInfoMap);
+                jp2c.convertFile(srcImgPath, jp2ImgPath, imgInfoMap, imgFile == null ? "" : imgFile.getFileName());
             }
 
             // NOTE: to return null at this point to cater for TiffEcho and JP2Echo test cases running in Travis env.
