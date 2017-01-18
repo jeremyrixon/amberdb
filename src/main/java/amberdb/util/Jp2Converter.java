@@ -4,9 +4,11 @@ package amberdb.util;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -119,7 +121,18 @@ public class Jp2Converter extends ExternalToolConverter {
                 // TIFFs (use the same mime type and magic number), so IM will use its TIFF converter which, for some
                 // reason, loses dimension information during conversion, resulting in a very small image. Using the DNG
                 // format hint makes IM use its DNG converter (ufraw).
-                convertUncompress(srcFilePath, IMAGE_MAGICK_DNG_FORMAT, tmpFilePath);
+                //
+                // We also try to convert the image to the AdobeRGB colour profile. This requires the ICC file to be on
+                // the classpath.
+                String profileFile = "imageConversion/AdobeRGB1998.icc";
+                URL colourProfile = getClass().getClassLoader().getResource(profileFile);
+                if (colourProfile == null) {
+                    log.warn("Failed to load colour profile .icc file {}. Using ImageMagick defaults", profileFile);
+                    convertUncompress(srcFilePath, IMAGE_MAGICK_DNG_FORMAT, tmpFilePath);
+                } else {
+                    // note that -profile MUST be provided twice (once for input, which is ignored but has to be there, and once for the output format)
+                    convertUncompress(srcFilePath, IMAGE_MAGICK_DNG_FORMAT, tmpFilePath, "-profile", colourProfile.getFile(), "-profile", colourProfile.getFile());
+                }
                 log.info("Converted DNG {} to Tiff {}", srcFilePath, tmpFilePath);
             } else if (imgInfo.samplesPerPixel == 1 && imgInfo.bitsPerSample == 1) {
                 // Bitonal image - Convert to greyscale (8 bit depth)
@@ -174,8 +187,12 @@ public class Jp2Converter extends ExternalToolConverter {
     }
 
     // Uncompress an image
-    private void convertUncompress(Path srcFilePath, String sourceFormatIndicator, Path dstFilePath) throws Exception {
-        convertImage(srcFilePath, sourceFormatIndicator, dstFilePath, "-compress", "None");
+    private void convertUncompress(Path srcFilePath, String sourceFormatIndicator, Path dstFilePath, String... otherArgs) throws Exception {
+        String[] args = new String[] {"-compress", "None"}; // kakadu cannot convert compressed tiffs, and ImageMagick compresses by default.
+        if (otherArgs != null) {
+            args = ArrayUtils.addAll(args, otherArgs);
+        }
+        convertImage(srcFilePath, sourceFormatIndicator, dstFilePath, args);
     }
     
     // Remove extra Tiff header fields
