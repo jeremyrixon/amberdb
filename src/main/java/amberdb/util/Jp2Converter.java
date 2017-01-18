@@ -1,17 +1,19 @@
 package amberdb.util;
 
 
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.exif.ExifIFD0Directory;
+import org.apache.commons.lang3.ArrayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-
-import com.drew.imaging.ImageMetadataReader;
-import com.drew.metadata.Metadata;
-import com.drew.metadata.exif.ExifIFD0Directory;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /*
  * This class is to convert an image (tiff or jpeg for now) to jpeg 2000 (.jp2),
@@ -46,6 +48,7 @@ import com.drew.metadata.exif.ExifIFD0Directory;
 
 public class Jp2Converter extends ExternalToolConverter {
     private static final Logger log = LoggerFactory.getLogger(Jp2Converter.class);
+    private static final String IMAGE_MAGICK_DNG_FORMAT = "DNG";
 
     Path imgConverter;
     Path jp2Converter;
@@ -57,37 +60,38 @@ public class Jp2Converter extends ExternalToolConverter {
         this.imgConverter = imgConverter;
     }
 
-    public void convertFile(Path srcFilePath, Path dstFilePath) throws Exception {
+    public void convertFile(Path srcFilePath, Path dstFilePath, String originalFilename) throws Exception {
         // Use metadata-extractor to get image info of the source image
-        convertFile(srcFilePath, new ImageInfo(srcFilePath), dstFilePath);
+        convertFile(srcFilePath, new ImageInfo(srcFilePath, originalFilename), dstFilePath, originalFilename);
     }
 
-    public void convertFile(Path srcFilePath, Path dstFilePath, Map<String, String> imgInfoMap) throws Exception {
+    public void convertFile(Path srcFilePath, Path dstFilePath, Map<String, String> imgInfoMap, String originalFilename) throws Exception {
         // Image info of the source image is passed in as a map
-        ImageInfo imgInfo = (imgInfoMap != null && imgInfoMap.size() > 0) ? new ImageInfo(imgInfoMap) : new ImageInfo(srcFilePath);
-        convertFile(srcFilePath, imgInfo, dstFilePath);
+        ImageInfo imgInfo = (imgInfoMap != null && imgInfoMap.size() > 0) ? new ImageInfo(imgInfoMap) : new ImageInfo(srcFilePath, originalFilename);
+        imgInfo.originalFilename = originalFilename;
+        convertFile(srcFilePath, imgInfo, dstFilePath, originalFilename);
     }
 
     public void convertFile(Path srcFilePath, Path dstFilePath, String mimeType,
-                            int compression, int samplesPerPixel, int bitsPerSample, int photometric) throws Exception {
+                            int compression, int samplesPerPixel, int bitsPerSample, int photometric, String originalFilename) throws Exception {
         // Image info of the source image is passed in as a list of values
-        convertFile(srcFilePath, new ImageInfo(mimeType, compression, samplesPerPixel, bitsPerSample, photometric), dstFilePath);
+        convertFile(srcFilePath, new ImageInfo(originalFilename, mimeType, compression, samplesPerPixel, bitsPerSample, photometric), dstFilePath, originalFilename);
     }
 
-    private void convertFile(Path srcFilePath, ImageInfo imgInfo, Path dstFilePath) throws Exception {
+    private void convertFile(Path srcFilePath, ImageInfo imgInfo, Path dstFilePath, String originalFilename) throws Exception {
         try {
-            performConvertFile(srcFilePath, imgInfo, dstFilePath);
+            performConvertFile(srcFilePath, imgInfo, dstFilePath, originalFilename);
         } catch (Exception e) {
             log.warn("Retrying jp2 creation from source {} as the following exception has occurred: {}", srcFilePath.getFileName(), e.getMessage());
             Files.deleteIfExists(dstFilePath);
             Path tmpFilePath = dstFilePath.getParent().resolve("tmp_" + dstFilePath.getFileName() + "_retry.tif");
             convertStripProfile(srcFilePath, tmpFilePath);
-            performConvertFile(tmpFilePath, imgInfo, dstFilePath);
+            performConvertFile(tmpFilePath, imgInfo, dstFilePath, originalFilename);
             Files.deleteIfExists(tmpFilePath);
         }
     }
     
-    private void performConvertFile(Path srcFilePath, ImageInfo imgInfo, Path dstFilePath) throws Exception {
+    private void performConvertFile(Path srcFilePath, ImageInfo imgInfo, Path dstFilePath, String originalFilename) throws Exception {
         // Main method to convert an image to a jpeg2000 file (jp2 or jpx) - imgInfo has to be accurate!
         // Jpeg2000 file must end with .jp2 or .jpx
         if (dstFilePath == null || dstFilePath.getParent() == null || dstFilePath.getFileName() == null) {
@@ -98,9 +102,9 @@ public class Jp2Converter extends ExternalToolConverter {
             throw new RuntimeException("Jpeg2000 file (" + dstFilePath.toString() + ") must end with .jp2 or .jpx");
         }
 
-        // For now, only convert tiff or jpeg to jp2
-        if (!("image/tiff".equals(imgInfo.mimeType) || "image/jpeg".equals(imgInfo.mimeType))) {
-            throw new RuntimeException("Not a tiff or a jpeg file");
+        // For now, only convert tiff, dng jpeg to jp2
+        if (!"image/tiff".equalsIgnoreCase(imgInfo.mimeType) && !"image/jpeg".equalsIgnoreCase(imgInfo.mimeType) && !imgInfo.isDngFile()) {
+            throw new RuntimeException("Not a tiff, dng or a jpeg file");
         }
 
         long startTime = System.currentTimeMillis();
@@ -109,8 +113,27 @@ public class Jp2Converter extends ExternalToolConverter {
 
         try {
             if ("image/jpeg".equals(imgInfo.mimeType)) {
-                // Jpeg - Convert to tiff
-                convertUncompress(srcFilePath, tmpFilePath);
+                // Jpeg  - Convert to uncompressed tiff so kakadu can convert it to jp2000
+                convertUncompress(srcFilePath, null, tmpFilePath);
+            } else if (imgInfo.isDngFile()) {
+                // DNG - Convert to uncompressed tiff so kakadu can convert it to jp2000
+                // We need to explicitly tell ImageMagick that the input file is a DNG, because DNGs often look like
+                // TIFFs (use the same mime type and magic number), so IM will use its TIFF converter which, for some
+                // reason, loses dimension information during conversion, resulting in a very small image. Using the DNG
+                // format hint makes IM use its DNG converter (ufraw).
+                //
+                // We also try to convert the image to the AdobeRGB colour profile. This requires the ICC file to be on
+                // the classpath.
+                String profileFile = "imageConversion/AdobeRGB1998.icc";
+                URL colourProfile = getClass().getClassLoader().getResource(profileFile);
+                if (colourProfile == null) {
+                    log.warn("Failed to load colour profile .icc file {}. Using ImageMagick defaults", profileFile);
+                    convertUncompress(srcFilePath, IMAGE_MAGICK_DNG_FORMAT, tmpFilePath);
+                } else {
+                    // note that -profile MUST be provided twice (once for input, which is ignored but has to be there, and once for the output format)
+                    convertUncompress(srcFilePath, IMAGE_MAGICK_DNG_FORMAT, tmpFilePath, "-profile", colourProfile.getFile(), "-profile", colourProfile.getFile());
+                }
+                log.info("Converted DNG {} to Tiff {}", srcFilePath, tmpFilePath);
             } else if (imgInfo.samplesPerPixel == 1 && imgInfo.bitsPerSample == 1) {
                 // Bitonal image - Convert to greyscale (8 bit depth)
                 convertBitdepth(srcFilePath, tmpFilePath, 8);
@@ -123,14 +146,14 @@ public class Jp2Converter extends ExternalToolConverter {
             } else if (imgInfo.photometric > 2) {
                 if (imgInfo.photometric == 6) {
                     // YCbCr image - simply uncompress it and by doing so, make it RGB!
-                    convertUncompress(srcFilePath, tmpFilePath);
+                    convertUncompress(srcFilePath, null, tmpFilePath);
                 } else {
                     // Image has colour palette - Convert to 3 TrueColor
                     convertTrueColour(srcFilePath, tmpFilePath);
                 }
             } else if (imgInfo.compression > 1) {
                 // Uncompress image as the demo app kdu_compress can't process compressed tiff
-                convertUncompress(srcFilePath, tmpFilePath);
+                convertUncompress(srcFilePath, null, tmpFilePath);
             }
         } catch (Exception e) {
             log.warn("Exception occurred when attempting to manipulate image into a JP2'able state.");
@@ -155,31 +178,43 @@ public class Jp2Converter extends ExternalToolConverter {
 
     // Convert the bit depth of an image
     private void convertBitdepth(Path srcFilePath, Path dstFilePath, int bitDepth) throws Exception {
-        convertImage(srcFilePath, dstFilePath, "-compress", "None", "-depth", "" + bitDepth);
+        convertImage(srcFilePath, null, dstFilePath, "-compress", "None", "-depth", "" + bitDepth);
     }
 
     // Convert an image to true colour
     private void convertTrueColour(Path srcFilePath, Path dstFilePath) throws Exception {
-        convertImage(srcFilePath, dstFilePath, "-compress", "None", "-type", "TrueColor");
+        convertImage(srcFilePath, null, dstFilePath, "-compress", "None", "-type", "TrueColor");
     }
 
     // Uncompress an image
-    private void convertUncompress(Path srcFilePath, Path dstFilePath) throws Exception {
-        convertImage(srcFilePath, dstFilePath, "-compress", "None");
+    private void convertUncompress(Path srcFilePath, String sourceFormatIndicator, Path dstFilePath, String... otherArgs) throws Exception {
+        String[] args = new String[] {"-compress", "None"}; // kakadu cannot convert compressed tiffs, and ImageMagick compresses by default.
+        if (otherArgs != null) {
+            args = ArrayUtils.addAll(args, otherArgs);
+        }
+        convertImage(srcFilePath, sourceFormatIndicator, dstFilePath, args);
     }
     
     // Remove extra Tiff header fields
     private void convertStripProfile(Path srcFilePath, Path dstFilePath) throws Exception {
-        convertImage(srcFilePath, dstFilePath, "-strip");
+        convertImage(srcFilePath, null, dstFilePath, "-strip");
     }
 
     // Convert an image with imagemagick
-    private void convertImage(Path srcFilePath, Path dstFilePath, String... params) throws Exception {
+    private void convertImage(Path srcFilePath, String sourceFormatIndicator, Path dstFilePath, String... params) throws Exception {
         // Setup command
+
+        String sourceFile;
+        if (isNotBlank(sourceFormatIndicator)) {
+            sourceFile = sourceFormatIndicator.toLowerCase() + ":" + srcFilePath.toString();
+        } else {
+            sourceFile = srcFilePath.toString();
+        }
+
         String[] cmd = new String[params.length + 3];
         cmd[0] = imgConverter.toString();
         System.arraycopy(params, 0, cmd, 1, params.length);
-        cmd[cmd.length - 2] = srcFilePath.toString();
+        cmd[cmd.length - 2] = sourceFile;
         cmd[cmd.length - 1] = dstFilePath.toString();
 
         // And execute it
@@ -189,8 +224,7 @@ public class Jp2Converter extends ExternalToolConverter {
     // Create jp2 with kakadu kdu_compress
     private void createJp2(Path srcFilePath, Path dstFilePath) throws Exception {
         // Use kakadu to create jp2
-        executeCmd(new String[] {
-                jp2Converter.toString(),
+        executeCmd(jp2Converter.toString(),
                 "-i",
                 srcFilePath.toString(),
                 "-o",
@@ -205,23 +239,23 @@ public class Jp2Converter extends ExternalToolConverter {
                 "Cblk={32,32}",
                 "-num_threads",
                 "1",
-                "Cuse_sop=yes"});
+                "Cuse_sop=yes");
     }
 
     // Create jp2 with imagemagick convert
-    private void createJp2ImageMagick(Path srcFilePath, Path dstFilePath) throws Exception {
-        executeCmd(new String[] {
-                imgConverter.toString(),
+    private void convertWithImageMagick(Path srcFilePath, Path dstFilePath) throws Exception {
+        executeCmd(imgConverter.toString(),
                 srcFilePath.toString(),
-                dstFilePath.toString()
-        });
+                dstFilePath.toString());
     }
 
     class ImageInfo {
         String mimeType;
         int compression, samplesPerPixel, bitsPerSample, photometric;
+        String originalFilename;
 
-        public ImageInfo(String mimeType, int compression, int samplesPerPixel, int bitsPerSample, int photometric) throws Exception {
+        public ImageInfo(String originalFilename, String mimeType, int compression, int samplesPerPixel, int bitsPerSample, int photometric) throws Exception {
+            this.originalFilename = originalFilename;
             this.mimeType = mimeType;
             this.compression = compression;
             this.samplesPerPixel = samplesPerPixel;
@@ -231,15 +265,17 @@ public class Jp2Converter extends ExternalToolConverter {
 
         public ImageInfo(Map<String, String> imgInfoMap) throws Exception {
             this.mimeType  = imgInfoMap.get("mimeType");
+            this.originalFilename = imgInfoMap.get("originalFilename");
             this.compression = Integer.parseInt(imgInfoMap.get("compression"), 10);
             this.samplesPerPixel = Integer.parseInt(imgInfoMap.get("samplesPerPixel"), 10);
             this.bitsPerSample = Integer.parseInt(imgInfoMap.get("bitsPerSample"), 10);
             this.photometric = Integer.parseInt(imgInfoMap.get("photometric"), 10);
         }
 
-        public ImageInfo(Path filePath) throws Exception {
+        public ImageInfo(Path filePath, String originalFilename) throws Exception {
+            this.originalFilename = originalFilename;
             this.mimeType = tika.detect(filePath.toFile());
-            if ("image/tiff".equals(mimeType)) {
+            if ("image/tiff".equals(mimeType) || isDngFile()) {
                 // Read image metadata using metadata-extractor - only for tiff
                 Metadata metadata = ImageMetadataReader.readMetadata(filePath.toFile());
                 ExifIFD0Directory directory = metadata.getDirectory(ExifIFD0Directory.class);
@@ -261,6 +297,10 @@ public class Jp2Converter extends ExternalToolConverter {
             } else {
                 this.compression = this.samplesPerPixel = this.bitsPerSample = this.photometric = -1;
             }
+        }
+
+        public boolean isDngFile() {
+            return ImageUtils.isDngFile(mimeType, originalFilename);
         }
 
         private int getTagValue(ExifIFD0Directory directory, int tagNo) {
