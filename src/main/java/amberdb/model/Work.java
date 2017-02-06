@@ -967,6 +967,19 @@ public interface Work extends Node {
     @Property("summary")
     void setSummary(String summary);
 
+    /**
+     * Provide the Voyager Id of the collection record bib record belongs to
+     * Also known as parent local system number 
+     */
+    @Property("parentBibId")
+    String getParentBibId();
+    
+    /**
+     * Set the Voyager Id of the collection record bib record belongs to
+     * Also known as parent local system number
+     */
+    @Property("parentBibId")
+    void setParentBibId(String parentBibId);
 
     /**
      * Also known as localsystmno
