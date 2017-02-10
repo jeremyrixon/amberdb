@@ -756,12 +756,12 @@ public class AmberGraph extends BaseGraph
             if (batchLimit >= COMMIT_BATCH_SIZE) {
                 log.debug("Batched vertex marshalling");
 
-                suspendIntoFlatVertexTables(sessId, removedVerticesByType , DEL);
-                
-                vertices.clear();
-                batchLimit = 0;
-                removedVerticesByType.clear();
+                batchLimit = suspendIntoFlatVertexTablesAndClearBatch(sessId, vertices, null, removedVerticesByType, DEL, batchLimit);
             }
+        }
+        
+        if (batchLimit > 0) {
+            batchLimit = suspendIntoFlatVertexTablesAndClearBatch(sessId, vertices, null, removedVerticesByType, DEL, batchLimit);
         }
 
         for (Vertex v : graphVertices.values()) {
@@ -782,20 +782,32 @@ public class AmberGraph extends BaseGraph
                 log.debug("Batched vertex marshalling");
 
                 suspendIntoFlatVertexTables(sessId, newVerticesByType,      NEW);
-                suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, MOD);
-                
-                vertices.clear();
-                properties.clear();
-                batchLimit = 0;
+                suspendIntoFlatVertexTablesAndClearBatch(sessId, vertices, properties, modifiedVerticesByType, MOD, batchLimit);
                 newVerticesByType.clear();
-                modifiedVerticesByType.clear();
             }
         }
-
-        suspendIntoFlatVertexTables(sessId, newVerticesByType,      NEW);
-        suspendIntoFlatVertexTables(sessId, modifiedVerticesByType, MOD);
-        suspendIntoFlatVertexTables(sessId, removedVerticesByType , DEL);
+        
+        if (batchLimit > 0) {
+            suspendIntoFlatVertexTables(sessId, newVerticesByType,      NEW);
+            batchLimit = suspendIntoFlatVertexTablesAndClearBatch(sessId, vertices, properties, modifiedVerticesByType, MOD, batchLimit);
+            newVerticesByType.clear();
+        }
     }
+
+    private int suspendIntoFlatVertexTablesAndClearBatch(Long sessId, AmberVertexBatch vertices, AmberPropertyBatch properties,
+            Map<String, Set<AmberVertex>> verticesByType, State state, int batchLimit) {
+        suspendIntoFlatVertexTables(sessId, verticesByType , state);
+        
+        vertices.clear();
+        if (properties != null) {
+            properties.clear();
+        }
+        batchLimit = 0;
+        verticesByType.clear();
+        return batchLimit;
+    }
+    
+    
 
 	private void bigSuspendEdges(Long sessId) {
         AmberEdgeBatch edges = new AmberEdgeBatch();
@@ -819,12 +831,11 @@ public class AmberGraph extends BaseGraph
             if (batchLimit >= COMMIT_BATCH_SIZE) {
                 log.debug("Batched edge marshalling");
 
-                suspendIntoFlatEdgeTables(  sessId, removedEdgesByType ,    DEL);
-
-                edges.clear();
-                batchLimit = 0;
-                removedEdgesByType.clear();
+                batchLimit = suspendIntoFlatEdgeTablesAndClearBatch(sessId, edges, removedEdgesByType, DEL, batchLimit);
             }
+        }
+        if (batchLimit > 0) {
+            batchLimit = suspendIntoFlatEdgeTablesAndClearBatch(sessId, edges, removedEdgesByType, DEL, batchLimit);
         }
 
         for (Edge e : graphEdges.values()) {
@@ -845,20 +856,25 @@ public class AmberGraph extends BaseGraph
                 log.debug("Batched edge marshalling");
 
                 suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         NEW);
-                suspendIntoFlatEdgeTables(  sessId, modifiedEdgesByType,    MOD);
-
-                edges.clear();
-                properties.clear();
-                batchLimit = 0;
+                suspendIntoFlatEdgeTablesAndClearBatch(sessId, edges, modifiedEdgesByType, MOD, batchLimit);
                 newEdgesByType.clear();
-                modifiedEdgesByType.clear();
-
             }
         }
+        if (batchLimit > 0) {
+            suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         NEW);
+            batchLimit = suspendIntoFlatEdgeTablesAndClearBatch(sessId, edges, modifiedEdgesByType, MOD, batchLimit);
+            newEdgesByType.clear();
+        }
+    }
 
-        suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         NEW);
-        suspendIntoFlatEdgeTables(  sessId, modifiedEdgesByType,    MOD);
-        suspendIntoFlatEdgeTables(  sessId, removedEdgesByType ,    DEL);
+    private int suspendIntoFlatEdgeTablesAndClearBatch(Long sessId, AmberEdgeBatch edges,
+            Map<String, Set<AmberEdge>> edgesByType, State state, int batchLimit) {
+        suspendIntoFlatEdgeTables(  sessId, edgesByType, state);
+
+        edges.clear();
+        batchLimit = 0;
+        edgesByType.clear();
+        return batchLimit;
     }
 
     public Long suspendBig() {
