@@ -819,12 +819,11 @@ public class AmberGraph extends BaseGraph
             if (batchLimit >= COMMIT_BATCH_SIZE) {
                 log.debug("Batched edge marshalling");
 
-                suspendIntoFlatEdgeTables(  sessId, removedEdgesByType ,    DEL);
-
-                edges.clear();
-                batchLimit = 0;
-                removedEdgesByType.clear();
+                batchLimit = suspendIntoFlatEdgeTablesAndClearBatch(sessId, edges, removedEdgesByType, DEL);
             }
+        }
+        if (batchLimit > 0) {
+            batchLimit = suspendIntoFlatEdgeTablesAndClearBatch(sessId, edges, removedEdgesByType, DEL);
         }
 
         for (Edge e : graphEdges.values()) {
@@ -845,20 +844,26 @@ public class AmberGraph extends BaseGraph
                 log.debug("Batched edge marshalling");
 
                 suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         NEW);
-                suspendIntoFlatEdgeTables(  sessId, modifiedEdgesByType,    MOD);
-
-                edges.clear();
-                properties.clear();
-                batchLimit = 0;
+                suspendIntoFlatEdgeTablesAndClearBatch(sessId, edges, modifiedEdgesByType, MOD);
                 newEdgesByType.clear();
-                modifiedEdgesByType.clear();
-
             }
         }
+        if (batchLimit > 0) {
+            suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         NEW);
+            batchLimit = suspendIntoFlatEdgeTablesAndClearBatch(sessId, edges, modifiedEdgesByType, MOD);
+            newEdgesByType.clear();
+        }
+    }
 
-        suspendIntoFlatEdgeTables(  sessId, newEdgesByType,         NEW);
-        suspendIntoFlatEdgeTables(  sessId, modifiedEdgesByType,    MOD);
-        suspendIntoFlatEdgeTables(  sessId, removedEdgesByType ,    DEL);
+    private int suspendIntoFlatEdgeTablesAndClearBatch(Long sessId, AmberEdgeBatch edges,
+            Map<String, Set<AmberEdge>> edgesByType, State state) {
+        int batchLimit;
+        suspendIntoFlatEdgeTables(  sessId, edgesByType, state);
+
+        edges.clear();
+        batchLimit = 0;
+        edgesByType.clear();
+        return batchLimit;
     }
 
     public Long suspendBig() {
