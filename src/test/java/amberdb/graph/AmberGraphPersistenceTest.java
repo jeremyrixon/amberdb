@@ -55,12 +55,12 @@ public class AmberGraphPersistenceTest {
         v1.setProperty("title", "enter the dragon");
         v1.setProperty("subunitNo", 42);
         assertEquals("enter the dragon", v1.getProperty("title"));
-        assertEquals(42, v1.getProperty("subunitNo"));
+        assertEquals(new Integer(42), (Integer) v1.getProperty("subunitNo"));
         
         graph1.commit("tester", "Persisting v1");
         
         assertEquals("session vertex must retain properties after being persisted", "enter the dragon", v1.getProperty("title"));
-        assertEquals("session vertex must retain properties after being persisted", 42, v1.getProperty("subunitNo"));
+        assertEquals("session vertex must retain properties after being persisted", new Integer(42), (Integer) v1.getProperty("subunitNo"));
 
         assertEquals(graph1.getVertex(v1.getId()), v1);
 
@@ -112,12 +112,12 @@ public class AmberGraphPersistenceTest {
         graph1.commit();
 
         Vertex v2 = graph1.getVertex(v.getId());
-        assertEquals(v.getProperty("String"),  v2.getProperty("String"));
-        assertEquals(v.getProperty("Boolean"), v2.getProperty("Boolean"));
-        assertEquals(v.getProperty("Long"),    v2.getProperty("Long"));
-        assertEquals(v.getProperty("Integer"), v2.getProperty("Integer"));
-        assertEquals(v.getProperty("Float"),   v2.getProperty("Float"));
-        assertEquals(v.getProperty("Double"),  v2.getProperty("Double"));
+        assertEquals((String) v.getProperty("String"), (String) v2.getProperty("String"));
+        assertEquals((Boolean) v.getProperty("Boolean"), (Boolean) v2.getProperty("Boolean"));
+        assertEquals((Long) v.getProperty("Long"),    (Long) v2.getProperty("Long"));
+        assertEquals((Integer) v.getProperty("Integer"), (Integer) v2.getProperty("Integer"));
+        assertEquals((Double) v.getProperty("Float"), (Double) v2.getProperty("Float"));
+        assertEquals((Double) v.getProperty("Double"), (Double) v2.getProperty("Double"));
     }
 
     @Test
