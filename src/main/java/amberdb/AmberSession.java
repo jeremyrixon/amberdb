@@ -8,6 +8,7 @@ import static amberdb.graph.BranchType.BRANCH_FROM_PREVIOUS;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Stream;
 
 import javax.sql.DataSource;
 
@@ -1039,7 +1040,7 @@ public class AmberSession implements AutoCloseable {
         }
         return components;
     }
-
+    
     public List<Vertex> loadParentsAndCopies(final List<Long> ids) {
         AmberGraph g = getAmberGraph();
 
@@ -1091,6 +1092,20 @@ public class AmberSession implements AutoCloseable {
 
     }
 
+    /**
+     * loadWorks return a stream of works given input record ids.  This method is designed to 
+     * be applied during reporting or mass work records export.  Please note this method does not
+     * traverse each work records from corresponding record ids, ie. not providing the children 
+     * records.
+     * @param ids are input record ids.
+     * @return stream of work records corresponding to the input record ids.
+     */
+    public Stream<Work> loadWorks(final List<Long> ids) {
+        AmberGraph g = getAmberGraph();
+        AmberQuery q = g.newQuery(ids);
+        return q.execute().stream().map(record -> graph.frame(record, Work.class));
+    }
+    
     public List<Vertex> loadMultiLevelWorks(final List<Long> ids) {
         return loadMultiLevelWorks(ids.toArray(new Long[ids.size()]));
     }

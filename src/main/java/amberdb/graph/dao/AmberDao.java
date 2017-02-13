@@ -1317,7 +1317,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             preparedBatchPart.bind("id",         v.getId());
             preparedBatchPart.bind("txn_start",  v.getTxnStart());
             preparedBatchPart.bind("txn_end",    v.getTxnEnd());
-            preparedBatchPart.bind("type",       v.getProperty("type"));
+            preparedBatchPart.bind("type",       v.getProperties().get("type"));
             if (state != DEL) {
                 for (String field: nodeFields) {
                     bindField(v, preparedBatchPart, field);
@@ -1333,7 +1333,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
         if (fieldMappingReverse.containsKey(field)) {
             mappedField = fieldMappingReverse.get(field);
         }
-        preparedBatchPart.bind(field, v.getProperty(mappedField));
+        preparedBatchPart.bind(field, v.getProperties().get(mappedField));
     }
     
     public void suspendIntoFlatEdgeTable(Long sessId, State state, Set<AmberEdge> set) {
@@ -1382,7 +1382,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             preparedBatchPart.bind("label",       v.getLabel());
             if (state != DEL) {
                 for (String field: fields) {
-                    preparedBatchPart.bind(field,    v.getProperty(field));
+                    preparedBatchPart.bind(field,    v.getProperties().get(field));
                 }
             }
         }
