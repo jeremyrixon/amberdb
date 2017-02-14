@@ -25,6 +25,7 @@ public class AmberQuery extends AmberQueryBase {
      */
     List<QueryClause> clauses = new ArrayList<QueryClause>();
     boolean inSession = false;
+    boolean loadGraph = true;
 
     /**
      * Create a query with single starting vertices. As branches are added the
@@ -106,6 +107,10 @@ public class AmberQuery extends AmberQueryBase {
     
     public void setInSession(boolean inSession) {
         this.inSession= inSession;
+    }
+    
+    public void setLoadGraph(boolean loadGraph) {
+        this.loadGraph = loadGraph;
     }
     
     class QueryClause {
@@ -340,24 +345,29 @@ public class AmberQuery extends AmberQueryBase {
             String vertexSql = vertexQueryPrefix + "where " + sessionPrefix + "node.id in \n"
                     + " (select " + tailCol + " from " + sessionPrefix + "flatedge where " + sessionPrefix + "flatedge.label in (" + labelList + ") and " + headCol + " in (" + headList + "))";
             List<Vertex> vertices = getVertices(h.begin().createQuery(vertexSql).map(new AmberVertexMapper(graph)).list());
-            for (AmberVertex vertex: h.begin().createQuery(vertexSql).map(new AmberVertexMapper(graph)).list()) {
-                Long vertexId = (Long) vertex.getId();
-                if (graph.graphVertices.containsKey(vertexId) || graph.removedVertices.containsKey(vertexId)) {
-                    continue;
-                } 
-                graph.addVertexToGraph(vertex);
+            if (loadGraph) {
+                List<AmberVertex> vertexList = h.begin().createQuery(vertexSql).map(new AmberVertexMapper(graph))
+                        .list();
+                for (AmberVertex vertex : vertexList) {
+                    Long vertexId = (Long) vertex.getId();
+                    if (graph.graphVertices.containsKey(vertexId) || graph.removedVertices.containsKey(vertexId)) {
+                        continue;
+                    }
+                    graph.addVertexToGraph(vertex);
+                }
+
+                // Edges
+                String edgeSql = edgeQueryPrefix + " where " + sessionPrefix + "flatedge.label in (" + labelList
+                        + ") and " + sessionPrefix + "flatedge." + headCol + " in (" + headList + ")";
+                List<AmberEdge> edgeList = h.begin().createQuery(edgeSql).map(new AmberEdgeMapper(graph, false)).list();
+                for (AmberEdge edge : edgeList) {
+                    Long edgeId = (Long) edge.getId();
+                    if (graph.graphEdges.containsKey(edgeId) || graph.removedEdges.containsKey(edgeId)) {
+                        continue;
+                    }
+                    graph.addEdgeToGraph(edge);
+                }
             }
-            
-            // Edges
-            String edgeSql = edgeQueryPrefix + " where " + sessionPrefix + "flatedge.label in (" + labelList + ") and " + sessionPrefix + "flatedge." + headCol + " in (" + headList + ")";
-            for (AmberEdge edge: h.begin().createQuery(edgeSql).map(new AmberEdgeMapper(graph, false)).list()) {
-                Long edgeId = (Long) edge.getId();
-                if (graph.graphEdges.containsKey(edgeId) || graph.removedEdges.containsKey(edgeId)) {
-                    continue;
-                } 
-                graph.addEdgeToGraph(edge);
-            }
-            
             return vertices;
         }
     }

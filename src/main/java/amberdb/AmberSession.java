@@ -1112,6 +1112,7 @@ public class AmberSession implements AutoCloseable {
     public Stream<Work> loadWorks(final List<Long> ids) {
         AmberGraph g = getAmberGraph();
         AmberQuery q = g.newQuery(ids);
+        q.setLoadGraph(false);
         return q.execute().stream().map(record -> graph.frame(record, Work.class));
     }
 
@@ -1127,6 +1128,7 @@ public class AmberSession implements AutoCloseable {
         AmberGraph g = getAmberGraph();
         AmberQuery q = g.newQuery(ids);
         q.setInSession(true);
+        q.setLoadGraph(false);
         return q.execute().stream().map(record -> graph.frame(record, Work.class));
     }
     
