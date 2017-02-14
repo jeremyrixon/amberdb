@@ -1114,6 +1114,21 @@ public class AmberSession implements AutoCloseable {
         AmberQuery q = g.newQuery(ids);
         return q.execute().stream().map(record -> graph.frame(record, Work.class));
     }
+
+    /**
+     * loadWorks return a stream of works in session given input record ids.  This method is designed to 
+     * be applied during reporting or mass work records export.  Please note this method does not
+     * traverse each work records from corresponding record ids, ie. not providing the children 
+     * records.
+     * @param ids
+     * @return
+     */
+    public Stream<Work> loadWorksInSession(final List<Long> ids) {
+        AmberGraph g = getAmberGraph();
+        AmberQuery q = g.newQuery(ids);
+        q.setInSession(true);
+        return q.execute().stream().map(record -> graph.frame(record, Work.class));
+    }
     
     public List<Vertex> loadMultiLevelWorks(final List<Long> ids) {
         return loadMultiLevelWorks(ids.toArray(new Long[ids.size()]));
