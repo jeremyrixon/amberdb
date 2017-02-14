@@ -208,6 +208,15 @@ public class AmberSession implements AutoCloseable {
     /**
      * commit saves everything in the current session and records who did it and why with the transaction record.
      *
+     * @param why the operation being performed when the transaction was committed
+     */
+    public Long commit(String why) {
+        return commit("amberdb", why);
+    }
+
+    /**
+     * commit saves everything in the current session and records who did it and why with the transaction record.
+     *
      * @param who the username to associate with the transaction
      * @param why the operation they were fulfilling by commiting the transaction
      */
