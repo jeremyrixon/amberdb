@@ -1187,7 +1187,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             + "FROM transaction t, node_history v "
             + "WHERE v.id = :id "
             + "AND t.id = v.txn_end) "
-            + "ORDER BY id")
+            + "ORDER BY time, id")
     @Mapper(TransactionMapper.class)
     public abstract List<AmberTransaction> getTransactionsByVertexId(@Bind("id") Long id);
 
@@ -1201,7 +1201,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             + "FROM transaction t, flatedge_history e "
             + "WHERE e.id = :id "
             + "AND t.id = e.txn_end) "
-            + "ORDER BY id")
+            + "ORDER BY time, id")
     @Mapper(TransactionMapper.class)
     public abstract List<AmberTransaction> getTransactionsByEdgeId(@Bind("id") Long id);
 

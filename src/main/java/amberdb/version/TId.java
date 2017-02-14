@@ -6,24 +6,25 @@ public class TId implements Comparable<TId> {
     Long id;
     Long start = 0l;
     Long end = 0l;
-    
+    Long time;
     
     public TId(Long id) {
         this.id = id;
     }
 
     
-    public TId(Long id, Long start, Long end) {
+    public TId(Long id, Long start, Long end, Long time) {
         this.id = id;
         this.start = start;
         this.end = end;
+        this.time = time;
     }
     
     
     public static TId parse(String idStr) throws InvalidIdentifierException {
         try {
-            String[] parts = idStr.split(":", 3);
-            return new TId(Long.parseLong(parts[0]), Long.parseLong(parts[1]), Long.parseLong(parts[2]));
+            String[] parts = idStr.split(":", 4);
+            return new TId(Long.parseLong(parts[0]), Long.parseLong(parts[1]), Long.parseLong(parts[2]), Long.parseLong(parts[3]));
         } catch (Exception e) {
             throw new InvalidIdentifierException("Cannot parse as TId: " + idStr, e);
         }
@@ -54,6 +55,8 @@ public class TId implements Comparable<TId> {
     public int compareTo(TId o) {
         if (id > o.id) return 1;
         if (id < o.id) return -1;
+        if (time > o.time) return 1;
+        if (time < o.time) return -1;
         if (start > o.start) return 1;
         if (start < o.start) return -1;
         

@@ -127,21 +127,23 @@ public class ObjectsQuery extends AmberQueryBase {
                             "(\n" + 
                             "    SELECT a.id,\n" + 
                             "    (\n" + 
-                            "      SELECT b.txn_start FROM node_history b\n" +
+                            "      SELECT b.txn_start FROM node_history b, transaction t\n" +
                             "      WHERE a.id = b.id\n" + 
-                            "      ORDER BY b.txn_start DESC\n" + 
+                            "           and t.id = b.txn_start\n" +
+                            "      ORDER BY t.time DESC, b.txn_start DESC\n" +
                             "      LIMIT 1\n" + 
                             "    ) as txn_start,\n" + 
                             "    (\n" + 
-                            "      SELECT b.txn_end FROM node_history b\n" +
-                            "      WHERE a.id = b.id\n" + 
-                            "      ORDER BY b.txn_start DESC\n" + 
+                            "      SELECT b.txn_end FROM node_history b, transaction t\n" +
+                            "      WHERE a.id = b.id\n" +
+                            "           and t.id = b.txn_start\n" +
+                            "      ORDER BY t.time DESC, b.txn_start DESC\n" +
                             "      LIMIT 1\n" + 
                             "    ) as txn_end,\n" + 
                             "    (\n" + 
                             "      SELECT count(id) FROM node_history b\n" +
-                            "      WHERE a.id = b.id AND b.txn_start < @start_transaction\n" + 
-                            "    ) as v_count_before\n" + 
+                            "      WHERE a.id = b.id AND b.txn_start < @start_transaction\n" +
+                            "    ) as v_count_before\n" +
                             "    FROM v0 a\n" + 
                             "    ORDER BY id\n" + 
                             ") AS vertices_with_transition;"

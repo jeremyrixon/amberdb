@@ -25,6 +25,7 @@ public class VersionQuery {
 
     public static final String VERTEX_HISTORY_FROM_TABLE_LIST =
             "node_history \n" +
+            "join transaction              on node_history.txn_start = transaction.id\n" +
             "left join work_history        on        work_history.id = node_history.id and        work_history.txn_start = node_history.txn_start and        work_history.txn_end = node_history.txn_end \n" +
             "left join file_history        on        file_history.id = node_history.id and        file_history.txn_start = node_history.txn_start and        file_history.txn_end = node_history.txn_end \n" +
             "left join description_history on description_history.id = node_history.id and description_history.txn_start = node_history.txn_start and description_history.txn_end = node_history.txn_end \n" +
@@ -35,6 +36,7 @@ public class VersionQuery {
 
     protected static final String EDGE_HISTORY_QUERY_PREFIX = "select * \n" +
             "from flatedge_history \n" +
+            "join transaction on flatedge_history.txn_start = transaction.id\n" +
             "left join acknowledge_history on acknowledge_history.id = flatedge_history.id and acknowledge_history.txn_start = flatedge_history.txn_start and acknowledge_history.txn_end = flatedge_history.txn_end \n";
 
     protected VersionQuery(Long head, VersionedGraph graph) {
@@ -224,9 +226,9 @@ public class VersionQuery {
         List<VersionedVertex> gotVertices = new ArrayList<>(); 
         
         List<TVertex> vertices = h.createQuery(
-                "SELECT v.id, v.txn_start, v.txn_end "
-                + "FROM node_history v, v0 "
-                + "WHERE v.id = v0.vid")
+                "SELECT v.id, v.txn_start, v.txn_end, t.time "
+                + "FROM node_history v, v0, transaction t "
+                + "WHERE v.id = v0.vid and t.id = v.txn_start")
                 .map(new TVertexMapper()).list();
 
         // add them to the graph
@@ -250,9 +252,9 @@ public class VersionQuery {
     private void getEdges(Handle h , VersionedGraph graph, Map<TId, Map<String, Object>> propMaps) {
         
         List<TEdge> edges = h.createQuery(
-                "SELECT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order "
-                + "FROM flatedge_history e, v0 "
-                + "WHERE e.id = v0.eid ")
+                "SELECT e.id, e.txn_start, e.txn_end, e.label, e.v_in, e.v_out, e.edge_order, t.time "
+                + "FROM flatedge_history e, v0, transaction t "
+                + "WHERE e.id = v0.eid and t.id = e.txn_start")
                 .map(new TEdgeMapper()).list();
         
         // add them to the graph

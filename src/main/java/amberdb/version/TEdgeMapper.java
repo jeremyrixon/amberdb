@@ -22,7 +22,8 @@ public class TEdgeMapper implements ResultSetMapper<TEdge> {
                 new TId(
                         rs.getLong("id"),
                         rs.getLong("txn_start"), 
-                        rs.getLong("txn_end")),
+                        rs.getLong("txn_end"),
+                        rs.getLong("time")),
                 rs.getString("label"), 
                 rs.getLong("v_out"), 
                 rs.getLong("v_in"), 
