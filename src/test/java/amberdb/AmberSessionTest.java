@@ -455,6 +455,21 @@ public class AmberSessionTest {
             }
         }
     }
+    
+    @Test 
+    public void testLoadWorksInSession() throws IOException{
+       Work book = makeBook();
+       sess.suspend();
+       try (AmberSession reportSess = new AmberSession(LocalBlobStore.open(dossLocation))) {
+           Stream<Work> works = reportSess.loadWorksInSession(Arrays.asList(book.getId()));
+           works.forEach(work -> {
+               assertEquals(book.getId(), work.getId());
+               assertEquals(book.getBibLevel(), work.getBibLevel());
+           });
+       }
+       sess.deleteWork(book);
+       sess.commit();
+    }
 
     @Test 
     public void testLoadWorks() throws IOException{
@@ -468,5 +483,6 @@ public class AmberSessionTest {
            });
        }
        sess.deleteWork(book);
+       sess.commit();
     }
 }

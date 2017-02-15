@@ -314,36 +314,47 @@ public class AmberQuery extends AmberQueryBase {
      */
     private List<Vertex> executeSimpleQuery(String vertexQueryPrefix, String edgeQueryPrefix, String sessionPrefix) {
         // We only handle one clause
-        if (clauses.size() != 1) {
+        if (clauses.size() != 1 && loadGraph) {
             return null;
         }
         
         // We don't handle branchList
-        QueryClause clause = clauses.get(0);
-        if (clause.branchList != null && clause.branchList.size() > 0) {
-            return null;
-        }
+        String labelList = "";
+        String headCol = "";
+        String tailCol = "";
+        if (clauses.size() == 1) {
+            QueryClause clause = clauses.get(0);
+            if (clause.branchList != null && clause.branchList.size() > 0) {
+                return null;
+            }
 
-        // We only handle Direction.IN or Direction.OUT
-        if (clause.direction == Direction.BOTH) {
-            return null;
+            // We only handle Direction.IN or Direction.OUT
+            if (clause.direction == Direction.BOTH) {
+                return null;
+            }
+
+            // We only handle BRANCH_FROM_PREVIOUS
+            if (BranchType.BRANCH_FROM_PREVIOUS != clause.branchType) {
+                return null;
+            }
+            labelList = "'" + StringUtils.join(clause.labels, "','") + "'";
+            headCol = clause.direction == Direction.OUT ? "v_out" : "v_in";
+            tailCol = clause.direction == Direction.OUT ? "v_in" : "v_out";
         }
-        
-        // We only handle BRANCH_FROM_PREVIOUS
-        if (BranchType.BRANCH_FROM_PREVIOUS != clause.branchType) {
-            return null;
-        }
-        
         String headList = StringUtils.join(head, ',');
-        String labelList = "'" + StringUtils.join(clause.labels, "','") + "'";
-        String headCol = clause.direction == Direction.OUT ? "v_out" : "v_in";
-        String tailCol = clause.direction == Direction.OUT ? "v_in" : "v_out";
 
         try (Handle h = graph.dbi().open()) {
             
             // Vertices
-            String vertexSql = vertexQueryPrefix + "where " + sessionPrefix + "node.id in \n"
-                    + " (select " + tailCol + " from " + sessionPrefix + "flatedge where " + sessionPrefix + "flatedge.label in (" + labelList + ") and " + headCol + " in (" + headList + "))";
+            // String vertexSql = vertexQueryPrefix + "where " + sessionPrefix + "node.id in \n"
+            //        + " (select " + tailCol + " from " + sessionPrefix + "flatedge where " + sessionPrefix + "flatedge.label in (" + labelList + ") and " + headCol + " in (" + headList + "))";
+            String vertexSql = vertexQueryPrefix;
+            if (loadGraph) {
+                vertexSql = vertexSql + "where " + sessionPrefix + "node.id in \n"
+                            + " (select " + tailCol + " from " + sessionPrefix + "flatedge where " + sessionPrefix + "flatedge.label in (" + labelList + ") and " + headCol + " in (" + headList + "))";
+            } else {
+                vertexSql = vertexSql + "where " + sessionPrefix + "node.id in (" + headList + ")";
+            }
             List<Vertex> vertices = getVertices(h.begin().createQuery(vertexSql).map(new AmberVertexMapper(graph)).list());
             if (loadGraph) {
                 List<AmberVertex> vertexList = h.begin().createQuery(vertexSql).map(new AmberVertexMapper(graph))
