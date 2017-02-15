@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
 
@@ -453,5 +454,19 @@ public class AmberSessionTest {
                 assertTrue(record.getAlias().contains(alia));
             }
         }
+    }
+
+    @Test 
+    public void testLoadWorks() throws IOException{
+       Work book = makeBook();
+       sess.commit();
+       try (AmberSession reportSess = new AmberSession(LocalBlobStore.open(dossLocation))) {
+           Stream<Work> works = reportSess.loadWorks(Arrays.asList(book.getId()));
+           works.forEach(work -> {
+               assertEquals(book.getId(), work.getId());
+               assertEquals(book.getBibLevel(), work.getBibLevel());
+           });
+       }
+       sess.deleteWork(book);
     }
 }
