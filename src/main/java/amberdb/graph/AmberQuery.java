@@ -305,7 +305,8 @@ public class AmberQuery extends AmberQueryBase {
 
     /**
      * executeSimpleQuery: Attempt to handle the query simply either inSession or not.  If inSession flag is set to true
-     * the query will retrieve all the in session vertices satisfies the query; otherwise the query will retrieve all
+     * the query will retrieve the in session vertices from the latest session (i.e. the session with the max session id
+     * containing any the queried vertices) that satisfies the query; otherwise the query will retrieve all
      * the persisted vertices satisfies the query
      * @param vertexQueryPrefix is the base vertex query depends on the inSession flag 
      * @param edgeQueryPrefix is the base edge query depends on the inSession flag
@@ -350,6 +351,10 @@ public class AmberQuery extends AmberQueryBase {
                             + " (select " + tailCol + " from " + sessionPrefix + "flatedge where " + sessionPrefix + "flatedge.label in (" + labelList + ") and " + headCol + " in (" + headList + "))";
             } else {
                 vertexSql = vertexSql + "where " + sessionPrefix + "node.id in (" + headList + ")";
+            }
+            if (inSession) {
+                // choose only the vertices with the max session id if any vertex exists in multiple sessions
+                vertexSql = vertexSql + " and " + sessionPrefix + "node.s_id in (select max(s_id) from " + sessionPrefix + "node where id in (" + headList + ") group by id)"; 
             }
             List<Vertex> vertices = getVertices(h.begin().createQuery(vertexSql).map(new AmberVertexMapper(graph)).list());
             if (loadGraph) {
