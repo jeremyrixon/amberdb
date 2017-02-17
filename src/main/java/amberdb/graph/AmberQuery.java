@@ -346,15 +346,15 @@ public class AmberQuery extends AmberQueryBase {
 
         try (Handle h = graph.dbi().open()) {
             String vertexSql = vertexQueryPrefix;
+            if (inSession) {
+                // choose only the vertices with the max session id if any vertex exists in multiple sessions
+                vertexSql = vertexSql + " join (select id, max(s_id) as s_id from " + sessionPrefix + "node where id in (" + headList + ") group by id) s on " + sessionPrefix + "node.s_id = s.s_id and " +  sessionPrefix + "node.id = s.id ";
+            }
             if (loadGraph) {
                 vertexSql = vertexSql + "where " + sessionPrefix + "node.id in \n"
                             + " (select " + tailCol + " from " + sessionPrefix + "flatedge where " + sessionPrefix + "flatedge.label in (" + labelList + ") and " + headCol + " in (" + headList + "))";
             } else {
                 vertexSql = vertexSql + "where " + sessionPrefix + "node.id in (" + headList + ")";
-            }
-            if (inSession) {
-                // choose only the vertices with the max session id if any vertex exists in multiple sessions
-                vertexSql = vertexSql + " and " + sessionPrefix + "node.s_id in (select max(s_id) from " + sessionPrefix + "node where id in (" + headList + ") group by id)"; 
             }
             List<Vertex> vertices = getVertices(h.begin().createQuery(vertexSql).map(new AmberVertexMapper(graph)).list());
             if (loadGraph) {
