@@ -9,12 +9,17 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.skife.jdbi.v2.Handle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 
 
+
 public class AmberQuery extends AmberQueryBase {
+
+    private static final Logger log = LoggerFactory.getLogger(AmberQuery.class);
 
     /** starting vertex ids */
     List<Long> head;
@@ -386,7 +391,17 @@ public class AmberQuery extends AmberQueryBase {
             if (graph.graphEdges.containsKey(edgeId) || graph.removedEdges.containsKey(edgeId)) {
                 continue;
             }
+            if (graph.getVertex(edge.getInId()) == null) {
+                log.warn("Found edge with nonexistent v_in vertex: %s", edge);
+                continue;
+            }
+            if (graph.getVertex(edge.getOutId()) == null) {
+                log.warn("Found edge with nonexistent v_out vertex: %s", edge);
+                continue;
+            }
             graph.addEdgeToGraph(edge);
         }
     }
+    
+
 }
