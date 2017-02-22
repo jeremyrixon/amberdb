@@ -46,20 +46,20 @@ public class AmberGraphDaoTest {
         ((AmberVertex) vp).setEdgeOrder(v3, "isPartOf", Direction.IN, 3);
         ((AmberVertex) vp).setEdgeOrder(v4, "isPartOf", Direction.IN, 4);
         
-        assertEquals(1, e1.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
-        assertEquals(2, e2.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
-        assertEquals(3, e3.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
-        assertEquals(4, e4.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
+        assertEquals(new Integer(1), (Integer) e1.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
+        assertEquals(new Integer(2), (Integer) e2.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
+        assertEquals(new Integer(3), (Integer) e3.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
+        assertEquals(new Integer(4), (Integer) e4.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
 
         ((AmberVertex) vp).setEdgeOrder(v1, "isPartOf", Direction.IN, 4);
         ((AmberVertex) vp).setEdgeOrder(v2, "isPartOf", Direction.IN, 3);
         ((AmberVertex) vp).setEdgeOrder(v3, "isPartOf", Direction.IN, 2);
         ((AmberVertex) vp).setEdgeOrder(v4, "isPartOf", Direction.IN, 1);
         
-        assertEquals(4, e1.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
-        assertEquals(3, e2.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
-        assertEquals(2, e3.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
-        assertEquals(1, e4.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
+        assertEquals(new Integer(4), (Integer) e1.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
+        assertEquals(new Integer(3), (Integer) e2.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
+        assertEquals(new Integer(2), (Integer) e3.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
+        assertEquals(new Integer(1), (Integer) e4.getProperty(AmberEdge.SORT_ORDER_PROPERTY_NAME));
     }
     
     public void s(String s) {

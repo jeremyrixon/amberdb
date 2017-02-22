@@ -14,7 +14,14 @@ import com.tinkerpop.blueprints.Vertex;
 
 public class AmberQueryBase {
 
-    
+    protected static final String SESS_VERTEX_QUERY_PREFIX = "select * \n" +
+            " from sess_node \n" +
+            " left join sess_work        on        sess_work.id = sess_node.id and sess_work.s_id = sess_node.s_id \n" +
+            " left join sess_file        on        sess_file.id = sess_node.id and sess_file.s_id = sess_node.s_id \n" +
+            " left join sess_description on sess_description.id = sess_node.id and sess_description.s_id = sess_node.s_id \n" +
+            " left join sess_party       on       sess_party.id = sess_node.id and sess_party.s_id = sess_node.s_id \n" +
+            " left join sess_tag         on         sess_tag.id = sess_node.id and sess_tag.s_id = sess_node.s_id \n";
+
     protected static final String VERTEX_QUERY_PREFIX = "select * \n" +
                 "from node \n" +
                 "left join work        on        work.id = node.id \n" +
@@ -26,7 +33,11 @@ public class AmberQueryBase {
     protected static final String EDGE_QUERY_PREFIX = "select * \n" +
             "from flatedge \n" +
             "left join acknowledge on flatedge.id = acknowledge.id \n";
-    
+
+    protected static final String SESS_EDGE_QUERY_PREFIX = "select * \n"
+            + " from sess_flatedge f \n"
+            + " left join sess_acknowledge on sess_acknowledge.id = f.id and sess_acknowledge.s_id = f.s_id \n";
+
     
     /** The graph associated with this query */
     protected AmberGraph graph;
@@ -36,7 +47,12 @@ public class AmberQueryBase {
         this.graph = graph;
     }
     
-
+    /**
+     * getElementPropertyMaps: this method is required to provide compatibility for service that extends AmberQueryBase.
+     */
+    protected Map<Long, Map<String, Object>> getElementPropertyMaps(Handle h, String elementIdTable, String elementIdColumn) {
+        return getVertexPropertyMaps(h, elementIdTable, elementIdColumn);
+    }
     
     protected Map<Long, Map<String, Object>> getVertexPropertyMaps(Handle h, String elementIdTable, String elementIdColumn) {
         

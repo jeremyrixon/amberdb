@@ -19,7 +19,8 @@ public class TPropertyMapper implements ResultSetMapper<TProperty> {
         Long id = rs.getLong("id"); 
         Long start = rs.getLong("txn_start"); 
         Long end = rs.getLong("txn_end"); 
-        TId vId = new TId(id, start, end);
+        Long time = rs.getLong("time");
+        TId vId = new TId(id, start, end, time);
         
         String name =rs.getString("name");
         DataType type = DataType.valueOf(rs.getString("type"));

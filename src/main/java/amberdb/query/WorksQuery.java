@@ -150,7 +150,7 @@ public class WorksQuery {
             String sql = "" +
                     "SELECT t1.time, t1.user, t1.operation, t2.transaction_id, t2.vertex_id " +
                     "FROM transaction t1, " +
-                    " (SELECT MAX(t.id) transaction_id, v.id vertex_id from transaction t, node v " +
+                    " (SELECT t.id transaction_id, v.id vertex_id from transaction t, node v ORDER BY t.time DESC, t.id DESC LIMIT 1" +
                     " WHERE t.id = v.txn_start and v.id in (" + Joiner.on(",").join(workIds) + ") group by v.id) t2 " +
                     "WHERE t1.id = t2.transaction_id ";
             return getTransactions(sess, sql);
@@ -177,7 +177,7 @@ public class WorksQuery {
      */
     public static List<Long> getNLastCreatedVertexIds(AmberSession sess, List<Long> vertexIds, long n){
         if (CollectionUtils.isNotEmpty(vertexIds)){
-            String sql = "SELECT id FROM vertex WHERE id IN (" + Joiner.on(",").join(vertexIds) + ") GROUP BY id ORDER BY MIN(txn_start) DESC LIMIT :n";
+            String sql = "SELECT id FROM node WHERE id IN (" + Joiner.on(",").join(vertexIds) + ") GROUP BY id ORDER BY MIN(txn_start) DESC LIMIT :n";
             try (Handle h = sess.getAmberGraph().dbi().open()) {
                 return h.createQuery(sql).bind("n", n).map(LongMapper.FIRST).list();
             }

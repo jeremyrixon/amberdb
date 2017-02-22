@@ -66,7 +66,7 @@ public class BaseElement {
     }
 
     
-    protected Map<String, Object> getProperties() {
+    public Map<String, Object> getProperties() {
         return properties;
     }
     

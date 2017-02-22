@@ -187,12 +187,11 @@ public class AmberQueryTest extends AbstractDatabaseIntegrationTest {
         try (AmberMultipartQuery q = graph.newMultipartQuery(heads)) {
 
             String numKids = 
-                    "SELECT COUNT(edge.id) num " 
-                    + "FROM edge, v1 " 
+                    "SELECT COUNT(flatedge.id) num "
+                    + "FROM flatedge, v1 "
                     + "WHERE v1.step = %d " 
-                    + "AND v1.vid = edge.v_in " 
-                    + "AND edge.label = 'isPartOf' " 
-                    + "AND edge.txn_end = 0";
+                    + "AND v1.vid = flatedge.v_in "
+                    + "AND flatedge.label = 'isPartOf' ";
 
             QueryClause qc = q.new QueryClause(BRANCH_FROM_PREVIOUS, new String[] { "isPartOf" }, Direction.IN);
 

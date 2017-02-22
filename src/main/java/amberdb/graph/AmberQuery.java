@@ -9,12 +9,17 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.skife.jdbi.v2.Handle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 
 
+
 public class AmberQuery extends AmberQueryBase {
+
+    private static final Logger log = LoggerFactory.getLogger(AmberQuery.class);
 
     /** starting vertex ids */
     List<Long> head;
@@ -24,7 +29,8 @@ public class AmberQuery extends AmberQueryBase {
      * result sub-graph. The first clause follows edges from the head vertices
      */
     List<QueryClause> clauses = new ArrayList<QueryClause>();
-
+    boolean inSession = false;
+    boolean loadGraph = true;
 
     /**
      * Create a query with single starting vertices. As branches are added the
@@ -104,6 +110,13 @@ public class AmberQuery extends AmberQueryBase {
         return this;
     }
     
+    public void setInSession(boolean inSession) {
+        this.inSession= inSession;
+    }
+    
+    public void setLoadGraph(boolean loadGraph) {
+        this.loadGraph = loadGraph;
+    }
     
     class QueryClause {
         
@@ -284,60 +297,111 @@ public class AmberQuery extends AmberQueryBase {
     }
 
 
-    // Attempt to handle the query simply. Returns null if it can't handle the query.
+    /**
+     * executeSimpleQuery: Attempt to handle the query simply. Returns null if it can't handle the query.
+     * @return a list of Vertex as the resultset
+     */
     private List<Vertex> executeSimpleQuery() {
-        
+        if (inSession) {
+            return executeSimpleQuery(SESS_VERTEX_QUERY_PREFIX, SESS_EDGE_QUERY_PREFIX, "sess_");
+        }
+        return executeSimpleQuery(VERTEX_QUERY_PREFIX, EDGE_QUERY_PREFIX, "");
+    }
+
+    /**
+     * executeSimpleQuery: Attempt to handle the query simply either inSession or not.  If inSession flag is set to true
+     * the query will retrieve the in session vertices from the latest session (i.e. the session with the max session id
+     * containing any the queried vertices) that satisfies the query; otherwise the query will retrieve all
+     * the persisted vertices satisfies the query
+     * @param vertexQueryPrefix is the base vertex query depends on the inSession flag 
+     * @param edgeQueryPrefix is the base edge query depends on the inSession flag
+     * @param sessionPrefix is the session prefix depends on the inSession flag
+     * @return a list of Vertex as the resultset
+     */
+    private List<Vertex> executeSimpleQuery(String vertexQueryPrefix, String edgeQueryPrefix, String sessionPrefix) {
         // We only handle one clause
-        if (clauses.size() != 1) {
+        if (clauses.size() != 1 && loadGraph) {
             return null;
         }
         
         // We don't handle branchList
-        QueryClause clause = clauses.get(0);
-        if (clause.branchList != null && clause.branchList.size() > 0) {
-            return null;
-        }
+        String labelList = "";
+        String headCol = "";
+        String tailCol = "";
+        if (clauses.size() == 1) {
+            QueryClause clause = clauses.get(0);
+            if (clause.branchList != null && clause.branchList.size() > 0) {
+                return null;
+            }
 
-        // We only handle Direction.IN or Direction.OUT
-        if (clause.direction == Direction.BOTH) {
-            return null;
+            // We only handle Direction.IN or Direction.OUT
+            if (clause.direction == Direction.BOTH) {
+                return null;
+            }
+
+            // We only handle BRANCH_FROM_PREVIOUS
+            if (BranchType.BRANCH_FROM_PREVIOUS != clause.branchType) {
+                return null;
+            }
+            labelList = "'" + StringUtils.join(clause.labels, "','") + "'";
+            headCol = clause.direction == Direction.OUT ? "v_out" : "v_in";
+            tailCol = clause.direction == Direction.OUT ? "v_in" : "v_out";
         }
-        
-        // We only handle BRANCH_FROM_PREVIOUS
-        if (BranchType.BRANCH_FROM_PREVIOUS != clause.branchType) {
-            return null;
-        }
-        
         String headList = StringUtils.join(head, ',');
-        String labelList = "'" + StringUtils.join(clause.labels, "','") + "'";
-        String headCol = clause.direction == Direction.OUT ? "v_out" : "v_in";
-        String tailCol = clause.direction == Direction.OUT ? "v_in" : "v_out";
 
         try (Handle h = graph.dbi().open()) {
-            
-            // Vertices
-            String vertexSql = VERTEX_QUERY_PREFIX + "where node.id in \n"
-                    + " (select " + tailCol + " from flatedge where flatedge.label in (" + labelList + ") and " + headCol + " in (" + headList + "))";
+            String vertexSql = vertexQueryPrefix;
+            if (inSession) {
+                // choose only the vertices with the max session id if any vertex exists in multiple sessions
+                vertexSql = vertexSql + " join (select id, max(s_id) as s_id from " + sessionPrefix + "node where id in (" + headList + ") group by id) s on " + sessionPrefix + "node.s_id = s.s_id and " +  sessionPrefix + "node.id = s.id ";
+            }
+            if (loadGraph) {
+                vertexSql = vertexSql + "where " + sessionPrefix + "node.id in \n"
+                            + " (select " + tailCol + " from " + sessionPrefix + "flatedge where " + sessionPrefix + "flatedge.label in (" + labelList + ") and " + headCol + " in (" + headList + "))";
+            } else {
+                vertexSql = vertexSql + "where " + sessionPrefix + "node.id in (" + headList + ")";
+            }
             List<Vertex> vertices = getVertices(h.begin().createQuery(vertexSql).map(new AmberVertexMapper(graph)).list());
-            for (AmberVertex vertex: h.begin().createQuery(vertexSql).map(new AmberVertexMapper(graph)).list()) {
-                Long vertexId = (Long) vertex.getId();
-                if (graph.graphVertices.containsKey(vertexId) || graph.removedVertices.containsKey(vertexId)) {
-                    continue;
-                } 
-                graph.addVertexToGraph(vertex);
+            if (loadGraph) {
+                loadQueriedGraph(edgeQueryPrefix, sessionPrefix, labelList, headCol, headList, h, vertexSql);
             }
-            
-            // Edges
-            String edgeSql = EDGE_QUERY_PREFIX + " where flatedge.label in (" + labelList + ") and flatedge." + headCol + " in (" + headList + ")";
-            for (AmberEdge edge: h.begin().createQuery(edgeSql).map(new AmberEdgeMapper(graph, false)).list()) {
-                Long edgeId = (Long) edge.getId();
-                if (graph.graphEdges.containsKey(edgeId) || graph.removedEdges.containsKey(edgeId)) {
-                    continue;
-                } 
-                graph.addEdgeToGraph(edge);
-            }
-            
             return vertices;
         }
     }
+
+
+    private void loadQueriedGraph(String edgeQueryPrefix, String sessionPrefix, String labelList, String headCol,
+            String headList, Handle h, String vertexSql) {
+        List<AmberVertex> vertexList = h.begin().createQuery(vertexSql).map(new AmberVertexMapper(graph))
+                .list();
+        for (AmberVertex vertex : vertexList) {
+            Long vertexId = (Long) vertex.getId();
+            if (graph.graphVertices.containsKey(vertexId) || graph.removedVertices.containsKey(vertexId)) {
+                continue;
+            }
+            graph.addVertexToGraph(vertex);
+        }
+
+        // Edges
+        String edgeSql = edgeQueryPrefix + " where " + sessionPrefix + "flatedge.label in (" + labelList
+                + ") and " + sessionPrefix + "flatedge." + headCol + " in (" + headList + ")";
+        List<AmberEdge> edgeList = h.begin().createQuery(edgeSql).map(new AmberEdgeMapper(graph, false)).list();
+        for (AmberEdge edge : edgeList) {
+            Long edgeId = (Long) edge.getId();
+            if (graph.graphEdges.containsKey(edgeId) || graph.removedEdges.containsKey(edgeId)) {
+                continue;
+            }
+            if (graph.getVertex(edge.getInId()) == null) {
+                log.warn("Found edge with nonexistent v_in vertex: %s", edge);
+                continue;
+            }
+            if (graph.getVertex(edge.getOutId()) == null) {
+                log.warn("Found edge with nonexistent v_out vertex: %s", edge);
+                continue;
+            }
+            graph.addEdgeToGraph(edge);
+        }
+    }
+    
+
 }

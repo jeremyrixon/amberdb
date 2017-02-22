@@ -23,7 +23,8 @@ public class TVertexMapper implements ResultSetMapper<TVertex> {
                 new TId(
                         rs.getLong("id"), 
                         rs.getLong("txn_start"), 
-                        rs.getLong("txn_end")), 
+                        rs.getLong("txn_end"),
+                        rs.getLong("time")),
                 null);
         Map<String, Object> properties = vertex.getProperties();
         ResultSetMetaData metadata = rs.getMetaData();

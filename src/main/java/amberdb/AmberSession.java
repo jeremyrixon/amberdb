@@ -7,15 +7,13 @@ import static amberdb.graph.BranchType.BRANCH_FROM_PREVIOUS;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Stream;
 
 import javax.sql.DataSource;
 
+import amberdb.model.*;
+import amberdb.sql.ListLu;
 import org.apache.commons.lang.StringUtils;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
@@ -45,29 +43,17 @@ import amberdb.graph.AmberMultipartQuery.QueryClause;
 import amberdb.graph.AmberPreCommitHook;
 import amberdb.graph.AmberQuery;
 import amberdb.graph.AmberTransaction;
-import amberdb.model.CameraData;
-import amberdb.model.Copy;
-import amberdb.model.Description;
-import amberdb.model.EADWork;
-import amberdb.model.File;
-import amberdb.model.GeoCoding;
-import amberdb.model.IPTC;
-import amberdb.model.ImageFile;
-import amberdb.model.MovingImageFile;
-import amberdb.model.Page;
-import amberdb.model.Party;
-import amberdb.model.Section;
-import amberdb.model.SoundFile;
-import amberdb.model.Tag;
-import amberdb.model.Work;
 import amberdb.query.ModifiedObjectsQueryRequest;
 import amberdb.query.ModifiedObjectsQueryResponse;
 import amberdb.sql.Lookups;
 import amberdb.version.VersionedVertex;
 import doss.BlobStore;
+import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.Query;
 
 
 public class AmberSession implements AutoCloseable {
+    private static final int DEFAULT_MAX_HIERARCHY_DEPTH = 50;
     private final FramedGraph<TransactionalGraph> graph;
     private final BlobStore blobStore;
     private DBI lookupsDbi;
@@ -222,6 +208,15 @@ public class AmberSession implements AutoCloseable {
     /**
      * commit saves everything in the current session and records who did it and why with the transaction record.
      *
+     * @param why the operation being performed when the transaction was committed
+     */
+    public Long commit(String why) {
+        return commit("amberdb", why);
+    }
+
+    /**
+     * commit saves everything in the current session and records who did it and why with the transaction record.
+     *
      * @param who the username to associate with the transaction
      * @param why the operation they were fulfilling by commiting the transaction
      */
@@ -269,6 +264,119 @@ public class AmberSession implements AutoCloseable {
             return findWork(Long.parseLong(idOrAlias));
         } catch (NumberFormatException e) {
             return findWork(PIUtil.parse(idOrAlias));
+        }
+    }
+
+    /**
+     * Retrieves the hierarchy of works that leads to the specified object. Only retrieves basic summary information for
+     * performance reasons. Invokes {@link #getHierarchySummaryForWork(long, Integer)}.
+     *
+     * This method limits the hierarchy depth to {@link #DEFAULT_MAX_HIERARCHY_DEPTH}.
+     *
+     * @param workId The work to retrieve the hierarchy for. This will be the LAST step in the hierarchy.
+     * @return Ordered list of WorkSummaries for each step in the hierarchy that leads to the specified object.
+     * @see #getHierarchySummaryForWork(long, Integer)
+     */
+    public List<WorkSummary> getHierarchySummaryForWork(long workId) {
+        return getHierarchySummaryForWork(workId, null);
+    }
+
+    /**
+     * Retrieves the hierarchy of works that leads to the specified object. Only retrieves basic summary information for
+     * performance reasons.
+     *
+     * If the actual hierarchy depth exceeds the maxAncestors parameter, then the parentId of the first item will not be
+     * null, indicating that it has a parent and therefore there is more to the hierarchy. Otherwise, the first item's
+     * parent will always be null to indicate that it is the root of the hierarchy.
+     *
+     * @param workId The work to retrieve the hierarchy for. This will be the LAST step in the hierarchy.
+     * @param maxAncestors The maximum number of ancestors to include in the hierarchy. This limits the depth of the
+     *                     hierarchy, but always operates in REVERSE - i.e. the requested work plus (maxAncestors - 1)
+     *                     ancestors. Defaults to {@link #DEFAULT_MAX_HIERARCHY_DEPTH} if not specified.
+     * @return Ordered list of WorkSummaries for each step in the hierarchy that leads to the specified object.
+     */
+    public List<WorkSummary> getHierarchySummaryForWork(long workId, Integer maxAncestors) {
+        int maxDepth = maxAncestors == null ? DEFAULT_MAX_HIERARCHY_DEPTH : maxAncestors;
+
+        List<WorkSummary> summaries = new ArrayList<>();
+
+        try (Handle handle = lookupsDbi.open()) {
+            String sql = "select parent.id parentId,  \n" +
+                    "           child.id childId,  \n" +
+                    "           child.title,  \n" +
+                    "           child.bibLevel,  \n" +
+                    "           child.bibId,  \n" +
+                    "           child.collection,  \n" +
+                    "           child.form,  \n" +
+                    "           child.recordSource,  \n" +
+                    "           child.localSystemNumber,  \n" +
+                    "           child.accessConditions,  \n" +
+                    "           child.internalAccessConditions,  \n" +
+                    "           child.creator,  \n" +
+                    "           child.dateCreated,  \n" +
+                    "           child.subUnitType,  \n" +
+                    "           child.subUnitNo,  \n" +
+                    "           child.sensitiveMaterial,  \n" +
+                    "           child.digitalStatus,  \n" +
+                    "           child.digitalStatusDate \n" +
+                    " from work child \n" +
+                    "   left join flatedge e on child.id = e.v_out and e.label = 'isPartOf' \n" +
+                    "   left join work parent on e.v_in = parent.id \n" +
+                    "   left join node n on n.id = child.id \n" +
+                    " where n.type != 'Section' and child.id = :id ";
+
+            Query query = handle.createQuery(sql);
+
+            addSummary(query, workId, summaries, 1, maxDepth);
+
+            Map<String, String> collections = new HashMap<>();
+
+            for (ListLu item : getLookups().findLookupsFor("collection", "n")) {
+                collections.put(item.getCode(), item.getValue());
+            }
+
+            for (WorkSummary summary : summaries) {
+                summary.setCollectionName(collections.get(summary.getCollectionCode()));
+            }
+
+            Collections.reverse(summaries);
+        }
+
+        return summaries;
+    }
+
+    private void addSummary(Query query, Long id, List<WorkSummary> summaries, int currentDepth, int maxDepth) {
+        query.bind("id", id);
+
+        Map<String, Object> work = (Map<String, Object>) query.first();
+
+        if (work != null) {
+            WorkSummary summary = new WorkSummary();
+            summary.setId(id);
+            summary.setParentId((Long) work.get("parentId"));
+            summary.setTitle((String) work.get("title"));
+            summary.setCollectionCode((String) work.get("collection"));
+            summary.setForm((String) work.get("form"));
+            summary.setCreator((String) work.get("creator"));
+            summary.setAccessConditions((String) work.get("accessConditions"));
+            summary.setInternalAccessConditions((String) work.get("internalAccessConditions"));
+            summary.setDigitalStatus((String) work.get("digitalStatus"));
+            summary.setDigitalStatusDate((Date) work.get("digitalStatusDate"));
+            summary.setDateCreated((Date) work.get("dateCreated"));
+            summary.setRecordSource((String) work.get("recordSource"));
+            summary.setLocalSystemNumber((String) work.get("localSystemNumber"));
+            summary.setBibLevel((String) work.get("bibLevel"));
+            summary.setBibId((String) work.get("bibId"));
+            summary.setSubUnitType((String) work.get("subUnitType"));
+            summary.setSubUnitNumber((String) work.get("subUnitNo"));
+            summary.setSensitiveMaterial((String) work.get("sensitiveMaterial"));
+            summary.setObjectId(PIUtil.format((Long) work.get("childId")));
+
+            summaries.add(summary);
+
+            if (summary.getParentId() != null && currentDepth < maxDepth) {
+                addSummary(query, summary.getParentId(), summaries, currentDepth + 1, maxDepth);
+            }
         }
     }
 
@@ -941,7 +1049,7 @@ public class AmberSession implements AutoCloseable {
         }
         return components;
     }
-
+    
     public List<Vertex> loadParentsAndCopies(final List<Long> ids) {
         AmberGraph g = getAmberGraph();
 
@@ -993,6 +1101,37 @@ public class AmberSession implements AutoCloseable {
 
     }
 
+    /**
+     * loadWorks return a stream of works given input record ids.  This method is designed to 
+     * be applied during reporting or mass work records export.  Please note this method does not
+     * traverse each work records from corresponding record ids, ie. not providing the children 
+     * records.
+     * @param ids are input record ids.
+     * @return stream of work records corresponding to the input record ids.
+     */
+    public Stream<Work> loadWorks(final List<Long> ids) {
+        AmberGraph g = getAmberGraph();
+        AmberQuery q = g.newQuery(ids);
+        q.setLoadGraph(false);
+        return q.execute().stream().map(record -> graph.frame(record, Work.class));
+    }
+
+    /**
+     * loadWorks return a stream of works in session given input record ids.  This method is designed to 
+     * be applied during reporting or mass work records export.  Please note this method does not
+     * traverse each work records from corresponding record ids, ie. not providing the children 
+     * records.
+     * @param ids
+     * @return
+     */
+    public Stream<Work> loadWorksInSession(final List<Long> ids) {
+        AmberGraph g = getAmberGraph();
+        AmberQuery q = g.newQuery(ids);
+        q.setInSession(true);
+        q.setLoadGraph(false);
+        return q.execute().stream().map(record -> graph.frame(record, Work.class));
+    }
+    
     public List<Vertex> loadMultiLevelWorks(final List<Long> ids) {
         return loadMultiLevelWorks(ids.toArray(new Long[ids.size()]));
     }

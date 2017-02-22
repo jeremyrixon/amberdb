@@ -1,56 +1,36 @@
 package amberdb.graph.dao;
 
 
-import static amberdb.graph.State.DEL;
-
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeSet;
-
+import amberdb.graph.*;
+import amberdb.model.AliasItem;
+import amberdb.model.Work;
+import com.mysql.jdbc.Clob;
 import org.apache.commons.lang.StringUtils;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.PreparedBatch;
 import org.skife.jdbi.v2.PreparedBatchPart;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
-import org.skife.jdbi.v2.sqlobject.SqlBatch;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.sqlobject.mixins.GetHandle;
 import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
-import org.skife.jdbi.v2.util.IntegerColumnMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mysql.jdbc.Clob;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.Map.Entry;
 
-import amberdb.graph.AmberEdge;
-import amberdb.graph.AmberProperty;
-import amberdb.graph.AmberTransaction;
-import amberdb.graph.AmberVertex;
-import amberdb.graph.BaseElement;
-import amberdb.graph.PropertyMapper;
-import amberdb.graph.State;
-import amberdb.graph.TransactionMapper;
-import amberdb.model.AliasItem;
-import amberdb.model.Work;
+import static amberdb.graph.State.DEL;
 
 
 public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     
     private static final Logger log = LoggerFactory.getLogger(AmberDao.class);
     
-    protected static final Map<String, String> fieldMapping        = new HashMap<>();
+    private static final Map<String, String> fieldMapping        = new HashMap<>();
     public static final Map<String, String> fieldMappingReverse = new HashMap<>();
     static {
         fieldMapping.put("constraint", "availabilityConstraint");
@@ -84,72 +64,6 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     /*
      * Main tables
      */
-    @SqlUpdate(
-            "CREATE TABLE IF NOT EXISTS vertex ("
-            + "id         BIGINT, "
-            + "txn_start  BIGINT DEFAULT 0 NOT NULL, "
-            + "txn_end    BIGINT DEFAULT 0 NOT NULL)")
-    public abstract void createVertexTable();
-
-
-    @SqlUpdate(
-            "CREATE TABLE IF NOT EXISTS edge ("
-            + "id         BIGINT, "
-            + "txn_start  BIGINT DEFAULT 0 NOT NULL, "
-            + "txn_end    BIGINT DEFAULT 0 NOT NULL, "
-            + "v_out      BIGINT, "
-            + "v_in       BIGINT, "
-            + "label      VARCHAR(100), "
-            + "edge_order BIGINT)")
-    public abstract void createEdgeTable();
-
-
-    @SqlUpdate(
-            "CREATE TABLE IF NOT EXISTS property ("
-            + "id        BIGINT, "
-            + "txn_start BIGINT DEFAULT 0 NOT NULL, "
-            + "txn_end   BIGINT DEFAULT 0 NOT NULL, "
-            + "name      VARCHAR(100), "
-            + "type      CHAR(3), "
-            + "value     BLOB)")
-    public abstract void createPropertyTable();
-
-
-    /*
-     * Session tables
-     */
-    @SqlUpdate(
-            "CREATE TABLE IF NOT EXISTS sess_vertex ("
-            + "s_id       BIGINT, "
-            + "id         BIGINT, "
-            + "txn_start  BIGINT DEFAULT 0 NOT NULL, "
-            + "txn_end    BIGINT DEFAULT 0 NOT NULL, "
-            + "state      CHAR(3))")
-    public abstract void createSessionVertexTable();
-
-
-    @SqlUpdate(
-            "CREATE TABLE IF NOT EXISTS sess_edge ("
-            + "s_id       BIGINT, "
-            + "id         BIGINT, "
-            + "txn_start  BIGINT DEFAULT 0 NOT NULL, "
-            + "txn_end    BIGINT DEFAULT 0 NOT NULL, "
-            + "v_out      BIGINT, "
-            + "v_in       BIGINT, "
-            + "label      VARCHAR(100), "
-            + "edge_order BIGINT, "
-            + "state      CHAR(3))")
-    public abstract void createSessionEdgeTable();
-
-
-    @SqlUpdate(
-            "CREATE TABLE IF NOT EXISTS sess_property ("
-            + "s_id      BIGINT, "
-            + "id        BIGINT, "
-            + "name      VARCHAR(100), "
-            + "type      CHAR(3), "
-            + "value     BLOB)")
-    public abstract void createSessionPropertyTable();
 
 
     @SqlUpdate(
@@ -167,133 +81,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     public abstract void createTransactionTable();
 
 
-    /*
-     * Main table indexes - these require review as they might need indexes.
-     */
-    @SqlUpdate(
-            "CREATE UNIQUE INDEX unique_vert "
-            + "ON vertex(id, txn_start)")
-    public abstract void createVertexIndex();
-
-
-    @SqlUpdate(
-            "CREATE UNIQUE INDEX unique_edge "
-            + "ON edge(id, txn_start)")
-    public abstract void createEdgeIndex();
-
-
-    @SqlUpdate(
-            "CREATE UNIQUE INDEX unique_prop "
-            + "ON property(id, txn_start, name)")
-    public abstract void createPropertyIndex();
-
-
-    @SqlUpdate(
-            "CREATE INDEX vert_txn_end_idx "
-            + "ON vertex(txn_end)")
-    public abstract void createVertexTxnEndIndex();
-
-
-    @SqlUpdate(
-            "CREATE INDEX edge_txn_end_idx "
-            + "ON edge(txn_end)")
-    public abstract void createEdgeTxnEndIndex();
-
-
-    @SqlUpdate(
-            "CREATE INDEX prop_name_idx "
-            + "ON property(name)")
-    public abstract  void createPropertyNameIndex();
-
-
-    @SqlUpdate(
-            "CREATE INDEX property_value_idx "
-            + "ON property(value(512))")
-    public abstract void createPropertyValueIndex();
-
-
-    @SqlUpdate(
-            "CREATE INDEX property_name_val_idx "
-            + "ON property(name, value(512))")
-    public abstract void createPropertyNameValueIndex();
-
-
-    @SqlUpdate(
-            "CREATE INDEX prop_txn_end_idx "
-            + "ON property(txn_end)")
-    public abstract void createPropertyTxnEndIndex();
-
-
-    @SqlUpdate(
-            "CREATE INDEX edge_label_idx "
-            + "ON edge(label)")
-    public abstract void createEdgeLabelIndex();
-
-
-    @SqlUpdate(
-            "CREATE INDEX edge_in_idx "
-            + "ON edge(v_in)")
-    public abstract void createEdgeInVertexIndex();
-
-
-    @SqlUpdate(
-            "CREATE INDEX edge_out_idx "
-            + "ON edge(v_out)")
-    public abstract void createEdgeOutVertexIndex();
-
-    /*
-     * Put all the columns we need for traversal into one index to save index
-     * merging which is costing us 100ms+ in AmberQuery when a vertex has
-     * a lot of outgoing edges.
-     */
-    @SqlUpdate(
-            "CREATE INDEX edge_in_traversal_idx "
-            + "ON edge(txn_end, v_in, label, edge_order, v_out)")
-    public abstract void createEdgeInTraversalIndex();
-
-
-    @SqlUpdate(
-            "CREATE INDEX edge_out_traversal_idx "
-            + "ON edge(txn_end, v_out, label, edge_order, v_in)")
-    public abstract void createEdgeOutTraversalIndex();
-
-
-    @SqlUpdate(
-            "CREATE INDEX sess_edge_idx "
-            + "ON sess_edge(s_id)")
-    public abstract void createSessionEdgeIndex();
-
-
-    @SqlUpdate(
-            "CREATE INDEX sess_vertex_idx "
-            + "ON sess_vertex(s_id)")
-    public abstract void createSessionVertexIndex();
-
-
-    @SqlUpdate(
-            "CREATE INDEX sess_property_idx "
-            + "ON sess_property(s_id)")
-    public abstract void createSessionPropertyIndex();
-
-
-    @SqlUpdate(
-            "CREATE INDEX sess_edge_sis_idx "
-            + "ON sess_edge(s_id, id, state)")
-    public abstract void createSessionEdgeIdStateIndex();
-
-
-    @SqlUpdate(
-            "CREATE INDEX sess_vertex_sis_idx "
-            + "ON sess_vertex(s_id, id, state)")
-    public abstract void createSessionVertexIdStateIndex();
-
-
-    @SqlUpdate(
-            "CREATE INDEX sess_property_sis_idx "
-            + "ON sess_property(s_id, id)")
-    public abstract void createSessionPropertyIdStateIndex();
-
-    @SqlUpdate(
+     @SqlUpdate(
              "DROP TABLE IF EXISTS node;"
             +"CREATE TABLE IF NOT EXISTS node ("
             +" id BIGINT,"
@@ -391,6 +179,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             +" arrangement TEXT,"
             +" australianContent BOOLEAN,"
             +" bestCopy VARCHAR(1),"
+            + "parentBibId VARCHAR(63),"
             +" bibId VARCHAR(63),"
             +" bibLevel VARCHAR(63),"
             +" bibliography TEXT,"
@@ -526,6 +315,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             +" workPid VARCHAR(255));"
             +"CREATE INDEX work_id ON work (id);"
             +"CREATE INDEX work_txn_id ON work (id, txn_start, txn_end);"
+            +"CREATE INDEX work_bib_id ON work (bibId);"
             +"DROP TABLE IF EXISTS work_history;"
             +"CREATE TABLE IF NOT EXISTS work_history ("
             +" id BIGINT,"
@@ -561,6 +351,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             +" arrangement TEXT,"
             +" australianContent BOOLEAN,"
             +" bestCopy VARCHAR(1),"
+            + "parentBibId VARCHAR(63),"
             +" bibId VARCHAR(63),"
             +" bibLevel VARCHAR(63),"
             +" bibliography TEXT,"
@@ -733,6 +524,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             +" arrangement TEXT,"
             +" australianContent BOOLEAN,"
             +" bestCopy VARCHAR(1),"
+            + "parentBibId VARCHAR(63),"
             +" bibId VARCHAR(63),"
             +" bibLevel VARCHAR(63),"
             +" bibliography TEXT,"
@@ -1345,11 +1137,17 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
     public abstract void createV2Tables();
 
     @SqlQuery(
-            "SELECT (COUNT(table_name) >= 8) "
+            "SELECT (COUNT(table_name) >= 26) "
             + "FROM INFORMATION_SCHEMA.TABLES "
             + "WHERE table_name IN ("
-            + "  'vertex', 'edge', 'property', "
-            + "  'sess_vertex', 'sess_edge', 'sess_property', "
+            + "  'work', 'sess_work', 'work_history', "
+            + "  'node', 'sess_node', 'node_history', "
+            + "  'party', 'sess_party', 'party_history', "
+            + "  'file', 'sess_file', 'file_history', "
+            + "  'flatedge', 'sess_flatedge', 'flatedge_history', "
+            + "  'tag', 'sess_tag', 'tag_history', "
+            + "  'description', 'sess_description', 'description_history', "
+            + "  'acknowledge', 'sess_acknowledge', 'acknowledge_history', "
             + "  'id_generator', 'transaction')")
     public abstract boolean schemaTablesExist();
 
@@ -1370,50 +1168,6 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             @Bind("id") long id);
 
 
-    /*
-     * suspend/resume operations
-     */
-    @SqlBatch("INSERT INTO sess_edge (s_id, id, txn_start, txn_end, v_out, v_in, label, edge_order, state) "
-            + "VALUES (:sessId, :id, :txnStart, :txnEnd, :outId, :inId, :label, :edgeOrder, :state)")
-    public abstract void suspendEdges(
-            @Bind("sessId")    Long          sessId,
-            @Bind("id")        List<Long>    id,
-            @Bind("txnStart")  List<Long>    txnStart,
-            @Bind("txnEnd")    List<Long>    txnEnd,
-            @Bind("outId")     List<Long>    outId,
-            @Bind("inId")      List<Long>    inId,
-            @Bind("label")     List<String>  label,
-            @Bind("edgeOrder") List<Integer> edgeOrder,
-            @Bind("state")     List<String>   state);
-
-
-    @SqlBatch("INSERT INTO sess_vertex (s_id, id, txn_start, txn_end, state) "
-            + "VALUES (:sessId, :id, :txnStart, :txnEnd, :state)")
-    public abstract void suspendVertices(
-            @Bind("sessId")    Long         sessId,
-            @Bind("id")        List<Long>   id,
-            @Bind("txnStart")  List<Long>   txnStart,
-            @Bind("txnEnd")    List<Long>   txnEnd,
-            @Bind("state")     List<String>  state);
-
-
-    @SqlBatch("INSERT INTO sess_property (s_id, id, name, type, value) "
-            + "VALUES (:sessId, :id, :name, :type, :value)")
-    public abstract  void suspendProperties(
-            @Bind("sessId")    Long         sessId,
-            @Bind("id")        List<Long>   id,
-            @Bind("name")      List<String> name,
-            @Bind("type")      List<String> type,
-            @Bind("value")     List<byte[]> value);
-
-
-
-    @SqlQuery("SELECT id, name, type, value "
-            + "FROM sess_property "
-            + "WHERE s_id = :sessId")
-    @Mapper(PropertyMapper.class)
-    public abstract Iterator<AmberProperty> resumeProperties(@Bind("sessId") Long sessId);
-
     /* Transaction operations */
 
 
@@ -1425,29 +1179,29 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
 
 
     @SqlQuery("(SELECT DISTINCT t.id, t.time, t.user, t.operation "
-            + "FROM transaction t, vertex v "
+            + "FROM transaction t, node_history v "
             + "WHERE v.id = :id "
             + "AND t.id = v.txn_start) "
             + "UNION "
             + "(SELECT DISTINCT t.id, t.time, t.user, t.operation "
-            + "FROM transaction t, vertex v "
+            + "FROM transaction t, node_history v "
             + "WHERE v.id = :id "
             + "AND t.id = v.txn_end) "
-            + "ORDER BY id")
+            + "ORDER BY time, id")
     @Mapper(TransactionMapper.class)
     public abstract List<AmberTransaction> getTransactionsByVertexId(@Bind("id") Long id);
 
 
     @SqlQuery("(SELECT DISTINCT t.id, t.time, t.user, t.operation "
-            + "FROM transaction t, edge e "
+            + "FROM transaction t, flatedge_history e "
             + "WHERE e.id = :id "
             + "AND t.id = e.txn_start) "
             + "UNION "
             + "(SELECT DISTINCT t.id, t.time, t.user, t.operation "
-            + "FROM transaction t, edge e "
+            + "FROM transaction t, flatedge_history e "
             + "WHERE e.id = :id "
             + "AND t.id = e.txn_end) "
-            + "ORDER BY id")
+            + "ORDER BY time, id")
     @Mapper(TransactionMapper.class)
     public abstract List<AmberTransaction> getTransactionsByEdgeId(@Bind("id") Long id);
 
@@ -1456,7 +1210,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             + "FROM transaction "
             + "WHERE id = ("
             + "  SELECT MIN(t.id) "
-            + "  FROM transaction t, vertex v "
+            + "  FROM transaction t, node_history v "
             + "  WHERE v.id = :id "
             + "  AND t.id = v.txn_start)")
     @Mapper(TransactionMapper.class)
@@ -1467,7 +1221,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             + "FROM transaction "
             + "WHERE id = ("
             + "  SELECT MIN(t.id) "
-            + "  FROM transaction t, edge e "
+            + "  FROM transaction t, flatedge_history e "
             + "  WHERE e.id = :id "
             + "  AND t.id = e.txn_start)")
     @Mapper(TransactionMapper.class)
@@ -1489,92 +1243,8 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             @Bind("user") String user,
             @Bind("operation") String operation);
 
-
-    // The following query intentionally left blank. It's implemented in the db specific AmberDao sub classes (h2 or MySql)
-    @SqlUpdate("")
-    public abstract void endElements(
-            @Bind("txnId") Long txnId);
-
-
-    @SqlUpdate("SET @txn = :txnId; "
-
-            // edges
-            + "INSERT INTO edge (id, txn_start, txn_end, v_out, v_in, label, edge_order) "
-            + "SELECT id, s_id, 0, v_out, v_in, label, edge_order "
-            + "FROM sess_edge "
-            + "WHERE s_id = @txn "
-            + "AND state = 'NEW'; "
-
-            + "INSERT INTO edge (id, txn_start, txn_end, v_out, v_in, label, edge_order) "
-            + "SELECT id, s_id, 0, v_out, v_in, label, edge_order "
-            + "FROM sess_edge "
-            + "WHERE s_id = @txn "
-            + "AND state = 'MOD'; "
-
-            // vertices
-            + "INSERT INTO vertex (id, txn_start, txn_end) "
-            + "SELECT id, s_id, 0 "
-            + "FROM sess_vertex "
-            + "WHERE s_id = @txn "
-            + "AND state = 'NEW'; "
-
-            + "INSERT INTO vertex (id, txn_start, txn_end) "
-            + "SELECT id, s_id, 0 "
-            + "FROM sess_vertex "
-            + "WHERE s_id = @txn "
-            + "AND state = 'MOD'; "
-
-            // properties
-            + "INSERT INTO property (id, txn_start, txn_end, name, type, value) "
-            + "SELECT p.id, p.s_id, 0, p.name, p.type, p.value "
-            + "FROM sess_property p, sess_vertex v "
-            + "WHERE p.s_id = @txn "
-            + "AND v.s_id = @txn "
-            + "AND v.id = p.id "
-            + "AND v.state = 'NEW'; "
-
-            + "INSERT INTO property (id, txn_start, txn_end, name, type, value) "
-            + "SELECT p.id, p.s_id, 0, p.name, p.type, p.value "
-            + "FROM sess_property p, sess_vertex v "
-            + "WHERE p.s_id = @txn "
-            + "AND v.s_id = @txn "
-            + "AND v.id = p.id "
-            + "AND v.state = 'MOD'; "
-
-            + "INSERT INTO property (id, txn_start, txn_end, name, type, value) "
-            + "SELECT p.id, p.s_id, 0, p.name, p.type, p.value "
-            + "FROM sess_property p, sess_edge e "
-            + "WHERE p.s_id = @txn "
-            + "AND e.s_id = @txn "
-            + "AND e.id = p.id "
-            + "AND e.state = 'NEW'; "
-
-            + "INSERT INTO property (id, txn_start, txn_end, name, type, value) "
-            + "SELECT p.id, p.s_id, 0, p.name, p.type, p.value "
-            + "FROM sess_property p, sess_edge e "
-            + "WHERE p.s_id = @txn "
-            + "AND e.s_id = @txn "
-            + "AND e.id = p.id "
-            + "AND e.state = 'MOD'; ")
-    public abstract void startElements(
-            @Bind("txnId") Long txnId);
-
-
     public abstract void close();
 
-
-    @SqlUpdate("SET @sessId = :sessId; " +
-
-            "DELETE FROM sess_vertex " +
-            "WHERE s_id = @sessId; " +
-
-            "DELETE FROM sess_edge " +
-            "WHERE s_id = @sessId; " +
-
-            "DELETE FROM sess_property " +
-            "WHERE s_id = @sessId; ")
-    public abstract void clearSession(
-            @Bind("sessId") Long sessId);
 
     @SqlUpdate("SET @sessId = :sessId; " +
 
@@ -1627,7 +1297,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
                 }
             }
         }
-        preparedBatch.execute();   
+        preparedBatch.execute();
     }
 
     public void suspendIntoNodeTable(Long sessId, State state, Set<AmberVertex> set) {
@@ -1647,7 +1317,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             preparedBatchPart.bind("id",         v.getId());
             preparedBatchPart.bind("txn_start",  v.getTxnStart());
             preparedBatchPart.bind("txn_end",    v.getTxnEnd());
-            preparedBatchPart.bind("type",       v.getProperty("type"));
+            preparedBatchPart.bind("type",       v.getProperties().get("type"));
             if (state != DEL) {
                 for (String field: nodeFields) {
                     bindField(v, preparedBatchPart, field);
@@ -1663,7 +1333,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
         if (fieldMappingReverse.containsKey(field)) {
             mappedField = fieldMappingReverse.get(field);
         }
-        preparedBatchPart.bind(field, v.getProperty(mappedField));
+        preparedBatchPart.bind(field, v.getProperties().get(mappedField));
     }
     
     public void suspendIntoFlatEdgeTable(Long sessId, State state, Set<AmberEdge> set) {
@@ -1684,7 +1354,7 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             preparedBatchPart.bind("label",      v.getLabel());
         }
         preparedBatch.execute();
-        
+
     }
 
     public void suspendIntoFlatEdgeSpecificTable(Long sessId, State state, String table, Set<AmberEdge> set) {
@@ -1712,12 +1382,12 @@ public abstract class AmberDao implements Transactional<AmberDao>, GetHandle {
             preparedBatchPart.bind("label",       v.getLabel());
             if (state != DEL) {
                 for (String field: fields) {
-                    preparedBatchPart.bind(field,    v.getProperty(field));
+                    preparedBatchPart.bind(field,    v.getProperties().get(field));
                 }
             }
         }
         preparedBatch.execute();
-        
+
     }
 
     private List<String> format(Collection<String> strings, String format) {

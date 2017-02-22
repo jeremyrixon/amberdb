@@ -1,53 +1,35 @@
 package amberdb;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import amberdb.graph.AmberGraph;
+import amberdb.model.*;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Graph;
+import com.tinkerpop.blueprints.Vertex;
+import doss.CorruptBlobStoreException;
+import doss.local.LocalBlobStore;
+import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Graph;
-import com.tinkerpop.blueprints.Vertex;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.stream.Stream;
 
-import doss.CorruptBlobStoreException;
-import doss.local.LocalBlobStore;
-import amberdb.graph.AmberGraph;
-import amberdb.model.Copy;
-import amberdb.model.Page;
-import amberdb.model.Tag;
-import amberdb.model.Work;
-import amberdb.model.AliasItem;
-import amberdb.AmberSession;
+import static org.junit.Assert.*;
 
 public class AmberSessionTest {
 
     public AmberSession sess;
     Path fileLocation = Paths.get("src/test/resources/hello.txt");
     Path dossLocation;
+    private AmberSession sessionWithLookups;
 
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
@@ -61,11 +43,86 @@ public class AmberSessionTest {
             v.remove();
         }
         sess.commit();
+
+        AmberDb adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:" + tmpFolder.getRoot() + "persist;DATABASE_TO_UPPER=false", "lookups", "lookups"), tmpFolder.getRoot().toPath());
+        sessionWithLookups = adb.begin();
     }
 
     @After
     public void tearDown() throws IOException {
         if (sess != null) sess.close();
+    }
+
+    @Test
+    public void getHierarchySummaryForWorkShouldRetrieveAllAncestorsOfTheRequestedWorkAndItself() throws Exception {
+        Work work = sessionWithLookups.addWork();
+        Work parent = sessionWithLookups.addWork();
+        work.setParent(parent);
+        Work grandparent = sessionWithLookups.addWork();
+        parent.setParent(grandparent);
+        Work greatGrandParent = sessionWithLookups.addWork();
+        grandparent.setParent(greatGrandParent);
+        Work sibling = sessionWithLookups.addWork();
+        sibling.setParent(parent);
+        Work uncle = sessionWithLookups.addWork();
+        uncle.setParent(grandparent);
+
+        sessionWithLookups.commit();
+
+        List<WorkSummary> hierarchy = sessionWithLookups.getHierarchySummaryForWork(work.getId());
+
+        assertEquals("The hierarchy should not include siblings or uncles, cousins, etc", 4, hierarchy.size());
+        assertEquals("The great grandparent should be first", greatGrandParent.getId(), hierarchy.get(0).getId());
+        assertEquals("The grandparent should be second", grandparent.getId(), hierarchy.get(1).getId());
+        assertEquals("The parent should be third", parent.getId(), hierarchy.get(2).getId());
+        assertEquals("The requested work should be last", work.getId(), hierarchy.get(3).getId());
+    }
+
+    @Test
+    public void getHierarchySummaryForWorkShouldLimitTheDepth() throws Exception {
+        Work work1 = sessionWithLookups.addWork();
+        Work work2 = sessionWithLookups.addWork();
+        work2.setParent(work1);
+        Work work3 = sessionWithLookups.addWork();
+        work3.setParent(work2);
+        Work work4 = sessionWithLookups.addWork();
+        work4.setParent(work3);
+        Work work5 = sessionWithLookups.addWork();
+        work5.setParent(work4);
+        Work work6 = sessionWithLookups.addWork();
+        work6.setParent(work5);
+
+        sessionWithLookups.commit();
+
+        List<WorkSummary> hierarchy = sessionWithLookups.getHierarchySummaryForWork(work6.getId(), 3);
+
+        assertEquals(3, hierarchy.size());
+        assertEquals("The 3rd ancestor should be first", work4.getId(), hierarchy.get(0).getId());
+        assertEquals("The requested work should be last", work6.getId(), hierarchy.get(2).getId());
+    }
+
+    @Test
+    public void getHierarchySummaryForWorkShouldReturnTheRequestedWorkEvenIfItHasNoParent() throws Exception {
+        Work work = sessionWithLookups.addWork();
+
+        sessionWithLookups.commit();
+
+        List<WorkSummary> hierarchy = sessionWithLookups.getHierarchySummaryForWork(work.getId());
+
+        assertEquals(1, hierarchy.size());
+        assertEquals("The work should be first", work.getId(), hierarchy.get(0).getId());
+    }
+
+    @Test
+    public void getHierarchySummaryForWorkShouldReturnAnEmptyListIfTheWorkDoesNotExist() throws Exception {
+        sessionWithLookups.addWork();
+        sessionWithLookups.addWork();
+
+        sessionWithLookups.commit();
+
+        List<WorkSummary> hierarchy = sessionWithLookups.getHierarchySummaryForWork(666L);
+
+        assertEquals(0, hierarchy.size());
     }
 
     @Test
@@ -397,5 +454,35 @@ public class AmberSessionTest {
                 assertTrue(record.getAlias().contains(alia));
             }
         }
+    }
+    
+    @Test 
+    public void testLoadWorksInSession() throws IOException{
+       Work book = makeBook();
+       sess.suspend();
+       try (AmberSession reportSess = new AmberSession(LocalBlobStore.open(dossLocation))) {
+           Stream<Work> works = reportSess.loadWorksInSession(Arrays.asList(book.getId()));
+           works.forEach(work -> {
+               assertEquals(book.getId(), work.getId());
+               assertEquals(book.getBibLevel(), work.getBibLevel());
+           });
+       }
+       sess.deleteWork(book);
+       sess.commit();
+    }
+
+    @Test 
+    public void testLoadWorks() throws IOException{
+       Work book = makeBook();
+       sess.commit();
+       try (AmberSession reportSess = new AmberSession(LocalBlobStore.open(dossLocation))) {
+           Stream<Work> works = reportSess.loadWorks(Arrays.asList(book.getId()));
+           works.forEach(work -> {
+               assertEquals(book.getId(), work.getId());
+               assertEquals(book.getBibLevel(), work.getBibLevel());
+           });
+       }
+       sess.deleteWork(book);
+       sess.commit();
     }
 }
