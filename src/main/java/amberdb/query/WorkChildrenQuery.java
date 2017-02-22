@@ -154,7 +154,7 @@ public class WorkChildrenQuery extends AmberQueryBase {
         " AND e.label = 'isPartOf' " +
         " AND p.id = v.id " +
         " AND p.type IN " + workNotSectionInList + " " +
-        " ORDER BY e.edge_order, e.id " +
+        " ORDER BY e.edge_order " +
         " LIMIT " + start + "," + num + "; ";
     }
     
