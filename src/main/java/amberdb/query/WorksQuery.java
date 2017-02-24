@@ -150,7 +150,7 @@ public class WorksQuery {
             String sql = "" +
                     "SELECT t1.time, t1.user, t1.operation, t2.transaction_id, t2.vertex_id " +
                     "FROM transaction t1, " +
-                    " (SELECT t.id transaction_id, v.id vertex_id from transaction t, node v ORDER BY t.time DESC, t.id DESC LIMIT 1" +
+                    " (SELECT MAX(t.id) transaction_id, v.id vertex_id from transaction t, node v " +
                     " WHERE t.id = v.txn_start and v.id in (" + Joiner.on(",").join(workIds) + ") group by v.id) t2 " +
                     "WHERE t1.id = t2.transaction_id ";
             return getTransactions(sess, sql);
