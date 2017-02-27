@@ -1163,12 +1163,12 @@ public abstract class LookupsSchema {
     public abstract void updateMaterialTypeForToolsGroup2(@Bind("materialTypeId")Long materialTypeId);
 
     @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
-            + "('creativeCommons', 'CC BY', 'Attribution'),"
-            + "('creativeCommons', 'CC BY-SA', 'Attribution-Share Alike'),"
-            + "('creativeCommons', 'CC BY-ND', 'Attribution-No Derivatives'),"
-            + "('creativeCommons', 'CC BY-NC', 'Attribution-NonCommercial'),"
-            + "('creativeCommons', 'CC BY-NC-SA', 'Attribution-NonCommercial Share Alike'),"
-            + "('creativeCommons', 'CC BY-NC-ND', 'Attribution-NonCommercial-No Derivatives')")
+            + "('creativeCommons', 'CC BY', 'Attribution (CC BY)'),"
+            + "('creativeCommons', 'CC BY-SA', 'Attribution-Share Alike (CC BY-SA)'),"
+            + "('creativeCommons', 'CC BY-ND', 'Attribution-No Derivatives (CC BY-ND)'),"
+            + "('creativeCommons', 'CC BY-NC', 'Attribution-NonCommercial (CC BY-NC'),"
+            + "('creativeCommons', 'CC BY-NC-SA', 'Attribution-NonCommercial Share Alike (CC BY-NC-SA)'),"
+            + "('creativeCommons', 'CC BY-NC-ND', 'Attribution-NonCommercial-No Derivatives (CC BY-NC-ND)')")
     protected abstract void seedCreativeCommonsLookups();
     
     public void createLookupsSchema() {
