@@ -1,23 +1,15 @@
 package amberdb.model;
 
-import static amberdb.graph.BranchType.BRANCH_FROM_ALL;
-import static amberdb.graph.BranchType.BRANCH_FROM_PREVIOUS;
-
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import amberdb.AmberSession;
+import amberdb.DataIntegrityException;
+import amberdb.InvalidSubtypeException;
+import amberdb.enums.CopyRole;
+import amberdb.enums.CopyType;
+import amberdb.enums.SubType;
+import amberdb.graph.AmberGraph;
+import amberdb.graph.AmberQuery;
+import amberdb.graph.AmberVertex;
+import amberdb.relation.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,24 +30,14 @@ import com.tinkerpop.frames.annotations.gremlin.GremlinParam;
 import com.tinkerpop.frames.modules.javahandler.JavaHandler;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerContext;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
-
-import amberdb.AmberSession;
-import amberdb.DataIntegrityException;
-import amberdb.InvalidSubtypeException;
-import amberdb.enums.CopyRole;
-import amberdb.enums.CopyType;
-import amberdb.enums.SubType;
-import amberdb.graph.AmberGraph;
-import amberdb.graph.AmberQuery;
-import amberdb.graph.AmberVertex;
-import amberdb.relation.Acknowledge;
-import amberdb.relation.DeliveredOn;
-import amberdb.relation.DescriptionOf;
-import amberdb.relation.IsCopyOf;
-import amberdb.relation.IsPartOf;
-import amberdb.relation.Represents;
-import amberdb.util.WorkUtils;
 import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.*;
+
+import static amberdb.graph.BranchType.BRANCH_FROM_ALL;
+import static amberdb.graph.BranchType.BRANCH_FROM_PREVIOUS;
 
 /**
  * Any logical work that is collected or created by the library such as a book,
@@ -257,6 +239,12 @@ public interface Work extends Node {
 
     @Property("title")
     void setTitle(String title);
+
+    @Property("creativeCommons")
+    String getCreativeCommons();
+
+    @Property("creativeCommons")
+    void setCreativeCommons(String creativeCommons);
 
     @Property("creator")
     String getCreator();
