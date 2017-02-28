@@ -8,7 +8,8 @@ public enum CreativeCommons {
     ATTRIBUTION_NODERIVATIVES("CC BY-ND", "Attribution-NoDerivatives (CC BY-ND)"),
     ATTRIBUTION_NONCOMMERCIAL("CC BY-NC", "Attribution-NonCommercial (CC BY-NC)"),
     ATTRIBUTION_NONCOMMERCIAL_SHAREALIKE("CC BY-NC-SA", "Attribution-NonCommercial-ShareAlike (CC BY-NC-SA)"),
-    ATTRIBUTION_NONCOMMERCIAL_NODERIVATIVES("CC BY-NC-ND", "Attribution-NonCommercial-NoDerivatives (CC BY-NC-ND)");
+    ATTRIBUTION_NONCOMMERCIAL_NODERIVATIVES("CC BY-NC-ND", "Attribution-NonCommercial-NoDerivatives (CC BY-NC-ND)"),
+    NO_LICENSE("all rights reserved copyright", "No license (all rights reserved copyright)");
 
     private final String code;
     private final String display;
@@ -20,6 +21,10 @@ public enum CreativeCommons {
 
     public String display() {
         return this.display;
+    }
+
+    public String code() {
+        return this.code;
     }
 
     public static CreativeCommons fromString(String code) {
