@@ -1168,7 +1168,8 @@ public abstract class LookupsSchema {
             + "('creativeCommons', 'CC BY-ND', 'Attribution-No Derivatives (CC BY-ND)'),"
             + "('creativeCommons', 'CC BY-NC', 'Attribution-NonCommercial (CC BY-NC'),"
             + "('creativeCommons', 'CC BY-NC-SA', 'Attribution-NonCommercial Share Alike (CC BY-NC-SA)'),"
-            + "('creativeCommons', 'CC BY-NC-ND', 'Attribution-NonCommercial-No Derivatives (CC BY-NC-ND)')")
+            + "('creativeCommons', 'CC BY-NC-ND', 'Attribution-NonCommercial-No Derivatives (CC BY-NC-ND)'),"
+            + "('creativeCommons', 'all rights reserved copyright', 'No license (all rights reserved copyright)')")
     protected abstract void seedCreativeCommonsLookups();
     
     public void createLookupsSchema() {
