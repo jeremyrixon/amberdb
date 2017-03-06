@@ -114,7 +114,7 @@ public class Jp2Converter extends ExternalToolConverter {
         try {
             if ("image/jpeg".equals(imgInfo.mimeType)) {
                 // Jpeg  - Convert to uncompressed tiff so kakadu can convert it to jp2000
-                convertUncompress(srcFilePath, null, tmpFilePath);
+                convertUncompress(srcFilePath, null, tmpFilePath, "-strip");
             } else if (imgInfo.isDngFile()) {
                 // DNG - Convert to uncompressed tiff so kakadu can convert it to jp2000
                 // We need to explicitly tell ImageMagick that the input file is a DNG, because DNGs often look like
