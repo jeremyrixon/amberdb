@@ -36,7 +36,7 @@ public class AmberEdgeBatch {
         }
         label.add(edge.getLabel());
         order.add(edge.order);
-        this.state.add(state.name());
+        this.state.add(state == null? null : state.name());
     }
     
     
