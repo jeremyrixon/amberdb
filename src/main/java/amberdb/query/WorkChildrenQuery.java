@@ -47,7 +47,7 @@ public class WorkChildrenQuery extends AmberQueryBase {
     }
     
     public List<Work> getChildRangeSorted(Long workId, int start, int num, String sortPropertyName, boolean sortForward) {
-        if (StringUtils.isBlank(sortPropertyName) || !isValidSortFieldName(sortPropertyName)) {
+        if (StringUtils.isBlank(sortPropertyName) || SortField.fromString(sortPropertyName) == null) {
             return getChildRange(workId, start, num);
         }
         List<Work> children = getChildren(getAddChildrenWorkSortBySql(workId, start, num, sortPropertyName, sortForward));
@@ -359,24 +359,4 @@ public class WorkChildrenQuery extends AmberQueryBase {
         }
     }
 
-    /**
-     * All Sorting Fields' names must be defined in SortField enum. The other
-     * fields have been used for JUnit test.
-     * 
-     * @param sortFieldName
-     *            the sorting field name
-     * @return true if the sortFieldName is valid, otherwise, return false.
-     */
-    private boolean isValidSortFieldName(String sortFieldName) {
-        if (SortField.fromString(sortFieldName) != null) {
-            return true;
-        }
-        if (sortFieldName.equalsIgnoreCase("title")) {
-            return true;
-        }
-        if (sortFieldName.equalsIgnoreCase("bibId")) {
-            return true;
-        }
-        return false;
-    }
 }
