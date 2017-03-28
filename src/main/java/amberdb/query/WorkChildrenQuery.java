@@ -7,6 +7,7 @@ import amberdb.enums.CopyRole;
 import amberdb.graph.AmberQueryBase;
 import amberdb.model.Section;
 import amberdb.model.Work;
+import amberdb.model.sort.SortField;
 import amberdb.model.sort.WorkComparator;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -46,7 +47,7 @@ public class WorkChildrenQuery extends AmberQueryBase {
     }
     
     public List<Work> getChildRangeSorted(Long workId, int start, int num, String sortPropertyName, boolean sortForward) {
-        if (StringUtils.isBlank(sortPropertyName)){
+        if (StringUtils.isBlank(sortPropertyName) || !isValidSortFieldName(sortPropertyName)) {
             return getChildRange(workId, start, num);
         }
         List<Work> children = getChildren(getAddChildrenWorkSortBySql(workId, start, num, sortPropertyName, sortForward));
@@ -358,4 +359,24 @@ public class WorkChildrenQuery extends AmberQueryBase {
         }
     }
 
+    /**
+     * All Sorting Fields' names must be defined in SortField enum. The other
+     * fields have been used for JUnit test.
+     * 
+     * @param sortFieldName
+     *            the sorting field name
+     * @return true if the sortFieldName is valid, otherwise, return false.
+     */
+    private boolean isValidSortFieldName(String sortFieldName) {
+        if (SortField.fromString(sortFieldName) != null) {
+            return true;
+        }
+        if (sortFieldName.equalsIgnoreCase("title")) {
+            return true;
+        }
+        if (sortFieldName.equalsIgnoreCase("bibId")) {
+            return true;
+        }
+        return false;
+    }
 }
