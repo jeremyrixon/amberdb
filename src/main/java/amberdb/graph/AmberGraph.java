@@ -1030,4 +1030,20 @@ public class AmberGraph extends BaseGraph
         	}
         }
 	}
+	
+    public Iterable<Vertex> getVerticesByAliasValue(String key, String value) {
+        if (!localMode) {
+            AmberVertexQuery avq = new AmberVertexQuery(this); 
+            avq.executeAliasSearch(value);
+        }
+        
+        List<Vertex> vertices = new ArrayList<>();
+        for (Vertex vertex : graphVertices.values()) {
+            String s = vertex.getProperty(key);
+            if (s != null && s.contains("\""+value+"\"")) {
+                vertices.add(vertex);
+            }
+        }
+        return vertices;        
+    }   
 }
