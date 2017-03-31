@@ -192,7 +192,7 @@ public class AmberVertexQuery extends AmberQueryBase {
     public List<Vertex> executeAliasSearch(String value) {
         String sql = "select * from node left join alternate_pi on alternate_pi.obj_id = node.id where alternate_pi.legacy_id = :value";
         try (Handle h = graph.dbi().open()) {
-            Query<Map<String, Object>> q = h.begin().createQuery(sql).bind("value", "%" + value + "%");
+            Query<Map<String, Object>> q = h.begin().createQuery(sql).bind("value", value);
             return getVertices(q.map(new AmberVertexMapper(graph)).list());
         }
     }
