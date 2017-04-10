@@ -341,7 +341,7 @@ public interface Copy extends Node {
                     file = addImageFile();
                 } else if (mt == MaterialType.SOUND) {
                     file = addSoundFile();
-                } else if (mt == MaterialType.MOVINGIMAGE) {
+                } else {
                     file = addMovingImageFile();
                 }
                 this.setMaterialType(mt.code());

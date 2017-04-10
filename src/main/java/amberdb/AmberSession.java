@@ -7,16 +7,24 @@ import static amberdb.graph.BranchType.BRANCH_FROM_PREVIOUS;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import javax.sql.DataSource;
 
-import amberdb.model.*;
-import amberdb.sql.ListLu;
 import org.apache.commons.lang.StringUtils;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.skife.jdbi.v2.DBI;
+import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.Query;
+import org.skife.jdbi.v2.util.LongMapper;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -43,13 +51,28 @@ import amberdb.graph.AmberMultipartQuery.QueryClause;
 import amberdb.graph.AmberPreCommitHook;
 import amberdb.graph.AmberQuery;
 import amberdb.graph.AmberTransaction;
+import amberdb.model.CameraData;
+import amberdb.model.Copy;
+import amberdb.model.Description;
+import amberdb.model.EADWork;
+import amberdb.model.File;
+import amberdb.model.GeoCoding;
+import amberdb.model.IPTC;
+import amberdb.model.ImageFile;
+import amberdb.model.MovingImageFile;
+import amberdb.model.Page;
+import amberdb.model.Party;
+import amberdb.model.Section;
+import amberdb.model.SoundFile;
+import amberdb.model.Tag;
+import amberdb.model.Work;
+import amberdb.model.WorkSummary;
 import amberdb.query.ModifiedObjectsQueryRequest;
 import amberdb.query.ModifiedObjectsQueryResponse;
+import amberdb.sql.ListLu;
 import amberdb.sql.Lookups;
 import amberdb.version.VersionedVertex;
 import doss.BlobStore;
-import org.skife.jdbi.v2.Handle;
-import org.skife.jdbi.v2.Query;
 
 
 public class AmberSession implements AutoCloseable {
@@ -1134,5 +1157,16 @@ public class AmberSession implements AutoCloseable {
     
     public List<Vertex> loadMultiLevelWorks(final List<Long> ids) {
         return loadMultiLevelWorks(ids.toArray(new Long[ids.size()]));
+    }
+    
+    
+    
+    public <T> List<T> findModelByAliasValue(String propertyName, String value, Class<T> T) {
+        List<T> nodes = new ArrayList<>();
+        for (Vertex match : getAmberGraph().getVerticesByAliasValue(propertyName, value)) {
+            // add matched vertex from framed graph
+            nodes.add(graph.getVertex(match.getId(), T));
+        }
+        return nodes;
     }
 }
