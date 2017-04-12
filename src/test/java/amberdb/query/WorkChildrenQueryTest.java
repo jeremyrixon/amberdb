@@ -85,32 +85,32 @@ public class WorkChildrenQueryTest extends AbstractDatabaseIntegrationTest {
         // add children with properties that are not in the same sort order as the Order property or each other
         Work child1 = amberSession.addWork();
         child1.setOrder(1);
-        child1.setTitle("title5"); 
-        child1.setBibId("bibId2");
+        child1.setSubUnitType("subUnitType5");
+        child1.setSheetName("sheetName2");
         parent.addChild(child1);
         
         Work child2 = amberSession.addWork();
         child2.setOrder(2);
-        child2.setTitle("title4");
-        child2.setBibId("bibId5");
+        child2.setSubUnitType("subUnitType4");
+        child2.setSheetName("sheetName5");
         parent.addChild(child2);
         
         Work child3 = amberSession.addWork();
         child3.setOrder(3);
-        child3.setTitle("title3");
-        child3.setBibId("bibId1");
+        child3.setSubUnitType("subUnitType3");
+        child3.setSheetName("sheetName1");
         parent.addChild(child3);
         
         Work child4 = amberSession.addWork();
         child4.setOrder(4);
-        child4.setTitle("title2");
-        child4.setBibId("bibId4");
+        child4.setSubUnitType("subUnitType2");
+        child4.setSheetName("sheetName4");
         parent.addChild(child4);
         
         Work child5 = amberSession.addWork();
         child5.setOrder(5);
-        child5.setTitle("title1");
-        child5.setBibId("bibId3");
+        child5.setSubUnitType("subUnitType1");
+        child5.setSheetName("sheetName3");
         child5.setEndDate(new Date());
         child5.setIsMissingPage(true);
         parent.addChild(child5);
@@ -119,21 +119,21 @@ public class WorkChildrenQueryTest extends AbstractDatabaseIntegrationTest {
 
         WorkChildrenQuery wcq = new WorkChildrenQuery(amberSession);
 
-        // sort by Title should be child 5, 4, 3, 2, 1
-        List<Work> sortedByTitle = wcq.getChildRangeSorted(parent.getId(), 0, 10, "title", true);
-        assertEquals(child5.getId(), sortedByTitle.get(0).getId());
-        assertEquals(child4.getId(), sortedByTitle.get(1).getId());
-        assertEquals(child3.getId(), sortedByTitle.get(2).getId());
-        assertEquals(child2.getId(), sortedByTitle.get(3).getId());
-        assertEquals(child1.getId(), sortedByTitle.get(4).getId());
+        // sort by subUnitType should be child 5, 4, 3, 2, 1
+        List<Work> sortedBySubUnitType = wcq.getChildRangeSorted(parent.getId(), 0, 10, "subUnitType", true);
+        assertEquals(child5.getId(), sortedBySubUnitType.get(0).getId());
+        assertEquals(child4.getId(), sortedBySubUnitType.get(1).getId());
+        assertEquals(child3.getId(), sortedBySubUnitType.get(2).getId());
+        assertEquals(child2.getId(), sortedBySubUnitType.get(3).getId());
+        assertEquals(child1.getId(), sortedBySubUnitType.get(4).getId());
 
-        // sort by bibId should be child 3, 1, 5, 4, 2
-        List<Work> sortedByBibId = wcq.getChildRangeSorted(parent.getId(), 0, 10, "bibId", true);
-        assertEquals(child3.getId(), sortedByBibId.get(0).getId());
-        assertEquals(child1.getId(), sortedByBibId.get(1).getId());
-        assertEquals(child5.getId(), sortedByBibId.get(2).getId());
-        assertEquals(child4.getId(), sortedByBibId.get(3).getId());
-        assertEquals(child2.getId(), sortedByBibId.get(4).getId());
+        // sort by sheetName should be child 3, 1, 5, 4, 2
+        List<Work> sortedBySheetName = wcq.getChildRangeSorted(parent.getId(), 0, 10, "sheetName", true);
+        assertEquals(child3.getId(), sortedBySheetName.get(0).getId());
+        assertEquals(child1.getId(), sortedBySheetName.get(1).getId());
+        assertEquals(child5.getId(), sortedBySheetName.get(2).getId());
+        assertEquals(child4.getId(), sortedBySheetName.get(3).getId());
+        assertEquals(child2.getId(), sortedBySheetName.get(4).getId());
     }
 
     @Test
@@ -144,33 +144,33 @@ public class WorkChildrenQueryTest extends AbstractDatabaseIntegrationTest {
         // add children with properties that are not in the same sort order as the Order property or each other
         Work child1 = amberSession.addWork();
         child1.setOrder(1);
-        child1.setTitle("title5");
+        child1.setSheetName("sheetName5");
         parent.addChild(child1);
 
         Work child2 = amberSession.addWork();
         child2.setOrder(2);
-        child2.setTitle("title4");
+        child2.setSheetName("sheetName4");
         parent.addChild(child2);
 
         Work child3 = amberSession.addWork();
         child3.setOrder(3);
-        child3.setTitle(null);
-        child3.setBibId("bibId1");
+        child3.setSheetName(null);
+        child3.setSubUnitType("subUnitType1");
         parent.addChild(child3);
 
         amberSession.commit();
 
         WorkChildrenQuery wcq = new WorkChildrenQuery(amberSession);
 
-        List<Work> sortedByTitle = wcq.getChildRangeSorted(parent.getId(), 0, 10, "title", true); // ascending
-        assertEquals(child2.getId(), sortedByTitle.get(0).getId());
-        assertEquals(child1.getId(), sortedByTitle.get(1).getId());
-        assertEquals(child3.getId(), sortedByTitle.get(2).getId()); // null title
+        List<Work> sortedBySheetName = wcq.getChildRangeSorted(parent.getId(), 0, 10, "sheetName", true); // ascending
+        assertEquals(child2.getId(), sortedBySheetName.get(0).getId());
+        assertEquals(child1.getId(), sortedBySheetName.get(1).getId());
+        assertEquals(child3.getId(), sortedBySheetName.get(2).getId()); // null sheetName
 
-        sortedByTitle = wcq.getChildRangeSorted(parent.getId(), 0, 10, "title", false); // descending
-        assertEquals(child1.getId(), sortedByTitle.get(0).getId());
-        assertEquals(child2.getId(), sortedByTitle.get(1).getId());
-        assertEquals(child3.getId(), sortedByTitle.get(2).getId()); // null title
+        sortedBySheetName = wcq.getChildRangeSorted(parent.getId(), 0, 10, "sheetName", false); // descending
+        assertEquals(child1.getId(), sortedBySheetName.get(0).getId());
+        assertEquals(child2.getId(), sortedBySheetName.get(1).getId());
+        assertEquals(child3.getId(), sortedBySheetName.get(2).getId()); // null sheetName
     }
     
     @Test
@@ -181,15 +181,15 @@ public class WorkChildrenQueryTest extends AbstractDatabaseIntegrationTest {
         // add children with properties that are not in the same sort order as the Order property or each other
         Work child1 = amberSession.addWork();
         child1.setOrder(1);
-        String title = StringUtils.leftPad("", WorkChildrenQuery.TEMP_TABLE_SORT_FIELD_LENGTH + 20, "a");
-        child1.setTitle(title);
+        String holdingNumber = StringUtils.leftPad("", WorkChildrenQuery.TEMP_TABLE_SORT_FIELD_LENGTH + 20, "a");
+        child1.setHoldingNumber(holdingNumber);
         parent.addChild(child1);
 
         amberSession.commit();
 
         WorkChildrenQuery wcq = new WorkChildrenQuery(amberSession);
 
-        wcq.getChildRangeSorted(parent.getId(), 0, 10, "title", true);
+        wcq.getChildRangeSorted(parent.getId(), 0, 10, "holdingNumber", true);
 
         try (Handle handle = new DBI(amberSrc).open()) {
             List<Map<String, Object>> tempTableContents = handle.select("select * from v1");

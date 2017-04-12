@@ -7,6 +7,7 @@ import amberdb.enums.CopyRole;
 import amberdb.graph.AmberQueryBase;
 import amberdb.model.Section;
 import amberdb.model.Work;
+import amberdb.model.sort.SortField;
 import amberdb.model.sort.WorkComparator;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -46,7 +47,7 @@ public class WorkChildrenQuery extends AmberQueryBase {
     }
     
     public List<Work> getChildRangeSorted(Long workId, int start, int num, String sortPropertyName, boolean sortForward) {
-        if (StringUtils.isBlank(sortPropertyName)){
+        if (StringUtils.isBlank(sortPropertyName) || SortField.fromString(sortPropertyName) == null) {
             return getChildRange(workId, start, num);
         }
         List<Work> children = getChildren(getAddChildrenWorkSortBySql(workId, start, num, sortPropertyName, sortForward));

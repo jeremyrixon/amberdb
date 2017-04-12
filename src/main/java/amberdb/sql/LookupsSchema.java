@@ -1,12 +1,12 @@
 package amberdb.sql;
 
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public abstract class LookupsSchema {
@@ -1161,6 +1161,16 @@ public abstract class LookupsSchema {
 
     @SqlUpdate("UPDATE tools SET materialTypeId = :materialTypeId where id = 11")
     public abstract void updateMaterialTypeForToolsGroup2(@Bind("materialTypeId")Long materialTypeId);
+
+    @SqlUpdate("INSERT INTO lookups (name, code, value) VALUES"
+            + "('creativeCommons', 'CC BY', 'Attribution (CC BY)'),"
+            + "('creativeCommons', 'CC BY-SA', 'Attribution-Share Alike (CC BY-SA)'),"
+            + "('creativeCommons', 'CC BY-ND', 'Attribution-No Derivatives (CC BY-ND)'),"
+            + "('creativeCommons', 'CC BY-NC', 'Attribution-NonCommercial (CC BY-NC'),"
+            + "('creativeCommons', 'CC BY-NC-SA', 'Attribution-NonCommercial Share Alike (CC BY-NC-SA)'),"
+            + "('creativeCommons', 'CC BY-NC-ND', 'Attribution-NonCommercial-No Derivatives (CC BY-NC-ND)'),"
+            + "('creativeCommons', 'all rights reserved copyright', 'No license (all rights reserved copyright)')")
+    protected abstract void seedCreativeCommonsLookups();
     
     public void createLookupsSchema() {
         createLookupTable();
@@ -1193,8 +1203,9 @@ public abstract class LookupsSchema {
         seedAccessAgreementReasonForChangeList();
         seedAccessConditionReasonForChangeList();
         seedCommercialStatusReasonForChangeList();
+        seedCreativeCommonsLookups();
     }
-    
+
     public void setupToolsAssociations(List<ListLu> lookups) {
         List<ListLu> toolTypes = filterLookups("toolType", lookups);
         List<ListLu> toolCategories = filterLookups("toolCategory", lookups);
