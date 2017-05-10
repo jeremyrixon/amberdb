@@ -359,7 +359,12 @@ public class WorkChildrenQuery extends AmberQueryBase {
         }
     }
 
-    public List<Long> getChildrenTx(Long workId) {
+    /**
+     * getChildrenTx: Retrieves the list of most recent transactions where the work subrecords have been involved in.
+     * @param workId the id of the work record the subrecords are under
+     * @return a list of the transaction ids where the work subrecords have been involved in.
+     */
+    public List<Long> getChildrenWorkRecordsTx(Long workId) {
         String queryMostRecentTransactions = "select txn_end from flatedge_history where v_in = :workId and label = 'isPartOf' "
                                            + "and txn_start = (select max(txn_start) from flatedge_history where v_in = :workId and label = 'isPartOf')";
         try (Handle h = graph.dbi().open()) {

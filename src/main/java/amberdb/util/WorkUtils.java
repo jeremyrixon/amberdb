@@ -3,14 +3,18 @@ package amberdb.util;
 import java.io.IOException;
 import java.util.Date;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.joda.time.LocalDate;
+import org.skife.jdbi.v2.Handle;
 
+import amberdb.AmberSession;
 import amberdb.enums.AccessCondition;
 import amberdb.enums.CopyrightPolicy;
 import amberdb.enums.DepositType;
 import amberdb.model.Work;
+import amberdb.query.WorkChildrenQuery;
 
 
 public class WorkUtils {
@@ -89,4 +93,20 @@ public class WorkUtils {
         work.setSensitiveMaterial("No");
     }
     
+    /**
+     * UndeleteChildren undelete the children work records under a work
+     * @param work, the work record where the children work records is under
+     * @param amberSession in order to process the undelete children work records
+     */
+    public static void undeleteChildrenWorkRecords(Work work, AmberSession amberSession) {
+        WorkChildrenQuery query = new WorkChildrenQuery(amberSession);
+        List<Long> listTx = query.getChildrenWorkRecordsTx(work.getId());
+        try (Handle h = amberSession.getAmberGraph().dbi().open()) {
+            listTx.forEach(tx -> {
+                h.createCall("CALL undelete_by_txn(?)")
+                .bind(0, tx)
+                .invoke();
+            });
+        }
+    }
 }
