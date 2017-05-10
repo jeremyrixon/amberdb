@@ -98,7 +98,7 @@ public class WorkUtils {
      * @param work, the work record where the children work records is under
      * @param amberSession in order to process the undelete children work records
      */
-    public static void undeleteChildrenWorkRecords(Work work, AmberSession amberSession) {
+    public static int undeleteChildrenWorkRecords(Work work, AmberSession amberSession) {
         WorkChildrenQuery query = new WorkChildrenQuery(amberSession);
         List<Long> listTx = query.getChildrenWorkRecordsTx(work.getId());
         try (Handle h = amberSession.getAmberGraph().dbi().open()) {
@@ -108,5 +108,6 @@ public class WorkUtils {
                 .invoke();
             });
         }
+        return listTx.size();
     }
 }
