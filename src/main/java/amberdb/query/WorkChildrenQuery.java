@@ -359,4 +359,15 @@ public class WorkChildrenQuery extends AmberQueryBase {
         }
     }
 
+    public List<Long> getChildrenTx(Long workId) {
+        String queryMostRecentTransactions = "select txn_end from flatedge_history where v_in = :workId and label = 'isPartOf' "
+                                           + "and txn_start = (select max(txn_start) from flatedge_history where v_in = :workId and label = 'isPartOf')";
+        try (Handle h = graph.dbi().open()) {
+            List<Long> listTx = h.createQuery(queryMostRecentTransactions)
+                                .bind("workId", workId)
+                                .map(LongMapper.FIRST)
+                                .list();
+            return listTx;
+        }
+    }
 }
