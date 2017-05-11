@@ -1,6 +1,7 @@
 package amberdb.util;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -91,6 +92,22 @@ public class WorkUtils {
         work.setAllowHighResdownload(highResDownload);
         work.setAllowOnsiteAccess(allowOnsiteAccess);
         work.setSensitiveMaterial("No");
+    }
+    
+    /**
+     * hasInsteadOfPresentChildrenWorkRecords provide indicator whether the work have children work records
+     *                                        that are not currently present.
+     * @param work
+     * @param amberSession
+     * @return
+     */
+    public static boolean hasInsteadOfPresentChildrenWorkRecords(Work work, AmberSession amberSession) {
+        List<Work> children = work.getPartsOf(new ArrayList<String>());
+        if (children.isEmpty()) {
+            WorkChildrenQuery query = new WorkChildrenQuery(amberSession);
+            return !query.getChildrenWorkRecordsTx(work.getId()).isEmpty();
+        }
+        return false;
     }
     
     /**
