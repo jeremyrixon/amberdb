@@ -107,6 +107,13 @@ public class Jp2Converter extends ExternalToolConverter {
             throw new RuntimeException("Not a tiff, dng or a jpeg file");
         }
 
+
+        // Don't convert file if the colour profile is CMYK ( photometric == 5)
+        if (imgInfo.photometric == 5) {
+            log.info("JP2 convert of {} stopped due to CMYK colour profile", srcFilePath.toString());
+            return;
+        }
+        
         long startTime = System.currentTimeMillis();
 
         Path tmpFilePath = dstFilePath.getParent().resolve("tmp_" + dstFilePath.getFileName() + ".tif");
