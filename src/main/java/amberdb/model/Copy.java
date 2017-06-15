@@ -829,11 +829,11 @@ public interface Copy extends Node {
             // Try to convert it to .jp2
             try {
                 jp2ImgPath = stage.resolve(imgBlobId + ".jp2"); // name the jpeg2000 derivative after the original uncompressed blob
-                jp2c.convertFile(srcImgPath, jp2ImgPath, imgInfoMap, imgFile == null ? "" : imgFile.getFileName());
+                jp2c.convertFileToJp2Image(srcImgPath, jp2ImgPath, imgInfoMap, imgFile == null ? "" : imgFile.getFileName());
             } catch (Exception e1) {
                 // If failed, try to convert it to .jpx
                 jp2ImgPath = stage.resolve(imgBlobId + ".jpx");
-                jp2c.convertFile(srcImgPath, jp2ImgPath, imgInfoMap, imgFile == null ? "" : imgFile.getFileName());
+                jp2c.convertFileToJp2Image(srcImgPath, jp2ImgPath, imgInfoMap, imgFile == null ? "" : imgFile.getFileName());
             }
 
             // NOTE: to return null at this point to cater for TiffEcho and JP2Echo test cases running in Travis env.
