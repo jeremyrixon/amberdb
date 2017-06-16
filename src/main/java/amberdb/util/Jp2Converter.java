@@ -198,7 +198,7 @@ public class Jp2Converter extends ExternalToolConverter {
                 if (imgInfo.photometric == 5) {
                     // Don't convert file if the colour profile is CMYK ( photometric == 5)
                     log.info("JP2 convert of {} stopped due to CMYK colour profile", srcFilePath.toString());
-                    return null;
+                    return false;
                 } else if (imgInfo.samplesPerPixel == 1 && imgInfo.bitsPerSample == 1) {
                     // Bitonal image - Convert to greyscale (8 bit depth)
                     convertBitdepth(srcFilePath, modTiffFilePath, 8);
