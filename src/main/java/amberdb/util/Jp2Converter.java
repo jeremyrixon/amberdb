@@ -72,7 +72,7 @@ public class Jp2Converter extends ExternalToolConverter {
      * @param originalFilename The orginal filename from the source file.
      * @throws Exception Runtime exception if validation fails or fails to create the jp2 file from the command line or even IO exception. 
      */
-    public void convertFileToJp2Image(Path srcFilePath, Path dstFilePath, Map<String, String> imgInfoMap, String originalFilename) throws Exception {
+    public Boolean convertFileToJp2Image(Path srcFilePath, Path dstFilePath, Map<String, String> imgInfoMap, String originalFilename) throws Exception {
         // Validate method params.
         if (dstFilePath == null || dstFilePath.getParent() == null || dstFilePath.getFileName() == null) {
             // Jpeg2000 file must end with .jp2 or .jpx
@@ -88,7 +88,7 @@ public class Jp2Converter extends ExternalToolConverter {
         try {
             ImageInfo imgInfo = new ImageInfo();
             srcFilePath = convertToTiffAndDetermineImageInfo(imgInfo, imgInfoMap, originalFilename, srcFilePath, tmpTiffFilePath);
-            convertTiffToJp2Image(srcFilePath, imgInfo, dstFilePath);
+            return convertTiffToJp2Image(srcFilePath, imgInfo, dstFilePath);
         } finally {
             // Delete tmp file if exists
             Files.deleteIfExists(tmpTiffFilePath);
@@ -104,7 +104,7 @@ public class Jp2Converter extends ExternalToolConverter {
 
         if (imgInfoMap != null && imgInfoMap.size() > 0) {
             // if imgInfoMap has data then the image is already a tiff, therefore update the object.
-            imgInfo.updateImageInfo(imgInfoMap, originalFilename);
+            imgInfo.updateImageInfo(imgInfoMap);
             return srcFilePath;
         }
 
@@ -120,7 +120,7 @@ public class Jp2Converter extends ExternalToolConverter {
         }
 
         // Now update the image info object
-        imgInfo.updateImageInfo(srcFilePath, originalFilename);
+        imgInfo.updateImageInfo(srcFilePath);
         
         return srcFilePath;
     }
@@ -160,9 +160,9 @@ public class Jp2Converter extends ExternalToolConverter {
         
     }
 
-    private void convertTiffToJp2Image(Path srcFilePath, ImageInfo imgInfo, Path dstFilePath) throws Exception {
+    private Boolean convertTiffToJp2Image(Path srcFilePath, ImageInfo imgInfo, Path dstFilePath) throws Exception {
         try {
-            performConvertFile(srcFilePath, imgInfo, dstFilePath);
+            return performConvertFile(srcFilePath, imgInfo, dstFilePath);
         } catch (Exception e) {
             log.warn("Retrying jp2 creation from source {} as the following exception has occurred: {}", srcFilePath.getFileName(), e.getMessage());
             Files.deleteIfExists(dstFilePath);
@@ -170,7 +170,7 @@ public class Jp2Converter extends ExternalToolConverter {
             
             try {
                 convertStripProfile(srcFilePath, tmpFilePath);
-                performConvertFile(tmpFilePath, imgInfo, dstFilePath);
+                return performConvertFile(tmpFilePath, imgInfo, dstFilePath);
             } finally {
                 Files.deleteIfExists(tmpFilePath);
             }
@@ -181,7 +181,7 @@ public class Jp2Converter extends ExternalToolConverter {
      * Convert a tiff image to a jp2 Image. Some modifications my need to occur for the kakadu image converter
      * to work correctly.
      */
-    private void performConvertFile(Path srcFilePath, ImageInfo imgInfo, Path dstFilePath) throws Exception {
+    private Boolean performConvertFile(Path srcFilePath, ImageInfo imgInfo, Path dstFilePath) throws Exception {
 
         // Only convert tiff to jp2
         if (!"image/tiff".equalsIgnoreCase(imgInfo.mimeType)) {
@@ -198,7 +198,7 @@ public class Jp2Converter extends ExternalToolConverter {
                 if (imgInfo.photometric == 5) {
                     // Don't convert file if the colour profile is CMYK ( photometric == 5)
                     log.info("JP2 convert of {} stopped due to CMYK colour profile", srcFilePath.toString());
-                    return;
+                    return null;
                 } else if (imgInfo.samplesPerPixel == 1 && imgInfo.bitsPerSample == 1) {
                     // Bitonal image - Convert to greyscale (8 bit depth)
                     convertBitdepth(srcFilePath, modTiffFilePath, 8);
@@ -238,6 +238,7 @@ public class Jp2Converter extends ExternalToolConverter {
 
         long endTime = System.currentTimeMillis();
         log.debug("***Convert {} to {} took {} milliseconds", srcFilePath.toString(), dstFilePath.toString(), (endTime - startTime));
+        return true;
     }
 
     // Convert the bit depth of an image
@@ -307,11 +308,10 @@ public class Jp2Converter extends ExternalToolConverter {
     }
 
     class ImageInfo {
-        String mimeType, originalFilename;
+        String mimeType;
         int compression, samplesPerPixel, bitsPerSample, photometric;
                 
-        public void updateImageInfo(Map<String, String> imgInfoMap, String originalFilename) {
-            this.originalFilename = originalFilename;
+        public void updateImageInfo(Map<String, String> imgInfoMap) {
             this.mimeType  = imgInfoMap.get("mimeType");
             this.compression = Integer.parseInt(imgInfoMap.get("compression"), 10);
             this.samplesPerPixel = Integer.parseInt(imgInfoMap.get("samplesPerPixel"), 10);
@@ -319,13 +319,12 @@ public class Jp2Converter extends ExternalToolConverter {
             this.photometric = Integer.parseInt(imgInfoMap.get("photometric"), 10);
         }
 
-        public void updateImageInfo(Path filePath, String originalFilename) throws Exception {
-            this.originalFilename = originalFilename;
+        public void updateImageInfo(Path filePath) throws Exception {
             this.mimeType = tika.detect(filePath.toFile());;
             
             // Read image metadata using metadata-extractor - only for tiff
             Metadata metadata = ImageMetadataReader.readMetadata(filePath.toFile());
-            ExifIFD0Directory directory = metadata.getDirectory(ExifIFD0Directory.class);
+            ExifIFD0Directory directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
             if (directory == null) {
                 throw new Exception("Missing ExifIFD0Directory: " + filePath.toString());
             }
