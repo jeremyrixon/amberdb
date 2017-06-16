@@ -33,6 +33,7 @@ public class WorksQuery {
         AmberQuery query = sess.getAmberGraph().newQuery(ids);
         query.branch(BranchType.BRANCH_FROM_PREVIOUS, Arrays.asList(IsPartOf.label), Direction.OUT);
         query.branch(BranchType.BRANCH_FROM_LISTED, Arrays.asList(DeliveredOn.label), Direction.IN, Arrays.asList(0));
+        query.branch(BranchType.BRANCH_FROM_ALL, Arrays.asList(Tags.label), Direction.IN);
         Map<Long, AmberTransaction> firstTransactionMap = getFirstTransactions(sess, ids);
         Map<Long, AmberTransaction> lastTransactionMap = getLastTransactions(sess, ids);
         List<Vertex> verts = query.execute();
@@ -81,6 +82,7 @@ public class WorksQuery {
         query.branch(BranchType.BRANCH_FROM_ALL, new String[] {IsCopyOf.label}, Direction.OUT);
         query.branch(BranchType.BRANCH_FROM_LISTED, Arrays.asList(IsSourceCopyOf.label), Direction.OUT, Arrays.asList(0));
         query.branch(BranchType.BRANCH_FROM_LISTED, Arrays.asList(IsFileOf.label), Direction.IN, Arrays.asList(0));
+		query.branch(BranchType.BRANCH_FROM_LISTED, Arrays.asList(Tags.label), Direction.IN, Arrays.asList(0));
         List<Vertex> vertices = query.execute();
         for (Vertex v : vertices) {
             if (StringUtils.equalsIgnoreCase((String) v.getProperty("type"), "Copy")) {
