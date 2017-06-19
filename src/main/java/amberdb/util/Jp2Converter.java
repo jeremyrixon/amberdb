@@ -324,7 +324,7 @@ public class Jp2Converter extends ExternalToolConverter {
             
             // Read image metadata using metadata-extractor - only for tiff
             Metadata metadata = ImageMetadataReader.readMetadata(filePath.toFile());
-            ExifIFD0Directory directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
+            ExifIFD0Directory directory = metadata.getDirectory(ExifIFD0Directory.class);
             if (directory == null) {
                 throw new Exception("Missing ExifIFD0Directory: " + filePath.toString());
             }
