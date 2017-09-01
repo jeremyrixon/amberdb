@@ -1942,6 +1942,7 @@ public interface Work extends Node {
         @Override
         public boolean hasImageAccessCopy(){
             Copy accessCopy = getCopy(CopyRole.ACCESS_COPY);
+            accessCopy = accessCopy == null ? getCopy(CopyRole.ACCESS_ONLY_COPY) : null;
             return accessCopy != null && accessCopy.getImageFile() != null;
         }
 
