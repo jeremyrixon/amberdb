@@ -38,6 +38,9 @@ import java.util.*;
 
 import static amberdb.graph.BranchType.BRANCH_FROM_ALL;
 import static amberdb.graph.BranchType.BRANCH_FROM_PREVIOUS;
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 /**
  * Any logical work that is collected or created by the library such as a book,
@@ -1358,6 +1361,9 @@ public interface Work extends Node {
     @JavaHandler
     boolean isVoyagerRecord();
 
+    @JavaHandler
+    void addToCommentsExternal(String comment);
+
 
 
 
@@ -2020,5 +2026,24 @@ public interface Work extends Node {
             }
         }
 
+        /**
+         * Appends the provided text to the External Comments fields of the work, only if the text does not already exist in the field (case-insensitive).
+         *
+         * If the work already has an external comment, the existing text will be terminated with a full stop (if not already present), then the new comment will be appended.
+         *
+         * @param comment the new text to add to the comments field
+         */
+        @Override
+        public void addToCommentsExternal(String comment) {
+            boolean hasExternalComment = isNotBlank(getCommentsExternal());
+            if (!hasExternalComment || !containsIgnoreCase(getCommentsExternal(), comment)) {
+                String existing = trimToEmpty(getCommentsExternal());
+                if (existing.matches(".*[\\.;:]$")) {
+                    existing = existing.substring(0, existing.length() - 1);
+                }
+
+                setCommentsExternal(((hasExternalComment ? existing + ". " : "") + comment).trim());
+            }
+        }
     }
 }
