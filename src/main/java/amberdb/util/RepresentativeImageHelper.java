@@ -52,6 +52,9 @@ public class RepresentativeImageHelper {
         Copy accessCopy = work.getCopy(CopyRole.ACCESS_COPY);
         if (accessCopy != null && accessCopy.getImageFile() != null) {
             return work;
+        } else if (accessCopy == null) {
+            Copy accessOnlyCopy = work.getCopy(CopyRole.ACCESS_ONLY_COPY);
+            return accessOnlyCopy != null && accessOnlyCopy.getImageFile() != null ? work : null;
         }
         return null;
     }

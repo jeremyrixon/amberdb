@@ -31,6 +31,7 @@ public enum CopyRole {
     WORKING_COPY("w", "Working",11, false),
     ANALOGUE_DISTRIBUTION_COPY("ad", "Analogue distribution",12, false),
     ACCESS_COPY("ac", "Access",130, false),
+    ACCESS_ONLY_COPY ("ao", "Access-only copy", 135, false),
     ARCHIVE_COPY("a", "Archive",140, false),
     EDITED_COPY("ed", "Edited",150, false),
     ELECTRONIC_SUMMARY("se", "Electronic summary", "No",160, false),
