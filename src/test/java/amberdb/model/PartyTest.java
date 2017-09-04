@@ -1,12 +1,8 @@
 package amberdb.model;
 
-import static org.junit.Assert.*;
-
-import java.io.IOException;
-import java.nio.file.Paths;
-
-import javax.sql.DataSource;
-
+import amberdb.AmberDb;
+import amberdb.AmberSession;
+import com.google.common.collect.Iterables;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.After;
 import org.junit.Before;
@@ -14,10 +10,10 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.google.common.collect.Iterables;
+import javax.sql.DataSource;
+import java.io.IOException;
 
-import amberdb.AmberDb;
-import amberdb.AmberSession;
+import static org.junit.Assert.*;
 
 public class PartyTest {
     @ClassRule
@@ -29,7 +25,7 @@ public class PartyTest {
     @Before
     public void startup() {
         DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:;MVCC=TRUE;DATABASE_TO_UPPER=false", "amb", "amb");
-        db = new AmberDb(dataSource, Paths.get(folder.getRoot().getPath()));
+        db = new AmberDb(dataSource, folder.getRoot().getAbsolutePath());
         sess = db.begin();
     }
 

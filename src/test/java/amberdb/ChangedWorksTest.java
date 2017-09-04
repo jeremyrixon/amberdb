@@ -1,35 +1,24 @@
 package amberdb;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.net.MalformedURLException;
-import java.nio.file.Paths;
-import java.nio.file.Path;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import javax.sql.DataSource;
-
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-
-import org.junit.rules.TemporaryFolder;
-
 import amberdb.enums.CopyRole;
 import amberdb.model.Copy;
 import amberdb.model.File;
 import amberdb.model.Page;
 import amberdb.model.Work;
-import amberdb.version.VersionedGraph;
+import org.h2.jdbcx.JdbcConnectionPool;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import javax.sql.DataSource;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.util.Date;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
 
 
 public class ChangedWorksTest {
@@ -39,14 +28,14 @@ public class ChangedWorksTest {
     public AmberSession sess;
 
 
-    Path tempPath;
+    String tempPath;
     DataSource src;
     
     @Before
     public void setup() throws MalformedURLException, IOException, Exception {
         System.out.println("Setting up graph");
-        tempPath = Paths.get(tempFolder.getRoot().getAbsolutePath());
-        src = JdbcConnectionPool.create("jdbc:h2:"+tempPath.toString()+"amber;auto_server=true;DATABASE_TO_UPPER=false","sess","sess");
+        tempPath = tempFolder.getRoot().getAbsolutePath();
+        src = JdbcConnectionPool.create("jdbc:h2:"+ tempPath +"amber;auto_server=true;DATABASE_TO_UPPER=false","sess","sess");
         sess = new AmberDb(src, tempPath).begin();
     }
 

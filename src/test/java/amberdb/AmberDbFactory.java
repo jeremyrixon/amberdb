@@ -1,15 +1,12 @@
 package amberdb;
 
-import java.nio.file.Path;
+import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+import org.h2.jdbcx.JdbcConnectionPool;
+
+import javax.sql.DataSource;
 import java.nio.file.Paths;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-
-import javax.sql.DataSource;
-
-import org.h2.jdbcx.JdbcConnectionPool;
-
-import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 public class AmberDbFactory {
 
@@ -26,7 +23,7 @@ public class AmberDbFactory {
             mds.setUser(dbUser);
             mds.setPassword(dbPassword);
             ds = mds;
-            sess = openAmberDb(ds, Paths.get(rootPath));
+            sess = openAmberDb(ds, rootPath);
         } catch (Throwable e) {
             h2Test = true;
             // This is for build integration site which does not have
@@ -36,13 +33,13 @@ public class AmberDbFactory {
             dbUser = "garfield";
             dbPassword = "odde";
             ds = JdbcConnectionPool.create(dbUrl, dbUser, dbPassword);
-            sess = openAmberDb(ds, Paths.get(rootPath));
+            sess = openAmberDb(ds, rootPath);
         }
 
         return sess;
     }
 
-    private static AmberSession openAmberDb(DataSource dataSource, Path rootPath) {
+    private static AmberSession openAmberDb(DataSource dataSource, String rootPath) {
         AmberSession db = new AmberDb(dataSource, rootPath).begin();
         return db;
     }

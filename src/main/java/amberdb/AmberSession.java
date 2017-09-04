@@ -1,31 +1,14 @@
 package amberdb;
 
 
-import static amberdb.graph.BranchType.BRANCH_FROM_ALL;
-import static amberdb.graph.BranchType.BRANCH_FROM_LISTED;
-import static amberdb.graph.BranchType.BRANCH_FROM_PREVIOUS;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
-import javax.sql.DataSource;
-
-import org.apache.commons.lang.StringUtils;
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.skife.jdbi.v2.DBI;
-import org.skife.jdbi.v2.Handle;
-import org.skife.jdbi.v2.Query;
-import org.skife.jdbi.v2.util.LongMapper;
-
+import amberdb.graph.*;
+import amberdb.graph.AmberMultipartQuery.QueryClause;
+import amberdb.model.*;
+import amberdb.query.ModifiedObjectsQueryRequest;
+import amberdb.query.ModifiedObjectsQueryResponse;
+import amberdb.sql.ListLu;
+import amberdb.sql.Lookups;
+import amberdb.version.VersionedVertex;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,36 +26,20 @@ import com.tinkerpop.frames.FramedGraphFactory;
 import com.tinkerpop.frames.modules.gremlingroovy.GremlinGroovyModule;
 import com.tinkerpop.frames.modules.javahandler.JavaHandlerModule;
 import com.tinkerpop.frames.modules.typedgraph.TypedGraphModuleBuilder;
-
-import amberdb.graph.AmberGraph;
-import amberdb.graph.AmberHistory;
-import amberdb.graph.AmberMultipartQuery;
-import amberdb.graph.AmberMultipartQuery.QueryClause;
-import amberdb.graph.AmberPreCommitHook;
-import amberdb.graph.AmberQuery;
-import amberdb.graph.AmberTransaction;
-import amberdb.model.CameraData;
-import amberdb.model.Copy;
-import amberdb.model.Description;
-import amberdb.model.EADWork;
-import amberdb.model.File;
-import amberdb.model.GeoCoding;
-import amberdb.model.IPTC;
-import amberdb.model.ImageFile;
-import amberdb.model.MovingImageFile;
-import amberdb.model.Page;
-import amberdb.model.Party;
-import amberdb.model.Section;
-import amberdb.model.SoundFile;
-import amberdb.model.Tag;
-import amberdb.model.Work;
-import amberdb.model.WorkSummary;
-import amberdb.query.ModifiedObjectsQueryRequest;
-import amberdb.query.ModifiedObjectsQueryResponse;
-import amberdb.sql.ListLu;
-import amberdb.sql.Lookups;
-import amberdb.version.VersionedVertex;
 import doss.BlobStore;
+import org.apache.commons.lang.StringUtils;
+import org.h2.jdbcx.JdbcConnectionPool;
+import org.skife.jdbi.v2.DBI;
+import org.skife.jdbi.v2.Handle;
+import org.skife.jdbi.v2.Query;
+
+import javax.sql.DataSource;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Stream;
+
+import static amberdb.graph.BranchType.*;
 
 
 public class AmberSession implements AutoCloseable {
@@ -115,7 +82,7 @@ public class AmberSession implements AutoCloseable {
         tempDir.deleteOnExit();
 
         // DOSS
-        blobStore = AmberDb.openBlobStore(tempDir.getPath());
+        blobStore = AmberDb.openBlobStore(tempDir.toString());
 
         // Graph
         DataSource dataSource = JdbcConnectionPool.create("jdbc:h2:mem:graph;DB_CLOSE_DELAY=-1;MVCC=TRUE;DATABASE_TO_UPPER=false", "amb", "amb");

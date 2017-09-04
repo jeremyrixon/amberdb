@@ -1,10 +1,7 @@
 package amberdb.cli;
 
-import java.nio.file.Paths;
-
 import amberdb.AmberDb;
 import amberdb.AmberSession;
-
 import com.jolbox.bonecp.BoneCPDataSource;
 
 public class CmdLoadLookups extends Command {
@@ -32,7 +29,7 @@ public class CmdLoadLookups extends Command {
             ds.setUsername(dbUser);
             ds.setPassword(dbPasswd);
             
-            try (AmberSession db = new AmberDb(ds, Paths.get(rootPath)).begin()) {
+            try (AmberSession db = new AmberDb(ds, rootPath).begin()) {
                 db.getLookups().seedInitialLookups();
             }
         } else {

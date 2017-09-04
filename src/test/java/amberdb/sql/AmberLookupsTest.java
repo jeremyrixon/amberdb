@@ -1,11 +1,7 @@
 package amberdb.sql;
 
-import static org.junit.Assert.*;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-
+import amberdb.AmberDb;
+import amberdb.AmberSession;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.After;
 import org.junit.Before;
@@ -13,9 +9,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import amberdb.AmberDb;
-import amberdb.AmberSession;
-import amberdb.util.NaturalSort;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 public class AmberLookupsTest {
     private AmberSession session;
@@ -27,7 +25,7 @@ public class AmberLookupsTest {
 
     @Before
     public void setup() {
-        adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist;DATABASE_TO_UPPER=false","lookups","lookups"), folder.getRoot().toPath());
+        adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist;DATABASE_TO_UPPER=false","lookups","lookups"), folder.getRoot().getAbsolutePath());
         session = adb.begin();
         lookups = session.getLookups();
     }
