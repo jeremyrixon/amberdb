@@ -1,19 +1,18 @@
 package amberdb;
 
-import static org.junit.Assert.*;
+import amberdb.model.Node;
+import amberdb.model.Page;
+import amberdb.model.Work;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import amberdb.model.Node;
-import amberdb.model.Page;
-import amberdb.model.Work;
+import static org.junit.Assert.*;
 
 public class AmberDbOrderingTest {
 
@@ -26,7 +25,7 @@ public class AmberDbOrderingTest {
         Long sessId;
         List<Long> order = new ArrayList<>();
         List<Long> order1 = new ArrayList<>();
-        try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()))) {
+        try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().getAbsolutePath()))) {
             w1 = db.addWork();
             List<Work> pages = new ArrayList<>();
             for (int i = 0; i < 6; i++) {
@@ -43,7 +42,7 @@ public class AmberDbOrderingTest {
             db.commit();
             db.close();
         }
-        try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()), sessId)) {
+        try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().getAbsolutePath()), sessId)) {
             w2 = db.findWork(w1.getId());
             assertNotNull(w2);
             Iterable<Page> pages = w2.getPages();
@@ -54,7 +53,7 @@ public class AmberDbOrderingTest {
             }
             db.close();
         }
-        try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()), sessId)) {
+        try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().getAbsolutePath()), sessId)) {
             w3 = db.findWork(w2.getId());
             assertNotNull(w3);
             List<Work> pages = w3.getPartsOf("Page");
@@ -71,7 +70,7 @@ public class AmberDbOrderingTest {
             }
             db.close();
         }
-        try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()), sessId)) {
+        try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().getAbsolutePath()), sessId)) {
             w4 = db.findWork(w3.getId());
             assertNotNull(w4);
             List<Work> pages = w4.getPartsOf("Page");

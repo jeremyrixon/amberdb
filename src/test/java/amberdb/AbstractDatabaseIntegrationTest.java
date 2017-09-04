@@ -1,8 +1,5 @@
 package amberdb;
 
-import amberdb.AmberDb;
-import amberdb.AmberSession;
-
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.After;
 import org.junit.Before;
@@ -10,9 +7,6 @@ import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
 import javax.sql.DataSource;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.sql.SQLException;
 
 public abstract class AbstractDatabaseIntegrationTest {
 
@@ -21,12 +15,12 @@ public abstract class AbstractDatabaseIntegrationTest {
     public AmberDb amberDb;
     public AmberSession amberSession;
     public DataSource amberSrc;
-    public Path tempPath;
+    public String tempPath;
 
     @Before
     public void setupIntegrationTest() {
         if(amberDb == null) {
-            tempPath = Paths.get(tempFolder.getRoot().getAbsolutePath());
+            tempPath = tempFolder.getRoot().getAbsolutePath();
             amberSrc = JdbcConnectionPool.create("jdbc:h2:mem:amber;DB_CLOSE_DELAY=-1;MVCC=true;DATABASE_TO_UPPER=false", "", "");
             amberDb = new AmberDb(amberSrc, tempPath);
         }
