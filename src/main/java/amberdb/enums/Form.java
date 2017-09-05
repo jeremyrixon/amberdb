@@ -9,7 +9,14 @@ public enum Form {
     JOURNAL("Journal"),
     MULTIBOOK("Multi Volume Book"),
     MANUSCRIPT("Manuscript"),
+    MAP("Map"),
+    MUSIC("Music"),
     PICTURE("Picture"),
+    SOUND_RECORDING("Sound recording"),
+    OTHER_AUSTRALIAN("Other - Australian"),
+    OTHER_GENERAL("Other - General"),
+    INTERNAL_PHOTOGRAPH("Internal photograph"),
+    CONSERVATION("Conservation"),
     DIGITALPUBLICATION("Digital Publication");
 
     private String code;
