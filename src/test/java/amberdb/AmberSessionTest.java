@@ -44,7 +44,7 @@ public class AmberSessionTest {
         }
         sess.commit();
 
-        AmberDb adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:" + tmpFolder.getRoot() + "persist;DATABASE_TO_UPPER=false", "lookups", "lookups"), tmpFolder.getRoot().toPath());
+        AmberDb adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:" + tmpFolder.getRoot() + "persist;DATABASE_TO_UPPER=false", "lookups", "lookups"), tmpFolder.getRoot().getAbsolutePath());
         sessionWithLookups = adb.begin();
     }
 

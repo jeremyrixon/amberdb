@@ -22,8 +22,6 @@ import org.junit.rules.TemporaryFolder;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -41,13 +39,13 @@ public class AmberHistoryTransactionsSinceTest {
     
     public AmberGraph graph;
 
-    Path tempPath;
+    String tempPath;
     DataSource src;
     
     @Before
     public void setup() throws MalformedURLException, IOException {
-        tempPath = Paths.get(tempFolder.getRoot().getAbsolutePath());
-        src = JdbcConnectionPool.create("jdbc:h2:"+tempPath.toString()+"amber;auto_server=true;DATABASE_TO_UPPER=false","sess","sess");
+        tempPath = tempFolder.getRoot().getAbsolutePath();
+        src = JdbcConnectionPool.create("jdbc:h2:"+ tempPath +"amber;auto_server=true;DATABASE_TO_UPPER=false","sess","sess");
         graph = new AmberGraph(src);
     }
 
