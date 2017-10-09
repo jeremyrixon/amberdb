@@ -1,6 +1,14 @@
 package amberdb;
 
-import static org.junit.Assert.*;
+import amberdb.enums.CopyRole;
+import amberdb.model.Copy;
+import amberdb.model.File;
+import amberdb.model.Page;
+import amberdb.model.Work;
+import org.h2.jdbcx.JdbcConnectionPool;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,17 +16,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import amberdb.enums.CopyRole;
-import amberdb.model.Copy;
-import amberdb.model.File;
-import amberdb.model.Page;
-import amberdb.model.Work;
-import amberdb.NoSuchObjectException;
+import static org.junit.Assert.*;
 
 public class AmberDbTest {
 
@@ -30,11 +28,11 @@ public class AmberDbTest {
     public void testPersistence() throws IOException {
         Work w1, w2;
         Long sessId;
-        try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()))) {
+        try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().getAbsolutePath()))) {
             w1 = db.addWork();
             sessId = db.suspend();
         }
-        try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()), sessId)) {
+        try (AmberSession db = new AmberSession(AmberDb.openBlobStore(folder.getRoot().getAbsolutePath()), sessId)) {
             assertNotNull(db.findWork(w1.getId()));
             w2 = db.addWork();
             db.commit();
@@ -50,7 +48,7 @@ public class AmberDbTest {
         Files.write(tmpFile, "Hello world".getBytes());
 
         
-        AmberDb adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist;DATABASE_TO_UPPER=false","per","per"), folder.getRoot().toPath());
+        AmberDb adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist;DATABASE_TO_UPPER=false","per","per"), folder.getRoot().getAbsolutePath());
         
         Long sessId;
         Long bookId;
@@ -82,7 +80,7 @@ public class AmberDbTest {
         }
         // next, persist the session (by closing it) open a new one and get the contents
 
-        adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist;DATABASE_TO_UPPER=false","per","per"), folder.getRoot().toPath());
+        adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist;DATABASE_TO_UPPER=false","per","per"), folder.getRoot().getAbsolutePath());
         try (AmberSession db = adb.begin()) {
 
             Work book2 = db.findWork(bookId);
@@ -101,7 +99,7 @@ public class AmberDbTest {
     @Test
     public void testSuspendResume() throws IOException {
         
-        AmberDb adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist;DATABASE_TO_UPPER=false","per","per"), folder.getRoot().toPath());
+        AmberDb adb = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist;DATABASE_TO_UPPER=false","per","per"), folder.getRoot().getAbsolutePath());
         
         Long sessId;
         Long bookId;
@@ -115,7 +113,7 @@ public class AmberDbTest {
             sessId = db.suspend();
         }
 
-        AmberDb adb2 = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist;DATABASE_TO_UPPER=false","per","per"), folder.getRoot().toPath());
+        AmberDb adb2 = new AmberDb(JdbcConnectionPool.create("jdbc:h2:"+folder.getRoot()+"persist;DATABASE_TO_UPPER=false","per","per"), folder.getRoot().getAbsolutePath());
         try (AmberSession db = adb2.resume(sessId)) {
             
             // now, can we retrieve the files ?
@@ -132,14 +130,14 @@ public class AmberDbTest {
         Long sessId;
 
         // Suspend a session with a work
-        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()))) {
+        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().getAbsolutePath()))) {
             w1 = session.addWork();
             id = w1.getId();
             sessId = session.suspend();
         }
 
         // Check it's not in amber
-        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()))) {
+        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().getAbsolutePath()))) {
             boolean thrown = false;
             try {
                 session.findWork(id);
@@ -150,12 +148,12 @@ public class AmberDbTest {
         }
 
         // Commit from separate session
-        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()))) {
+        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().getAbsolutePath()))) {
             session.commitPersistedSession(sessId, "user", "testing");
         }
 
         // Check it's now in amber
-        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()))) {
+        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().getAbsolutePath()))) {
             w2 = session.findWork(id);
             assertEquals(w1, w2);
         }
@@ -168,25 +166,25 @@ public class AmberDbTest {
         Long sessId;
 
         // Suspend a session with a work
-        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()))) {
+        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().getAbsolutePath()))) {
             w1 = session.addWork();
             id = w1.getId();
             sessId = session.suspend();
         }
 
         // Check it can be resumed (and its contents found)
-        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()), sessId)) {
+        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().getAbsolutePath()), sessId)) {
             w2 = session.findWork(id);
             assertEquals(w1, w2);
         }
 
         // Remove the session
-        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()))) {
+        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().getAbsolutePath()))) {
             session.removePersistedSession(sessId);
         }
 
         // Check that it's gone (nothing restored)
-        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().toPath()), sessId)) {
+        try (AmberSession session = new AmberSession(AmberDb.openBlobStore(folder.getRoot().getAbsolutePath()), sessId)) {
             boolean thrown = false;
             try {
                 session.findWork(id);
