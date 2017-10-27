@@ -485,4 +485,33 @@ public class AmberSessionTest {
        sess.deleteWork(book);
        sess.commit();
     }
+
+    @Test
+    public void testRevertingAWorkFromASession() throws Exception {
+        Work book = makeBook();
+
+        int modifiedItems = sess.getAmberGraph().getModifiedElementCount();
+
+        assertTrue("There should be pending changes", modifiedItems > 0);
+
+        sess.revertWork(book);
+
+        modifiedItems = sess.getAmberGraph().getModifiedElementCount();
+
+        assertEquals("All changes should have been removed because we reverted the whole work", 0, modifiedItems);
+
+        Work book1 = makeBook();
+        int book1Changes = sess.getAmberGraph().getModifiedElementCount();
+        Work book2 = makeBook();
+        book2.addAcknowledgement(sess.addParty("fred"));
+        int allChanges = sess.getAmberGraph().getModifiedElementCount();
+
+        sess.revertWork(book1);
+
+        assertEquals(allChanges - book1Changes, sess.getAmberGraph().getModifiedElementCount());
+
+        sess.revertWork(book2);
+
+        assertEquals("All changes should have been removed because we reverted both works", 0, sess.getAmberGraph().getModifiedElementCount());
+    }
 }

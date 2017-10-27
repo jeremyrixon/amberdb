@@ -6,6 +6,7 @@ import amberdb.graph.AmberMultipartQuery.QueryClause;
 import amberdb.model.*;
 import amberdb.query.ModifiedObjectsQueryRequest;
 import amberdb.query.ModifiedObjectsQueryResponse;
+import amberdb.relation.Acknowledge;
 import amberdb.sql.ListLu;
 import amberdb.sql.Lookups;
 import amberdb.version.VersionedVertex;
@@ -222,7 +223,6 @@ public class AmberSession implements AutoCloseable {
     public void rollback() {
         ((TransactionalGraph) graph).rollback();
     }
-
 
     public JsonNode serializeToJson() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -485,6 +485,49 @@ public class AmberSession implements AutoCloseable {
         graph.removeVertex(work.asVertex());
     }
 
+    /**
+     * Clear all changes made to the provided work, AND ITS RELATED RECORDS (e.g. copies, chldren, descriptions etc) from the current session
+     *
+     * @param work The modified work to revert
+     */
+    public void revertWork(Work work) {
+        AmberGraph g = getAmberGraph();
+
+        // recursively revert all children and their descendants
+        Iterable<Work> children = work.getChildren();
+        if (children != null) {
+            for (Work child : children) {
+                revertWork(child);
+            }
+        }
+
+        Iterable<Copy> copies = work.getCopies();
+        if (copies != null) {
+            for (Copy copy : copies) {
+                revertCopy(copy);
+            }
+        }
+
+        for (Description desc : work.getDescriptions()) {
+            g.revertVertex(desc.asVertex());
+        }
+
+        for (Tag desc : work.getTags()) {
+            g.revertVertex(desc.asVertex());
+        }
+
+        for (Acknowledge ack : work.getAcknowledgements()) {
+            g.revertEdge(ack.asEdge());
+
+            if (ack.getParty() != null) {
+                g.revertVertex(ack.getParty().asVertex());
+            }
+        }
+
+        // revert work
+        g.revertVertex(work.asVertex());
+    }
+
 
     public Map<String, Integer> deleteWorksFast(Map<String, Integer> counts, final Work... works) {
 
@@ -565,6 +608,20 @@ public class AmberSession implements AutoCloseable {
         graph.removeVertex(copy.asVertex());
     }
 
+    /**
+     * Clear all changes made to the provided copy, and its related files, from the current session
+     *
+     * @param copy The modified copy to revert
+     */
+    public void revertCopy(final Copy copy) {
+        AmberGraph g = getAmberGraph();
+
+        for (File file : copy.getFiles()) {
+            revertFile(file);
+        }
+
+        g.revertVertex(copy.asVertex());
+    }
 
     /**
      * Delete the vertices representing a file including its descriptions.
@@ -577,6 +634,21 @@ public class AmberSession implements AutoCloseable {
         graph.removeVertex(file.asVertex());
     }
 
+    /**
+     * Clear all changes made to the provided file and any related descriptions from the current session
+     *
+     * @param file The modified file to revert
+     */
+    public void revertFile(final File file) {
+        AmberGraph g = getAmberGraph();
+
+        for (Description desc : file.getDescriptions()) {
+            g.revertVertex(desc.asVertex());
+        }
+
+        g.revertVertex(file.asVertex());
+    }
+
 
     /**
      * Noting deletion of all the vertices representing the work, its copies, and its copy files
@@ -585,6 +657,9 @@ public class AmberSession implements AutoCloseable {
      */
     public void deletePage(final Page page) {
         deleteWork(page);
+    }
+    public void revertPage(final Page page) {
+        revertWork(page);
     }
 
 
