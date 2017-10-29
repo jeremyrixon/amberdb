@@ -514,4 +514,36 @@ public class AmberSessionTest {
 
         assertEquals("All changes should have been removed because we reverted both works", 0, sess.getAmberGraph().getModifiedElementCount());
     }
+
+    @Test
+    public void testRevertingAWorkFromASessionWithCommits() throws Exception {
+        Work book = makeBook();
+        book.setTitle("original title");
+
+        sess.commit();
+
+        int modifiedItems = sess.getAmberGraph().getModifiedElementCount();
+
+        assertEquals("There should be no pending changes", 0, modifiedItems);
+
+        Work update = sess.findWork(book.getObjId());
+
+        update.setTitle("new title");
+
+        modifiedItems = sess.getAmberGraph().getModifiedElementCount();
+
+        assertEquals("There should be 1 pending change", 1, modifiedItems);
+        assertEquals("The title of the work in the session should be updated", "new title", sess.findWork(book.getObjId()).getTitle());
+
+        sess.revertWork(update);
+        modifiedItems = sess.getAmberGraph().getModifiedElementCount();
+
+        assertEquals("There should be 0 pending changes", 0, modifiedItems);
+
+        sess.commit();
+
+        AmberSession cleanSession = new AmberSession(LocalBlobStore.open(dossLocation));
+
+        assertEquals("The title of the work in the DB should be not have changed", "original title", cleanSession.findWork(book.getObjId()).getTitle());
+    }
 }
