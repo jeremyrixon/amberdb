@@ -28,7 +28,7 @@ import static amberdb.graph.State.*;
 
 public class AmberGraph extends BaseGraph 
         implements Graph, TransactionalGraph, IdGenerator, 
-        ElementModifiedListener, EdgeFactory, VertexFactory {
+        ElementModifiedListener, EdgeFactory, VertexFactory, RevertableGraph {
 
     private static final int COMMIT_BATCH_SIZE = 4000;
     private static final int BIG_COMMIT_THRESHOLD = 20000;
@@ -217,6 +217,62 @@ public class AmberGraph extends BaseGraph
         }
         removedVertices.put(v.getId(), v);
         super.removeVertexWithoutGuard(v); // existence check already performed above
+    }
+
+    @Override
+    public void revertVertex(Vertex v) {
+        if (!graphVertices.containsKey(v.getId())) {
+            throw new IllegalStateException("Cannot remove non-existent vertex : " + v.getId());
+        }
+
+        for (Edge e : v.getEdges(Direction.BOTH)) {
+            revertEdge(e);
+        }
+
+        removedVertices.remove(v.getId());
+        removeVertex(newVertices, v);
+        removeVertex(modifiedVertices, v);
+
+        if (graphVertices.containsKey(v.getId())) {
+            graphVertices.remove(v.getId());
+        }
+    }
+
+    @Override
+    public void revertEdge(Edge e) {
+        removedEdges.remove(e.getId());
+        removeEdge(newEdges, e);
+        removeEdge(modifiedEdges, e);
+
+        if (graphEdges.containsKey(e.getId())) {
+            graphEdges.remove(e.getId());
+        }
+    }
+
+    private void removeEdge(Set<Edge> edges, Edge edge) {
+        if (!edges.remove(edge)) {
+            Iterator<Edge> iterator = edges.iterator();
+
+            while (iterator.hasNext()) {
+                Edge next = iterator.next();
+                if (next.getId() != null && next.getId().equals(edge.getId())) {
+                    iterator.remove();
+                }
+            }
+        }
+    }
+
+    private void removeVertex(Set<Vertex> vertices, Vertex vertex) {
+        if (!vertices.remove(vertex)) {
+            Iterator<Vertex> iterator = vertices.iterator();
+
+            while (iterator.hasNext()) {
+                Vertex next = iterator.next();
+                if (next.getId() != null && next.getId().equals(vertex.getId())) {
+                    iterator.remove();
+                }
+            }
+        }
     }
 
     @Override
@@ -415,7 +471,7 @@ public class AmberGraph extends BaseGraph
         return edges;
     }
 
-    private int getModifiedElementCount() {
+    public int getModifiedElementCount() {
         return newVertices.size() +
                 modifiedVertices.size() +
                 removedVertices.size() +
