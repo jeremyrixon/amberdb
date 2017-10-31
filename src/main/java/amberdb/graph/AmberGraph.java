@@ -232,10 +232,6 @@ public class AmberGraph extends BaseGraph
         removedVertices.remove(v.getId());
         removeVertex(newVertices, v);
         removeVertex(modifiedVertices, v);
-
-        if (graphVertices.containsKey(v.getId())) {
-            graphVertices.remove(v.getId());
-        }
     }
 
     @Override
@@ -243,10 +239,6 @@ public class AmberGraph extends BaseGraph
         removedEdges.remove(e.getId());
         removeEdge(newEdges, e);
         removeEdge(modifiedEdges, e);
-
-        if (graphEdges.containsKey(e.getId())) {
-            graphEdges.remove(e.getId());
-        }
     }
 
     private void removeEdge(Set<Edge> edges, Edge edge) {
