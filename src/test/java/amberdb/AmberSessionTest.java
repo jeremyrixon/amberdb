@@ -513,12 +513,6 @@ public class AmberSessionTest {
         sess.revertWork(book2);
 
         assertEquals("All changes should have been removed because we reverted both works", 0, sess.getAmberGraph().getModifiedElementCount());
-        try {
-            sess.findWork(book2.getObjId());
-            fail("Should have thrown a NoSuchObjectException since book2 did not exist before this session, and was reverted");
-        } catch (NoSuchObjectException e) {
-            // fail check is above
-        }
     }
 
     @Test
