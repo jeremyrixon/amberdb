@@ -485,4 +485,65 @@ public class AmberSessionTest {
        sess.deleteWork(book);
        sess.commit();
     }
+
+    @Test
+    public void testRevertingAWorkFromASession() throws Exception {
+        Work book = makeBook();
+
+        int modifiedItems = sess.getAmberGraph().getModifiedElementCount();
+
+        assertTrue("There should be pending changes", modifiedItems > 0);
+
+        sess.revertWork(book);
+
+        modifiedItems = sess.getAmberGraph().getModifiedElementCount();
+
+        assertEquals("All changes should have been removed because we reverted the whole work", 0, modifiedItems);
+
+        Work book1 = makeBook();
+        int book1Changes = sess.getAmberGraph().getModifiedElementCount();
+        Work book2 = makeBook();
+        book2.addAcknowledgement(sess.addParty("fred"));
+        int allChanges = sess.getAmberGraph().getModifiedElementCount();
+
+        sess.revertWork(book1);
+
+        assertEquals(allChanges - book1Changes, sess.getAmberGraph().getModifiedElementCount());
+
+        sess.revertWork(book2);
+
+        assertEquals("All changes should have been removed because we reverted both works", 0, sess.getAmberGraph().getModifiedElementCount());
+    }
+
+    @Test
+    public void testRevertingAWorkFromASessionWithCommits() throws Exception {
+        Work book = makeBook();
+        book.setTitle("original title");
+
+        sess.commit();
+
+        int modifiedItems = sess.getAmberGraph().getModifiedElementCount();
+
+        assertEquals("There should be no pending changes", 0, modifiedItems);
+
+        Work update = sess.findWork(book.getObjId());
+
+        update.setTitle("new title");
+
+        modifiedItems = sess.getAmberGraph().getModifiedElementCount();
+
+        assertEquals("There should be 1 pending change", 1, modifiedItems);
+        assertEquals("The title of the work in the session should be updated", "new title", sess.findWork(book.getObjId()).getTitle());
+
+        sess.revertWork(update);
+        modifiedItems = sess.getAmberGraph().getModifiedElementCount();
+
+        assertEquals("There should be 0 pending changes", 0, modifiedItems);
+
+        sess.commit();
+
+        AmberSession cleanSession = new AmberSession(LocalBlobStore.open(dossLocation));
+
+        assertEquals("The title of the work in the DB should be not have changed", "original title", cleanSession.findWork(book.getObjId()).getTitle());
+    }
 }
