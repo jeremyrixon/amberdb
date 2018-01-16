@@ -956,19 +956,25 @@ public class AmberSession implements AutoCloseable {
         for (Work work : works) {
 
             /* first, get children works */
-            List<Work> children = Lists.newArrayList(work.getChildren());
+            List<Work> children = Lists.newArrayList(work.getChildren() == null ? Collections.emptyList() : work.getChildren());
 
             /* next, to avoid cycles, delete the work (plus all its sub-objects) */
 
             // copies
-            for (Copy copy : work.getCopies()) {
-                deleteCopy(counts, copy);
+            Iterable<Copy> copies = work.getCopies();
+            if (copies != null) {
+                for (Copy copy : work.getCopies()) {
+                    deleteCopy(counts, copy);
+                }
             }
 
             // descriptions
-            for (Description desc : work.getDescriptions()) {
-                graph.removeVertex(desc.asVertex());
-                increment(counts, "Description");
+            Iterable<Description> descriptions = work.getDescriptions();
+            if (descriptions != null) {
+                for (Description desc : work.getDescriptions()) {
+                    graph.removeVertex(desc.asVertex());
+                    increment(counts, "Description");
+                }
             }
 
             // the work itself
