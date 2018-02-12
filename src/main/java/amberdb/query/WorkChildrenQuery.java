@@ -162,14 +162,14 @@ public class WorkChildrenQuery extends AmberQueryBase {
     private String getAddChildrenWorkSortBySql(Long workId, int start, int num, String sortBy, boolean asc) {
         StringBuilder sb = new StringBuilder();
         sb.append("INSERT INTO v1 (id, obj_type, ord, nullOrder, sortField) "
-                + " SELECT DISTINCT v.id, 'W' obj_type, e.edge_order, case when " + sortBy + " is null then 1 else 0 end, substring(p1." + sortBy + ", 1, " + TEMP_TABLE_SORT_FIELD_LENGTH + ")"
+                + " SELECT DISTINCT v.id, 'W' obj_type, e.edge_order, case when p1." + sortBy + " is null then 1 else 0 end, substring(p1." + sortBy + ", 1, " + TEMP_TABLE_SORT_FIELD_LENGTH + ")"
                 + " FROM node v "
                 + " INNER JOIN work p1 "
                 + " ON p1.id = v.id AND p1.type IN " + workNotSectionInList
                 + " INNER JOIN flatedge e "
                 + " ON e.v_out = v.id AND e.label = 'isPartOf' "
                 + " WHERE e.v_in = " + workId
-                + " ORDER BY case when " + sortBy + " is null then 1 else 0 end, substring(p1." + sortBy + ", 1, " + TEMP_TABLE_SORT_FIELD_LENGTH + ") "
+                + " ORDER BY case when p1." + sortBy + " is null then 1 else 0 end, substring(p1." + sortBy + ", 1, " + TEMP_TABLE_SORT_FIELD_LENGTH + ") "
         ); //null always last whether asc or desc
         if (!asc){
             sb.append(" desc ");

@@ -13,7 +13,8 @@ public enum SubUnitType {
     COVER_BACK("Cover - Back"), 
     COVER_FRONT("Cover - Front"), 
     COVER_INSIDE_BACK("Cover - Inside Back"), 
-    COVER_INSIDE_FRONT("Cover - Inside Front"), 
+    COVER_INSIDE_FRONT("Cover - Inside Front"),
+    CORRIGENDUM("Corrigendum"),
     ENCLOSURE("Enclosure"), 
     ENVELOPE("Envelope"),
     FILE("File"),
@@ -51,6 +52,7 @@ public enum SubUnitType {
     SUBFONDS("Subfonds"),
     SUBGRP("Subgrp"),
     SUBSERIES("Subseries"),
+    SUPPLEMENTARY_MATERIAL("Supplementary Material"),
     TILE("Tile"), 
     VERSO("Verso"), 
     VOLUME("Volume"); 
