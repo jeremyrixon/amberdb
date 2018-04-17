@@ -10,8 +10,10 @@ import amberdb.graph.AmberGraph;
 import amberdb.graph.AmberQuery;
 import amberdb.graph.AmberVertex;
 import amberdb.relation.*;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
@@ -320,6 +322,63 @@ public interface Work extends Node {
 
     @Property("accessConditionReasonForChangeSum")
     void setAccessConditionReasonForChangeSum(String accessConditionReasonForChangeSum);
+
+    /**
+     * The 'Owner Library' is the NUC symbol of the library that is responsible for this material.
+     * This is primarily used for material ingested through the National Edeposit (NED aka NDDN) system,
+     * where publishers (and their deposited material) are assigned to a member library as as the primary
+     * owner of that data. Even though all NED material is ingested into NLA systems, the NLA is not
+     * necessarily the 'owner library' e.g. the State Library of NSW could be the 'owner'.
+     */
+    @Property("ownerLibrary")
+    public void setOwnerLibrary(String ownerLibrary);
+    @Property("ownerLibrary")
+    public String getOwnerLibrary();
+
+    /**
+     * This property is encoded as a JSON Array - You probably want to use getAccessOnsiteAt to get this property.
+     *
+     * The AccessOnsiteAt property is a JSON array of NUC symbols identifying all libraries OTHER THAN THE NLA where
+     * the work can be accessed Onsite. This is used in conjunction with the ONSITE_ONLY access condition.
+     *
+     * E.g. If the AccessOnsiteAt field was ["NSW","VIC"] (where NSW and VIC are the real NUCs for those state libraries),
+     * and the Work's access condition is ONSITE_ONLY, then the work can be viewed in the NLA's reading rooms AND the
+     * NSW and VIC library reading rooms.
+     */
+    @Property("accessOnsiteAt")
+    public String getJSONAccessOnsiteAt();
+
+    /**
+     * This property is encoded as a JSON Array - You probably want to use setAccessOnsiteAt to set this property
+     */
+    @Property("accessOnsiteAt")
+    public void setJSONAccessOnsiteAt(String accessOnsiteAt);
+
+    /**
+     * This method handles the JSON serialisation of the AccessOnsiteAt Property
+     * @throws IOException
+     * @throws JsonMappingException
+     * @throws JsonParseException
+     */
+    @JavaHandler
+    public void setAccessOnsiteAt(List<String> accessOnsiteAt) throws JsonParseException, JsonMappingException, IOException;
+
+    /**
+     * The AccessOnsiteAt property is a JSON array of NUC symbols identifying all libraries OTHER THAN THE NLA where
+     * the work can be accessed Onsite. This is used in conjunction with the ONSITE_ONLY access condition.
+     *
+     * E.g. If the AccessOnsiteAt field was ["NSW","VIC"] (where NSW and VIC are the real NUCs for those state libraries),
+     * and the Work's access condition is ONSITE_ONLY, then the work can be viewed in the NLA's reading rooms AND the
+     * NSW and VIC library reading rooms.
+     *
+     * This method handles the JSON deserialisation of the AccessOnsiteAt Property
+     * @throws IOException
+     * @throws JsonMappingException
+     * @throws JsonParseException
+     */
+    @JavaHandler
+    public List<String> getAccessOnsiteAt() throws JsonParseException, JsonMappingException, IOException;
+
 
     @Property("firstPart")
     @Deprecated
@@ -1162,7 +1221,7 @@ public interface Work extends Node {
 
     /**
      * Get the first not null copy from the specified list of Copy roles
-     * @param role
+     * @param roles
      * @return
      */
     @JavaHandler
@@ -1518,6 +1577,20 @@ public interface Work extends Node {
                     setHoldingNumber(splitted.get(0));
                 }
             }
+        }
+
+        @Override
+        public List<String> getAccessOnsiteAt() {
+            String access = getJSONAccessOnsiteAt();
+            if (access == null || access.isEmpty())
+                return new ArrayList<>();
+
+            return deserialiseJSONString(access);
+        }
+
+        @Override
+        public void setAccessOnsiteAt(List<String> accessOnsiteAt) throws JsonProcessingException {
+            setJSONAccessOnsiteAt(serialiseToJSON(accessOnsiteAt));
         }
 
         private List<Edge> parts() {
