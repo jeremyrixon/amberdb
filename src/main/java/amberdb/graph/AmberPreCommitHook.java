@@ -18,13 +18,16 @@ public abstract class AmberPreCommitHook<T> {
             Section.class.getAnnotation(TypeValue.class).value()
     ).build();
 
-    public static List<String> COPY_TYPES= ImmutableList.<String>builder().add(
+    public static List<String> COPY_TYPES = ImmutableList.<String>builder().add(
             Copy.class.getAnnotation(TypeValue.class).value()
     ).build();
 
-
-    public static List<String> SOUND_FILE_TYPES= ImmutableList.<String>builder().add(
+    public static List<String> SOUND_FILE_TYPES = ImmutableList.<String>builder().add(
             SoundFile.class.getAnnotation(TypeValue.class).value()
+    ).build();
+
+    public static List<String> MOVINGIMAGE_FILE_TYPES = ImmutableList.<String>builder().add(
+            MovingImageFile.class.getAnnotation(TypeValue.class).value()
     ).build();
 
     public abstract boolean shouldHook(List<T> added, List<T> modified, List<T> deleted);
