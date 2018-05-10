@@ -57,7 +57,7 @@ public class WorkComparator implements Comparator<Work> {
 
         // easy comparisons for Strings, Booleans, Dates and a variety of number formats
         if (o1 instanceof String){
-            int i = NaturalSort.compareNatural(((String)o1).replaceAll("(\\s+)", "' '"), ((String)o2).replaceAll("(\\s+)", "' '"));
+            int i = NaturalSort.compareNatural(quoteSpecialCharacters(o1), quoteSpecialCharacters(o2));
             return sortForward ? i : -i;
         } else if (o1 instanceof Comparable) {
             int i = ((Comparable) o1).compareTo(o2);
@@ -66,5 +66,11 @@ public class WorkComparator implements Comparator<Work> {
 
         // can't decide how to compare - call them equal
         return fallbackOrder;
+    }
+
+    private String quoteSpecialCharacters(Object o) {
+        // As NaturalSort uses RuleBasedCollator, quote whitespace and rule syntax characters so they are accounted for.
+        // The special characters are defined in https://docs.oracle.com/javase/8/docs/api/index.html?java/text/RuleBasedCollator.html
+        return ((String)o).replaceAll("([\\s\\x21-\\x2F\\x3A-\\x40\\x5B-\\x60,\\x7B-\\x7E])", "'$1'");
     }
 }
