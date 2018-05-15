@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public enum DepositType {
-	NEDOnlineGovernment("NED Online government deposit"),
-	NEDOnlineLegal("NED Online legal deposit"),
+	NEDOnlineDeposit("National edeposit"),
 	OnlineLegal("Online legal deposit"),
 	OnlineGovernment("Online government deposit"),
 	OnlineVoluntary("Online voluntary deposit"),
@@ -14,7 +13,7 @@ public enum DepositType {
     
     private String code;
     
-    private DepositType(String code) {
+    DepositType(String code) {
         this.code = code;
     }
     
